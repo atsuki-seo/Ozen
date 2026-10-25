@@ -204,7 +204,7 @@
   - macOS のジョブ（arm64）: 端末用とシミュレーター用の静的ライブラリ、`.xcframework`、Swift から呼ぶテスト、シミュレーターでの golden と digest。
   - Android のジョブ（KVM のある Linux のランナー）: NDK でのビルド（4 つの ABI）、エミュレーターでの golden と digest、JNI のテスト。
   - 手元でも、Linux の JVM での JNI のテストと、Linux の Swift での module map のテストを回す（端末の環境の前に、橋渡しの誤りを手元で見つける）。
-  - リポジトリの作成と push は外部への公開に当たるので、P5-3 の着手時に改めて確認する。その後も、CI の結果を読むタスク（P5-3、P11-3〜P11-5、P12-2、P13-5、P16-4）の push は、そのつど push する範囲を示して確認を取る（`~/.claude/rules/git-commit.md`）。
+  - リポジトリは、ユーザーの指示で P5-3 より前の 2026-10-26 に `atsuki-seo/Ozen`（公開）として作り、`main` を push した。push の前には毎回 `G-REPO-NOREPLY` を回す（S475）。その後も、CI の結果を読むタスク（P5-3、P11-3〜P11-5、P12-2、P13-5、P16-4）の push は、そのつど push する範囲を示して確認を取る（`~/.claude/rules/git-commit.md`）。
 - 代替 A: CI を使わず手元で回す。Android は手元のエミュレーター（SDK とシステムイメージのダウンロード）で、iOS はユーザーの Mac でスクリプトを 1 本実行してもらい、出た digest を貼ってもらう（比べるのは機械）。concept §10 の「CI で常時」は満たさない。
 - 代替 B: iOS と Android の端末での実行を確かめず、ビルドだけを確かめる。
 
@@ -398,6 +398,7 @@
 - **S5** `NOTICE` と `data/mext-fct-2023/README.md` に「日本食品標準成分表（八訂）増補2023年から引用」の文言がある。README には取得元の URL、取得日、元のファイル名、sha256 を、それぞれ `- Source URL:`・`- Retrieved:`・`- File:`・`- SHA-256:` で始まる行に書く。
 - **S6** `README.md` に、パスの組とライセンスの区分の表（コードと表の元: `MIT OR Apache-2.0`、`docs/`・`plans/`・`spec/samples/`: `CC-BY-4.0`、`data/mext-fct-2023/`: その README の条件）と、次の一文がある: `Recipes you write in Ozen and the schedules and IR the compiler produces are yours; the Ozen licenses do not apply to them.`
 - **S409** `CLAUDE.md` に、D3 の言語の規則（`docs/` と報告書は日本語、それ以外は英語）が書かれている。
+- **S475** 公開するコミットの作者とコミッターのメールは GitHub の noreply アドレスだけで、追跡するファイルにユーザーの個人のメールアドレスが現れない（ユーザーの方針「メールは公開しない」、2026-10-26）。この検査は push の前に毎回回す。
 
 ### 4.2 表の形式（D5）
 
@@ -1384,6 +1385,7 @@ IR:
 | `G-REND-VENDOR` | 取り込んだ外部のファイル（D23 の Fluent、P10-3 の SARIF のスキーマ） | ライセンスの本文があり、`renderers/vendor/README.md` と `schemas/vendor/README.md` の版と sha256 がファイルと一致 |
 | `G-BUNDLE-STABLE` | S400 | 2 回の出力が 1 バイトも違わず、`cgolden/bundle/order-by-name` が合格 |
 | `G-REPO-CLAUDEMD` | S409 | 2 つの文がそれぞれ 1 以上 |
+| `G-REPO-NOREPLY` | S475（push の前に毎回） | 全コミットのメールが `146819854+atsuki-seo@users.noreply.github.com` だけ、このリポジトリの `user.email` も同じ、追跡するファイルに個人のメールが 0 件 |
 | `G-STD-STATIC` | S458〜S461 | `std-static: <n> definitions, 0 naming, 0 provisional-point, 0 fct-inline, 0 capability-unprovided` |
 | `G-REND-HTML` | S452〜S454 | `html: <n> files, 0 not well-formed; gantt: <g> charts, 0 overlaps, 0 out of bounds; form: <f> inputs, 0 without label, 0 quantity without unit` |
 | `G-REND-PHRASES-RENDER` | S451 | `render-phrases: <n> samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved` |
@@ -1610,6 +1612,10 @@ python3 tools/htmlcheck/htmlcheck.py build/results/html   # → html: … 0 not 
 node renderers/tools/render-all.mjs --langs ja,en build/results/json   # → render-phrases: <n> samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved
 # G-SAMPLE-STD-ONLY
 git grep -nE '^[[:space:]]*(local[[:space:]]+)?(ingredient|action|unit|kind|vessel|dirt|trait)[[:space:]]' -- samples | wc -l   # → 0
+# G-REPO-NOREPLY（push の前に毎回。個人のメールはこの計画に書かず、git の全体の設定から読む）
+git log --all --format='%ae%n%ce' | sort -u | tr '\n' ' '                 # → 146819854+atsuki-seo@users.noreply.github.com
+git config --local user.email                                             # → 146819854+atsuki-seo@users.noreply.github.com
+git grep -nF "$(git config --global user.email)" -- . | wc -l               # → 0
 # G-REPO-CLAUDEMD
 grep -c 'docs/' CLAUDE.md; grep -ciE 'japanese|日本語' CLAUDE.md   # → それぞれ 1 以上
 # G-BUNDLE-STABLE
@@ -1849,6 +1855,7 @@ gh run download "$id" -n xcframework -D build/ios && unzip -l build/ios/OzenProt
 | S473 | 効かない条件 | `fx/sample-ng/cut-after-pureed` | `pureed` を細かさの関係に入れない | P2-2 |
 | S471 | 文書との一致 | §8（機械で決められない理由: `pureed` を足す規則は本計画が補ったもので、料理として妥当かは人が判断する） | — | — |
 | S474 | 正常系 | `cgolden/state/blend-*`（3 個。1 つ・並び・`pureed` の後の `cut`） | コアで `blend` を `cut` と同じに扱う | P8-2 |
+| S475 | 効かない条件 | `G-REPO-NOREPLY` | 使い捨ての複製で、作者を個人のメールにしたコミットを足す | P0-3 |
 | S62 | 効かない条件 | `golden/syntax/utf8-invalid` | UTF-8 の検査を外す | P4-3 |
 | S63 | 効かない条件 | `golden/syntax/ident-nonascii` | 識別子に UTF-8 を許す | P4-3 |
 | S64 | 正常系 | `golden/syntax/string-utf8-passthrough` | ASCII でないバイトを書き換える | P4-3 |
@@ -2332,7 +2339,7 @@ sed -n '/^## 8\./,/^## 9\./p' plans/ozen-roadmap.md | grep '^- ' | grep -v '機�
 | --- | --- | --- |
 | P0-1 | §2 の D1〜D33 をユーザーと確定し、本ファイルに書き込む。答えで変わる §4〜§8 を直す | `grep -c '^### D[0-9]*\. .*【決定済み】' plans/ozen-roadmap.md` が 33、`grep -c '^### D[0-9]*\. .*【未決】' plans/ozen-roadmap.md` が 0、`grep -c '^- \*\*決定:' plans/ozen-roadmap.md` が 33。`G-PLAN-COVERAGE` |
 | P0-2 | `git init -b main`。`.gitignore`（`build/`、`__pycache__/`、`data/mext-fct-2023/source/`）を作り、`docs/concept.md`・本計画・`.gitignore` を最初のコミットにする（コミットの前にユーザーに確認する） | `git rev-parse --verify main` が成功、`git rev-list --count main` が 1、`git show --name-only --format= main \| sort \| tr '\n' ' '` が `.gitignore docs/concept.md plans/ozen-roadmap.md ` |
-| P0-3 | ライセンスの本文（D4。取得の前にファイル名・取得元・大きさを示して確認。取得した本文の sha256 を §9.1 に書く）、`NOTICE`、README の骨格（ライセンスの区分の表と一文、各部分の空の見出し）、`CLAUDE.md`（D3 の言語の規則）、`scripts/check-spdx.sh` と自己テスト | `G-REPO-SPDX`、`G-REPO-LICENSE-TEXT`、`G-REPO-README-LICENSE`、`G-REPO-CLAUDEMD`、`scripts/test-check-spdx.sh` が `test-check-spdx: <k> cases, 0 failed`。S1・S409 の「わざと壊す確認」（§9.1 に記録） |
+| P0-3 | ライセンスの本文（D4。取得の前にファイル名・取得元・大きさを示して確認。取得した本文の sha256 を §9.1 に書く）、`NOTICE`、README の骨格（ライセンスの区分の表と一文、各部分の空の見出し）、`CLAUDE.md`（D3 の言語の規則）、`scripts/check-spdx.sh` と自己テスト | `G-REPO-SPDX`、`G-REPO-LICENSE-TEXT`、`G-REPO-README-LICENSE`、`G-REPO-CLAUDEMD`、`G-REPO-NOREPLY`、`scripts/test-check-spdx.sh` が `test-check-spdx: <k> cases, 0 failed`。S1・S409・S475 の「わざと壊す確認」（§9.1 に記録） |
 | P0-4 | `toolchain.txt`（gcc・clang・cmake・node・python3・PyYAML・jsonschema・openpyxl・emcc の版）、`scripts/check-tools.sh` と自己テスト。D18 の推奨なら emsdk を導入して版を固定する（ダウンロードの前に確認） | `G-REPO-TOOLS`、`scripts/test-check-tools.sh` が `0 failed`、`emcc --version` の 1 行目に `toolchain.txt` の emcc の版が含まれる |
 | P0-5 | `scripts/goals.sh`（§5 のコードブロックを関数にしたもの。フェーズごとに足す）、`scripts/check-plan-tests.sh`（§5.2 の対応の規則でテスト名の存在を調べ、分類ごとの数を出す。`*` を含む名前の「n 個」を数え、`scripts/retired-tests.txt` の名前を外す。`--mutations` で、網羅表の「わざと壊す方法」を持つ行の数と §9 の「わざと壊す確認」の記録の数を出す）、`scripts/check-lists-copy.py`、`scripts/selftests.txt`、それぞれの自己テスト | 3 つの自己テストが `0 failed`。`scripts/check-plan-tests.sh plans/ozen-roadmap.md` が分類ごとの数を出す（この時点の missing は数だけ記録する）。`scripts/goals.sh G-PLAN-COVERAGE` が合格 |
 | P0-6 | `scripts/check-commit-separation.sh`、`scripts/check-red-first.sh`（例外の一覧 `scripts/red-first-exceptions.txt` は空で作る）、`scripts/check-selftests.sh`、それぞれの自己テスト | 3 つの自己テストが `0 failed`、`G-REPO-SELFTESTS`。D2・D20 の行の「わざと壊す確認」（使い捨てのリポジトリで行う） |
@@ -2391,7 +2398,7 @@ sed -n '/^## 8\./,/^## 9\./p' plans/ozen-roadmap.md | grep '^- ' | grep -v '機�
 | --- | --- | --- |
 | P5-1 | `proto/fuzz/fuzz_expand.c`（小さな上限で `ozp_expand` を呼ぶ）、`ozen.dict`、`fuzz.sh`（`-max_total_time=600 -timeout=5 -max_len=65536`。結果を `build/fuzz/summary.txt` に書く）。golden の入力を種のコーパスにして 600 秒回す。見つかった問題は直して `proto/defects.tsv` に記録し、直したあと改めて 600 秒回す。コーパスを `-merge=1` で縮めて 300 個以内を `proto/tests/corpus/` に置く | `G-PROTO-FUZZ`、`ls proto/tests/corpus \| wc -l` が 1〜300、`G-PROTO-DETERMINISM`（コーパスを含めて）。S126 の「わざと壊す確認」 |
 | P5-2 | Emscripten の構成（node 用: `emcmake`、`NODERAWFS`。ブラウザ用: `-sENVIRONMENT=web,worker` を `build/wasm-web/` に）、`bridge-test.mjs`、`worker-test.html`・`worker.js`・`worker-test.sh` と自己テスト | `G-PROTO-WASM`、`G-PROTO-WASM-BRIDGE`、`G-PROTO-WASM-WORKER`。S64（橋渡しの行）・S127・S128・S150 の「わざと壊す確認」 |
-| P5-3 | D19 の推奨を選んだ場合: リポジトリの作成と push の前にユーザーに確認する。`.github/workflows/ios-proto.yml`（runner の image と Xcode の版を固定し、`xcodebuild -version` を `toolchain.txt` と比べる。端末用・シミュレーター用の静的ライブラリ、`xcodebuild -create-xcframework`、シミュレーターでの golden と digest、成果物 `ios-digest`（`digest.txt`）と `xcframework`（`OzenProto.xcframework.zip`）） | `G-PROTO-IOS`。S129・S130・S131（iOS の行）の「わざと壊す確認」（壊した状態は使い捨てのブランチで push し、終わったら消す。消す前に確認する） |
+| P5-3 | D19 のとおり（リポジトリ `atsuki-seo/Ozen` は 2026-10-26 に作成済み）: push の前にユーザーに確認し、`G-REPO-NOREPLY` を回す。`.github/workflows/ios-proto.yml`（runner の image と Xcode の版を固定し、`xcodebuild -version` を `toolchain.txt` と比べる。端末用・シミュレーター用の静的ライブラリ、`xcodebuild -create-xcframework`、シミュレーターでの golden と digest、成果物 `ios-digest`（`digest.txt`）と `xcframework`（`OzenProto.xcframework.zip`）） | `G-PROTO-IOS`。S129・S130・S131（iOS の行）の「わざと壊す確認」（壊した状態は使い捨てのブランチで push し、終わったら消す。消す前に確認する） |
 | P5-4 | ゲート B2 | P4-9 のゴール、`G-PROTO-FUZZ`、`G-PROTO-WASM`、`G-PROTO-WASM-BRIDGE`、`G-PROTO-WASM-WORKER`、`G-PROTO-IOS`（D19 の推奨のとき） |
 
 ### Phase 6 — C: 試作の報告
@@ -2569,6 +2576,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - `LICENSE-MIT`: `https://raw.githubusercontent.com/spdx/license-list-data/main/text/MIT.txt`（1,078 バイト、sha256 `b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5`）。著作者の行を `Copyright (c) 2026 atsuki.seo` に置き換えた後の sha256 `8bcf9c408a5d1fd01f810c5ac9f843d6e07e29c063fcd8bb39720ec019347b1c`
   - `LICENSE-APACHE`: `https://www.apache.org/licenses/LICENSE-2.0.txt`（11,358 バイト、sha256 `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`、本文のまま）
   - `LICENSE-CC-BY-4.0`: `https://creativecommons.org/licenses/by/4.0/legalcode.txt`（18,657 バイト、sha256 `9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411`、本文のまま）
+- GitHub のリポジトリ（2026-10-26、ユーザーの指示で P5-3 より前に）: `https://github.com/atsuki-seo/Ozen`（公開、既定のブランチ `main`、remote `origin` は ssh）。push の前に、ユーザーの方針「メールは公開しない」により、それまでの 7 つのコミットの作者とコミッターのメールを `git filter-branch --env-filter` で GitHub の noreply アドレス `146819854+atsuki-seo@users.noreply.github.com` に書き換え（日時はそのまま。古いオブジェクトは `reflog expire` と `gc --prune=now` で消した）、このリポジトリの `user.email` も noreply にした。書き換えでコミットの ID が変わった（最初のコミットは `9b1be45` から変わった）
 - P0-3 のゴール（2026-10-26）: `G-REPO-SPDX`（`spdx: 2 files checked, 0 missing, 0 wrong`、`--list` も 2 件）、`G-REPO-LICENSE-TEXT`（1・1・0・1・3）、`G-REPO-README-LICENSE`（1・1・1）、`G-REPO-CLAUDEMD`（1・3）、`scripts/test-check-spdx.sh`（`9 cases, 0 failed`）がすべて合格
 - ユーザーのコメント方針（`~/.claude/rules/comment-style.md`）により、スクリプトのコメントは SPDX の行と、外部の制約と一般的でない実装の両方がそろうもの（`vendor/` を外す理由）だけにした。`.gitignore` の区切りのコメントも消した（2026-10-26）
 - わざと壊す確認の記録（P0-3、2026-10-26。どれも戻したファイルが元と 1 バイトも同じことを `cmp` で確かめた）:
@@ -2579,6 +2587,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-REPO-README-LICENSE`（S6・文書との一致）— README から出力の扱いの一文を消すと落ちた（一文の数 0）。戻して合格
   - わざと壊す確認: `G-REPO-README-LICENSE`（S6・データの完全性）— 表の `spec/samples/` を MIT の行に移すと落ちた（2 つの行の数がどちらも 0）。戻して合格
   - わざと壊す確認: `G-REPO-CLAUDEMD`（S409・文書との一致）— `CLAUDE.md` から言語の規則の節を消すと落ちた（`docs/` 0、日本語の記述 0）。戻して合格
+  - わざと壊す確認: `G-REPO-NOREPLY`（S475・効かない条件）— 使い捨ての複製で、作者を個人のメールにした空のコミットを足すと落ちた（メールが 2 種類）。複製は消した（2026-10-26）
 - CI のジョブの名前の一覧（P11-5）
 - 版: 0.1.0（D30。P7-4 で `VERSION` に書き、本計画の中では上げない）
 - 網羅の監査（P16-3）: 指摘 <k> 件、取り込み <m> 件
