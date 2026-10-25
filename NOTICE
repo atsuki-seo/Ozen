@@ -17,4 +17,9 @@ Third-party data and components
 Each entry lists the source and the terms it is used under. Third-party
 files keep their own licenses and live in separate folders.
 
-(none yet)
+Standard Tables of Food Composition in Japan 2020 (Eighth Revised Edition),
+2023 Supplement, Ministry of Education, Culture, Sports, Science and
+Technology (MEXT)
+  日本食品標準成分表（八訂）増補2023年から引用
+  Used in: data/mext-fct-2023/ (refuse rates). See data/mext-fct-2023/README.md
+  for the source URL, retrieval date, file name, and SHA-256.
