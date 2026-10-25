@@ -17,7 +17,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 EXTRACT = os.path.join(ROOT, "tools", "fct", "extract.py")
 REAL = sorted(glob.glob(os.path.join(ROOT, "data", "mext-fct-2023", "source", "*_02.xlsx")))
 
-from tools.fct.extract import HEADERS, read_refuse  # noqa: E402
+from tools.fct.extract import HEADERS, read_refuse
 
 
 def make_xlsx(path, rows):
