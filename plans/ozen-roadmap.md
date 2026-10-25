@@ -2565,7 +2565,20 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 
 - 着手点の基準値 N0（P0-7）: テストの数 0（`plans/` 以外のコードは無い）。タグ `plan-start` の sha
 - 道具の版（P0-4）: gcc 13.3.0、clang 17.0.0（swiftly、Swift 6.2.3、LLVM 19.1.5 系）、cmake 3.28.3、node v20.20.2、Python 3.12.3、PyYAML 6.0.1、jsonschema 4.10.3、openpyxl 3.1.5、Java 25.0.4.1、google-chrome 154.0.8037.97（2026-10-25 時点）。emcc・NDK・Xcode の版はここに書く
-- ライセンスの本文の取得元・取得日・sha256（P0-3）: MIT は SPDX の本文、Apache-2.0 は apache.org、CC BY 4.0 は creativecommons.org の legalcode.txt を予定
+- ライセンスの本文（P0-3、2026-10-26 にユーザーの確認を取って取得）:
+  - `LICENSE-MIT`: `https://raw.githubusercontent.com/spdx/license-list-data/main/text/MIT.txt`（1,078 バイト、sha256 `b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5`）。著作者の行を `Copyright (c) 2026 atsuki.seo` に置き換えた後の sha256 `8bcf9c408a5d1fd01f810c5ac9f843d6e07e29c063fcd8bb39720ec019347b1c`
+  - `LICENSE-APACHE`: `https://www.apache.org/licenses/LICENSE-2.0.txt`（11,358 バイト、sha256 `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`、本文のまま）
+  - `LICENSE-CC-BY-4.0`: `https://creativecommons.org/licenses/by/4.0/legalcode.txt`（18,657 バイト、sha256 `9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411`、本文のまま）
+- P0-3 のゴール（2026-10-26）: `G-REPO-SPDX`（`spdx: 2 files checked, 0 missing, 0 wrong`、`--list` も 2 件）、`G-REPO-LICENSE-TEXT`（1・1・0・1・3）、`G-REPO-README-LICENSE`（1・1・1）、`G-REPO-CLAUDEMD`（1・3）、`scripts/test-check-spdx.sh`（`9 cases, 0 failed`）がすべて合格
+- ユーザーのコメント方針（`~/.claude/rules/comment-style.md`）により、スクリプトのコメントは SPDX の行と、外部の制約と一般的でない実装の両方がそろうもの（`vendor/` を外す理由）だけにした。`.gitignore` の区切りのコメントも消した（2026-10-26）
+- わざと壊す確認の記録（P0-3、2026-10-26。どれも戻したファイルが元と 1 バイトも同じことを `cmp` で確かめた）:
+  - わざと壊す確認: `G-REPO-SPDX`（S1・正常系）— `scripts/test-check-spdx.sh` から SPDX の行を消すと落ちた（`spdx: 2 files checked, 1 missing, 0 wrong`、終了コード 1）。戻して合格
+  - わざと壊す確認: `sh/test-check-spdx.sh`（S1・境界・上限）— 検査を先頭 5 行でなくファイル全体にすると落ちた（`FAIL line-six`、`9 cases, 1 failed`）。戻して合格
+  - わざと壊す確認: `G-REPO-LICENSE-TEXT`（S4・正常系）— `LICENSE-APACHE` から版の行を消すと落ちた（版の行の数 0）。戻して合格
+  - わざと壊す確認: `G-REPO-LICENSE-TEXT`（S4・境界・上限）— MIT の著作者の行を雛形に戻すと落ちた（著作者の行 0、雛形 1）。戻して合格
+  - わざと壊す確認: `G-REPO-README-LICENSE`（S6・文書との一致）— README から出力の扱いの一文を消すと落ちた（一文の数 0）。戻して合格
+  - わざと壊す確認: `G-REPO-README-LICENSE`（S6・データの完全性）— 表の `spec/samples/` を MIT の行に移すと落ちた（2 つの行の数がどちらも 0）。戻して合格
+  - わざと壊す確認: `G-REPO-CLAUDEMD`（S409・文書との一致）— `CLAUDE.md` から言語の規則の節を消すと落ちた（`docs/` 0、日本語の記述 0）。戻して合格
 - CI のジョブの名前の一覧（P11-5）
 - 版: 0.1.0（D30。P7-4 で `VERSION` に書き、本計画の中では上げない）
 - 網羅の監査（P16-3）: 指摘 <k> 件、取り込み <m> 件
