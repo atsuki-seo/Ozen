@@ -1,0 +1,4 @@
+%1 = a(9223372036854775807)
+error MAC001 overflow 3:5-3:28
+result error steps=1 diagnostics=1
+exit 1
