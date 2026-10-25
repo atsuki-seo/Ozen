@@ -185,9 +185,9 @@ goal_G_VOCAB_READONLY() {
   fi
   s0=$(git status --porcelain --ignored -- spec tools data)
   h0=$(git ls-files -z | xargs -0 sha256sum | sha256sum)
-  for c in schema check; do python3 -B tools/vocabcheck/vocabcheck.py $c >/dev/null 2>&1; done
-  python3 -B tools/vocabcheck/vocabcheck.py lists spec/coverage/concept-lists.yaml spec/coverage/concept-relations.yaml >/dev/null 2>&1
-  python3 -B tools/vocabcheck/vocabcheck.py sample spec/samples/curryRice.yaml >/dev/null 2>&1
+  for c in schema check; do python3 tools/vocabcheck/vocabcheck.py $c >/dev/null 2>&1; done
+  python3 tools/vocabcheck/vocabcheck.py lists spec/coverage/concept-lists.yaml spec/coverage/concept-relations.yaml >/dev/null 2>&1
+  python3 tools/vocabcheck/vocabcheck.py sample spec/samples/curryRice.yaml >/dev/null 2>&1
   if [ "$s0" = "$(git status --porcelain --ignored -- spec tools data)" ] && [ "$h0" = "$(git ls-files -z | xargs -0 sha256sum | sha256sum)" ]; then
     pass "readonly: no changes"
   else
