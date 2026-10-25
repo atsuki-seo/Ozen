@@ -2619,6 +2619,39 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `py/test_qty.test_rejects_unitless`（S9・効かない条件）— 単位の無い量を単位 `""` の量として通すと落ちた（`failures=3`）。戻して合格
   - わざと壊す確認: `py/test_qty.test_range_bounds`（S10・境界・上限）— 比較を `lo >= hi` にすると落ちた（`5..5 g` がエラーになった）。戻して合格
   - わざと壊す確認: `py/test_qty.test_rejects_unknown_unit`（S11・効かない条件）— 単位の検査を外すと落ちた（`5 oz/ml` が通った）。戻して合格
+- P1-2・P1-3（2026-10-26）: フィクスチャ 53 件（`vocab-ng` 51・`vocab-ok` 2）を検査スクリプトより先に 1 つのコミット（`4bb0a1c`）で書き、`G-REPO-RED-FIRST` は `red-first: 1 commits, 0 not red`。`python3 -B -m unittest tools.vocabcheck.test_vocabcheck` が `Ran 54 tests`・`OK`。`G-VOCAB-EXPECT-INDEPENDENT` は `separation: 1 commits, 0 mixed`
+- 表とフィクスチャの書式で本計画が決めた細目（P1-2・P1-3、すべて（補））:
+  - フィクスチャ `fx/vocab-*/<名前>/` は `vocab/` に 11 個の表のファイル（小さな表）と、期待の診断の多重集合 `expect.yaml`（`diagnostics:` の各項目が `severity`・`name`・`file`・`path`・`args`）を持つ。テスト名は `test_fx_<種類>_<名前>`（`-` は `_`）
+  - 診断の道筋は YAML のキーを `.` でつなぎ、並びの添字を `[i]` で書く（`ingredients.Onion.traits[1]`）。ファイル名は表のフォルダからの名前（`ingredients.yaml`）
+  - `FMT:schema` の引数は失敗した JSON Schema のキーワード 1 つ（`additionalProperties` は余分なキーごとに 1 件、道筋はそのキーまで）。`NAM:undefined`・`NAM:duplicate`・`NAM:naming`・`NAM:partTraitClash`・`NAM:capabilityUnprovided` の引数はその名前、`NAM:provenance` は出どころの名前（`source` が無いときは属性の名前）、`TYP:unitCycle`・`TYP:cutCycle` は表の順で最初に現れる要素から辿った循環の並び（同じ循環は 1 件）、`TYP:unitDimension` は（宣言の次元、定義の右辺の次元）、`TYP:baseUnit` は（次元、基準単位の数）、`TYP:axisValue` は（軸、値）、`SAF:ruleNotFixed` は `after` のトレイト
+  - `NAM:duplicate` は表のファイルの順（§4.2 の並び）で後に現れた定義に出す。同じファイルの重複キーは、後のキーを捨てて先のものを残す
+  - 名前空間: 型（次元・列挙型・トレイト・食材・別名・能力・設備の種類・器）、動作、軸、軸ごとの値、単位、汚れの種類、相性ルール、器の代替順、出どころ、食材とトレイトごとの部位
+  - `FMT:schema` のうち `TYP:fctInlineValue`（成分表の属性の `value`）と `NAM:provenance`（`source` の欠け）は、スキーマの `x-diag`・`x-diag-required` で名前を付け替え、それ以外の `FMT:schema` が 1 件でもあれば意味の検査（S13〜S27）を行わない
+  - 相性ルールの `cases[].when` は、大文字で始まればトレイト、小文字で始まれば決まった語（`allergicPerson`・`dessert`・`sameFoodSameState`・`sameTool`）
+  - S13 の参照の種類（フィクスチャ `undefined-*` の 12 種類）: トレイト・軸・軸の値・能力・設備の種類・汚れの種類・器・単位・次元・部位・列挙型・食材。出どころの未定義は S22 の `NAM:provenance`、成分表の食品番号は S59 で扱う
+  - S21 の名前の種類（フィクスチャ `naming-*` の 13 種類）: 食材・トレイト・設備の種類・器・能力・別名・動作・軸・軸の値・部位・汚れの種類・引数・相性ルール。次元・列挙型（大文字）と列挙型の値・アレルゲンの種類・能力の引数・器の代替順（小文字）も同じ規則で検査する
+  - わざと壊す確認: `fx/vocab-ng/schema-unknown-key`（S7・効かない条件）— 食材のスキーマの `additionalProperties: false` を外すと落ちた（期待の `FMT:schema` が出ない）。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/yaml-implicit-*`（S12・境界・上限）— スキーマの `qty` から `type: string` を外すと 2 件とも落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/undefined-*`（S13・効かない条件）— トレイトの参照の解決を飛ばすと `undefined-trait`・`undefined-twice` が落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/undefined-twice`（S13・境界・上限）— 同じ名前の `NAM:undefined` を 1 件にまとめると落ちた（`vessels.yaml` の 1 件が欠けた）。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/duplicate-across-files`（S14・効かない条件）— 重複の検査を同じファイルの中だけにすると落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/duplicate-same-file`（S14・境界・上限）— 重複キーを拒む読み込みを外すと落ちた（期待の `NAM:duplicate` が出ない）。戻して合格
+  - わざと壊す確認: `fx/vocab-ok/same-name-other-namespace`（S14・正常系）— 名前空間をまたいで重複を数えると落ちた（動作 `wash` に `NAM:duplicate`）。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/part-trait-clash`（S15・効かない条件）— 検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/unit-cycle`（S16・境界・上限）— 循環の検出を 2 段までにすると 3 段の循環が落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/unit-dimension-mismatch`（S17・効かない条件）— 次元の比較を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/base-unit-twice`（S18・境界・上限）— 「1 つ以上」で判定すると落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/ordered-axis-duplicate`（S19・効かない条件）— 重複の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/cut-refinement-cycle`（S20・効かない条件）— 循環の検出を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/naming-*`（S21・効かない条件）— 規約の検査を大文字の名前だけにすると、小文字の 7 種類と `naming-unit-non-ascii` の 8 件が落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ok/unit-uppercase`（S21・境界・上限）— 単位にも小文字のキャメルケースを求めると落ちた（`L` に `NAM:naming`）。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/provenance-*`（S22・効かない条件）— 出どころの登録の照合を外すと `provenance-unknown-source` が、`source` の欠けの付け替えを外すと `provenance-missing` が落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/provisional-point`（S23・境界・上限）— 判定を `lo <= hi` にすると落ちた（範囲の値にも `TYP:provisionalPoint`）。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/fct-inline-value`（S24・効かない条件）— スキーマの `value` の禁止を外すと落ちた（`FMT:schema` になった）。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/capability-without-kind`（S25・効かない条件）— 検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/allergen-rule-not-fixed`（S26・効かない条件）— `Allergen` を対象から外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/effect-value-out-of-axis`（S27・効かない条件）— 効果の軸の値の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/requirement-value-out-of-axis`（S27・境界・上限）— 要求の `anyOf` の最初の選択肢だけを検査すると落ちた。戻して合格
 - 実装中に見つかった concept の食い違い（R2）
 
 ### 9.3 B・C（試作）
