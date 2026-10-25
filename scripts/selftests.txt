@@ -13,3 +13,4 @@ proto/scripts/check-flags.py proto/scripts/test-check-flags.sh
 proto/scripts/check-compilers.sh proto/scripts/test-check-compilers.sh
 proto/scripts/check-diag-registry.sh proto/scripts/test-check-diag-registry.sh
 tools/vocabcheck/priorwork.py scripts/test-priorwork.sh
+proto/scripts/digest.sh proto/scripts/test-digest.sh
