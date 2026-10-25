@@ -134,6 +134,10 @@ typedef struct ozpi_ctx {
   const ozpi_node *annot_node;
   uint32_t annot_step;
   bool let_err;
+  void *bind;
+  uint32_t nbind, capbind;
+  void *vstack;
+  uint32_t nv, capv;
 } ozpi_ctx;
 
 bool ozpi_grow(ozpi_ctx *c, void **arr, uint32_t *cap, size_t elem, uint32_t need);

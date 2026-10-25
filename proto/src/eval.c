@@ -28,12 +28,6 @@ typedef struct binding {
   value v;
 } binding;
 
-typedef struct scope scope;
-struct scope {
-  scope *parent;
-  binding *b;
-  uint32_t n, cap;
-};
 
 static const value ERR = {.kind = V_ERR};
 
@@ -143,23 +137,31 @@ static bool tick(ozpi_ctx *c, const ozpi_node *n, uint32_t depth) {
   return true;
 }
 
-static bool bind(ozpi_ctx *c, scope *s, ozpi_str name, uint32_t exp, value v) {
-  if (!ozpi_grow(c, (void **)&s->b, &s->cap, sizeof(binding), s->n + 1)) {
+static bool bind(ozpi_ctx *c, ozpi_str name, uint32_t exp, value v) {
+  if (!ozpi_grow(c, &c->bind, &c->capbind, sizeof(binding), c->nbind + 1)) {
     return false;
   }
-  s->b[s->n++] = (binding){name, exp, v};
+  ((binding *)c->bind)[c->nbind++] = (binding){name, exp, v};
   return true;
 }
 
-static binding *lookup(scope *s, ozpi_str name, uint32_t exp) {
-  for (; s != nullptr; s = s->parent) {
-    for (uint32_t i = s->n; i-- > 0;) {
-      if (s->b[i].exp == exp && ozpi_str_eq(s->b[i].name, name)) {
-        return &s->b[i];
-      }
+static binding *lookup_c(ozpi_ctx *c, ozpi_str name, uint32_t exp) {
+  binding *b = c->bind;
+  for (uint32_t i = c->nbind; i-- > 0;) {
+    if (b[i].exp == exp && ozpi_str_eq(b[i].name, name)) {
+      return &b[i];
     }
   }
   return nullptr;
+}
+
+static value *push_values(ozpi_ctx *c, uint32_t n) {
+  if (!ozpi_grow(c, &c->vstack, &c->capv, sizeof(value), c->nv + n)) {
+    return nullptr;
+  }
+  value *v = (value *)c->vstack + c->nv;
+  c->nv += n;
+  return v;
 }
 
 static const ozpi_decl *find_decl(const ozpi_ctx *c, ozpi_str name) {
@@ -184,8 +186,8 @@ static void diag_status(ozpi_ctx *c, ozpi_status st, const ozpi_node *n) {
   ozpi_diag0(c, st == OZPI_DIVZERO ? OZPI_D_MAC_divisionByZero : OZPI_D_MAC_overflow, n->span, n->exp);
 }
 
-static value eval(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t depth);
-static value eval_block(ozpi_ctx *c, scope *parent, const ozpi_node *n, uint32_t depth, bool new_scope);
+static value eval(ozpi_ctx *c, const ozpi_node *n, uint32_t depth);
+static value eval_block(ozpi_ctx *c, const ozpi_node *n, uint32_t depth, bool new_scope);
 
 static value arith(ozpi_ctx *c, const ozpi_node *n, value l, value r) {
   ozpi_op op = n->op;
@@ -337,9 +339,9 @@ static value compare(ozpi_ctx *c, const ozpi_node *n, value l, value r) {
   return ERR;
 }
 
-static value eval_binary(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t depth) {
+static value eval_binary(ozpi_ctx *c, const ozpi_node *n, uint32_t depth) {
   if (n->op == OP_AND || n->op == OP_OR) {
-    value l = eval(c, s, n->kids[0], depth + 1);
+    value l = eval(c, n->kids[0], depth + 1);
     if (l.kind == V_ERR) {
       return ERR;
     }
@@ -350,7 +352,7 @@ static value eval_binary(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dep
     if ((n->op == OP_AND && !l.b) || (n->op == OP_OR && l.b)) {
       return l;
     }
-    value r = eval(c, s, n->kids[1], depth + 1);
+    value r = eval(c, n->kids[1], depth + 1);
     if (r.kind == V_ERR) {
       return ERR;
     }
@@ -360,8 +362,8 @@ static value eval_binary(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dep
     }
     return r;
   }
-  value l = eval(c, s, n->kids[0], depth + 1);
-  value r = eval(c, s, n->kids[1], depth + 1);
+  value l = eval(c, n->kids[0], depth + 1);
+  value r = eval(c, n->kids[1], depth + 1);
   if (l.kind == V_ERR || r.kind == V_ERR) {
     return ERR;
   }
@@ -386,28 +388,41 @@ static bool render_args(ozpi_ctx *c, ozpi_buf *b, const ozpi_node *n, const valu
   return ok;
 }
 
-static value *eval_args(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t depth, bool *poisoned) {
-  value *vals = n->nkids > 0 ? ozpi_new(c, sizeof(value) * n->nkids) : nullptr;
-  if (n->nkids > 0 && vals == nullptr) {
+static value *eval_args(ozpi_ctx *c, const ozpi_node *n, uint32_t depth, bool *poisoned) {
+  uint32_t base = c->nv;
+  *poisoned = false;
+  if (n->nkids == 0) {
     return nullptr;
   }
-  *poisoned = false;
+  if (push_values(c, n->nkids) == nullptr) {
+    return nullptr;
+  }
   for (uint32_t i = 0; i < n->nkids; i++) {
-    vals[i] = eval(c, s, n->kids[i], depth + 1);
-    if (vals[i].kind == V_ERR) {
+    value v = eval(c, n->kids[i], depth + 1);
+    ((value *)c->vstack)[base + i] = v;
+    if (v.kind == V_ERR) {
       *poisoned = true;
     }
     if (c->stop) {
       *poisoned = true;
-      return vals;
+      break;
     }
   }
-  return vals;
+  return (value *)c->vstack + base;
 }
 
-static value call_action(ozpi_ctx *c, scope *s, const ozpi_node *n, const ozpi_decl *d, uint32_t depth) {
+static value call_action_inner(ozpi_ctx *c, const ozpi_node *n, const ozpi_decl *d, uint32_t depth);
+
+static value call_action(ozpi_ctx *c, const ozpi_node *n, const ozpi_decl *d, uint32_t depth) {
+  uint32_t base = c->nv;
+  value v = call_action_inner(c, n, d, depth);
+  c->nv = base;
+  return v;
+}
+
+static value call_action_inner(ozpi_ctx *c, const ozpi_node *n, const ozpi_decl *d, uint32_t depth) {
   bool poisoned = false;
-  value *vals = eval_args(c, s, n, depth, &poisoned);
+  value *vals = eval_args(c, n, depth, &poisoned);
   if (c->stop || (n->nkids > 0 && vals == nullptr)) {
     return ERR;
   }
@@ -456,9 +471,18 @@ static value call_action(ozpi_ctx *c, scope *s, const ozpi_node *n, const ozpi_d
   return (value){.kind = V_REF, .step = c->nsteps, .portion = ozpi_rat_int(1)};
 }
 
-static value call_builtin(ozpi_ctx *c, scope *s, const ozpi_node *n, int which, uint32_t depth) {
+static value call_builtin_inner(ozpi_ctx *c, const ozpi_node *n, int which, uint32_t depth);
+
+static value call_builtin(ozpi_ctx *c, const ozpi_node *n, int which, uint32_t depth) {
+  uint32_t base = c->nv;
+  value v = call_builtin_inner(c, n, which, depth);
+  c->nv = base;
+  return v;
+}
+
+static value call_builtin_inner(ozpi_ctx *c, const ozpi_node *n, int which, uint32_t depth) {
   bool poisoned = false;
-  value *vals = eval_args(c, s, n, depth, &poisoned);
+  value *vals = eval_args(c, n, depth, &poisoned);
   if (c->stop || (n->nkids > 0 && vals == nullptr)) {
     return ERR;
   }
@@ -596,7 +620,7 @@ static ozpi_node *copy_node(copier *cp, const ozpi_node *src, bool keep_exp) {
   return n;
 }
 
-static value call_macro(ozpi_ctx *c, scope *s, const ozpi_node *n, const ozpi_decl *d, uint32_t depth) {
+static value call_macro(ozpi_ctx *c, const ozpi_node *n, const ozpi_decl *d, uint32_t depth) {
   if (n->nkids != d->nparams || n->npos != n->nkids) {
     ozpi_diag3(c, OZPI_D_NAM_arity, n->span, n->exp, d->name, ozpi_fmt_u(c, d->nparams), ozpi_fmt_u(c, n->nkids));
     return ERR;
@@ -626,26 +650,26 @@ static value call_macro(ozpi_ctx *c, scope *s, const ozpi_node *n, const ozpi_de
     return ERR;
   }
   c->nodes += cp.copies;
-  value v = eval_block(c, s, body, depth + 1, false);
+  value v = eval_block(c, body, depth + 1, false);
   return v.kind == V_ERR ? ERR : (value){.kind = V_NONE};
 }
 
-static value eval_call(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t depth) {
-  binding *local = lookup(s, n->text, n->exp);
+static value eval_call(ozpi_ctx *c, const ozpi_node *n, uint32_t depth) {
+  binding *local = lookup_c(c, n->text, n->exp);
   if (local != nullptr) {
     ozpi_diag2(c, OZPI_D_TYP_type, n->span, n->exp, ozpi_strz("Action"), kind_name(&local->v));
     return ERR;
   }
   const ozpi_decl *d = find_decl(c, n->text);
   if (d != nullptr && d->kind == D_ACTION) {
-    return call_action(c, s, n, d, depth);
+    return call_action(c, n, d, depth);
   }
   if (d != nullptr && d->kind == D_MACRO) {
-    return call_macro(c, s, n, d, depth);
+    return call_macro(c, n, d, depth);
   }
   int b = find_builtin(n->text);
   if (b >= 0) {
-    return call_builtin(c, s, n, b, depth);
+    return call_builtin(c, n, b, depth);
   }
   ozpi_diag1(c, OZPI_D_NAM_undefined, n->span2, n->exp, n->text);
   return ERR;
@@ -671,8 +695,8 @@ static value eval_quantity(ozpi_ctx *c, const ozpi_node *n) {
   return ERR;
 }
 
-static void check_rebind(ozpi_ctx *c, scope *s, const ozpi_node *n, ozpi_str name, uint32_t exp) {
-  if (lookup(s, name, exp) != nullptr) {
+static void check_rebind(ozpi_ctx *c, const ozpi_node *n, ozpi_str name, uint32_t exp) {
+  if (lookup_c(c, name, exp) != nullptr) {
     ozpi_diag1(c, OZPI_D_NAM_rebind, n->span, n->exp, name);
   }
 }
@@ -686,7 +710,7 @@ static bool count_ok(const value *v, int64_t *out) {
   return true;
 }
 
-static void eval_annots(ozpi_ctx *c, scope *s, const ozpi_node *stmt, uint32_t depth, bool target_err) {
+static void eval_annots(ozpi_ctx *c, const ozpi_node *stmt, uint32_t depth, bool target_err) {
   const ozpi_node *target = stmt->kind == N_LET ? stmt->kids[0] : stmt;
   for (uint32_t i = 0; i < stmt->nannots && !c->stop; i++) {
     const ozpi_node *a = stmt->annots[i];
@@ -694,8 +718,10 @@ static void eval_annots(ozpi_ctx *c, scope *s, const ozpi_node *stmt, uint32_t d
       return;
     }
     bool poisoned = false;
-    value *vals = eval_args(c, s, a, depth, &poisoned);
+    uint32_t vbase = c->nv;
+    value *vals = eval_args(c, a, depth, &poisoned);
     if (c->stop || poisoned || (a->nkids > 0 && vals == nullptr)) {
+      c->nv = vbase;
       continue;
     }
     if (c->annot_node == target && c->annot_step > 0) {
@@ -705,8 +731,10 @@ static void eval_annots(ozpi_ctx *c, scope *s, const ozpi_node *stmt, uint32_t d
         ok = ozpi_buf_puts(c, &st->annots, "(") && render_args(c, &st->annots, a, vals) &&
              ozpi_buf_puts(c, &st->annots, ")");
       }
+      c->nv = vbase;
       continue;
     }
+    c->nv = vbase;
     if (target->kind == N_CALL && target_err) {
       continue;
     }
@@ -714,32 +742,34 @@ static void eval_annots(ozpi_ctx *c, scope *s, const ozpi_node *stmt, uint32_t d
   }
 }
 
-static value eval_stmt(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t depth) {
+static value eval_stmt(ozpi_ctx *c, const ozpi_node *n, uint32_t depth) {
   c->annot_node = nullptr;
   c->let_err = false;
-  value v = eval(c, s, n, depth);
+  value v = eval(c, n, depth);
   bool target_err = n->kind == N_LET ? c->let_err : v.kind == V_ERR;
   if (n->nannots > 0 && !c->stop) {
-    eval_annots(c, s, n, depth, target_err);
+    eval_annots(c, n, depth, target_err);
   }
   return v;
 }
 
-static value eval_block(ozpi_ctx *c, scope *parent, const ozpi_node *n, uint32_t depth, bool new_scope) {
+static value eval_block(ozpi_ctx *c, const ozpi_node *n, uint32_t depth, bool new_scope) {
   if (!tick(c, n, depth)) {
     return ERR;
   }
-  scope local = {parent, nullptr, 0, 0};
-  scope *s = new_scope ? &local : parent;
+  uint32_t base = c->nbind;
   for (uint32_t i = 0; i < n->nkids && !c->stop; i++) {
-    eval_stmt(c, s, n->kids[i], depth + 1);
+    eval_stmt(c, n->kids[i], depth + 1);
+  }
+  if (new_scope) {
+    c->nbind = base;
   }
   return c->stop ? ERR : (value){.kind = V_NONE};
 }
 
-static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t depth) {
+static value eval_inner(ozpi_ctx *c, const ozpi_node *n, uint32_t depth) {
   if (n->kind == N_BLOCK) {
-    return eval_block(c, s, n, depth, true);
+    return eval_block(c, n, depth, true);
   }
   if (!tick(c, n, depth)) {
     return ERR;
@@ -754,7 +784,7 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
   case N_BOOL:
     return boolean(n->flag);
   case N_NAME: {
-    binding *b = lookup(s, n->text, n->exp);
+    binding *b = lookup_c(c, n->text, n->exp);
     if (b != nullptr) {
       return b->v;
     }
@@ -773,7 +803,7 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
     }
     bool bad = false;
     for (uint32_t i = 0; i < n->nkids; i++) {
-      out.items[i] = eval(c, s, n->kids[i], depth + 1);
+      out.items[i] = eval(c, n->kids[i], depth + 1);
       bad = bad || out.items[i].kind == V_ERR;
       if (c->stop) {
         return ERR;
@@ -782,9 +812,9 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
     return bad ? ERR : out;
   }
   case N_BINARY:
-    return eval_binary(c, s, n, depth);
+    return eval_binary(c, n, depth);
   case N_UNARY: {
-    value v = eval(c, s, n->kids[0], depth + 1);
+    value v = eval(c, n->kids[0], depth + 1);
     if (v.kind == V_ERR) {
       return ERR;
     }
@@ -802,23 +832,23 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
     return qty(v.dim, ozpi_rat_neg(v.q.hi), ozpi_rat_neg(v.q.lo));
   }
   case N_CALL:
-    return eval_call(c, s, n, depth);
+    return eval_call(c, n, depth);
   case N_LET: {
     if (n->bad) {
       ozpi_diag0(c, OZPI_D_TYP_spliceNotName, n->span, n->exp);
       return ERR;
     }
-    value v = eval(c, s, n->kids[0], depth + 1);
+    value v = eval(c, n->kids[0], depth + 1);
     c->let_err = v.kind == V_ERR;
     if (c->stop) {
       return ERR;
     }
-    check_rebind(c, s, n, n->text, n->bexp);
-    bind(c, s, n->text, n->bexp, v);
+    check_rebind(c, n, n->text, n->bexp);
+    bind(c, n->text, n->bexp, v);
     return (value){.kind = V_NONE};
   }
   case N_IF: {
-    value cond = eval(c, s, n->kids[0], depth + 1);
+    value cond = eval(c, n->kids[0], depth + 1);
     if (cond.kind == V_ERR) {
       return ERR;
     }
@@ -827,15 +857,15 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
       return ERR;
     }
     if (cond.b) {
-      return eval(c, s, n->kids[1], depth + 1);
+      return eval(c, n->kids[1], depth + 1);
     }
     if (n->nkids > 2) {
-      return eval(c, s, n->kids[2], depth + 1);
+      return eval(c, n->kids[2], depth + 1);
     }
     return (value){.kind = V_NONE};
   }
   case N_FOR: {
-    value list = eval(c, s, n->kids[0], depth + 1);
+    value list = eval(c, n->kids[0], depth + 1);
     if (list.kind == V_ERR) {
       return ERR;
     }
@@ -844,16 +874,17 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
       return ERR;
     }
     for (uint32_t i = 0; i < list.n && !c->stop; i++) {
-      scope it = {s, nullptr, 0, 0};
-      if (!bind(c, &it, n->text, n->exp, list.items[i])) {
+      uint32_t base = c->nbind;
+      if (!bind(c, n->text, n->exp, list.items[i])) {
         return ERR;
       }
-      eval(c, &it, n->kids[1], depth + 1);
+      eval(c, n->kids[1], depth + 1);
+      c->nbind = base;
     }
     return (value){.kind = V_NONE};
   }
   case N_REPEAT: {
-    value count = eval(c, s, n->kids[0], depth + 1);
+    value count = eval(c, n->kids[0], depth + 1);
     if (count.kind == V_ERR) {
       return ERR;
     }
@@ -863,7 +894,7 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
       return ERR;
     }
     for (int64_t i = 0; i < times && !c->stop; i++) {
-      eval(c, s, n->kids[1], depth + 1);
+      eval(c, n->kids[1], depth + 1);
     }
     return (value){.kind = V_NONE};
   }
@@ -873,7 +904,7 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
       if (!tick(c, item, depth + 1)) {
         return ERR;
       }
-      value amount = eval(c, s, item->kids[0], depth + 2);
+      value amount = eval(c, item->kids[0], depth + 2);
       if (amount.kind == V_ERR) {
         continue;
       }
@@ -883,8 +914,8 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
       }
       value ref = {.kind = V_REF, .name = item->text, .portion = ozpi_rat_int(1), .has_amount = true,
                    .adim = amount.dim, .amount = amount.q};
-      check_rebind(c, s, item, item->text, item->bexp);
-      bind(c, s, item->text, item->bexp, ref);
+      check_rebind(c, item, item->text, item->bexp);
+      bind(c, item->text, item->bexp, ref);
     }
     return (value){.kind = V_NONE};
   }
@@ -893,7 +924,7 @@ static value eval_inner(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t dept
   }
 }
 
-static value eval(ozpi_ctx *c, scope *s, const ozpi_node *n, uint32_t depth) { return eval_inner(c, s, n, depth); }
+static value eval(ozpi_ctx *c, const ozpi_node *n, uint32_t depth) { return eval_inner(c, n, depth); }
 
 static void collect_locals(const ozpi_node *n, ozpi_str *names, uint32_t *count, uint32_t cap) {
   if (n == nullptr) {
@@ -1040,15 +1071,14 @@ void ozpi_evaluate(ozpi_ctx *c, const char *entry, const char *params) {
   if (!params_ok || c->oom) {
     return;
   }
-  scope top = {nullptr, nullptr, 0, 0};
   for (uint32_t k = 0; k < r->nparams && !c->stop; k++) {
     const ozpi_node *e = overrides[k] != nullptr ? overrides[k] : r->defaults[k];
-    value v = eval(c, &top, e, 1);
-    if (!bind(c, &top, r->params[k], 0, v)) {
+    value v = eval(c, e, 1);
+    if (!bind(c, r->params[k], 0, v)) {
       return;
     }
   }
   if (!c->stop) {
-    eval_block(c, &top, r->body, 1, true);
+    eval_block(c, r->body, 1, true);
   }
 }
