@@ -8,6 +8,8 @@
 #include "ozpi.h"
 
 extern int ozp_test_failures;
+extern int ozp_test_argc;
+extern char **ozp_test_argv;
 
 #define CHECK(cond)                                                       \
   do {                                                                    \

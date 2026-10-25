@@ -4,6 +4,8 @@
 #include "check.h"
 
 int ozp_test_failures = 0;
+int ozp_test_argc = 0;
+char **ozp_test_argv = nullptr;
 
 void *test_alloc_fn(void *ctx, size_t size) {
   test_alloc *t = ctx;
@@ -43,10 +45,12 @@ static const struct {
 };
 
 int main(int argc, char **argv) {
-  if (argc != 2) {
-    fputs("usage: ozp_unit TEST\n", stderr);
+  if (argc < 2) {
+    fputs("usage: ozp_unit TEST [ARGS...]\n", stderr);
     return 2;
   }
+  ozp_test_argc = argc - 2;
+  ozp_test_argv = argv + 2;
   for (size_t i = 0; i < sizeof tests / sizeof tests[0]; i++) {
     if (strcmp(tests[i].name, argv[1]) == 0) {
       tests[i].fn();
