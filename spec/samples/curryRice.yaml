@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: CC-BY-4.0
+recipes:
+  cookedRice:
+    output: {type: CookedRice}
+    ingredients:
+      rice: {type: Rice, amount: "600 g"}
+    steps:
+      - {let: washed, do: wash, args: [rice]}
+      - {let: soaked, do: soak, args: [washed], named: {time: "30 min"}}
+      - {let: cooked, do: cookRice, args: [soaked]}
+    result: cooked
+  curry:
+    output: {type: Curry, traits: [Dish, Liquid]}
+    ingredients:
+      onion: {type: Onion, amount: "2 pcs"}
+      roux: {type: CurryRoux, amount: "100 g"}
+      water: {type: Water, amount: "800 ml"}
+    steps:
+      - {let: peeled, do: peel, args: [onion]}
+      - {let: sliced, do: cut, args: [peeled], named: {style: slice, size: "3 mm"}}
+      - {let: fried, do: fry, args: [sliced], named: {time: "10 min", heat: medium}}
+      - {let: curry, do: simmer, args: [[fried, water, roux]], named: {time: "20 min"}}
+    result: curry
+menus:
+  curryRice:
+    make: {rice: cookedRice, curry: curry}
+    serve:
+      main:
+        - {plate: perPerson, on: [DeepPlate, Donburi], items: [rice, curry]}
+expect:
+  errors: []
+  infos:
+    - {name: "ASM:firstVariant", at: "recipes.cookedRice.steps[2]", args: [pot, microwave]}
+  requires: [Container, CuttingSurface, FryingPan, "HeatSource<stovetop>", Knife, Pot, RiceCooking, Washing, WorkSurface]
+  states:
+    curryRice.rice:
+      type: CookedRice
+      state: {doneness: done, prep: "[]"}
+      traits: [Grain]
+      amount: "600 g"
+    curryRice.curry:
+      type: Curry
+      state: {doneness: done, prep: "[]"}
+      traits: ["Allergen(milk)", "Allergen(wheat)", Dish, Liquid]
+      amount: "1192..1400 g"
+  steps:
+    cookedRice.washed:
+      type: Rice
+      state: {doneness: raw, prep: "[washed]"}
+      traits: [Grain]
+      amount: "600 g"
+    cookedRice.soaked:
+      type: Rice
+      state: {doneness: raw, prep: "[washed, soaked(time: 30 min)]"}
+    cookedRice.cooked:
+      type: CookedRice
+      state: {doneness: done, prep: "[]"}
+      traits: [Grain]
+    curry.peeled:
+      type: Onion
+      state: {doneness: raw, browning: none, shape: peeled, prep: "[]"}
+      traits: [Peelable, Vegetable]
+      amount: "2 pcs"
+    curry.sliced:
+      type: Onion
+      state: {doneness: raw, browning: none, shape: "cut(style: slice, size: 3 mm)", prep: "[]"}
+    curry.fried:
+      type: Onion
+      state: {doneness: done, browning: light, shape: "cut(style: slice, size: 3 mm)", prep: "[]"}
+    curry.curry:
+      type: Mixture
+      state: {doneness: done, prep: "[]"}
+      traits: ["Allergen(milk)", "Allergen(wheat)"]
+      amount: "1192..1400 g"
