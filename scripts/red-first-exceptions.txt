@@ -1,1 +1,2 @@
 de17d51 fix of hand-calculation errors in four prototype golden expectations (nesting inputs, macro name position, span with closing parenthesis)
+0b79c35 golden added after the implementation so that MAC:overflow appears in a golden output (S147)

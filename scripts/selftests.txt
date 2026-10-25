@@ -16,3 +16,4 @@ tools/vocabcheck/priorwork.py scripts/test-priorwork.sh
 proto/scripts/digest.sh proto/scripts/test-digest.sh
 proto/scripts/check-pure.sh proto/scripts/test-check-pure.sh
 proto/scripts/check-noglobal.py proto/scripts/test-check-noglobal.sh
+proto/scripts/run-golden.sh proto/scripts/test-run-golden.sh
