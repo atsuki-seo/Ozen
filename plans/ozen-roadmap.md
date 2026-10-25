@@ -2613,6 +2613,12 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 先行研究との対応表（P3-7）: 要素の数、「対応なし」の数と、Ozen に足す候補の一覧（ユーザーに報告した日）
 - 一次情報の調査（P3-5）: 調べた値の数、一次情報が見つかった値と見つからなかった値の数、取得した資料の一覧（取得の確認を取った日）
 - わざと壊す確認の記録（各タスク）: <テスト> — <壊し方> で落ちた（<メッセージ>）。戻して合格
+- P1-1（2026-10-26）: `python3 -m unittest tools.vocabcheck.test_qty -v` が `Ran 6 tests`・`OK`
+  - わざと壊す確認: `py/test_qty.test_rejects_malformed`（S8・効かない条件）— 分母 0 の検査を消すと落ちた（`ZeroDivisionError: Fraction(1, 0)`、`errors=2`）。戻して合格
+  - わざと壊す確認: `py/test_qty.test_accepts`（S8・正常系）— 小数を `Fraction(float(text))` で読むと落ちた（`Fraction(5404319552844595, 9007199254740992)` と `Fraction(3, 5)` の不一致）。戻して合格
+  - わざと壊す確認: `py/test_qty.test_rejects_unitless`（S9・効かない条件）— 単位の無い量を単位 `""` の量として通すと落ちた（`failures=3`）。戻して合格
+  - わざと壊す確認: `py/test_qty.test_range_bounds`（S10・境界・上限）— 比較を `lo >= hi` にすると落ちた（`5..5 g` がエラーになった）。戻して合格
+  - わざと壊す確認: `py/test_qty.test_rejects_unknown_unit`（S11・効かない条件）— 単位の検査を外すと落ちた（`5 oz/ml` が通った）。戻して合格
 - 実装中に見つかった concept の食い違い（R2）
 
 ### 9.3 B・C（試作）
