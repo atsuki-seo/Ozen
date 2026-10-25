@@ -145,6 +145,7 @@ void *ozpi_new(ozpi_ctx *c, size_t size);
 bool ozpi_str_eq(ozpi_str a, ozpi_str b);
 bool ozpi_str_eqz(ozpi_str a, const char *z);
 ozpi_str ozpi_strz(const char *z);
+size_t ozpi_strlen(const char *z);
 ozpi_str ozpi_str_dup(ozpi_ctx *c, const char *p, size_t len);
 
 void ozpi_diag_add(ozpi_ctx *c, ozpi_diag_id id, ozpi_span span, uint32_t exp, const ozpi_str *args, uint32_t nargs);

@@ -46,7 +46,15 @@ bool ozpi_str_eq(ozpi_str a, ozpi_str b) { return a.len == b.len && (a.len == 0 
 
 bool ozpi_str_eqz(ozpi_str a, const char *z) { return ozpi_str_eq(a, ozpi_strz(z)); }
 
-ozpi_str ozpi_strz(const char *z) { return (ozpi_str){z, (uint32_t)strlen(z)}; }
+size_t ozpi_strlen(const char *z) {
+  size_t n = 0;
+  while (z[n] != '\0') {
+    n++;
+  }
+  return n;
+}
+
+ozpi_str ozpi_strz(const char *z) { return (ozpi_str){z, (uint32_t)ozpi_strlen(z)}; }
 
 ozpi_str ozpi_str_dup(ozpi_ctx *c, const char *p, size_t len) {
   char *q = ozpi_new(c, len + 1);
@@ -122,7 +130,7 @@ bool ozpi_buf_put(ozpi_ctx *c, ozpi_buf *b, const char *p, size_t len) {
   return true;
 }
 
-bool ozpi_buf_puts(ozpi_ctx *c, ozpi_buf *b, const char *z) { return ozpi_buf_put(c, b, z, strlen(z)); }
+bool ozpi_buf_puts(ozpi_ctx *c, ozpi_buf *b, const char *z) { return ozpi_buf_put(c, b, z, ozpi_strlen(z)); }
 
 bool ozpi_buf_putu(ozpi_ctx *c, ozpi_buf *b, uint64_t v) {
   char tmp[24];

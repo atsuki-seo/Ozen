@@ -118,6 +118,6 @@ char *ozp_expand(const char *src, size_t src_len, const ozp_options *opt) {
 
 void ozp_free_string(const ozp_options *opt, char *s) {
   if (s != nullptr) {
-    opt->allocator->release(opt->allocator->ctx, s, strlen(s) + 1);
+    opt->allocator->release(opt->allocator->ctx, s, ozpi_strlen(s) + 1);
   }
 }

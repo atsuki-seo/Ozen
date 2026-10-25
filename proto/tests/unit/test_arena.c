@@ -61,7 +61,19 @@ void test_arena_oom(void) {
   CHECK(t.live == 0);
 }
 
+#if defined(__SANITIZE_ADDRESS__)
+#define TEST_ASAN 1
+#elif defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define TEST_ASAN 1
+#endif
+#endif
+
 void test_arena_poison_detects(void) {
+#ifndef TEST_ASAN
+  fputs("skipped: the red zones are poisoned only in ASan builds\n", stderr);
+  return;
+#endif
   test_alloc t = {0};
   ozp_allocator a = test_allocator(&t);
   ozpi_arena ar;

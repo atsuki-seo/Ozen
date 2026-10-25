@@ -1134,7 +1134,7 @@ static void sync_top(parser *p) {
 }
 
 static bool word_at(const parser *p, size_t i, const char *w) {
-  size_t n = strlen(w);
+  size_t n = ozpi_strlen(w);
   if (i + n > p->len || memcmp(p->src + i, w, n) != 0) {
     return false;
   }

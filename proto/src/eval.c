@@ -1038,7 +1038,7 @@ void ozpi_evaluate(ozpi_ctx *c, const char *entry, const char *params) {
   const ozpi_span none = {{0, 0}, {0, 0}};
   bool params_ok = true;
   if (params != nullptr) {
-    size_t len = strlen(params), i = 0;
+    size_t len = ozpi_strlen(params), i = 0;
     while (i < len) {
       size_t end = i;
       while (end < len && params[end] != ';') {
