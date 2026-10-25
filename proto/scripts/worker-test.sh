@@ -17,10 +17,13 @@ work=$(mktemp -d)
 server=""
 chrome=""
 cleanup() {
-  [ -n "$chrome" ] && kill "$chrome" 2>/dev/null
+  [ -n "$chrome" ] && kill -TERM -- "-$chrome" 2>/dev/null
   [ -n "$server" ] && kill "$server" 2>/dev/null
   wait 2>/dev/null
-  rm -rf "$work"
+  for _ in $(seq 50); do
+    rm -rf "$work" 2>/dev/null && break
+    sleep 0.1
+  done
 }
 trap cleanup EXIT
 mkdir -p "$work/site" "$work/profile"
@@ -46,7 +49,7 @@ for _ in $(seq 50); do
   curl -s -o /dev/null "http://127.0.0.1:$port/worker-test.html" && break
   sleep 0.1
 done
-google-chrome --headless=new --disable-gpu --no-first-run --no-default-browser-check \
+setsid google-chrome --headless=new --disable-gpu --no-first-run --no-default-browser-check \
   --user-data-dir="$work/profile" "http://127.0.0.1:$port/worker-test.html" >/dev/null 2>&1 &
 chrome=$!
 for _ in $(seq 300); do
