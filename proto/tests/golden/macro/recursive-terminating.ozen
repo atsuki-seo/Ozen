@@ -1,0 +1,5 @@
+action a(x)
+macro count(n) { quote { if $n > 0 { a($n); count($n - 1) } } }
+recipe r() {
+  count(3)
+}

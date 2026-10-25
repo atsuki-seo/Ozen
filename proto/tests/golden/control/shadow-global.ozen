@@ -1,0 +1,6 @@
+action peel(x)
+action a(x)
+recipe r() {
+  let peel = 1 g
+  a(peel)
+}

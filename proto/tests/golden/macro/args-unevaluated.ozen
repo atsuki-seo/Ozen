@@ -1,0 +1,9 @@
+action peel(x)
+action a(x)
+macro twice(v) { quote { a($v); a($v) } }
+macro never(v) { quote { a(1) } }
+recipe r() {
+  ingredients { o: Onion 1 pcs }
+  twice(peel(o))
+  never(peel(o))
+}

@@ -1,0 +1,4 @@
+action a(x)
+recipe r() {
+  if 1 g { a(1) }
+}

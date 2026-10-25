@@ -1,0 +1,8 @@
+action peel(x)
+action b(x, y)
+recipe r() {
+  ingredients {
+    o: Onion 1 pcs
+  }
+  b(peel(o), 1 g + 1 min) @unattended
+}

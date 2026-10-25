@@ -1,0 +1,5 @@
+action a(x)
+recipe r() {
+  a(1 h 30 min)
+  a(1 kg 200 g)
+}

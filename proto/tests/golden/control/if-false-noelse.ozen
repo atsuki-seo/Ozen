@@ -1,0 +1,5 @@
+action a(x)
+recipe r() {
+  if false { a(1) }
+  a(2)
+}

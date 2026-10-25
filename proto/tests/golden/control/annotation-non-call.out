@@ -1,0 +1,4 @@
+%1 = a(1 g)
+error TYP007 annotationTarget 3:15-3:26 args=["unattended"]
+result error steps=1 diagnostics=1
+exit 1

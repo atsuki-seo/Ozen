@@ -1,0 +1,6 @@
+%1 = a(1)
+%2 = a(2)
+%3 = a(3)
+%4 = a(5)
+result ok steps=4 diagnostics=0
+exit 0

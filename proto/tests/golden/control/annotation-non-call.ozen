@@ -1,0 +1,5 @@
+action a(x)
+recipe r() {
+  let v = 1 g @unattended
+  a(v)
+}

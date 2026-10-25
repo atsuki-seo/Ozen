@@ -1,0 +1,8 @@
+%1 = peel(a)
+%2 = peel(b)
+%3 = f(%1, %2, time: 180 s, heat: 2)
+%4 = peel(b)
+%5 = peel(a)
+%6 = f(1, 2, time: %4, heat: %5)
+result ok steps=6 diagnostics=0
+exit 0

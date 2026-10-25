@@ -1,0 +1,9 @@
+action peel(x)
+action show(a, b, c, d, e)
+recipe r() {
+  ingredients {
+    onion: Onion 2 pcs
+  }
+  let p = peel(onion)
+  show(true, 1 g, "s", [1, 2], p)
+}

@@ -1,0 +1,6 @@
+action a(x)
+macro make(into) { quote { let $into = 3 g } }
+recipe r() {
+  make(y)
+  a(y)
+}

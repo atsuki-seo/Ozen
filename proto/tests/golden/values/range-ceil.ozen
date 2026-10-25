@@ -1,0 +1,4 @@
+action a(x)
+recipe r() {
+  a(ceil(1..2 g))
+}

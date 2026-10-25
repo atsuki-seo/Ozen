@@ -1,0 +1,7 @@
+action fry(x)
+recipe r() {
+  ingredients {
+    meat: Pork 300 g
+  }
+  fry(meat / 3)
+}

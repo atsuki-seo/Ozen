@@ -1,0 +1,7 @@
+action a(x)
+recipe r() {
+  a(ceil("x"))
+  a(min(1 g, 2 min))
+  a(len(1))
+  a(max(1 g))
+}

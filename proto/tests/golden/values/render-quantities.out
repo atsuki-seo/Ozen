@@ -1,0 +1,7 @@
+%1 = a(5400 s)
+%2 = a(3/10 g)
+%3 = a(-500 g)
+%4 = a(2000..3000 ml)
+%5 = a(1/2)
+result ok steps=5 diagnostics=0
+exit 0

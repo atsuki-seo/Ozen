@@ -1,0 +1,7 @@
+action peel(x)
+action a(x)
+macro m(v) { quote { a(peel($v)) } }
+recipe r() {
+  let peel = 5 g
+  m(1 g)
+}

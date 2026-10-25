@@ -1,0 +1,4 @@
+action a(x)
+recipe r() {
+  a(600 g / 250 g)
+}

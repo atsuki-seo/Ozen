@@ -1,0 +1,4 @@
+%1 = a(2)
+result ok steps=1 diagnostics=0
+stats steps=10/1000000 depth=5/256 nodes=1/100000
+exit 0

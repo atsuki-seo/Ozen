@@ -1,0 +1,6 @@
+action a(x)
+macro m(v) { quote { let x = 9 g; a($v) } }
+recipe r() {
+  let x = 1 g
+  m(x)
+}

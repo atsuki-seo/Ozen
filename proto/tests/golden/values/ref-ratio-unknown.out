@@ -1,0 +1,4 @@
+%1 = peel(meat)
+error TYP005 amountUnknown 8:5-8:14 args=["%1"]
+result error steps=1 diagnostics=1
+exit 1

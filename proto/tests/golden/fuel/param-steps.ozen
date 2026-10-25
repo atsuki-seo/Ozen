@@ -1,0 +1,5 @@
+// args: --stats --param n=2*3
+action a()
+recipe r(n: 1) {
+  repeat n { a() }
+}

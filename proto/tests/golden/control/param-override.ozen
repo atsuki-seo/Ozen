@@ -1,0 +1,5 @@
+// args: --param n=3
+action a(x)
+recipe r(n: 1) {
+  repeat n { a(1) }
+}

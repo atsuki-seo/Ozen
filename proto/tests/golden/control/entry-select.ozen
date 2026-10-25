@@ -1,0 +1,8 @@
+// args: --entry second
+action a(x)
+recipe first() {
+  a(1)
+}
+recipe second() {
+  a(2)
+}

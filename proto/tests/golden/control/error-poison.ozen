@@ -1,0 +1,7 @@
+action a(x)
+recipe r() {
+  let bad = 1 g + 1 min
+  let worse = bad * 2
+  a(worse)
+  a(2 g)
+}

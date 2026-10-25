@@ -1,0 +1,10 @@
+action a(x)
+recipe r() {
+  a(ceil(2.5 g))
+  a(floor(2.5 g))
+  a(ceil(-2.5 g))
+  a(floor(-2.5 g))
+  a(min(3 g, 2 g))
+  a(max(3 g, 2 g))
+  a(len([1, 2, 3]))
+}

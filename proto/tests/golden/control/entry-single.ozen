@@ -1,0 +1,4 @@
+action a(x)
+recipe only() {
+  a(1)
+}

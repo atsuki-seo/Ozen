@@ -1,0 +1,4 @@
+action a(x)
+recipe r() {
+  if 1..2 g < 3 g { a(1) }
+}

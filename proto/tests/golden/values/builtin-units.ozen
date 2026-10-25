@@ -1,0 +1,15 @@
+action a(x)
+recipe r() {
+  a(1 g)
+  a(1 kg)
+  a(1 ml)
+  a(1 L)
+  a(1 tbsp)
+  a(1 tsp)
+  a(1 mm)
+  a(1 cm)
+  a(1 s)
+  a(1 min)
+  a(1 h)
+  a(1 pcs)
+}

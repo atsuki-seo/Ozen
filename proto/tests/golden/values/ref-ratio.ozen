@@ -1,0 +1,8 @@
+action a(x)
+recipe r() {
+  ingredients {
+    meat: Pork 300 g
+  }
+  a(meat / 100 g)
+  a(meat / 250 g)
+}

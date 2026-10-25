@@ -1,0 +1,5 @@
+action a(x)
+macro m() { quote { a(nosuch) } }
+recipe r() {
+  a(1)
+}

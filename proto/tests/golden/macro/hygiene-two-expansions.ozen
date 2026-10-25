@@ -1,0 +1,6 @@
+action a(x)
+macro swap(v) { quote { let tmp = $v; a(tmp) } }
+recipe r() {
+  swap(1 g)
+  swap(2 g)
+}

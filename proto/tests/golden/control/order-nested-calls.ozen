@@ -1,0 +1,10 @@
+action peel(x)
+action f(a, b, heat, time)
+recipe r() {
+  ingredients {
+    a: Onion 1 pcs
+    b: Carrot 1 pcs
+  }
+  f(peel(a), peel(b), time: 3 min, heat: 2)
+  f(1, 2, time: peel(b), heat: peel(a))
+}

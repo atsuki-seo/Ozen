@@ -1,0 +1,5 @@
+action a(x)
+recipe r() {
+  a(0.3 g)
+  if 0.1 + 0.2 == 0.3 { a(1) }
+}

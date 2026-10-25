@@ -1,0 +1,5 @@
+action a(x)
+macro m(v) { a($v) }
+recipe r() {
+  a(1)
+}

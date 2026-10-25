@@ -1,0 +1,5 @@
+%1 = a()
+%2 = a()
+error MAC003 fuelExhausted 5:5-5:8 args=["8"]
+result error steps=2 diagnostics=1
+exit 1

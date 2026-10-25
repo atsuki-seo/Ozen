@@ -1,0 +1,4 @@
+action a(x)
+recipe r() {
+  repeat 3 pcs { a(1) }
+}

@@ -1,0 +1,3 @@
+error MAC003 fuelExhausted 4:16-4:19 args=["4"]
+result error steps=0 diagnostics=1
+exit 1

@@ -1,0 +1,4 @@
+%1 = a(1)
+error NAM005 undefined 0:0-0:0 args=["m"]
+result error steps=1 diagnostics=1
+exit 1

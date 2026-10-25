@@ -1,0 +1,8 @@
+%1 = a(o)
+%2 = a(1)
+%3 = a(-1 g) @u
+%4 = a(2 g)
+%5 = a(2)
+result ok steps=5 diagnostics=0
+stats steps=34/1000000 depth=6/256 nodes=8/100000
+exit 0

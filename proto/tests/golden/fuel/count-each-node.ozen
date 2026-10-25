@@ -1,0 +1,14 @@
+// args: --stats
+action a(x)
+macro m(v) { quote { a($v) } }
+recipe r() {
+  ingredients {
+    o: Onion 1 pcs
+  }
+  let x = -1 g
+  if true { a(o) }
+  for y in [1] { a(y) }
+  repeat 1 { a(x) @u }
+  m(2 g)
+  a(len([1]) + 1)
+}
