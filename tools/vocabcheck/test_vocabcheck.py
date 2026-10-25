@@ -137,6 +137,69 @@ def vocab_fixture_test(path):
     return test
 
 
+def sample_fixture_test(path):
+    def test(self):
+        with open(path, encoding="utf-8") as f:
+            expect = yaml.safe_load(f).get("expect") or {}
+        r = run("sample", path, "--json")
+        out = json.loads(r.stdout)
+        for sev, key in (("error", "errors"), ("warning", "warnings"), ("info", "infos")):
+            want = Counter((d["name"], d["at"], tuple(str(a) for a in d.get("args", []))) for d in expect.get(key) or [])
+            got = Counter((d["name"], d["at"], tuple(d["args"])) for d in out["diagnostics"] if d["severity"] == sev)
+            if key in expect or got:
+                self.assertEqual(got, want, key)
+        if "requires" in expect:
+            self.assertEqual(out["requires"], sorted(expect["requires"]))
+        for group in ("steps", "states"):
+            for name, spec in (expect.get(group) or {}).items():
+                got = out[group].get(name)
+                self.assertIsNotNone(got, f"{group}.{name}")
+                for field, want in spec.items():
+                    if field == "traits":
+                        self.assertEqual(sorted(got.get(field) or []), sorted(want), f"{group}.{name}.traits")
+                    else:
+                        self.assertEqual(got.get(field), want, f"{group}.{name}.{field}")
+        self.assertEqual(out["expectations"]["failed"], 0, out["expectations"]["failures"])
+    return test
+
+
+class DiagOrder(unittest.TestCase):
+    def test_diag_order_and_location(self):
+        tmp = tempfile.mkdtemp(prefix="ozen-sample-")
+        try:
+            path = os.path.join(tmp, "order.yaml")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("""recipes:
+  r:
+    output: {type: Onion}
+    ingredients:
+      onion: {type: Onion, amount: "1 pcs"}
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: washed, do: wash, args: [onion]}
+      - {let: rinsed, do: wash, args: [carrot]}
+      - {let: sliced, do: cut, args: [washed], named: {style: slice}}
+      - {let: more, do: wash, args: [sliced]}
+      - {let: grilled, do: grill, args: [rinsed]}
+    result: more
+expect:
+  errors: []
+""")
+            out = json.loads(run("sample", path, "--json").stdout)
+            errors = [(d["name"], d["at"]) for d in out["diagnostics"] if d["severity"] == "error"]
+            self.assertEqual(errors, [("TYP:stateRequirement", "recipes.r.steps[2]"),
+                                      ("NAM:undefined", "recipes.r.steps[4]")])
+            self.assertGreater("TYP:stateRequirement", "NAM:undefined")
+        finally:
+            shutil.rmtree(tmp)
+
+
+for path in sorted(glob.glob(os.path.join(FIXTURES, "sample-*", "*.yaml"))):
+    kind = os.path.basename(os.path.dirname(path))
+    name = os.path.basename(path)[:-5]
+    setattr(Fixtures, "test_fx_" + f"{kind}_{name}".replace("-", "_"), sample_fixture_test(path))
+
+
 for path in sorted(glob.glob(os.path.join(FIXTURES, "vocab-*", "*"))):
     kind = os.path.basename(os.path.dirname(path))
     name = os.path.basename(path)

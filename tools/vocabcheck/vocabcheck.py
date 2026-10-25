@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import re
+from decimal import Decimal
 
 import jsonschema
 import yaml
@@ -829,6 +830,610 @@ class Lists:
         return 1 if missing or mismatched or rel_bad else 0
 
 
+def fmt_fraction(x):
+    if x.denominator == 1:
+        return str(x.numerator)
+    d = x.denominator
+    while d % 2 == 0:
+        d //= 2
+    while d % 5 == 0:
+        d //= 5
+    if d == 1:
+        text = format(Decimal(x.numerator) / Decimal(x.denominator), "f")
+        return text.rstrip("0").rstrip(".") if "." in text else text
+    return f"{x.numerator}/{x.denominator}"
+
+
+def fmt_amount(lo, hi, unit):
+    if lo == hi:
+        return f"{fmt_fraction(lo)} {unit}"
+    return f"{fmt_fraction(lo)}..{fmt_fraction(hi)} {unit}"
+
+
+class Value:
+    def __init__(self, type_, axes, state, traits, amount, part=None, unknown=False):
+        self.type = type_
+        self.axes = list(axes)
+        self.state = state
+        self.traits = set(traits)
+        self.amount = amount
+        self.part = part
+        self.unknown = unknown
+
+    def copy(self):
+        state = {}
+        for k, v in self.state.items():
+            if isinstance(v, tuple):
+                state[k] = (v[0], dict(v[1]))
+            elif isinstance(v, dict):
+                state[k] = {i: dict(a) for i, a in v.items()}
+            else:
+                state[k] = v
+        return Value(self.type, self.axes, state, self.traits, self.amount, self.part, self.unknown)
+
+
+UNKNOWN = Value(None, [], {}, [], None, unknown=True)
+
+
+class Entry:
+    def __init__(self, value, at, key):
+        self.value = value
+        self.at = at
+        self.key = key
+        self.consumed = False
+        self.returned = False
+
+
+class Sampler:
+    def __init__(self, checker, doc):
+        self.c = checker
+        self.doc = doc
+        self.diags = []
+        self.steps = {}
+        self.states = {}
+        self.requires = set()
+        self.units = set(checker.units)
+
+    def diag(self, severity, name, at, key, args):
+        self.diags.append({"severity": severity, "name": name, "at": at, "args": [str(a) for a in args], "_key": key})
+
+    def err(self, name, at, key, *args):
+        self.diag("error", name, at, key, args)
+
+    def info(self, name, at, key, *args):
+        self.diag("info", name, at, key, args)
+
+    def closure(self, traits):
+        out = set()
+        for t in traits:
+            out.add(t)
+            base = Checker.trait_base(t)
+            out.add(base)
+            out.update(self.c.trait_closure([base]))
+        return out
+
+    def axis_kind(self, axis):
+        return (self.c.axes.get(axis) or {}).get("kind")
+
+    def axis_values(self, axis):
+        return (self.c.axes.get(axis) or {}).get("values") or []
+
+    def initial_state(self, axes, initial):
+        state = {}
+        for a in axes:
+            kind = self.axis_kind(a)
+            values = self.axis_values(a)
+            if kind == "ordered":
+                state[a] = values[0] if values else None
+            elif kind == "tagged":
+                state[a] = (values[0] if values else None, {})
+            elif kind == "set":
+                state[a] = {}
+        for a, v in (initial or {}).items():
+            if a not in state:
+                continue
+            kind = self.axis_kind(a)
+            if kind == "ordered":
+                state[a] = v
+            elif kind == "tagged":
+                state[a] = (next(iter(v)), dict(next(iter(v.values())) or {})) if isinstance(v, dict) else (v, {})
+            elif kind == "set":
+                state[a] = {x: {} for x in (v if isinstance(v, list) else [v])}
+        return state
+
+    def new_value(self, type_, amount=None):
+        ing = self.c.ingredients.get(type_) or {}
+        return Value(type_, ing.get("axes") or [], self.initial_state(ing.get("axes") or [], ing.get("initial")),
+                     ing.get("traits") or [], amount)
+
+    def ingredient(self, rname, name, spec, at, key):
+        t = spec.get("type")
+        amount = None
+        if "amount" in spec:
+            amount = qtymod.parse(spec["amount"], self.units)
+            if not amount:
+                self.err("TYP:quantity", at, key, spec["amount"])
+                amount = None
+        if t in self.c.ingredients:
+            v = self.new_value(t, amount)
+            part = spec.get("part")
+            if part is not None:
+                parts = self.c.parts_of(t)
+                if part not in parts:
+                    self.err("NAM:undefined", at, key, part)
+                else:
+                    v.part = part
+                    v.traits |= set((parts.get(part) or {}).get("traits") or [])
+            return v
+        if t in self.c.aliases:
+            al = self.c.aliases.get(t) or {}
+            v = self.new_value(al.get("of"), amount)
+            parts = self.c.parts_of(al.get("of"))
+            cands = [p for p in parts if p in (al.get("parts") or []) or
+                     (al.get("partTraits") and set(al["partTraits"]) <= set((parts.get(p) or {}).get("traits") or []))]
+            common = None
+            for p in cands:
+                pt = set((parts.get(p) or {}).get("traits") or [])
+                common = pt if common is None else common & pt
+            v.traits |= common or set()
+            for a, st in (al.get("state") or {}).items():
+                if a in v.state and self.axis_kind(a) == "tagged":
+                    v.state[a] = (next(iter(st)), dict(next(iter(st.values())) or {})) if isinstance(st, dict) else (st, {})
+            return v
+        self.err("NAM:undefined", at, key, t)
+        return UNKNOWN
+
+    def to_base(self, lo, hi, unit):
+        seen = set()
+        while True:
+            u = self.c.units.get(unit) or {}
+            if u.get("base") or "def" not in u or unit in seen:
+                return lo, hi, unit
+            seen.add(unit)
+            d = qtymod.parse(u["def"], self.units)
+            if not d or "/" in d.unit:
+                return lo, hi, unit
+            lo, hi, unit = lo * d.lo, hi * d.hi, d.unit
+
+    def prop_qty(self, type_, key):
+        props = (self.c.ingredients.get(type_) or {}).get("props") or {}
+        v = props.get(key)
+        if isinstance(v, dict) and isinstance(v.get("value"), str):
+            q = qtymod.parse(v["value"], self.units)
+            if q and "/" in q.unit:
+                num, den = q.unit.split("/")
+                lo, hi, nu = self.to_base(q.lo, q.hi, num)
+                dlo, dhi, du = self.to_base(1, 1, den)
+                return lo / dhi, hi / dlo, nu, du
+        return None
+
+    def mass(self, v):
+        if v.unknown or v.amount is None:
+            return None
+        lo, hi, unit = self.to_base(v.amount.lo, v.amount.hi, v.amount.unit)
+        dim = self.c.unit_dimension(unit)
+        if dim == "Mass":
+            return lo, hi, unit
+        key = {"Volume": "density", "Count": "unitWeight"}.get(dim)
+        conv = self.prop_qty(v.type, key) if key else None
+        if not conv or conv[3] != unit:
+            return None
+        return lo * conv[0], hi * conv[1], conv[2]
+
+    def combine(self, values, label, at, key):
+        mix = self.new_value("Mixture")
+        dones = [v.state["doneness"] for v in values if not v.unknown and "doneness" in v.state]
+        order = self.axis_values("doneness")
+        if dones and "doneness" in mix.state:
+            mix.state["doneness"] = min(dones, key=lambda x: order.index(x) if x in order else 0)
+        traits = set()
+        for v in values:
+            cl = self.closure(v.traits)
+            if "Hazard" in cl:
+                traits.add("Hazard")
+            traits |= {t for t in cl if t.startswith("Allergen(")}
+        mix.traits = traits
+        total = [0, 0, None]
+        for v in values:
+            m = self.mass(v)
+            if m is None:
+                total = None
+                break
+            total = [total[0] + m[0], total[1] + m[1], m[2]]
+        if total is None:
+            mix.amount = None
+            self.info("LIN:amountUnknown", at, key, label)
+        else:
+            mix.amount = qtymod.Quantity(total[0], total[1], total[2] or "g")
+        return mix
+
+    def satisfies(self, v, alt):
+        if v.unknown:
+            return True
+        if "type" in alt and v.type != alt["type"]:
+            return False
+        cl = self.closure(v.traits)
+        if not all(t in cl for t in alt.get("traits") or []):
+            return False
+        for axis, cond in (alt.get("axes") or {}).items():
+            if axis not in v.state:
+                return False
+            cur = v.state[axis]
+            order = self.axis_values(axis)
+            for op, want in (cond or {}).items():
+                if op == "in":
+                    name = cur[0] if isinstance(cur, tuple) else cur
+                    if name not in want:
+                        return False
+                elif op in ("atLeast", "atMost"):
+                    if cur not in order or want not in order:
+                        return False
+                    if op == "atLeast" and order.index(cur) < order.index(want):
+                        return False
+                    if op == "atMost" and order.index(cur) > order.index(want):
+                        return False
+                elif op == "has":
+                    if not isinstance(cur, dict) or want not in cur:
+                        return False
+        return True
+
+    def finer_reach(self, style):
+        enum = ((self.c.axes.get("shape") or {}).get("params") or {}).get("cut", {}).get("style")
+        graph = (self.c.enums.get(enum) or {}).get("finer") or {}
+        seen, todo = set(), [style]
+        while todo:
+            n = todo.pop()
+            for m in graph.get(n) or []:
+                if m not in seen:
+                    seen.add(m)
+                    todo.append(m)
+        return seen
+
+    def apply_effects(self, v, effects, resolved, at, key):
+        if v.unknown:
+            return
+        for axis, eff in (effects or {}).items():
+            if axis not in v.state:
+                continue
+            kind = self.axis_kind(axis)
+            order = self.axis_values(axis)
+            if kind == "ordered":
+                cur = v.state[axis]
+                if cur in order and eff in order and order.index(eff) < order.index(cur):
+                    continue
+                v.state[axis] = eff
+                continue
+            if isinstance(eff, str):
+                name, args = eff, {}
+            else:
+                name = eff.get("add") or eff.get("set")
+                args = {}
+                missing = False
+                for k, a in (eff.get("args") or {}).items():
+                    if isinstance(a, str) and a.startswith("$"):
+                        if a[1:] not in resolved:
+                            missing = True
+                            break
+                        args[k] = resolved[a[1:]]
+                    else:
+                        args[k] = a
+                if missing:
+                    continue
+            if kind == "tagged":
+                cur_name, cur_args = v.state[axis]
+                if name == "cut":
+                    if cur_name == "cut" and args.get("style") not in self.finer_reach(cur_args.get("style")):
+                        self.err("TYP:cutCoarser", at, key, cur_args.get("style"), args.get("style"))
+                    elif cur_name == "pureed":
+                        self.err("TYP:cutCoarser", at, key, "pureed", args.get("style"))
+                v.state[axis] = (name, args)
+            elif kind == "set":
+                v.state[axis][name] = args
+
+    def step(self, rname, i, st, bindings, at, key):
+        do = st.get("do")
+        act = self.c.actions.get(do)
+        args = st.get("args") or []
+        named = st.get("named") or {}
+        if act is None:
+            self.err("NAM:undefined", at, key, do)
+            for a in list(args) + list(named.values()):
+                for n in (a if isinstance(a, list) else [a]):
+                    if isinstance(n, str) and n in bindings:
+                        bindings[n].consumed = True
+            return UNKNOWN
+        params = [p for p in act.get("params") or [] if isinstance(p, dict)]
+        assigned = {}
+        for j, a in enumerate(args):
+            if j < len(params):
+                assigned[params[j]["name"]] = a
+            else:
+                self.err("NAM:arity", at, key, do, "extra", j)
+        by_name = {p["name"]: p for p in params}
+        for k, a in named.items():
+            if k not in by_name:
+                self.err("NAM:arity", at, key, do, "unknown", k)
+            elif k in assigned:
+                self.err("NAM:arity", at, key, do, "duplicate", k)
+            else:
+                assigned[k] = a
+        for p in params:
+            if p["name"] not in assigned:
+                if "default" in p:
+                    assigned[p["name"]] = p["default"]
+                elif p.get("kind") in ("food", "foodList", "quantity", "enum"):
+                    self.err("NAM:arity", at, key, do, "missing", p["name"])
+        label = st.get("let") or do
+        values, resolved, inputs = {}, {}, []
+        for p in params:
+            name = p["name"]
+            if name not in assigned:
+                continue
+            a = assigned[name]
+            kind = p.get("kind")
+            if kind in ("food", "foodList"):
+                names = a if isinstance(a, list) else [a]
+                vals = []
+                for n in names:
+                    if isinstance(n, list):
+                        continue
+                    e = bindings.get(n)
+                    if e is None:
+                        self.err("NAM:undefined", at, key, n)
+                        vals.append(UNKNOWN)
+                        continue
+                    if e.consumed:
+                        self.err("LIN:doubleUse", at, key, n)
+                    e.consumed = True
+                    vals.append(e.value.copy())
+                inputs.extend(vals)
+                if isinstance(a, list) or kind == "foodList":
+                    values[name] = (self.combine(vals, label, at, key), "[" + ", ".join(map(str, names)) + "]")
+                else:
+                    values[name] = (vals[0], str(a))
+            elif kind == "quantity":
+                q = qtymod.parse(a, self.units)
+                if not q:
+                    m = re.match(r"^unknown unit (.*)$", q.reason)
+                    if m:
+                        self.err("NAM:undefined", at, key, m.group(1))
+                    else:
+                        self.err("TYP:quantity", at, key, name, a)
+                    continue
+                got = "/".join(str(self.c.unit_dimension(u)) for u in q.units)
+                if p.get("dimension") and got != p["dimension"]:
+                    self.err("TYP:dimension", at, key, name, p["dimension"], got)
+                    continue
+                resolved[name] = fmt_amount(q.lo, q.hi, q.unit)
+            elif kind == "enum":
+                if a not in ((self.c.enums.get(p.get("enum")) or {}).get("values") or []):
+                    self.err("TYP:enumValue", at, key, name, a)
+                    continue
+                resolved[name] = a
+        for p in params:
+            if p.get("kind") != "food" or p["name"] not in values:
+                continue
+            v, vname = values[p["name"]]
+            alts = p.get("requires") or []
+            if alts and not any(self.satisfies(v, alt) for alt in alts):
+                self.err("TYP:stateRequirement", at, key, do, p["name"], vname)
+            self.apply_effects(v, p.get("effects"), resolved, at, key)
+        variants = act.get("variants") or []
+        uses = (variants[0].get("uses") if variants else act.get("uses")) or []
+        self.requires |= {u for u in uses if u != "hands"}
+        if len(variants) > 1:
+            self.info("ASM:firstVariant", at, key, *[x.get("name") for x in variants[1:]])
+        out = act.get("output")
+        if out == "none" or out is None:
+            return None
+        if "param" in out:
+            return values.get(out["param"], (UNKNOWN, ""))[0]
+        if out.get("combine"):
+            for p in params:
+                if p.get("kind") == "foodList" and p["name"] in values:
+                    return values[p["name"]][0]
+            return UNKNOWN
+        res = self.new_value(out["type"], next((v.amount for v in inputs if not v.unknown), None))
+        self.apply_effects(res, out.get("effects"), resolved, at, key)
+        for v in inputs:
+            res.traits |= {t for t in self.closure(v.traits) if t.startswith("Allergen(")}
+        return res
+
+    def recipe(self, ri, rname, r):
+        bindings = {}
+        base = f"recipes.{rname}"
+        for ii, (name, spec) in enumerate((r.get("ingredients") or {}).items()):
+            at, key = f"{base}.ingredients.{name}", (0, ri, 0, ii)
+            bindings[name] = Entry(self.ingredient(rname, name, spec or {}, at, key), at, key)
+        for i, st in enumerate(r.get("steps") or []):
+            at, key = f"{base}.steps[{i}]", (0, ri, 1, i)
+            v = self.step(rname, i, st, bindings, at, key)
+            let = st.get("let")
+            if let and v is not None:
+                if let in bindings:
+                    self.err("NAM:rebind", at, key, let)
+                bindings[let] = Entry(v, at, key)
+                self.steps[f"{rname}.{let}"] = self.render(v)
+        at, key = f"{base}.result", (0, ri, 2, 0)
+        out = r.get("output") or {}
+        e = bindings.get(r.get("result"))
+        result = UNKNOWN
+        if e is None:
+            self.err("NAM:undefined", at, key, r.get("result"))
+        else:
+            e.returned = True
+            result = e.value.copy()
+            if not result.unknown:
+                if result.type == "Mixture":
+                    result.type = out.get("type")
+                elif result.type != out.get("type"):
+                    self.err("TYP:output", at, key, out.get("type"), result.type)
+                result.traits |= set(out.get("traits") or [])
+        for name, e in sorted(bindings.items(), key=lambda kv: kv[1].key):
+            if not e.consumed and not e.returned:
+                self.info("LIN:leftover", e.at, e.key, name)
+        return result
+
+    def vessel_traits(self, name):
+        out, cur, seen = set(), name, set()
+        while cur in self.c.vessels and cur not in seen:
+            seen.add(cur)
+            v = self.c.vessels.get(cur) or {}
+            out |= set(v.get("traits") or [])
+            cur = v.get("extends")
+        return out
+
+    def menu(self, mi, mname, m, outputs):
+        base = f"menus.{mname}"
+        bindings = {}
+        for ki, (k, rname) in enumerate((m.get("make") or {}).items()):
+            at, key = f"{base}.make.{k}", (1, mi, 0, ki, 0)
+            if rname not in outputs:
+                self.err("NAM:undefined", at, key, rname)
+                v = UNKNOWN
+            else:
+                v = outputs[rname].copy()
+            bindings[k] = Entry(v, at, key)
+            self.states[f"{mname}.{k}"] = self.render(v)
+        for wi, (wave, plates) in enumerate((m.get("serve") or {}).items()):
+            for pi, plate in enumerate(plates or []):
+                at, key = f"{base}.serve.{wave}[{pi}]", (1, mi, 1, wi, pi)
+                vessels = [x for x in plate.get("on") or []]
+                for x in vessels:
+                    if x not in self.c.vessels:
+                        self.err("NAM:undefined", at, key, x)
+                for item in plate.get("items") or []:
+                    e = bindings.get(item)
+                    if e is None:
+                        self.err("NAM:undefined", at, key, item)
+                        continue
+                    if e.consumed:
+                        self.err("LIN:doubleUse", at, key, item)
+                    e.consumed = True
+                    v = e.value
+                    if v.unknown:
+                        continue
+                    cl = self.closure(v.traits)
+                    order = self.axis_values("doneness")
+                    d = v.state.get("doneness")
+                    if "Hazard" in cl and "RawEdible" not in cl and d in order and "done" in order \
+                            and order.index(d) < order.index("done"):
+                        self.err("SAF:undercooked", at, key, item)
+                    if "Liquid" in cl:
+                        for x in vessels:
+                            if x in self.c.vessels and "HoldsLiquid" not in self.vessel_traits(x):
+                                self.err("TYP:vesselLiquid", at, key, item, x)
+        for k, e in bindings.items():
+            if not e.consumed:
+                self.info("LIN:leftover", e.at, e.key, k)
+
+    def render(self, v):
+        if v.unknown:
+            return {"type": None}
+        state = {}
+        for a in v.axes:
+            cur = v.state.get(a)
+            if isinstance(cur, tuple):
+                name, args = cur
+                params = list((((self.c.axes.get(a) or {}).get("params") or {}).get(name) or {}))
+                keys = [k for k in params if k in args] + [k for k in args if k not in params]
+                state[a] = name + ("(" + ", ".join(f"{k}: {args[k]}" for k in keys) + ")" if args else "")
+            elif isinstance(cur, dict):
+                order = self.axis_values(a)
+                items = sorted(cur, key=lambda x: order.index(x) if x in order else len(order))
+                state[a] = "[" + ", ".join(x + ("(" + ", ".join(f"{k}: {w}" for k, w in cur[x].items()) + ")"
+                                               if cur[x] else "") for x in items) + "]"
+            else:
+                state[a] = cur
+        out = {"type": v.type, "state": state, "traits": sorted(v.traits),
+               "amount": fmt_amount(v.amount.lo, v.amount.hi, v.amount.unit) if v.amount else "unknown"}
+        if v.part:
+            out["part"] = v.part
+        return out
+
+    def run(self):
+        outputs = {}
+        for ri, (rname, r) in enumerate((self.doc.get("recipes") or {}).items()):
+            outputs[rname] = self.recipe(ri, rname, r or {})
+        for mi, (mname, m) in enumerate((self.doc.get("menus") or {}).items()):
+            self.menu(mi, mname, m or {}, outputs)
+        self.diags.sort(key=lambda d: d["_key"])
+        for d in self.diags:
+            d.pop("_key")
+
+
+def count_leaves(x):
+    if isinstance(x, dict):
+        return sum(count_leaves(v) for v in x.values()) or 1
+    if isinstance(x, list):
+        return sum(count_leaves(v) for v in x) or 1
+    return 1
+
+
+def compare_expect(expect, result):
+    checked = failed = 0
+    failures = []
+
+    def unit(label, want, got, weight):
+        nonlocal checked, failed
+        checked += weight
+        if want != got:
+            failed += weight
+            failures.append({"what": label, "want": want, "got": got})
+
+    for sev, key in (("error", "errors"), ("warning", "warnings"), ("info", "infos")):
+        if key not in expect:
+            continue
+        want = sorted((d["name"], d["at"], [str(a) for a in d.get("args", [])]) for d in expect[key] or [])
+        got = sorted((d["name"], d["at"], d["args"]) for d in result["diagnostics"] if d["severity"] == sev)
+        unit(key, want, got, count_leaves(expect[key]))
+    if "requires" in expect:
+        unit("requires", sorted(expect["requires"]), result["requires"], count_leaves(expect["requires"]))
+    for group in ("steps", "states"):
+        for name, spec in (expect.get(group) or {}).items():
+            got = result[group].get(name) or {}
+            for field, want in (spec or {}).items():
+                g = got.get(field)
+                if field == "traits":
+                    want = sorted(want or [])
+                unit(f"{group}.{name}.{field}", want, g, count_leaves(want) if field != "state" else max(1, len(want)))
+    return checked, failed, failures
+
+
+def run_sample(sample_path, vocab_dir):
+    diags = Diags()
+    data = load_vocab(vocab_dir, diags)
+    c = Checker(data, Diags())
+    c.build()
+    with open(sample_path, encoding="utf-8") as f:
+        text = f.read()
+    sdiags = Diags()
+    loader = DedupLoader(text)
+    try:
+        node = loader.get_single_node()
+        _dedupe(node, [], os.path.basename(sample_path), sdiags)
+        doc = loader.construct_document(node) or {}
+    finally:
+        loader.dispose()
+    with open(os.path.join(ROOT, "spec", "schema", "sample.schema.json"), encoding="utf-8") as f:
+        schema = json.load(f)
+    result = {"diagnostics": [], "steps": {}, "states": {}, "requires": []}
+    for d in sdiags.items:
+        result["diagnostics"].append({"severity": "error", "name": d["name"], "at": d["path"], "args": d["args"]})
+    errs = list(jsonschema.Draft202012Validator(schema).iter_errors(doc))
+    for e in errs:
+        result["diagnostics"].append({"severity": "error", "name": "FMT:schema",
+                                      "at": fmt_path(list(e.absolute_path)), "args": [e.validator]})
+    if not errs:
+        s = Sampler(c, doc)
+        s.run()
+        result["diagnostics"] += s.diags
+        result["steps"], result["states"], result["requires"] = s.steps, s.states, sorted(s.requires)
+    checked, failed, failures = compare_expect(doc.get("expect") or {}, result) if not errs else (0, 1, [])
+    result["expectations"] = {"checked": checked, "failed": failed, "failures": failures}
+    return result
+
+
 def emit(diags, summary, as_json):
     if as_json:
         print(json.dumps({"diagnostics": diags.items, "summary": summary}, ensure_ascii=False, indent=1))
@@ -840,7 +1445,7 @@ def emit(diags, summary, as_json):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="vocabcheck.py")
-    ap.add_argument("command", choices=["schema", "check", "lists"])
+    ap.add_argument("command", choices=["schema", "check", "lists", "sample"])
     ap.add_argument("files", nargs="*")
     ap.add_argument("--vocab", default=os.path.join(ROOT, "spec", "vocab"))
     ap.add_argument("--json", action="store_true")
@@ -850,6 +1455,22 @@ def main(argv=None):
         if len(args.files) != 2:
             ap.error("lists needs CONCEPT_LISTS and CONCEPT_RELATIONS")
         return Lists(load_vocab(args.vocab, diags)).run(*args.files)
+    if args.command == "sample":
+        if len(args.files) != 1:
+            ap.error("sample needs one sample file")
+        result = run_sample(args.files[0], args.vocab)
+        errors = sum(1 for d in result["diagnostics"] if d["severity"] == "error")
+        ex = result["expectations"]
+        summary = f"sample: {errors} errors; expectations: {ex['checked']} checked, {ex['failed']} failed"
+        if args.json:
+            print(json.dumps(dict(result, summary=summary), ensure_ascii=False, indent=1))
+        else:
+            for d in result["diagnostics"]:
+                print(" ".join([d["severity"], d["name"], d["at"] or "-"] + d["args"]), file=sys.stderr)
+            for f in ex["failures"]:
+                print(f"expectation failed: {f['what']}: want {f['want']!r}, got {f['got']!r}", file=sys.stderr)
+            print(summary)
+        return 1 if errors or ex["failed"] else 0
     if args.command == "schema":
         _data, names, _ = run_schema(args.vocab, diags)
         errors = diags.count("error")
