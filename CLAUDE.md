@@ -11,3 +11,8 @@
 
 - The implementation plan is `plans/ozen-roadmap.md`. Task completion conditions are the goals defined in its §5, and the judgment commands in the §5 code blocks are authoritative.
 - Work happens on `main` only; ranges for history checks start at the tag `plan-start`.
+
+## Publishing
+
+- The repository is public (`atsuki-seo/Ozen`). Never publish the user's personal email address: commits must use the GitHub noreply address `146819854+atsuki-seo@users.noreply.github.com` (set as this repository's `user.email`), and tracked files must not contain the personal address.
+- Run the plan's `G-REPO-NOREPLY` goal before every push, and ask the user before pushing.
