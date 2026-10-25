@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+sources:
+  provisional: {kind: provisional, title: Provisional value}
+  onion-density-paper:
+    kind: primary
+    title: Physical properties of onion bulbs
+    publisher: Example Society
+    url: https://example.org/onion
+    retrieved: "2026-10-26"
+    location: "Table 2"
+    quote: "bulk density 0.5〜0.7 g/cm3"
