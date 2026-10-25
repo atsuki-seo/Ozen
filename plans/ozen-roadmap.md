@@ -2572,6 +2572,9 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 
 - 着手点の基準値 N0（P0-7）: テストの数 0（`plans/` 以外のコードは無い）。タグ `plan-start` の sha
 - 道具の版（P0-4）: gcc 13.3.0、clang 17.0.0（swiftly、Swift 6.2.3、LLVM 19.1.5 系）、cmake 3.28.3、node v20.20.2、Python 3.12.3、PyYAML 6.0.1、jsonschema 4.10.3、openpyxl 3.1.5、Java 25.0.4.1、google-chrome 154.0.8037.97（2026-10-25 時点）。emcc・NDK・Xcode の版はここに書く
+- emsdk（P0-4、2026-10-26 にユーザーの確認を取って導入）: `~/.local/share/emsdk` に github.com/emscripten-core/emsdk を clone してタグ `6.0.13` を checkout し、`./emsdk install 6.0.13`・`activate 6.0.13`。取得したのは `wasm-binaries.tar.xz`（311,791,988 バイト、リリースの hash `eb132757325583b787fe9414b09afea9442b72ad`）と、emsdk が添える node 24.19.0。導入後の大きさ 1.7 GB。`emcc --version` の 1 行目は `emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.13 (e13ee988ce3d87a738dd8f3661d02223308c412a)`。`emcc` は PATH に入れず、`check-tools.sh` は `$EMSDK`（既定は `~/.local/share/emsdk`）の `upstream/emscripten/emcc` を使う
+- P0-4 の結果（2026-10-26）: `toolchain.txt` は gcc 13.3.0・clang 17.0.0・cmake 3.28.3・node 20.20.2・python3 3.12.3・pyyaml 6.0.1・jsonschema 4.10.3・openpyxl 3.1.5・emcc 6.0.13 の 9 行。`G-REPO-TOOLS`（`tools: 9 checked, 0 mismatched`）、`test-check-tools: 4 cases, 0 failed`
+  - わざと壊す確認: `sh/test-check-tools.sh`（S131・前提の固定）— 版の比較を主の版だけにすると落ちた（`FAIL patch-differs`、`4 cases, 2 failed`）。戻して合格
 - ライセンスの本文（P0-3、2026-10-26 にユーザーの確認を取って取得）:
   - `LICENSE-MIT`: `https://raw.githubusercontent.com/spdx/license-list-data/main/text/MIT.txt`（1,078 バイト、sha256 `b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5`）。著作者の行を `Copyright (c) 2026 atsuki.seo` に置き換えた後の sha256 `8bcf9c408a5d1fd01f810c5ac9f843d6e07e29c063fcd8bb39720ec019347b1c`
   - `LICENSE-APACHE`: `https://www.apache.org/licenses/LICENSE-2.0.txt`（11,358 バイト、sha256 `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`、本文のまま）
