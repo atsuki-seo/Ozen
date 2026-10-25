@@ -2,3 +2,6 @@ scripts/check-spdx.sh scripts/test-check-spdx.sh
 scripts/check-plan-tests.sh scripts/test-check-plan-tests.sh
 scripts/check-lists-copy.py scripts/test-check-lists-copy.sh
 scripts/goals.sh scripts/test-goals.sh
+scripts/check-commit-separation.sh scripts/test-check-commit-separation.sh
+scripts/check-red-first.sh scripts/test-check-red-first.sh
+scripts/check-selftests.sh scripts/test-check-selftests.sh
