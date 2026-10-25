@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+capabilities:
+  HeatSource: {params: [stovetop, oven, microwave, toaster]}
+  CuttingSurface: {}
+  Container: {}
+  RiceCooking: {}
+  Blending: {}
+  Chilling: {}
+  Freezing: {}
+  Washing: {}
+  Vessel: {}
+  WorkSurface: {}
+kinds:
+  Floor: {category: place}
+  Counter:
+    category: place
+    provides: [WorkSurface]
+    props: {wipeTime: {value: "0.5..1 min", source: provisional}}
+  Sink: {category: place, provides: [Washing]}
+  Stove:
+    category: place
+    abstract: true
+    props: {wipeTime: {value: "1..2 min", source: provisional}}
+  GasStove: {category: place, extends: [Stove], provides: ["HeatSource<stovetop>"]}
+  IHStove: {category: place, extends: [Stove], provides: ["HeatSource<stovetop>"]}
+  Oven:
+    category: place
+    provides: ["HeatSource<oven>"]
+    props: {wipeTime: {value: "1..3 min", source: provisional}}
+  Microwave:
+    category: place
+    provides: ["HeatSource<microwave>"]
+    props: {wipeTime: {value: "0.5..1 min", source: provisional}}
+  Toaster:
+    category: place
+    provides: ["HeatSource<toaster>"]
+    props: {wipeTime: {value: "0.5..1 min", source: provisional}}
+  OvenRange:
+    category: place
+    provides: ["HeatSource<oven>", "HeatSource<microwave>"]
+    props: {wipeTime: {value: "1..3 min", source: provisional}}
+  Fridge: {category: place, provides: [Chilling]}
+  Freezer: {category: place, provides: [Freezing]}
+  Dishwasher: {category: place, provides: [Washing]}
+  CuttingBoard:
+    category: tool
+    provides: [CuttingSurface]
+    props: {washTime: {value: "1..2 min", source: provisional}}
+  Knife:
+    category: tool
+    props: {washTime: {value: "0.5..1 min", source: provisional}}
+  Peeler:
+    category: tool
+    props: {washTime: {value: "0.3..0.5 min", source: provisional}}
+  FryingPan:
+    category: tool
+    props: {washTime: {value: "1..3 min", source: provisional}}
+  Pot:
+    category: tool
+    provides: [Container]
+    props: {washTime: {value: "1..3 min", source: provisional}}
+  MixingBowl:
+    category: tool
+    provides: [Container]
+    props: {washTime: {value: "0.5..1 min", source: provisional}}
+  Colander:
+    category: tool
+    props: {washTime: {value: "0.5..1 min", source: provisional}}
+  CookingChopsticks:
+    category: tool
+    props: {washTime: {value: "0.3..0.5 min", source: provisional}}
+  Ladle:
+    category: tool
+    props: {washTime: {value: "0.3..0.5 min", source: provisional}}
+  Whisk:
+    category: tool
+    props: {washTime: {value: "0.5..1 min", source: provisional}}
+  MeasuringSpoon:
+    category: tool
+    props: {washTime: {value: "0.2..0.5 min", source: provisional}}
+  RiceCooker:
+    category: tool
+    provides: [RiceCooking]
+    props: {washTime: {value: "1..3 min", source: provisional}}
+  Blender:
+    category: tool
+    provides: [Blending]
+    props: {washTime: {value: "2..4 min", source: provisional}}

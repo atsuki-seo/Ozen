@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+sources:
+  provisional:
+    kind: provisional
+    title: Provisional range used until a primary source or a calculation is found
+  mext-fct-2023:
+    kind: fct
+    title: Standard Tables of Food Composition in Japan 2020 (Eighth Revised Edition), 2023 Supplement
+    publisher: Ministry of Education, Culture, Sports, Science and Technology (MEXT)

@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+axes:
+  doneness: {kind: ordered, values: [raw, surface, par, done]}
+  browning: {kind: ordered, values: [none, light, golden, dark, charred]}
+  shape:
+    kind: tagged
+    values: [whole, peeled, cut, pureed]
+    params: {cut: {style: CutStyle, size: Length}}
+  prep:
+    kind: set
+    values: [washed, soaked, salted, marinated]
+    params: {soaked: {time: Time}, marinated: {with: Sauce}}
+  cleaning: {kind: ordered, values: [none, rinse, wash, soakThenWash]}
+enums:
+  CutStyle:
+    values: [slice, dice, rollCut, roughChop, julienne, biteSize, mince]
+    finer:
+      slice: [julienne, mince]
+      julienne: [mince]
+      dice: [mince]
+      roughChop: [biteSize, dice]
+      biteSize: [dice]
+      rollCut: [biteSize]
+  Heat: {values: [low, medium, high]}
+  Hardness: {values: [soft, medium, hard]}
+  FatLevel: {values: [low, medium, high]}

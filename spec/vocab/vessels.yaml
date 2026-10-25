@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+vessels:
+  FlatPlate: {}
+  LongPlate: {extends: FlatPlate}
+  DeepPlate: {traits: [HoldsLiquid]}
+  Donburi: {traits: [HoldsLiquid]}
+  RiceBowl: {}
+  SoupBowl: {traits: [HoldsLiquid]}
+  Bowl: {traits: [HoldsLiquid]}
+  SmallBowl: {traits: [HoldsLiquid]}
+  SmallPlate: {}
+  Platter: {}
+  Glass: {traits: [HoldsLiquid]}
+fallbacks:
+  deepPlate: {order: [DeepPlate, Donburi, Bowl]}
+  riceBowl: {order: [RiceBowl, Donburi]}
+  flatPlate: {order: [FlatPlate, Platter]}
+  smallBowl: {order: [SmallBowl, SmallPlate], dryOnly: true}

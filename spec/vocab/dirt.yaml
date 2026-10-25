@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+dirt:
+  rawMeat: {traits: [Hazard]}
+  rawFish: {traits: [Hazard, Smelly]}
+  rawEgg: {traits: [Hazard]}
+  soil: {traits: [Soiled]}
+  oil: {traits: [Greasy]}
+  starch: {traits: [Sticky]}
+  odor: {traits: [Smelly]}
+  stain: {traits: [Staining]}
+  scorch: {traits: [Burnt]}
+  light: {traits: [Light]}
+  allergen: {traits: [Allergen]}
+rules:
+  afterHazard:
+    after: Hazard
+    level: wash
+    fixed: true
+    cases: [{when: sameFoodSameState, level: none}]
+  afterAllergen:
+    after: Allergen
+    level: none
+    fixed: true
+    cases: [{when: allergicPerson, level: wash}]
+  afterSoiled:
+    after: Soiled
+    level: rinse
+    cases: [{when: RawEdible, level: wash}]
+  afterSmelly:
+    after: Smelly
+    level: none
+    cases: [{when: RawEdible, level: rinse}, {when: dessert, level: rinse}]
+  afterGreasy:
+    after: Greasy
+    level: wash
+    cases: [{when: sameTool, level: none}]
+  afterSticky: {after: Sticky, level: soakThenWash}
+  afterBurnt: {after: Burnt, level: soakThenWash}
+  afterStaining: {after: Staining, level: none, info: true}
+  afterLight: {after: Light, level: none}

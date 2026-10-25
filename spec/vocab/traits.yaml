@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+traits:
+  Vegetable: {}
+  Root: {extends: [Vegetable]}
+  LeafyVegetable: {extends: [Vegetable]}
+  Meat: {}
+  Fish: {}
+  Grain: {}
+  Noodle: {extends: [Grain]}
+  Dairy: {}
+  Fruit: {}
+  Seasoning: {}
+  Peelable: {}
+  SkinEdible: {}
+  RawEdible: {}
+  Hazard: {}
+  Refrigerated: {}
+  Frozen: {}
+  Allergen: {params: {kind: AllergenKind}}
+  Smelly: {}
+  Soiled: {}
+  Greasy: {}
+  Sticky: {}
+  Staining: {}
+  Burnt: {}
+  Light: {}
+  Fatty: {}
+  RoundFish:
+    extends: [Fish]
+    parts:
+      head: {}
+      collar: {}
+      back: {}
+      belly: {traits: [Fatty]}
+      frame: {}
+      skin: {}
+      guts: {discard: true}
+      scales: {discard: true}
+  Dish: {}
+  Liquid: {}
+  Sauce: {extends: [Liquid]}
+  HoldsLiquid: {}
+allergens: [shrimp, cashew, crab, walnut, wheat, buckwheat, egg, milk, peanut]

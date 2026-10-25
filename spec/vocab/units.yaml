@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+units:
+  g: {dimension: Mass, base: true}
+  kg: {dimension: Mass, def: "1000 g"}
+  pinch: {dimension: Mass, def: "0.3..0.5 g"}
+  dash: {dimension: Mass, def: "0.1..0.3 g"}
+  ml: {dimension: Volume, base: true}
+  L: {dimension: Volume, def: "1000 ml"}
+  tbsp: {dimension: Volume, def: "15 ml"}
+  tsp: {dimension: Volume, def: "5 ml"}
+  gou: {dimension: Volume, def: "180 ml"}
+  std.units.jp.cup: {dimension: Volume, def: "200 ml"}
+  std.units.us.cup: {dimension: Volume, def: "240 ml"}
+  mm: {dimension: Length, base: true}
+  cm: {dimension: Length, def: "10 mm"}
+  s: {dimension: Time, base: true}
+  min: {dimension: Time, def: "60 s"}
+  h: {dimension: Time, def: "60 min"}
+  degC: {dimension: Temperature, base: true}
+  pcs: {dimension: Count, base: true}
