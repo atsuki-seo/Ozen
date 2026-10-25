@@ -2588,6 +2588,13 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-REPO-README-LICENSE`（S6・データの完全性）— 表の `spec/samples/` を MIT の行に移すと落ちた（2 つの行の数がどちらも 0）。戻して合格
   - わざと壊す確認: `G-REPO-CLAUDEMD`（S409・文書との一致）— `CLAUDE.md` から言語の規則の節を消すと落ちた（`docs/` 0、日本語の記述 0）。戻して合格
   - わざと壊す確認: `G-REPO-NOREPLY`（S475・効かない条件）— 使い捨ての複製で、作者を個人のメールにした空のコミットを足すと落ちた（メールが 2 種類）。複製は消した（2026-10-26）
+- P0-5 の結果（2026-10-26）: `scripts/check-plan-tests.sh plans/ozen-roadmap.md` が `golden=0 fx=0 py=0 c=0 sh=5 cgolden=0 cunit=0 prop=0 cli=0 sample=0 rtest=0`、`plan-tests: 544 names, 539 missing`（この時点の missing は数だけ記録する）。`--mutations` は `mutations: 550 rows, 12 recorded`。自己テストは `test-check-plan-tests: 10 cases`・`test-check-lists-copy: 5 cases`・`test-goals: 7 cases`、どれも `0 failed`。`scripts/goals.sh G-PLAN-COVERAGE` が合格
+- P0-6 の結果（2026-10-26）: `test-check-commit-separation: 4 cases`・`test-check-red-first: 5 cases`・`test-check-selftests: 5 cases`、どれも `0 failed`。`G-REPO-SELFTESTS` は `selftests: 7 scripts, 0 without test, 0 failed`。フィクスチャの期待値のテスト名は `test_fx_<種類>_<名前>`（`-` は `_`）とし、`check-red-first.sh` はその名前で `unittest -k` を回す（P1-2 でこの名前でテストを生成する）
+- わざと壊す確認の記録（P0-5・P0-6、2026-10-26）:
+  - わざと壊す確認: `G-REPO-SELFTESTS`（計画・データの完全性）— `scripts/test-check-lists-copy.sh` を退けると落ちた（`selftests: 7 scripts, 1 without test, 0 failed`、終了コード 1）。戻して合格
+  - わざと壊す確認: `G-PLAN-TESTS-EXIST`（計画・データの完全性）— `scripts/test-check-spdx.sh` を退けると missing が 539 から 540 に増え、`sh` が 5 から 4 に減った。戻して元の数
+  - わざと壊す確認: `sh/test-check-commit-separation.sh`（D20・否定）— 使い捨てのリポジトリで、フィクスチャと `tools/vocabcheck/` を同じコミットで変えると落ちた（`separation: 1 commits, 1 mixed`、終了コード 1）。リポジトリは消した
+  - わざと壊す確認: `sh/test-check-red-first.sh`（D20・時間と順序）— 使い捨てのリポジトリで、実装を先に入れ、次のコミットで `renderers/test/a.test.mjs` を足すと落ちた（`red-first: 1 commits, 1 not red`、終了コード 1）。リポジトリは消した
 - CI のジョブの名前の一覧（P11-5）
 - 版: 0.1.0（D30。P7-4 で `VERSION` に書き、本計画の中では上げない）
 - 網羅の監査（P16-3）: 指摘 <k> 件、取り込み <m> 件
