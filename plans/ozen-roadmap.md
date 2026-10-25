@@ -2662,6 +2662,18 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `fx/vocab-ng/allergen-rule-not-fixed`（S26・効かない条件）— `Allergen` を対象から外すと落ちた。戻して合格
   - わざと壊す確認: `fx/vocab-ng/effect-value-out-of-axis`（S27・効かない条件）— 効果の軸の値の検査を外すと落ちた。戻して合格
   - わざと壊す確認: `fx/vocab-ng/requirement-value-out-of-axis`（S27・境界・上限）— 要求の `anyOf` の最初の選択肢だけを検査すると落ちた。戻して合格
+- P1-6（2026-10-26）: §4.7 を `spec/coverage/concept-lists.yaml`（267 項目。値を持つ項目は単位 6・順序つきの軸 3・器の代替順 4 の 13）に、§4.7.1 を `spec/coverage/concept-relations.yaml`（47 項目）に写した。`G-VOCAB-LISTS`（`lists: 267 listed, 0 missing; values: 13 checked, 0 mismatched; relations: 47 listed, 0 mismatched`）と `G-VOCAB-LISTS-COPY`（`copy: 257 identifiers, 0 differences`。§4.7 の識別子の集合は重複を除いて 257）が合格。関係の照合は、汚れの分類・設備の能力・相性ルールは集合の一致、食材のトレイトは「持つ」（表の方が多くてよい）、器の `HoldsLiquid` は全器の分け方の一致
+  - わざと壊す確認: `G-VOCAB-LISTS`（S29・データの完全性）— 表の `tear` を消すと落ちた（`1 missing`）。戻して合格
+  - わざと壊す確認: `py/test_vocabcheck.test_lists_reports_missing`（S29・効かない条件）— 動作の突き合わせを種類ごとの件数の差にすると落ちた（1 件消して 1 件足すと `0 != 1`）。戻して合格
+  - わざと壊す確認: `py/test_vocabcheck.test_lists_owner`（S29・境界・上限）— 部位を持ち主を見ずに識別子だけで照合すると落ちた（牛の `belly` を消しても `0 != 1`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-LISTS`（S138・データの完全性）— `units.yaml` の `tbsp` を `16 ml` にすると落ちた（`1 mismatched`）。戻して合格
+  - わざと壊す確認: `py/test_vocabcheck.test_lists_values`（S138・時間と順序）— 並びを集合で比べると落ちた（`doneness` の入れ替えで `0 != 1`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-LISTS`（S139・データの完全性）— `dirt.yaml` の `rawFish` から `Smelly` を消すと落ちた（`relations: 47 listed, 1 mismatched`）。戻して合格
+  - わざと壊す確認: `py/test_vocabcheck.test_relations_mismatch`（S139・効かない条件）— 設備の能力を「表が関係を含む」の片方向だけで比べると落ちた（`Pot` に能力を足しても `0 != 1`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-LISTS-COPY`（S140・文書との一致）— `concept-lists.yaml` の `julienne` を `julliene` にすると落ちた（`2 differences`）。戻して合格
+- ゲート A1（P1-7、2026-10-26）: `G-VOCAB-SCHEMA`・`G-VOCAB-CHECK`・`G-VOCAB-LISTS`・`G-VOCAB-LISTS-COPY`・`G-VOCAB-TESTS`・`G-VOCAB-READONLY`・`G-VOCAB-EXPECT-INDEPENDENT`・`G-REPO-SPDX`・`G-REPO-SELFTESTS`・`G-REPO-RED-FIRST` がすべて合格
+  - このセッションの環境には `PYTHONDONTWRITEBYTECODE=1` があり、`G-VOCAB-READONLY` の確認ではそれを外して回した（`env -u PYTHONDONTWRITEBYTECODE`）。`scripts/goals.sh` の `G-VOCAB-READONLY` は §5 のコマンドどおり `python3` を `-B` なしで呼ぶ
+  - わざと壊す確認: `G-VOCAB-READONLY`（S28・副作用とコスト）— 使い捨ての複製で `vocabcheck.py` から `sys.dont_write_bytecode = True` を消してコミットし、`PYTHONDONTWRITEBYTECODE` を外して回すと落ちた（`tools/vocabcheck/__pycache__` ができた）。戻して合格。複製は消した
 - 実装中に見つかった concept の食い違い（R2）
 
 ### 9.3 B・C（試作）
