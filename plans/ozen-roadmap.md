@@ -2638,6 +2638,12 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - サンプルの `expect` の葉の数 k（P2-3）: 63
 - 先行研究との対応表（P3-7）: 要素の数、「対応なし」の数と、Ozen に足す候補の一覧（ユーザーに報告した日）
 - 一次情報の調査（P3-5）: 調べた値の数、一次情報が見つかった値と見つからなかった値の数、取得した資料の一覧（取得の確認を取った日）
+  - 結果（P3-5・P3-6、2026-10-26）: 表の数値の属性 83 件（成分表の参照を除く）を調べ、一次情報が見つかったのは 1 件（`cookRice` の `cooker` の時間 `42..54 min`。パナソニック SR-PW109 の公式の仕様表の「炊飯時間」の白米のコース。HTML のページで、資料のファイルは取得していない）、見つからなかったのは 82 件（`spec/sources/search-log.yaml` の 9 件の記録が分野ごとに覆う: 手作業の動作の時間 16、鍋と電子レンジの炊飯 2、ナンの温め 3、湯沸かし 1、道具を洗う・場所を拭く時間 19、密度 17、牛乳の密度 1、1 つあたりの重さ 12、加熱の時間 11）。取得した資料: 乳等省令の本文（e-Gov 法令検索の API の XML。scratchpad に置き、リポジトリには入れない）。PDF は取得していない（P1-4 の消費者庁の PDF を除く）
+  - 見つかったが値として使わなかったもの: 日立 IH の湯沸かし（1.0 L を最大火力で約 2 分 19 秒、特定の機種）、乳等省令の牛乳の比重（`一・〇二八以上`、下限だけ。暫定の範囲の下端を 1.028 に直した）
+  - 出どころの検査 `tools/vocabcheck/sources.py`: 一次情報の登録は `url`・`title`・`retrieved`・`location`・`quote` を持ち、値の下限と上限の数が書き写しの数（NFKC で正規化して読む）の中にあること。探した記録は `date`・`queries`・`consulted`・`reason` と覆う属性の道筋の並び `covers` を持つ。`G-VOCAB-SOURCES` は `sources: 1 primary, 82 provisional, 0 missing fields, 0 quote mismatches, 0 provisional without search, 0 pdf in repo`
+  - わざと壊す確認: `G-VOCAB-SOURCES`（S465・データの完全性）— 炊飯器の時間を書き写しと違う `42..55 min` にすると落ちた（`1 quote mismatches`）。書き写しの照合を外すと `fx/vocab-ng/primary-quote-mismatch` も落ちた。戻して合格
+  - わざと壊す確認: `G-VOCAB-SOURCES`（S466・データの完全性）— 探した記録から `ingredients.Onion.props.density` を消すと落ちた（`1 provisional without search`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-SOURCES`（S467・効かない条件）— 使い捨ての複製で PDF をコミットすると落ちた（`1 pdf in repo`）。複製は消した
 - わざと壊す確認の記録（各タスク）: <テスト> — <壊し方> で落ちた（<メッセージ>）。戻して合格
 - P1-1（2026-10-26）: `python3 -m unittest tools.vocabcheck.test_qty -v` が `Ran 6 tests`・`OK`
   - わざと壊す確認: `py/test_qty.test_rejects_malformed`（S8・効かない条件）— 分母 0 の検査を消すと落ちた（`ZeroDivisionError: Fraction(1, 0)`、`errors=2`）。戻して合格
