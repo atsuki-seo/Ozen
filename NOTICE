@@ -1,0 +1,20 @@
+Ozen
+Copyright (c) 2026 atsuki.seo
+
+Source code, build files, scripts, and the standard library sources are
+dual-licensed under the MIT License (LICENSE-MIT) or the Apache License,
+Version 2.0 (LICENSE-APACHE), at your option.
+
+Documentation, sample recipes, and phrase files are licensed under the
+Creative Commons Attribution 4.0 International License (LICENSE-CC-BY-4.0).
+
+Recipes you write in Ozen and the schedules and IR the compiler produces
+are yours; the Ozen licenses do not apply to them.
+
+Third-party data and components
+-------------------------------
+
+Each entry lists the source and the terms it is used under. Third-party
+files keep their own licenses and live in separate folders.
+
+(none yet)
