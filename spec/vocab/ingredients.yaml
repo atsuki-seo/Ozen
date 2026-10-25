@@ -60,7 +60,7 @@ ingredients:
       belly: {traits: [Fatty]}
       leg: {}
   Buri:
-    traits: [RoundFish, RawEdible, SkinEdible]
+    traits: [RoundFish, Hazard, RawEdible, SkinEdible]
     axes: [doneness, browning, shape, prep]
     leaves: [rawFish]
     props:
@@ -191,6 +191,10 @@ ingredients:
     leaves: [oil, allergen]
     props:
       density: {value: "1.00..1.03 g/ml", source: provisional}
+  WhippedCream:
+    traits: [Dairy, Refrigerated, RawEdible]
+    axes: []
+    leaves: [oil]
   Sugar:
     traits: [Seasoning]
     axes: []

@@ -103,6 +103,13 @@ actions:
     output: {param: x}
     uses: ["HeatSource<stovetop>", Pot]
     unattended: true
+  parboil:
+    params:
+      - {name: x, kind: food, effects: {doneness: par}}
+      - {name: time, kind: quantity, dimension: Time}
+    output: {param: x}
+    uses: ["HeatSource<stovetop>", Pot]
+    unattended: true
   boilWater:
     params:
       - {name: x, kind: food, requires: [{type: Water}], effects: {doneness: done}}
@@ -141,7 +148,7 @@ actions:
   whip:
     params:
       - {name: x, kind: food, requires: [{traits: [Liquid]}]}
-    output: {param: x}
+    output: {type: WhippedCream}
     uses: [hands, Whisk, MixingBowl]
     time: {value: "3..6 min", source: provisional}
     leaves: [{from: x, on: [Whisk, MixingBowl]}]
