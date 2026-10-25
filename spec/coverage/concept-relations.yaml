@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+relations:
+  - {kind: dirtTraits, dirt: rawMeat, traits: [Hazard]}
+  - {kind: dirtTraits, dirt: rawFish, traits: [Hazard, Smelly]}
+  - {kind: dirtTraits, dirt: rawEgg, traits: [Hazard]}
+  - {kind: dirtTraits, dirt: soil, traits: [Soiled]}
+  - {kind: dirtTraits, dirt: oil, traits: [Greasy]}
+  - {kind: dirtTraits, dirt: starch, traits: [Sticky]}
+  - {kind: dirtTraits, dirt: odor, traits: [Smelly]}
+  - {kind: dirtTraits, dirt: stain, traits: [Staining]}
+  - {kind: dirtTraits, dirt: scorch, traits: [Burnt]}
+  - {kind: dirtTraits, dirt: light, traits: [Light]}
+  - {kind: dirtTraits, dirt: allergen, traits: [Allergen]}
+  - kind: vesselTrait
+    trait: HoldsLiquid
+    has: [DeepPlate, Donburi, SoupBowl, Bowl, SmallBowl, Glass]
+    hasNot: [FlatPlate, LongPlate, RiceBowl, SmallPlate, Platter]
+  - {kind: vesselExtends, vessel: LongPlate, extends: FlatPlate}
+  - {kind: kindProvides, of: IHStove, extends: [Stove], provides: ["HeatSource<stovetop>"]}
+  - {kind: kindProvides, of: GasStove, extends: [Stove], provides: ["HeatSource<stovetop>"]}
+  - {kind: kindProvides, of: Microwave, extends: [], provides: ["HeatSource<microwave>"]}
+  - {kind: kindProvides, of: OvenRange, extends: [], provides: ["HeatSource<oven>", "HeatSource<microwave>"]}
+  - {kind: kindProvides, of: Oven, extends: [], provides: ["HeatSource<oven>"]}
+  - {kind: kindProvides, of: Toaster, extends: [], provides: ["HeatSource<toaster>"]}
+  - {kind: kindProvides, of: Pot, extends: [], provides: [Container]}
+  - {kind: kindProvides, of: MixingBowl, extends: [], provides: [Container]}
+  - {kind: kindProvides, of: CuttingBoard, extends: [], provides: [CuttingSurface]}
+  - {kind: kindProvides, of: RiceCooker, extends: [], provides: [RiceCooking]}
+  - {kind: kindProvides, of: Blender, extends: [], provides: [Blending]}
+  - {kind: kindProvides, of: Fridge, extends: [], provides: [Chilling]}
+  - {kind: kindProvides, of: Freezer, extends: [], provides: [Freezing]}
+  - {kind: kindProvides, of: Sink, extends: [], provides: [Washing]}
+  - {kind: kindProvides, of: Dishwasher, extends: [], provides: [Washing]}
+  - {kind: kindProvides, of: Counter, extends: [], provides: [WorkSurface]}
+  - {kind: ruleLevel, rule: afterHazard, after: Hazard, level: wash, cases: [{when: sameFoodSameState, level: none}]}
+  - {kind: ruleLevel, rule: afterAllergen, after: Allergen, level: none, cases: [{when: allergicPerson, level: wash}]}
+  - {kind: ruleLevel, rule: afterSoiled, after: Soiled, level: rinse, cases: [{when: RawEdible, level: wash}]}
+  - {kind: ruleLevel, rule: afterSmelly, after: Smelly, level: none, cases: [{when: RawEdible, level: rinse}, {when: dessert, level: rinse}]}
+  - {kind: ruleLevel, rule: afterGreasy, after: Greasy, level: wash, cases: [{when: sameTool, level: none}]}
+  - {kind: ruleLevel, rule: afterSticky, after: Sticky, level: soakThenWash, cases: []}
+  - {kind: ruleLevel, rule: afterBurnt, after: Burnt, level: soakThenWash, cases: []}
+  - {kind: ruleLevel, rule: afterStaining, after: Staining, level: none, cases: []}
+  - {kind: ruleLevel, rule: afterLight, after: Light, level: none, cases: []}
+  - kind: actionSignature
+    action: cookRice
+    requires: [{type: Rice, axes: {prep: {has: soaked}}}]
+    output: CookedRice
+    variants: [cooker, pot, microwave]
+  - {kind: actionEffect, action: peel, requiresIn: {shape: [whole]}, effects: {shape: peeled}}
+  - {kind: actionNoEffect, action: fry, axis: shape}
+  - {kind: finer, enum: CutStyle, from: dice, to: mince, reachable: true}
+  - {kind: finer, enum: CutStyle, from: mince, to: dice, reachable: false}
+  - {kind: ingredientTraits, ingredient: Pork, traits: [Hazard]}
+  - {kind: ingredientTraits, ingredient: Chicken, traits: [Hazard]}
+  - {kind: ingredientTraits, ingredient: Onion, traits: [Peelable]}
+  - {kind: ingredientTraits, ingredient: Carrot, traits: [Root, Peelable, SkinEdible]}

@@ -1,0 +1,269 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+entries:
+  - {kind: dimension, id: Mass}
+  - {kind: dimension, id: Volume}
+  - {kind: dimension, id: Length}
+  - {kind: dimension, id: Time}
+  - {kind: dimension, id: Temperature}
+  - {kind: dimension, id: Count}
+  - {kind: unit, id: g}
+  - {kind: unit, id: kg}
+  - {kind: unit, id: ml}
+  - {kind: unit, id: L}
+  - {kind: unit, id: tbsp, value: "15 ml"}
+  - {kind: unit, id: tsp, value: "5 ml"}
+  - {kind: unit, id: gou, value: "180 ml"}
+  - {kind: unit, id: "std.units.jp.cup", value: "200 ml"}
+  - {kind: unit, id: "std.units.us.cup", value: "240 ml"}
+  - {kind: unit, id: mm}
+  - {kind: unit, id: cm}
+  - {kind: unit, id: s}
+  - {kind: unit, id: min}
+  - {kind: unit, id: h}
+  - {kind: unit, id: degC}
+  - {kind: unit, id: pcs}
+  - {kind: unit, id: pinch, value: "0.3..0.5 g"}
+  - {kind: unit, id: dash}
+  - {kind: axis, id: doneness, value: [raw, surface, par, done]}
+  - {kind: axis, id: browning, value: [none, light, golden, dark, charred]}
+  - {kind: axis, id: shape}
+  - {kind: axis, id: prep}
+  - {kind: axis, id: cleaning, value: [none, rinse, wash, soakThenWash]}
+  - {kind: axisValue, owner: doneness, id: raw}
+  - {kind: axisValue, owner: doneness, id: surface}
+  - {kind: axisValue, owner: doneness, id: par}
+  - {kind: axisValue, owner: doneness, id: done}
+  - {kind: axisValue, owner: browning, id: none}
+  - {kind: axisValue, owner: browning, id: light}
+  - {kind: axisValue, owner: browning, id: golden}
+  - {kind: axisValue, owner: browning, id: dark}
+  - {kind: axisValue, owner: browning, id: charred}
+  - {kind: axisValue, owner: shape, id: whole}
+  - {kind: axisValue, owner: shape, id: peeled}
+  - {kind: axisValue, owner: shape, id: cut}
+  - {kind: axisValue, owner: shape, id: pureed}
+  - {kind: axisValue, owner: prep, id: washed}
+  - {kind: axisValue, owner: prep, id: soaked}
+  - {kind: axisValue, owner: prep, id: salted}
+  - {kind: axisValue, owner: prep, id: marinated}
+  - {kind: axisValue, owner: cleaning, id: none}
+  - {kind: axisValue, owner: cleaning, id: rinse}
+  - {kind: axisValue, owner: cleaning, id: wash}
+  - {kind: axisValue, owner: cleaning, id: soakThenWash}
+  - {kind: cutStyle, id: slice}
+  - {kind: cutStyle, id: dice}
+  - {kind: cutStyle, id: rollCut}
+  - {kind: cutStyle, id: roughChop}
+  - {kind: cutStyle, id: julienne}
+  - {kind: cutStyle, id: biteSize}
+  - {kind: cutStyle, id: mince}
+  - {kind: heat, id: low}
+  - {kind: heat, id: medium}
+  - {kind: heat, id: high}
+  - {kind: trait, id: Vegetable}
+  - {kind: trait, id: Root}
+  - {kind: trait, id: LeafyVegetable}
+  - {kind: trait, id: Meat}
+  - {kind: trait, id: Fish}
+  - {kind: trait, id: Grain}
+  - {kind: trait, id: Noodle}
+  - {kind: trait, id: Dairy}
+  - {kind: trait, id: Fruit}
+  - {kind: trait, id: Seasoning}
+  - {kind: trait, id: Peelable}
+  - {kind: trait, id: SkinEdible}
+  - {kind: trait, id: RawEdible}
+  - {kind: trait, id: Hazard}
+  - {kind: trait, id: Refrigerated}
+  - {kind: trait, id: Frozen}
+  - {kind: trait, id: Allergen}
+  - {kind: trait, id: Smelly}
+  - {kind: trait, id: Soiled}
+  - {kind: trait, id: Greasy}
+  - {kind: trait, id: Sticky}
+  - {kind: trait, id: Staining}
+  - {kind: trait, id: Burnt}
+  - {kind: trait, id: Light}
+  - {kind: trait, id: Fatty}
+  - {kind: trait, id: RoundFish}
+  - {kind: trait, id: Dish}
+  - {kind: trait, id: Liquid}
+  - {kind: trait, id: Sauce}
+  - {kind: trait, id: HoldsLiquid}
+  - {kind: ingredient, id: Rice}
+  - {kind: ingredient, id: SteamedNoodles}
+  - {kind: ingredient, id: Naan}
+  - {kind: ingredient, id: Pork}
+  - {kind: ingredient, id: Chicken}
+  - {kind: ingredient, id: Beef}
+  - {kind: ingredient, id: Buri}
+  - {kind: ingredient, id: Onion}
+  - {kind: ingredient, id: Carrot}
+  - {kind: ingredient, id: Potato}
+  - {kind: ingredient, id: Cabbage}
+  - {kind: ingredient, id: BeanSprouts}
+  - {kind: ingredient, id: Lettuce}
+  - {kind: ingredient, id: Tomato}
+  - {kind: ingredient, id: Cucumber}
+  - {kind: ingredient, id: Miso}
+  - {kind: ingredient, id: Dashi}
+  - {kind: ingredient, id: Tofu}
+  - {kind: ingredient, id: Wakame}
+  - {kind: ingredient, id: Salt}
+  - {kind: ingredient, id: Pepper}
+  - {kind: ingredient, id: Oil}
+  - {kind: ingredient, id: CurryRoux}
+  - {kind: ingredient, id: WorcesterSauce}
+  - {kind: ingredient, id: Dressing}
+  - {kind: ingredient, id: VanillaIce}
+  - {kind: ingredient, id: Cream}
+  - {kind: ingredient, id: Sugar}
+  - {kind: ingredient, id: Strawberry}
+  - {kind: ingredient, id: Banana}
+  - {kind: ingredient, id: Cornflakes}
+  - {kind: ingredient, id: ChocolateSauce}
+  - {kind: ingredient, id: Milk}
+  - {kind: ingredient, id: Ice}
+  - {kind: ingredient, id: Water}
+  - {kind: ingredient, id: CookedRice}
+  - {kind: ingredient, id: Mixture}
+  - {kind: part, owner: Pork, id: shoulder}
+  - {kind: part, owner: Pork, id: shoulderLoin}
+  - {kind: part, owner: Pork, id: loin}
+  - {kind: part, owner: Pork, id: tenderloin}
+  - {kind: part, owner: Pork, id: belly}
+  - {kind: part, owner: Pork, id: leg}
+  - {kind: part, owner: Chicken, id: thigh}
+  - {kind: part, owner: Chicken, id: breast}
+  - {kind: part, owner: Chicken, id: tender}
+  - {kind: part, owner: Chicken, id: wingTip}
+  - {kind: part, owner: Chicken, id: wingStick}
+  - {kind: part, owner: Beef, id: shoulder}
+  - {kind: part, owner: Beef, id: shoulderLoin}
+  - {kind: part, owner: Beef, id: ribLoin}
+  - {kind: part, owner: Beef, id: sirloin}
+  - {kind: part, owner: Beef, id: tenderloin}
+  - {kind: part, owner: Beef, id: belly}
+  - {kind: part, owner: Beef, id: leg}
+  - {kind: part, owner: RoundFish, id: head}
+  - {kind: part, owner: RoundFish, id: collar}
+  - {kind: part, owner: RoundFish, id: back}
+  - {kind: part, owner: RoundFish, id: belly}
+  - {kind: part, owner: RoundFish, id: frame}
+  - {kind: part, owner: RoundFish, id: skin}
+  - {kind: part, owner: RoundFish, id: guts}
+  - {kind: part, owner: RoundFish, id: scales}
+  - {kind: alias, id: Komagire}
+  - {kind: alias, id: Karubi}
+  - {kind: action, id: wash}
+  - {kind: action, id: soak}
+  - {kind: action, id: peel}
+  - {kind: action, id: loosen}
+  - {kind: action, id: drain}
+  - {kind: action, id: cut}
+  - {kind: action, id: tear}
+  - {kind: action, id: cookRice}
+  - {kind: action, id: fry}
+  - {kind: action, id: simmer}
+  - {kind: action, id: boil}
+  - {kind: action, id: boilWater}
+  - {kind: action, id: dissolve}
+  - {kind: action, id: warm}
+  - {kind: action, id: mix}
+  - {kind: action, id: toss}
+  - {kind: action, id: whip}
+  - {kind: action, id: season}
+  - {kind: action, id: blend}
+  - {kind: action, id: chill}
+  - {kind: action, id: rest}
+  - {kind: action, id: plate}
+  - {kind: action, id: layer}
+  - {kind: action, id: clean}
+  - {kind: action, id: wipe}
+  - {kind: action, id: store}
+  - {kind: action, id: discard}
+  - {kind: action, id: combine}
+  - {kind: capability, id: HeatSource}
+  - {kind: capability, id: CuttingSurface}
+  - {kind: capability, id: Container}
+  - {kind: capability, id: RiceCooking}
+  - {kind: capability, id: Blending}
+  - {kind: capability, id: Chilling}
+  - {kind: capability, id: Freezing}
+  - {kind: capability, id: Washing}
+  - {kind: capability, id: Vessel}
+  - {kind: capability, id: WorkSurface}
+  - {kind: capabilityParam, owner: HeatSource, id: stovetop}
+  - {kind: capabilityParam, owner: HeatSource, id: oven}
+  - {kind: capabilityParam, owner: HeatSource, id: microwave}
+  - {kind: capabilityParam, owner: HeatSource, id: toaster}
+  - {kind: kind, id: Floor}
+  - {kind: kind, id: Counter}
+  - {kind: kind, id: Sink}
+  - {kind: kind, id: Stove}
+  - {kind: kind, id: GasStove}
+  - {kind: kind, id: IHStove}
+  - {kind: kind, id: Oven}
+  - {kind: kind, id: Microwave}
+  - {kind: kind, id: Toaster}
+  - {kind: kind, id: OvenRange}
+  - {kind: kind, id: Fridge}
+  - {kind: kind, id: Freezer}
+  - {kind: kind, id: Dishwasher}
+  - {kind: kind, id: CuttingBoard}
+  - {kind: kind, id: Knife}
+  - {kind: kind, id: Peeler}
+  - {kind: kind, id: FryingPan}
+  - {kind: kind, id: Pot}
+  - {kind: kind, id: MixingBowl}
+  - {kind: kind, id: Colander}
+  - {kind: kind, id: CookingChopsticks}
+  - {kind: kind, id: Ladle}
+  - {kind: kind, id: Whisk}
+  - {kind: kind, id: MeasuringSpoon}
+  - {kind: kind, id: RiceCooker}
+  - {kind: kind, id: Blender}
+  - {kind: vessel, id: FlatPlate}
+  - {kind: vessel, id: LongPlate}
+  - {kind: vessel, id: DeepPlate}
+  - {kind: vessel, id: Donburi}
+  - {kind: vessel, id: RiceBowl}
+  - {kind: vessel, id: SoupBowl}
+  - {kind: vessel, id: Bowl}
+  - {kind: vessel, id: SmallBowl}
+  - {kind: vessel, id: SmallPlate}
+  - {kind: vessel, id: Platter}
+  - {kind: vessel, id: Glass}
+  - {kind: dirt, id: rawMeat}
+  - {kind: dirt, id: rawFish}
+  - {kind: dirt, id: rawEgg}
+  - {kind: dirt, id: soil}
+  - {kind: dirt, id: oil}
+  - {kind: dirt, id: starch}
+  - {kind: dirt, id: odor}
+  - {kind: dirt, id: stain}
+  - {kind: dirt, id: scorch}
+  - {kind: dirt, id: light}
+  - {kind: dirt, id: allergen}
+  - {kind: rule, id: afterHazard}
+  - {kind: rule, id: afterAllergen}
+  - {kind: rule, id: afterSoiled}
+  - {kind: rule, id: afterSmelly}
+  - {kind: rule, id: afterGreasy}
+  - {kind: rule, id: afterSticky}
+  - {kind: rule, id: afterBurnt}
+  - {kind: rule, id: afterStaining}
+  - {kind: rule, id: afterLight}
+  - {kind: fallback, id: deepPlate, value: [DeepPlate, Donburi, Bowl]}
+  - {kind: fallback, id: riceBowl, value: [RiceBowl, Donburi]}
+  - {kind: fallback, id: flatPlate, value: [FlatPlate, Platter]}
+  - {kind: fallback, id: smallBowl, value: [SmallBowl, SmallPlate]}
+  - {kind: allergen, id: shrimp}
+  - {kind: allergen, id: cashew}
+  - {kind: allergen, id: crab}
+  - {kind: allergen, id: walnut}
+  - {kind: allergen, id: wheat}
+  - {kind: allergen, id: buckwheat}
+  - {kind: allergen, id: egg}
+  - {kind: allergen, id: milk}
+  - {kind: allergen, id: peanut}
