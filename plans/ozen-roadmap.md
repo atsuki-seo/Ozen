@@ -2619,7 +2619,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-VOCAB-CHECK`（S13・データの完全性）— `actions.yaml` の `peel` の能力 `WorkSurface` を `WorkSurfase` にすると落ちた（`check: 1 errors`）。戻して合格
   - わざと壊す確認: `G-VOCAB-CHECK`（S22・データの完全性）— `capabilities.yaml` の `Blender` の `washTime` から `source` を消すと落ちた（`check: 1 errors`）。戻して合格
 - 成分表（P3-1）: 廃棄率の列の見出しのセルの文字列と位置、手で読んだ 3 件の食品番号と値、重量変化率が Excel にあるか（無ければ抽出の対象から外し、歩留まりの重量変化は暫定に戻す）、正誤表の反映の有無、元のファイル名、sha256、取得日
-- サンプルの `expect` の葉の数 k（P2-3）
+- サンプルの `expect` の葉の数 k（P2-3）: 63
 - 先行研究との対応表（P3-7）: 要素の数、「対応なし」の数と、Ozen に足す候補の一覧（ユーザーに報告した日）
 - 一次情報の調査（P3-5）: 調べた値の数、一次情報が見つかった値と見つからなかった値の数、取得した資料の一覧（取得の確認を取った日）
 - わざと壊す確認の記録（各タスク）: <テスト> — <壊し方> で落ちた（<メッセージ>）。戻して合格
@@ -2674,6 +2674,60 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - ゲート A1（P1-7、2026-10-26）: `G-VOCAB-SCHEMA`・`G-VOCAB-CHECK`・`G-VOCAB-LISTS`・`G-VOCAB-LISTS-COPY`・`G-VOCAB-TESTS`・`G-VOCAB-READONLY`・`G-VOCAB-EXPECT-INDEPENDENT`・`G-REPO-SPDX`・`G-REPO-SELFTESTS`・`G-REPO-RED-FIRST` がすべて合格
   - このセッションの環境には `PYTHONDONTWRITEBYTECODE=1` があり、`G-VOCAB-READONLY` の確認ではそれを外して回した（`env -u PYTHONDONTWRITEBYTECODE`）。`scripts/goals.sh` の `G-VOCAB-READONLY` は §5 のコマンドどおり `python3` を `-B` なしで呼ぶ
   - わざと壊す確認: `G-VOCAB-READONLY`（S28・副作用とコスト）— 使い捨ての複製で `vocabcheck.py` から `sys.dont_write_bytecode = True` を消してコミットし、`PYTHONDONTWRITEBYTECODE` を外して回すと落ちた（`tools/vocabcheck/__pycache__` ができた）。戻して合格。複製は消した
+- P2-1〜P2-3（2026-10-26）: サンプルのフィクスチャ 49 件（`sample-ok` 27・`sample-ng` 22）を検査スクリプトより先にコミットし（`G-REPO-RED-FIRST` は 3 件のコミットとも赤）、`spec/samples/curryRice.yaml`（期待の葉 k = 63）も `sample` の実装より先にコミットした。`python3 -B -m unittest tools.vocabcheck.test_vocabcheck` が `Ran 108 tests`・`OK`、`G-VOCAB-SAMPLE` は `sample: 0 errors; expectations: 63 checked, 0 failed`
+- サンプルの検査で決めた細目（P2-1〜P2-3、すべて（補））:
+  - 状態の書き方: 順序つきの軸は値の名前、引数つきの軸は `cut(style: slice, size: 3 mm)`（引数は軸の宣言の順）、集合の軸は `[washed, soaked(time: 30 min)]`（軸の値の順）。`expect` の `state` は値が使う軸をすべて書き、完全一致で比べる。`traits` は食材の宣言のトレイトと部位のトレイトと、足されたトレイト（`Hazard`・`Allergen(k)`・レシピの `output` のトレイト）の集合で、継承の閉包は含めない
+  - 診断の位置は `recipes.<レシピ>.ingredients.<材料>`・`recipes.<レシピ>.steps[<i>]`（0 始まり）・`recipes.<レシピ>.result`・`menus.<献立>.make.<名前>`・`menus.<献立>.serve.<波>[<i>]`。並びはこの記述の順（レシピ → 献立、材料 → 手順 → 結果）。`LIN:leftover` はその値ができた位置に出す
+  - 引数の誤り `NAM:arity` の引数は（動作、`missing`・`extra`・`unknown`・`duplicate`、引数の名前か余った位置）。`TYP:stateRequirement` は（動作、引数、値の名前）、`TYP:cutCoarser` は（今の切り方か `pureed`、新しい切り方）、`TYP:dimension` は（引数、宣言の次元、渡した次元）、`TYP:enumValue` は（引数、値）、`TYP:output` は（`output` の型、結果の型）、`TYP:vesselLiquid` は（値、器。合わない器ごとに 1 件）、`ASM:firstVariant` はほかの候補の名前の並び
+  - 要求を満たさない引数にも効果を当てて続ける（`pureed` を切ると `TYP:stateRequirement` と `TYP:cutCoarser` の 2 件になる）。値が使わない軸への効果は飛ばす（`Mixture` に `blend` の形状の効果は効かない）。知らない動作の引数は消費したことにする。同じ名前の `let` は `NAM:rebind` を出して新しい値で上書きする
+  - 出力の型を持つ動作の結果の量は、最初の食材の入力の量を引き継ぐ。`combine` の量は質量の合計（体積は `density`、数は `unitWeight` で換算）
+  - 要求（`requires`）は、使った動作（`variant` は最初の候補）の `uses` のうち `hands` 以外の項目の和集合を名前の順に並べる（能力と設備の種類の両方）
+  - 表に足したもの: 下ゆでの動作 `parboil`（`doneness: par`。S34・S53 の確認のため）、`whip` の出力の型 `WhippedCream`（宣言にアレルゲンを持たず、入力の `Allergen(milk)` を引き継ぐ。S48 の確認のため）、`Buri` の `Hazard`（`RawEdible` の例外を確かめるため。concept §4.1 の「生で食べる前提の食材は、その食材の定義で例外にする」）
+  - わざと壊す確認: `fx/sample-ok/initial-state`（S30・正常系）— 順序つきの軸の初期値を最後の値にすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/initial-override`（S30・境界・上限）— `initial` を無視すると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/peel-missing`（S31・効かない条件）— 要求の判定を常に真にすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/skin-edible-cut-whole`（S32・正常系）— `anyOf` を「すべて」で判定すると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/requirement-on-unused-axis`（S33・効かない条件）— 使わない軸への要求を満たしたことにすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/ordered-no-regress`（S34・時間と順序）— 順序つきの軸の効果を最大でなく代入にすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/cut-finer`（S35・正常系）— 細かさの関係を逆向きに辿ると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/cut-coarser`、`fx/sample-ng/cut-same-style`（S35・境界・上限）— 同じ切り方を「細かい」に含める（`cut-same-style` が落ちた）。戻して合格
+  - わざと壊す確認: `fx/sample-ok/prep-add`（S36・正常系）— 下処理の集合を置き換えると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/prep-update-args`（S36・境界・上限）— 同じ項目の古い引数を残すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/unmentioned-axes`（S37・副作用とコスト）— 効果の無い軸を初期値に戻すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/dimension-mismatch`（S38・効かない条件）— 次元の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/enum-value`（S39・効かない条件）— 列挙の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/undefined-action`、`undefined-type`、`undefined-part`（S40・効かない条件）— `NAM:undefined` を出さない（3 件とも落ちた）。戻して合格
+  - わざと壊す確認: `fx/sample-ng/arity-extra`（S41・境界・上限）— 余る引数を無視する（`arity-extra` が落ちた）。戻して合格
+  - わざと壊す確認: `fx/sample-ok/default-param`（S41・正常系）— 既定値のある引数も必須にすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/rebind`（S42・効かない条件）— 束縛を黙って上書きすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/double-use`（S43・効かない条件）— 消費の記録を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/plate-twice`（S43・実際の経路）— 盛り付けを消費に数えないと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/leftover-info`（S44・正常系）— 残りをエラーにすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/list-sugar`（S45・正常系）— 並びの先頭だけを使うと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/combine-doneness-min`、`combine-allergen-union`（S46・正常系）— 最小を最大にすると `combine-doneness-min` が、トレイトの和を外すと `combine-allergen-union` が落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/mixture-hazard`（S46・実際の経路）— `Hazard` の和を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/mixture-axes`（S46・副作用とコスト）— `Mixture` に `browning` を引き継ぐと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/combine-mass-sum`（S47・正常系）— 換算せずに数だけ足すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/combine-amount-unknown`（S47・境界・上限）— 換算できないものを 0 g にすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/output-type-action`、`output-allergen-inherit`（S48・正常系）— 出力の型を持つ動作で入力の型を残す（2 件とも落ちた）。戻して合格
+  - わざと壊す確認: `fx/sample-ok/variant-first`（S49・正常系）— 要求をすべての候補の `uses` の和にすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/recipe-retype`（S50・正常系）— `Mixture` を置き換えないと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/recipe-output-mismatch`（S51・効かない条件）— 型の比較を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/menu-make`（S52・正常系）— 献立の `make` に型の初期状態を束縛すると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/undercooked-pork`（S53・効かない条件）— 安全の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/undercooked-par`、`fx/sample-ok/cooked-pork`（S53・境界・上限）— 比較を 1 段ずらして `par` を通す（`undercooked-par` が落ちた）。戻して合格
+  - わざと壊す確認: `fx/sample-ok/raw-edible-buri`（S53・効かない条件）— `RawEdible` の例外を外すと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/liquid-flat-plate`、`fx/sample-ok/dry-flat-plate`（S54・効かない条件）— 検査を外す（`liquid-flat-plate` が落ちた）。戻して合格
+  - わざと壊す確認: `fx/sample-ng/liquid-alt-flat`（S54・境界・上限）— 最初の器だけを検査すると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/requires-union`（S55・正常系）— 最後の動作の `uses` だけを出すと落ちた。戻して合格
+  - わざと壊す確認: `py/test_vocabcheck.test_diag_order_and_location`（S56・時間と順序）— 診断を名前で並べ替えると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/blend-single-pureed`（S471・正常系）— 食材 1 つでも新しい値（`Mixture`）にすると落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ok/blend-list-mixture`（S472・正常系）— 並びの先頭だけを使うと落ちた。戻して合格
+  - わざと壊す確認: `fx/sample-ng/cut-after-pureed`（S473・効かない条件）— `pureed` を細かさの関係に入れないと落ちた。戻して合格
+  - わざと壊す確認: `G-REPO-SPDX`（S3・正常系）— サンプルの SPDX を `MIT OR Apache-2.0` にすると落ちた（`1 wrong`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-SAMPLE`（S57・正常系）— サンプルから `peel` の step を消すと落ちた（`sample: 1 errors; expectations: 63 checked, 9 failed`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-SAMPLE`（S57・データの完全性）— `actions.yaml` の `simmer` の `doneness` の効果を消すと落ちた（`4 failed`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-SAMPLE`（S57・時間と順序）— `actions.yaml` の `fry` の `browning` の効果を消すと落ちた（`4 failed`）。戻して合格
 - 実装中に見つかった concept の食い違い（R2）
 
 ### 9.3 B・C（試作）
