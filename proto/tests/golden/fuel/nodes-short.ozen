@@ -1,4 +1,4 @@
-// args: --limit-nodes 3
+// args: --limit-nodes 4
 action a(x)
 macro m(v) { quote { a($v) } }
-recipe r() { m(1 g) }
+recipe r() { m(1 g); a(2 g) }
