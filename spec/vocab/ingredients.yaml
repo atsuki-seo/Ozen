@@ -42,9 +42,9 @@ ingredients:
     parts:
       thigh: {traits: [Fatty]}
       breast: {}
-      tender: {}
-      wingTip: {}
-      wingStick: {}
+      tender: {props: {refuse: {source: mext-fct-2023, food: "11227", field: refuse}}}
+      wingTip: {props: {refuse: {source: mext-fct-2023, food: "11285", field: refuse}}}
+      wingStick: {props: {refuse: {source: mext-fct-2023, food: "11286", field: refuse}}}
   Beef:
     traits: [Meat, Hazard, SkinEdible]
     axes: [doneness, browning, shape, prep]
@@ -70,6 +70,7 @@ ingredients:
     axes: [doneness, browning, shape, prep]
     leaves: [odor]
     props:
+      refuse: {source: mext-fct-2023, food: "06153", field: refuse}
       density: {value: "0.50..0.70 g/ml", source: provisional}
       unitWeight: {value: "150..250 g/pcs", source: provisional}
       hardness: medium
@@ -81,6 +82,7 @@ ingredients:
     axes: [doneness, browning, shape, prep]
     leaves: [soil]
     props:
+      refuse: {source: mext-fct-2023, food: "06214", field: refuse}
       density: {value: "0.55..0.75 g/ml", source: provisional}
       unitWeight: {value: "150..200 g/pcs", source: provisional}
       hardness: hard
@@ -91,6 +93,7 @@ ingredients:
     axes: [doneness, browning, shape, prep]
     leaves: [soil, starch]
     props:
+      refuse: {source: mext-fct-2023, food: "02017", field: refuse}
       density: {value: "0.60..0.80 g/ml", source: provisional}
       unitWeight: {value: "130..170 g/pcs", source: provisional}
       hardness: hard
@@ -101,6 +104,7 @@ ingredients:
     axes: [doneness, browning, shape, prep]
     leaves: [light]
     props:
+      refuse: {source: mext-fct-2023, food: "06061", field: refuse}
       unitWeight: {value: "1000..1300 g/pcs", source: provisional}
       hardness: soft
       heating:
@@ -111,6 +115,7 @@ ingredients:
     axes: [doneness, prep]
     leaves: [light]
     props:
+      refuse: {source: mext-fct-2023, food: "06291", field: refuse}
       hardness: soft
       heating:
         fry: {direct: {value: "1..2 min", source: provisional}}
@@ -119,18 +124,21 @@ ingredients:
     axes: [shape, prep]
     leaves: [light]
     props:
+      refuse: {source: mext-fct-2023, food: "06312", field: refuse}
       unitWeight: {value: "300..500 g/pcs", source: provisional}
   Tomato:
     traits: [Vegetable, SkinEdible, RawEdible]
     axes: [doneness, shape, prep]
     leaves: [stain]
     props:
+      refuse: {source: mext-fct-2023, food: "06182", field: refuse}
       unitWeight: {value: "150..200 g/pcs", source: provisional}
   Cucumber:
     traits: [Vegetable, SkinEdible, RawEdible]
     axes: [shape, prep]
     leaves: [light]
     props:
+      refuse: {source: mext-fct-2023, food: "06065", field: refuse}
       unitWeight: {value: "90..110 g/pcs", source: provisional}
   Miso:
     traits: [Seasoning]
@@ -206,12 +214,14 @@ ingredients:
     axes: [shape, prep]
     leaves: [stain]
     props:
+      refuse: {source: mext-fct-2023, food: "07012", field: refuse}
       unitWeight: {value: "10..25 g/pcs", source: provisional}
   Banana:
     traits: [Fruit, Peelable, RawEdible]
     axes: [shape]
     leaves: [starch]
     props:
+      refuse: {source: mext-fct-2023, food: "07107", field: refuse}
       unitWeight: {value: "100..150 g/pcs", source: provisional}
   Cornflakes:
     traits: [Grain, RawEdible]
