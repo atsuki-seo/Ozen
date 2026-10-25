@@ -129,6 +129,12 @@ def vocab_fixture_test(path):
     def test(self):
         with open(os.path.join(path, "expect.yaml"), encoding="utf-8") as f:
             expect = yaml.safe_load(f)
+        if "sources" in expect:
+            r = subprocess.run([sys.executable, "-B", os.path.join(ROOT, "tools", "vocabcheck", "sources.py"),
+                                os.path.join(path, "vocab"), os.path.join(path, "search-log.yaml")],
+                               capture_output=True, text=True, cwd=ROOT)
+            self.assertEqual(r.stdout.strip().splitlines()[-1], expect["sources"], r.stderr)
+            return
         extra = ["--fct", os.path.join(path, "refuse.csv")] if os.path.exists(os.path.join(path, "refuse.csv")) else []
         r = run("check", "--vocab", os.path.join(path, "vocab"), "--json", *extra)
         got = json.loads(r.stdout)["diagnostics"]

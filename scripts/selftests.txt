@@ -8,3 +8,4 @@ scripts/check-selftests.sh scripts/test-check-selftests.sh
 scripts/check-tools.sh scripts/test-check-tools.sh
 tools/vocabcheck/vocabcheck.py python3 -B -m unittest tools.vocabcheck.test_vocabcheck tools.vocabcheck.test_qty
 tools/fct/extract.py python3 -B -m unittest tools.fct.test_extract
+tools/vocabcheck/sources.py python3 -B -m unittest tools.vocabcheck.test_vocabcheck.Fixtures.test_fx_vocab_ng_primary_missing_locator tools.vocabcheck.test_vocabcheck.Fixtures.test_fx_vocab_ng_primary_quote_mismatch tools.vocabcheck.test_vocabcheck.Fixtures.test_fx_vocab_ng_provisional_without_search
