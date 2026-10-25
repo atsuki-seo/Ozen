@@ -1,0 +1,6 @@
+// args5555)
+recipe r() {
+  repeat 9 {
+   a ()
+  }
+}

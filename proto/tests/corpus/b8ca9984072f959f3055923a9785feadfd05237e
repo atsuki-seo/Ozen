@@ -1,0 +1,4 @@
+recipe r() {
+  not = 1
+  le1
+}

@@ -1,0 +1,2 @@
+act a(x)
+recipe r() {(quote { quote}) }J

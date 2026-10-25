@@ -1,0 +1,2 @@
+acta(x)
+recipe r() { a(quote { a(1) }) }

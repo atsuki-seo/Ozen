@@ -1,0 +1,4 @@
+act(x)
+recipe r() {
+  for[x in 3 { a(x) }
+}

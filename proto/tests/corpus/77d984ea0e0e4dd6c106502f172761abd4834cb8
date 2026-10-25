@@ -1,0 +1,2 @@
+act
+recipe r() { sayt("a\tb") }

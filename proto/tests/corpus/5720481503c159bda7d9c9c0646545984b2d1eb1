@@ -1,0 +1,4 @@
+acxV
+macro m(v) { quote { a( g$v) } }
+recipe r(ml
+}

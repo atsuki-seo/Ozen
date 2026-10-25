@@ -1,0 +1,5 @@
+action a(x)
+recipe r() {
+  a(2 * 3 g)
+  a(3 g /  L2)
+}

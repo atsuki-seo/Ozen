@@ -1,0 +1,6 @@
+/s
+on ~a(x)
+recipe r() {
+ $(x)
+tio
+}

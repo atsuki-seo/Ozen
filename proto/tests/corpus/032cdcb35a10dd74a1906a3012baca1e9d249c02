@@ -1,0 +1,4 @@
+// ath 10
+macro loop() { quote { loop($ } }
+recloop()
+}

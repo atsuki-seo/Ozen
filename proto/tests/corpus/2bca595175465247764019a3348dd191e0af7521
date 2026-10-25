@@ -1,0 +1,6 @@
+action a(x)
+recipe r() {
+  let x = 0
+  let x= 2
+  a(x)
+}

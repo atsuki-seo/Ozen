@@ -1,0 +1,4 @@
+3
+action a(x)
+recipe r(n: 1) {
+ 

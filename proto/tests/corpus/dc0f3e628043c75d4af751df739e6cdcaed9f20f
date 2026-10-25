@@ -1,0 +1,3 @@
+ac2tion a(x)
+recipe r() {
+  if false { a(2) }(}

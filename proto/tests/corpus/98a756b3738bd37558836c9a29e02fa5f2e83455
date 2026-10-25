@@ -1,0 +1,4 @@
+action f(x, y)
+pe r() z
+  f(1, z: 2)Y
+}
