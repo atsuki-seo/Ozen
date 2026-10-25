@@ -2764,6 +2764,13 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 欠陥の記録は `proto/defects.tsv`（日付・検出した手段・分類・要約・直したコミット）
 - わざと壊す確認の記録（各タスク）: <テスト> — <壊し方> で落ちた（<メッセージ>）。戻して合格
 - 期待値の手計算の誤りで期待値を直したもの（理由と、直したコミット）
+- P4-1（2026-10-26）: `proto/CMakeLists.txt`（`CMAKE_C_STANDARD 23`・`CMAKE_C_EXTENSIONS OFF`。CMake 3.28 は clang 17 の C23 を `-std=c2x` にするので `CMAKE_C23_STANDARD_COMPILE_OPTION` を `-std=c23` にした）、`build-all.sh`（`--only` で 1 つの構成）、`check-flags.py`・`check-compilers.sh`・`check-diag-registry.sh` と自己テスト（5・3・6 件、どれも `0 failed`）、`include/ozenproto.h`、アリーナ（ASan の構成で割り当てごとに 16 バイトの毒の余白。`<sanitizer/asan_interface.h>` は S117 の許可に無いので、関数を自分で宣言した）、登録簿 `diag_codes.def`（31 件を一度に登録。コードは分類ごとに §4.8〜§4.14 に出てくる順）、ドライバー。`G-PROTO-BUILD`・`G-PROTO-FLAGS`・`G-PROTO-COMPILERS`・`G-PROTO-EXPORTS`・`G-PROTO-DIAG-APPEND`、`c/arena_*`（5 件。`arena_poison_detects` は ASan の構成だけで `WILL_FAIL`）が 4 つの構成で合格
+  - わざと壊す確認: `G-PROTO-EXPORTS`（S116・効かない条件）— 内部の関数 `diag_code` を接頭辞なしで外に出すと落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-BUILD`（S124・正常系）— 符号の変換で警告の出るコードを入れると 4 つの構成とも失敗した。戻して合格
+  - わざと壊す確認: `G-PROTO-FLAGS`（S124・前提の固定）— `CMAKE_C_EXTENSIONS` を ON にすると落ちた（`-std=gnu2x` になり 4 構成とも `3 missing`）。戻して合格
+  - わざと壊す確認: `G-PROTO-COMPILERS`（S131・実際の経路）— clang の構成を `/usr/bin/cc`（gcc）でビルドすると落ちた（`2 mismatched`）。戻して合格
+  - わざと壊す確認: `c/arena_poison_detects`（S148・副作用とコスト）— 毒を塗らないと `WILL_FAIL` のテストが失敗した（`0% tests passed`）。戻して合格
+  - わざと壊す確認: `G-PROTO-DIAG-APPEND`（S113・時間と順序）— 使い捨ての複製で登録簿の `SYN009` の行を書き換えてコミットすると落ちた（削除の行 1）。複製は消した
 
 ### 9.4 D（コアの土台）
 
