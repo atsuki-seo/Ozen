@@ -1745,7 +1745,7 @@ gh run download "$id" -n xcframework -D build/ios && unzip -l build/ios/OzenProt
 | S7 | データの完全性 | `py/test_vocabcheck.test_schema_covers_all_files`（`spec/vocab/` のファイルの数と検査した数が一致） | 1 ファイルを読み飛ばす | P1-2 |
 | S7 | 効かない条件 | `fx/vocab-ng/schema-unknown-key`、`fx/vocab-ng/schema-wrong-type` | スキーマの `additionalProperties: false` を外す | P1-2 |
 | S137 | データの完全性 | `G-VOCAB-SCHEMA`（ファイル名の一覧の完全一致） | `vessels.yaml` を `vessel.yaml` に変える | P1-4 |
-| S8 | 効かない条件 | `py/test_qty.test_rejects_malformed`（`200g`・`1e3 g`・`1/0 g`・`g/ml/s`・`5.. g` がエラーの値になり、例外で落ちない） | 分母 0 で `ZeroDivisionError` をそのまま投げる | P1-1 |
+| S8 | 効かない条件 | `py/test_qty.test_rejects_malformed`（`200g`・`1e3 g`・`1/0 g`・`g/ml/s`・`5.. g` がエラーの値になり、例外で落ちない）、`py/test_qty.test_non_string_is_error`（文字列でない値） | 分母 0 で `ZeroDivisionError` をそのまま投げる | P1-1 |
 | S8 | 正常系 | `py/test_qty.test_accepts`（`200 g`、`0.3..0.5 g`、`1/4 pcs`、`0.6 g/ml`、`15 ml` を手で求めた `Fraction` と比べる） | 小数を float で読む | P1-1 |
 | S9 | 効かない条件 | `py/test_qty.test_rejects_unitless` | 単位が無いとき無次元として通す | P1-1 |
 | S10 | 境界・上限 | `py/test_qty.test_range_bounds`（`5..3 g` はエラー、`5..5 g` は 1 点） | 比較を `>=` にする | P1-1 |
@@ -1837,10 +1837,10 @@ gh run download "$id" -n xcframework -D build/ios && unzip -l build/ios/OzenProt
 | S57 | 正常系（料理として正しいか） | §8（機械で決められない理由: 表の動作の要求と効果が料理として正しいかを判定するオラクルが無い） | — | — |
 | S58 | 正常系 | `G-VOCAB-FCT` | `refuse.csv` の値を 1 つ変える | P3-2 |
 | S58 | 境界・上限 | `py/test_extract.test_reads_fixture_xlsx`（テストの中で作る小さな xlsx。空欄・`Tr`・括弧付きの値を含める） | 括弧付きの値を空にする | P3-2 |
-| S58 | 前提の固定 | `py/test_extract.test_matches_real_xlsx`（§9.2 に書いた見出しの文字列と、手で読んだ 3 件。Excel が無ければ skip と出す） | 読む列を 1 つずらす | P3-2 |
+| S58 | 前提の固定 | `py/test_extract.test_matches_real_xlsx`（§9.2 に書いた見出しの文字列と、手で読んだ 3 件。Excel が無ければ skip と出す）、`py/test_extract.test_rejects_wrong_headers` | 読む列を 1 つずらす | P3-2 |
 | S59 | 効かない条件 | `fx/vocab-ng/fct-unknown-food` | 食品番号の照合を外す | P3-3 |
 | S60 | 副作用とコスト | `G-VOCAB-FCT-STABLE` | `set` の反復の順で書き出す（`PYTHONHASHSEED` で回ごとに変わる） | P3-2 |
-| S141 | データの完全性 | `G-VOCAB-FCT`（order ok、refs ok） | 表が参照しない食品番号の行も書き出す | P3-3 |
+| S141 | データの完全性 | `G-VOCAB-FCT`（order ok、refs ok）、`py/test_extract.test_writes_sorted_csv_and_checks` | 表が参照しない食品番号の行も書き出す | P3-3 |
 | S61 | 前提の固定 | `G-VOCAB-FCT` | README の sha256 を変える | P3-2 |
 | S465 | データの完全性 | `G-VOCAB-SOURCES`、`fx/vocab-ng/primary-missing-locator`、`fx/vocab-ng/primary-quote-mismatch` | 書き写しと違う値を書く | P3-6 |
 | S466 | データの完全性 | `G-VOCAB-SOURCES`、`fx/vocab-ng/provisional-without-search` | 探した記録を消す | P3-6 |
@@ -2750,6 +2750,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-VOCAB-SAMPLE`（S57・正常系）— サンプルから `peel` の step を消すと落ちた（`sample: 1 errors; expectations: 63 checked, 9 failed`）。戻して合格
   - わざと壊す確認: `G-VOCAB-SAMPLE`（S57・データの完全性）— `actions.yaml` の `simmer` の `doneness` の効果を消すと落ちた（`4 failed`）。戻して合格
   - わざと壊す確認: `G-VOCAB-SAMPLE`（S57・時間と順序）— `actions.yaml` の `fry` の `browning` の効果を消すと落ちた（`4 failed`）。戻して合格
+- 期待値の直し（2026-10-26）: P3-5 で牛乳の密度の暫定の範囲を `1.02..1.04` から `1.028..1.040 g/ml` に直したため、`fx/sample-ok/blend-list-mixture` の期待の量を `304..358 g` から `305.6..358 g`（バナナ `100..150 g` + 牛乳 `200 ml × 1.028..1.040`）に直した。手計算の誤りではなく表の値の変更による直しで、追加ではないので `G-REPO-RED-FIRST` の対象外
+- `G-VOCAB-TESTS` の数の照合（2026-10-26）: `check-plan-tests.sh` が `fx/vocab-ng/undefined-twice` を `undefined-*` と二重に数えていたので、分類ごとの数はファイルの重複を除いて数えるように直した。網羅表に無かった自作のテスト 3 件（`py/test_qty.test_non_string_is_error`・`py/test_extract.test_rejects_wrong_headers`・`py/test_extract.test_writes_sorted_csv_and_checks`）は、S8・S58・S141 の行に足した。`Ran 122 tests` = `fx=106` + `py=16`
 - 実装中に見つかった concept の食い違い（R2）
 
 ### 9.3 B・C（試作）
