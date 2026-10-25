@@ -7,3 +7,4 @@ scripts/check-red-first.sh scripts/test-check-red-first.sh
 scripts/check-selftests.sh scripts/test-check-selftests.sh
 scripts/check-tools.sh scripts/test-check-tools.sh
 tools/vocabcheck/vocabcheck.py python3 -B -m unittest tools.vocabcheck.test_vocabcheck tools.vocabcheck.test_qty
+tools/fct/extract.py python3 -B -m unittest tools.fct.test_extract
