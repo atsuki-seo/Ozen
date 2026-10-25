@@ -1,3 +1,3 @@
 // args: --limit-depth 8
 action a(x)
-recipe r() { a(((((((1))))))) }
+recipe r() { a((((((((1)))))))) }
