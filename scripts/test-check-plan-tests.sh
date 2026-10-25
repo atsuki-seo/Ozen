@@ -118,5 +118,18 @@ plan "$r" '| S1 | 正常系 | `G-A` | 壊す | P1 |
 | S2 | 正常系 | `G-B` | 壊す | P1 |' '- わざと壊す確認: `G-A` — x'
 expect mutations-short "$r" --mutations "mutations: 2 rows, 1 recorded" 1
 
+r=$(new_repo)
+plan "$r" '| S1 | 正常系 | `fx/vocab-ng/u-*`（2 個） | 壊す | P1 |
+| S2 | 正常系 | `fx/vocab-ng/u-twice` | 壊す | P1 |'
+put "$r" spec/fixtures/vocab-ng/u-one.yaml
+put "$r" spec/fixtures/vocab-ng/u-twice.yaml
+cases=$((cases + 1))
+got=$("$checker" --root "$r" "$r/plan.md" 2>/dev/null | head -n 1)
+case "$got" in
+  *" fx=2 "*) ;;
+  *) echo "FAIL dedupe-categories: got '$got'" >&2; failed=$((failed + 1)) ;;
+esac
+rm -rf "$r"
+
 echo "test-check-plan-tests: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]

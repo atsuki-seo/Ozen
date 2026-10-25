@@ -172,7 +172,7 @@ for r in body:
             errors += 1
         wanted[name] = (cat, rest, count)
 
-found = {c: 0 for c in CATEGORIES}
+found = {c: set() for c in CATEGORIES}
 missing = 0
 total = 0
 for name in sorted(wanted):
@@ -183,17 +183,15 @@ for name in sorted(wanted):
     hits = resolve(cat, rest)
     if count is None:
         ok = len(hits) >= 1
-        if ok:
-            found[cat] += 1
     else:
         ok = len(hits) == count
-        found[cat] += len(hits)
+    found[cat].update(hits)
     if not ok:
         missing += 1
         want = "1" if count is None else str(count)
         print(f"missing: {name} (found {len(hits)}, want {want})", file=sys.stderr)
 
-print(" ".join(f"{c}={found[c]}" for c in CATEGORIES))
+print(" ".join(f"{c}={len(found[c])}" for c in CATEGORIES))
 print(f"plan-tests: {total} names, {missing} missing")
 sys.exit(0 if missing == 0 and errors == 0 else 1)
 PY
