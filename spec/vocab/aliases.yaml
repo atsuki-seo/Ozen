@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+aliases:
+  Komagire:
+    of: Pork
+    parts: [shoulder, shoulderLoin, loin, belly, leg]
+    state: {shape: {cut: {style: biteSize}}}
+  Karubi:
+    of: Beef
+    parts: [belly]
+    partTraits: [Fatty]

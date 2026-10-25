@@ -1,0 +1,215 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+actions:
+  wash:
+    params:
+      - {name: x, kind: food, effects: {prep: {add: washed}}}
+    output: {param: x}
+    uses: [hands, Washing]
+    time: {value: "1..3 min", source: provisional}
+  soak:
+    params:
+      - {name: x, kind: food, effects: {prep: {add: soaked, args: {time: $time}}}}
+      - {name: time, kind: quantity, dimension: Time, default: "30 min"}
+    output: {param: x}
+    uses: [Container]
+    unattended: true
+  peel:
+    params:
+      - name: x
+        kind: food
+        requires: [{traits: [Peelable], axes: {shape: {in: [whole]}}}]
+        effects: {shape: peeled}
+    output: {param: x}
+    uses: [hands, WorkSurface]
+    time: {value: "1..2 min", source: provisional}
+  loosen:
+    params:
+      - {name: x, kind: food, requires: [{traits: [Noodle]}]}
+    output: {param: x}
+    uses: [hands]
+    time: {value: "0.5..1 min", source: provisional}
+  drain:
+    params:
+      - name: x
+        kind: food
+        requires: [{axes: {prep: {has: washed}}}, {axes: {prep: {has: soaked}}}]
+    output: {param: x}
+    uses: [hands, Colander]
+    time: {value: "0.5..1 min", source: provisional}
+  cut:
+    params:
+      - name: x
+        kind: food
+        requires:
+          - {axes: {shape: {in: [peeled, cut]}}}
+          - {traits: [SkinEdible], axes: {shape: {in: [whole]}}}
+        effects: {shape: {set: cut, args: {style: $style, size: $size}}}
+      - {name: style, kind: enum, enum: CutStyle}
+      - {name: size, kind: quantity, dimension: Length, default: "3 mm"}
+    output: {param: x}
+    uses: [hands, WorkSurface, CuttingSurface, Knife]
+    time: {value: "1..3 min", source: provisional}
+    leaves: [{from: x, on: [CuttingSurface, Knife]}]
+  tear:
+    params:
+      - name: x
+        kind: food
+        requires: [{traits: [LeafyVegetable]}]
+        effects: {shape: {set: cut, args: {style: biteSize}}}
+    output: {param: x}
+    uses: [hands]
+    time: {value: "0.5..2 min", source: provisional}
+  cookRice:
+    params:
+      - {name: x, kind: food, requires: [{type: Rice, axes: {prep: {has: soaked}}}]}
+    output: {type: CookedRice}
+    variants:
+      - name: cooker
+        uses: [RiceCooking]
+        time: {value: "40..50 min", source: provisional}
+        unattended: true
+        leaves: [{dirt: starch, on: [RiceCooker]}]
+      - name: pot
+        uses: [hands, "HeatSource<stovetop>", Pot]
+        time: {value: "25..35 min", source: provisional}
+        steps: [boil, simmer, rest]
+        leaves: [{dirt: starch, on: [Pot]}]
+      - name: microwave
+        uses: ["HeatSource<microwave>", Container]
+        time: {value: "15..20 min", source: provisional}
+        unattended: true
+        leaves: [{dirt: starch, on: [Container]}]
+  fry:
+    params:
+      - {name: x, kind: food, effects: {doneness: done, browning: light}}
+      - {name: time, kind: quantity, dimension: Time}
+      - {name: heat, kind: enum, enum: Heat, default: medium}
+    output: {param: x}
+    uses: [hands, "HeatSource<stovetop>", FryingPan]
+    leaves: [{dirt: oil, on: [FryingPan]}]
+  simmer:
+    params:
+      - {name: x, kind: food, effects: {doneness: done}}
+      - {name: time, kind: quantity, dimension: Time}
+      - {name: heat, kind: enum, enum: Heat, default: low}
+    output: {param: x}
+    uses: ["HeatSource<stovetop>", Pot]
+    unattended: true
+    leaves: [{from: x, on: [Pot]}]
+  boil:
+    params:
+      - {name: x, kind: food, effects: {doneness: done}}
+      - {name: time, kind: quantity, dimension: Time}
+    output: {param: x}
+    uses: ["HeatSource<stovetop>", Pot]
+    unattended: true
+  boilWater:
+    params:
+      - {name: x, kind: food, requires: [{type: Water}], effects: {doneness: done}}
+    output: {param: x}
+    uses: ["HeatSource<stovetop>", Pot]
+    time: {value: "5..10 min", source: provisional}
+    unattended: true
+  dissolve:
+    params:
+      - {name: x, kind: food}
+    output: {param: x}
+    uses: [hands, "HeatSource<stovetop>", Ladle]
+    time: {value: "1..3 min", source: provisional}
+  warm:
+    params:
+      - {name: x, kind: food}
+    output: {param: x}
+    variants:
+      - {name: microwave, uses: ["HeatSource<microwave>"], time: {value: "0.5..1 min", source: provisional}}
+      - {name: toaster, uses: ["HeatSource<toaster>"], time: {value: "2..3 min", source: provisional}}
+      - {name: pan, uses: [hands, "HeatSource<stovetop>", FryingPan], time: {value: "2..4 min", source: provisional}}
+  mix:
+    params:
+      - {name: x, kind: food}
+    output: {param: x}
+    uses: [hands, MixingBowl]
+    time: {value: "0.5..2 min", source: provisional}
+    leaves: [{from: x, on: [MixingBowl]}]
+  toss:
+    params:
+      - {name: x, kind: food}
+    output: {param: x}
+    uses: [hands, MixingBowl]
+    time: {value: "0.5..1 min", source: provisional}
+    leaves: [{from: x, on: [MixingBowl]}]
+  whip:
+    params:
+      - {name: x, kind: food, requires: [{traits: [Liquid]}]}
+    output: {param: x}
+    uses: [hands, Whisk, MixingBowl]
+    time: {value: "3..6 min", source: provisional}
+    leaves: [{from: x, on: [Whisk, MixingBowl]}]
+  season:
+    params:
+      - {name: x, kind: food}
+      - {name: with, kind: food, requires: [{traits: [Seasoning]}]}
+    output: {param: x}
+    uses: [hands]
+    time: {value: "0.2..0.5 min", source: provisional}
+  blend:
+    params:
+      - {name: x, kind: food, effects: {shape: pureed}}
+    output: {param: x}
+    uses: [Blending]
+    time: {value: "0.5..1.5 min", source: provisional}
+    leaves: [{dirt: starch, on: [Blender]}, {from: x, on: [Blender]}]
+  chill:
+    params:
+      - {name: x, kind: food}
+      - {name: time, kind: quantity, dimension: Time}
+    output: {param: x}
+    uses: [Chilling]
+    unattended: true
+  rest:
+    params:
+      - {name: x, kind: food}
+      - {name: time, kind: quantity, dimension: Time}
+    output: {param: x}
+    uses: []
+    unattended: true
+  plate:
+    params:
+      - {name: x, kind: food}
+    output: none
+    uses: [hands, Vessel]
+    time: {value: "0.3..1 min", source: provisional}
+  layer:
+    params:
+      - {name: x, kind: food}
+    output: {param: x}
+    uses: [hands, Vessel]
+    time: {value: "1..3 min", source: provisional}
+  clean:
+    params:
+      - {name: t, kind: tool}
+    output: none
+    uses: [hands, Washing]
+  wipe:
+    params:
+      - {name: p, kind: place}
+    output: none
+    uses: [hands]
+  store:
+    params:
+      - {name: x, kind: food}
+    output: none
+    uses: [hands, Chilling]
+    time: {value: "0.3..1 min", source: provisional}
+  discard:
+    params:
+      - {name: x, kind: food}
+    output: none
+    uses: [hands]
+    time: {value: "0.1..0.5 min", source: provisional}
+  combine:
+    params:
+      - {name: xs, kind: foodList}
+    output: {type: Mixture, combine: true}
+    structural: true
+    uses: []

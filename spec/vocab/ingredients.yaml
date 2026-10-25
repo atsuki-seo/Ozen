@@ -1,0 +1,247 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+ingredients:
+  Rice:
+    traits: [Grain]
+    axes: [doneness, prep]
+    leaves: [starch]
+    props:
+      density: {value: "0.80..0.86 g/ml", source: provisional}
+  SteamedNoodles:
+    traits: [Noodle, "Allergen(wheat)"]
+    axes: [doneness, browning, prep]
+    initial: {doneness: done}
+    leaves: [starch, allergen]
+    props:
+      unitWeight: {value: "140..160 g/pcs", source: provisional}
+  Naan:
+    traits: [Grain, "Allergen(wheat)", "Allergen(milk)"]
+    axes: [doneness, browning]
+    initial: {doneness: done}
+    leaves: [allergen]
+    props:
+      unitWeight: {value: "80..120 g/pcs", source: provisional}
+  Pork:
+    traits: [Meat, Hazard, SkinEdible]
+    axes: [doneness, browning, shape, prep]
+    leaves: [rawMeat]
+    props:
+      density: {value: "1.00..1.10 g/ml", source: provisional}
+    parts:
+      shoulder: {}
+      loin: {}
+      shoulderLoin: {extends: loin, traits: [Fatty]}
+      tenderloin: {}
+      belly: {traits: [Fatty]}
+      leg: {}
+  Chicken:
+    traits: [Meat, Hazard, SkinEdible]
+    axes: [doneness, browning, shape, prep]
+    leaves: [rawMeat]
+    props:
+      density: {value: "1.00..1.10 g/ml", source: provisional}
+    parts:
+      thigh: {traits: [Fatty]}
+      breast: {}
+      tender: {}
+      wingTip: {}
+      wingStick: {}
+  Beef:
+    traits: [Meat, Hazard, SkinEdible]
+    axes: [doneness, browning, shape, prep]
+    leaves: [rawMeat]
+    props:
+      density: {value: "1.00..1.10 g/ml", source: provisional}
+    parts:
+      shoulder: {}
+      shoulderLoin: {traits: [Fatty]}
+      ribLoin: {traits: [Fatty]}
+      sirloin: {traits: [Fatty]}
+      tenderloin: {}
+      belly: {traits: [Fatty]}
+      leg: {}
+  Buri:
+    traits: [RoundFish, RawEdible, SkinEdible]
+    axes: [doneness, browning, shape, prep]
+    leaves: [rawFish]
+    props:
+      density: {value: "1.00..1.10 g/ml", source: provisional}
+  Onion:
+    traits: [Vegetable, Peelable]
+    axes: [doneness, browning, shape, prep]
+    leaves: [odor]
+    props:
+      density: {value: "0.50..0.70 g/ml", source: provisional}
+      unitWeight: {value: "150..250 g/pcs", source: provisional}
+      hardness: medium
+      heating:
+        simmer: {heatUp: {value: "3..5 min", source: provisional}, at: "10 mm", soften: {value: "5..10 min", source: provisional}}
+        fry: {heatUp: {value: "2..4 min", source: provisional}, at: "3 mm", soften: {value: "3..8 min", source: provisional}}
+  Carrot:
+    traits: [Root, Peelable, SkinEdible]
+    axes: [doneness, browning, shape, prep]
+    leaves: [soil]
+    props:
+      density: {value: "0.55..0.75 g/ml", source: provisional}
+      unitWeight: {value: "150..200 g/pcs", source: provisional}
+      hardness: hard
+      heating:
+        simmer: {heatUp: {value: "4..6 min", source: provisional}, at: "20 mm", soften: {value: "8..12 min", source: provisional}}
+  Potato:
+    traits: [Root, Peelable]
+    axes: [doneness, browning, shape, prep]
+    leaves: [soil, starch]
+    props:
+      density: {value: "0.60..0.80 g/ml", source: provisional}
+      unitWeight: {value: "130..170 g/pcs", source: provisional}
+      hardness: hard
+      heating:
+        simmer: {heatUp: {value: "4..6 min", source: provisional}, at: "20 mm", soften: {value: "8..12 min", source: provisional}}
+  Cabbage:
+    traits: [LeafyVegetable, SkinEdible, RawEdible]
+    axes: [doneness, browning, shape, prep]
+    leaves: [light]
+    props:
+      unitWeight: {value: "1000..1300 g/pcs", source: provisional}
+      hardness: soft
+      heating:
+        fry: {direct: {value: "2..4 min", source: provisional}}
+        simmer: {direct: {value: "3..6 min", source: provisional}}
+  BeanSprouts:
+    traits: [Vegetable, SkinEdible]
+    axes: [doneness, prep]
+    leaves: [light]
+    props:
+      hardness: soft
+      heating:
+        fry: {direct: {value: "1..2 min", source: provisional}}
+  Lettuce:
+    traits: [LeafyVegetable, SkinEdible, RawEdible]
+    axes: [shape, prep]
+    leaves: [light]
+    props:
+      unitWeight: {value: "300..500 g/pcs", source: provisional}
+  Tomato:
+    traits: [Vegetable, SkinEdible, RawEdible]
+    axes: [doneness, shape, prep]
+    leaves: [stain]
+    props:
+      unitWeight: {value: "150..200 g/pcs", source: provisional}
+  Cucumber:
+    traits: [Vegetable, SkinEdible, RawEdible]
+    axes: [shape, prep]
+    leaves: [light]
+    props:
+      unitWeight: {value: "90..110 g/pcs", source: provisional}
+  Miso:
+    traits: [Seasoning]
+    axes: []
+    leaves: [odor]
+  Dashi:
+    traits: [Seasoning, Liquid]
+    axes: [doneness]
+    leaves: [light]
+    props:
+      density: {value: "1.00..1.01 g/ml", source: provisional}
+  Tofu:
+    traits: [SkinEdible, RawEdible, Refrigerated]
+    axes: [doneness, shape]
+    leaves: [light]
+    props:
+      unitWeight: {value: "300..400 g/pcs", source: provisional}
+  Wakame:
+    traits: [Vegetable, SkinEdible, RawEdible]
+    axes: [shape, prep]
+    leaves: [light]
+  Salt:
+    traits: [Seasoning]
+    axes: []
+  Pepper:
+    traits: [Seasoning]
+    axes: []
+  Oil:
+    traits: [Seasoning, Liquid]
+    axes: []
+    leaves: [oil]
+    props:
+      density: {value: "0.90..0.93 g/ml", source: provisional}
+  CurryRoux:
+    traits: [Seasoning, "Allergen(wheat)", "Allergen(milk)"]
+    axes: [doneness]
+    initial: {doneness: done}
+    leaves: [stain, oil, allergen]
+  WorcesterSauce:
+    traits: [Seasoning, Sauce]
+    axes: []
+    leaves: [stain]
+    props:
+      density: {value: "1.15..1.25 g/ml", source: provisional}
+  Dressing:
+    traits: [Seasoning, Sauce, RawEdible]
+    axes: []
+    leaves: [oil]
+    props:
+      density: {value: "0.95..1.10 g/ml", source: provisional}
+  VanillaIce:
+    traits: [Dairy, Frozen, RawEdible, "Allergen(milk)"]
+    axes: []
+    leaves: [allergen, starch]
+  Cream:
+    traits: [Dairy, Refrigerated, RawEdible, Liquid, "Allergen(milk)"]
+    axes: []
+    leaves: [oil, allergen]
+    props:
+      density: {value: "1.00..1.03 g/ml", source: provisional}
+  Sugar:
+    traits: [Seasoning]
+    axes: []
+    leaves: [starch]
+    props:
+      density: {value: "0.60..0.85 g/ml", source: provisional}
+  Strawberry:
+    traits: [Fruit, RawEdible, SkinEdible]
+    axes: [shape, prep]
+    leaves: [stain]
+    props:
+      unitWeight: {value: "10..25 g/pcs", source: provisional}
+  Banana:
+    traits: [Fruit, Peelable, RawEdible]
+    axes: [shape]
+    leaves: [starch]
+    props:
+      unitWeight: {value: "100..150 g/pcs", source: provisional}
+  Cornflakes:
+    traits: [Grain, RawEdible]
+    axes: []
+    leaves: [light]
+  ChocolateSauce:
+    traits: [Sauce, RawEdible, "Allergen(milk)"]
+    axes: []
+    leaves: [starch, allergen]
+    props:
+      density: {value: "1.20..1.40 g/ml", source: provisional}
+  Milk:
+    traits: [Dairy, Liquid, Refrigerated, RawEdible, "Allergen(milk)"]
+    axes: [doneness]
+    leaves: [light, allergen]
+    props:
+      density: {value: "1.02..1.04 g/ml", source: provisional}
+  Ice:
+    traits: [Frozen, RawEdible]
+    axes: []
+    leaves: [light]
+    props:
+      density: {value: "0.91..0.92 g/ml", source: provisional}
+  Water:
+    traits: [Liquid, RawEdible]
+    axes: [doneness]
+    leaves: [light]
+    props:
+      density: {value: "0.99..1.00 g/ml", source: provisional}
+  CookedRice:
+    traits: [Grain]
+    axes: [doneness, prep]
+    initial: {doneness: done}
+    leaves: [starch]
+  Mixture:
+    structural: true
+    axes: [doneness, prep]
