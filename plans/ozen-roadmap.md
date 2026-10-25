@@ -2769,6 +2769,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 欠陥の記録は `proto/defects.tsv`（日付・検出した手段・分類・要約・直したコミット）
 - わざと壊す確認の記録（各タスク）: <テスト> — <壊し方> で落ちた（<メッセージ>）。戻して合格
 - 期待値の手計算の誤りで期待値を直したもの（理由と、直したコミット）
+  - 2026-10-26: P4-3 の golden 4 件（`syntax/nesting-too-deep`・`syntax/nesting-exact` の入力の括弧が設計より 1 つ少なかった、`macro/body-not-quote` の位置を `macro` の `m` で取っていた、`values/range-mul-range` の範囲から閉じ括弧を外していた）をコミット `de17d51` で直した。P4-6 の `fuel/nodes-short` は、手順を数えない壊し方を検出できなかったので、手順で上限を越える入力に書き直した。`values/overflow`・`diag/out-of-memory` は S147（すべての診断が golden に出る）のために実装の後で足した。どれも `scripts/red-first-exceptions.txt` に書いた
 - P4-1（2026-10-26）: `proto/CMakeLists.txt`（`CMAKE_C_STANDARD 23`・`CMAKE_C_EXTENSIONS OFF`。CMake 3.28 は clang 17 の C23 を `-std=c2x` にするので `CMAKE_C23_STANDARD_COMPILE_OPTION` を `-std=c23` にした）、`build-all.sh`（`--only` で 1 つの構成）、`check-flags.py`・`check-compilers.sh`・`check-diag-registry.sh` と自己テスト（5・3・6 件、どれも `0 failed`）、`include/ozenproto.h`、アリーナ（ASan の構成で割り当てごとに 16 バイトの毒の余白。`<sanitizer/asan_interface.h>` は S117 の許可に無いので、関数を自分で宣言した）、登録簿 `diag_codes.def`（31 件を一度に登録。コードは分類ごとに §4.8〜§4.14 に出てくる順）、ドライバー。`G-PROTO-BUILD`・`G-PROTO-FLAGS`・`G-PROTO-COMPILERS`・`G-PROTO-EXPORTS`・`G-PROTO-DIAG-APPEND`、`c/arena_*`（5 件。`arena_poison_detects` は ASan の構成だけで `WILL_FAIL`）が 4 つの構成で合格
   - わざと壊す確認: `G-PROTO-EXPORTS`（S116・効かない条件）— 内部の関数 `diag_code` を接頭辞なしで外に出すと落ちた。戻して合格
   - わざと壊す確認: `G-PROTO-BUILD`（S124・正常系）— 符号の変換で警告の出るコードを入れると 4 つの構成とも失敗した。戻して合格
@@ -2776,6 +2777,107 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-PROTO-COMPILERS`（S131・実際の経路）— clang の構成を `/usr/bin/cc`（gcc）でビルドすると落ちた（`2 mismatched`）。戻して合格
   - わざと壊す確認: `c/arena_poison_detects`（S148・副作用とコスト）— 毒を塗らないと `WILL_FAIL` のテストが失敗した（`0% tests passed`）。戻して合格
   - わざと壊す確認: `G-PROTO-DIAG-APPEND`（S113・時間と順序）— 使い捨ての複製で登録簿の `SYN009` の行を書き換えてコミットすると落ちた（削除の行 1）。複製は消した
+- P4-2（2026-10-26）: 自前の 128 bit 整数（`u128.c`）・有理数と区間（`rational.c`）と単体テスト `c/u128_*`（3）・`c/rational_*`（5、`rational_overflow_bounds` を含む）。4 つの構成で合格、`G-PROTO-NOINT128` が合格
+- P4-3〜P4-8（2026-10-26）: golden の期待値（構文・診断 22、値・制御・マクロ・燃料 85）を実装より先にコミットし、字句解析・パーサー（`parse.c`）・評価とマクロ（`eval.c`）・出力（`api.c`）・ランナー（`run-golden.sh`）・digest（`digest.sh`）・確保の失敗の注入（`ozp_oom_test`）・純粋性と大域変数の検査を書いた。最初の実行で 107 件中 102 件が合格し、残り 5 件のうち 4 件は期待値の誤り、1 件ずつが実装の誤り（ASCII でない識別子の診断に空の引数、`NAM:rebind` の後の束縛）だった
+  - 本計画が決めた試作の細目（すべて（補））: 構文の誤りが 1 件でもあれば評価しない。`params`・入口の診断の位置は `0:0-0:0`。`NAM:rebind` の後は新しい値で束縛する。マクロの展開は呼び出し元の範囲に束縛を足す（新しい範囲を作らない）。診断の引数: `SYN:unexpectedToken` はトークンの文字列（改行は `newline`、終わりは `end of input`）、`SYN:inputTooLarge` は（大きさ、上限）、`SYN:nestingTooDeep`・`MAC:fuelExhausted`・`MAC:depthExceeded`・`MAC:nodeLimit` は上限、`NAM:arity` は（呼び出し先、宣言の数、渡した数）か（呼び出し先、引数の名前）、`TYP:dimension`・`TYP:unsupportedDimension` は（左の次元、右の次元。無次元は `Dimensionless`）、`TYP:type` は（求めた種類、渡した種類）、`TYP:range` は演算子か関数の名前、`TYP:count` は値の書き方、`TYP:annotationTarget` は注釈の名前、`TYP:amountUnknown` は参照の書き方。注釈の付く先の呼び出しが誤りなら、注釈は黙って捨てる
+  - 束縛と引数の値は使い回すスタックに置く（最初は範囲ごとにアリーナに確保していて、`fuel/steps-default` の最大メモリが 420 MB だった。直した後は 1.5 MB）
+  - `check-pure.sh` の許可一覧に足した記号: `bcmp`（clang が等しさだけを見る `memcmp` を `bcmp` に置き換える）、`strlen`（gcc が `-O2` 以上でコアの長さを数えるループを `strlen` の呼び出しに置き換える）。コアは `strlen` を自分で呼ばない
+  - `c/arena_poison_detects` は、4 つの構成でテストの数をそろえるために ASan でない構成にも登録し、そこでは「skipped」と出して合格にする（`WILL_FAIL` は ASan の構成だけ）
+  - 有理数のオラクル: 20,000 件の式（2⁶² 付近・`INT64_MAX` 付近・小数・0 を含む）を 2,000 件ずつ実行し、seed 1 で正常 9,767 件・`MAC:overflow` 11,298 件・`MAC:divisionByZero` 1,214 件を `fractions.Fraction` の計算と照合して不一致 0
+- ゲート B1（P4-9、2026-10-26）: `G-PROTO-BUILD`・`UNIT`（15 件 × 4 構成）・`GOLDEN`（110 件 × 4 構成）・`RATIONAL-ORACLE`（seed 1〜3）・`OOM`（`oom: 110 files, …, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`EXPORTS`・`DETERMINISM`・`DIAG-REGISTRY`・`DIAG-APPEND`・`GOLDEN-INDEPENDENT`・`FLAGS`・`COMPILERS`・`NOINT128`、`G-REPO-SPDX`・`TOOLS`・`SELFTESTS`・`RED-FIRST` がすべて合格
+  - わざと壊す確認: `c/rational_overflow_bounds`（S77・境界・上限）— 負の側の範囲を INT64_MIN まで許す（`-INT64_MAX - 1` と `INT64_MIN` が通った）。戻して合格
+  - わざと壊す確認: `G-PROTO-NOINT128`（S149・効かない条件）— 128 bit の乗算に `unsigned __int128` を使う（コミットした後で `git grep` が 1 件を数えた）。戻して合格
+  - わざと壊す確認: `golden/syntax/utf8-invalid`（S62・効かない条件）— UTF-8 の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/ident-nonascii`（S63・効かない条件）— 識別子の ASCII 以外の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/string-utf8-passthrough`（S64・正常系）— 文字列の ASCII でないバイトを `?` に書き換えると落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/recover-multiple`（S65・正常系）— 最初の構文の誤りで止めると落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/bad-escape`（S142・効かない条件）— 知らないエスケープを文字のまま通すと落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/newline-in-parens`（S143・正常系）— 括弧の中の改行も区切りにすると落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/reserved-words`（S144・効かない条件）— `repeat` を予約語から外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/input-exact-limit`（S66・境界・上限）— 大きさの比較を `>=` にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/nesting-too-deep`（S67・境界・上限）— パーサーの深さを数えないと落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/deep-unary`（S67・副作用とコスト）— 単項の再帰を深さに数えない（ASan の構成でスタックが溢れて落ちた）。戻して合格
+  - わざと壊す確認: `golden/syntax/quote-outside-macro`（S68・効かない条件）— `quote` の置き場所の検査を外す（`nested-quote` も落ちた）。戻して合格
+  - わざと壊す確認: `golden/syntax/splice-outside-quote`（S69・効かない条件）— `$x` の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/juxtaposed-sum`（S70・正常系）— 並べた量の 2 つ目を捨てると落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/juxtaposed-mismatch`（S70・効かない条件）— 足し算の次元の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/number-int64-max`（S71・境界・上限）— 上限の比較を `>=` にする（1 ずらす）と落ちた。戻して合格
+  - わざと壊す確認: `golden/syntax/quote-outside-macro`（S72・正常系）— 式の位置の `quote` を受け付ける（構文木を値として書けるようにする）。`golden/values/kinds` は 6 種の値のうち書ける 5 種を確かめ、構文木は `quote` が式に置けないことで閉じると落ちた。戻して合格
+  - わざと壊す確認: `golden/values/decimal-exact`（S73・正常系）— 小数を分母 1024 の 2 進の近似で読むと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/add-same-dimension`（S74・正常系）— 単位の倍率を掛けないと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/add-dimension-mismatch`（S74・効かない条件）— 次元の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/div-same-dimension`（S75・正常系）— 割り算の次元を左に合わせると落ちた。戻して合格
+  - わざと壊す確認: `golden/values/mul-dimensioned`（S75・効かない条件）— 次元のある量どうしの掛け算を通すと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/mul-dimensionless`（S75・正常系）— 無次元を掛けると無次元にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/values/range-sub`（S76・正常系）— 範囲の引き算を `[a−c, b−d]` にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/values/range-mul-range`（S76・効かない条件）— 範囲どうしの掛け算の検査を外す（片方の端で計算する）と落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-RATIONAL-ORACLE`（S77・境界・上限）— 分母の小さい足し算を 64 bit の整数で計算する（オラクルが不一致を出した）。戻して合格
+  - わざと壊す確認: `golden/values/div-zero`（S78・効かない条件）— 0 の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/compare`（S79・正常系）— `<` と `<=` を取り違えると落ちた。戻して合格
+  - わざと壊す確認: `golden/values/compare-mismatch`（S79・効かない条件）— 違う次元の比較を通すと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/short-circuit`（S80・副作用とコスト）— 短絡したときも右辺を評価する（燃料の数が変わった）。戻して合格
+  - わざと壊す確認: `golden/values/ref-portion`（S81・正常系）— 取り分の割合を掛けずに足すと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/ref-ratio-unknown`（S81・効かない条件）— 量の無い参照を 0 にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/values/builtins`（S82・正常系）— `floor` を 0 の方向への切り捨てにすると落ちた。戻して合格
+  - わざと壊す確認: `golden/values/builtin-errors`（S82・効かない条件）— 組み込み関数の引数の数の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/unknown-unit`（S83・効かない条件）— 知らない単位を無次元にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/control/order-nested-calls`（S84・時間と順序）— 引数を右から評価すると落ちた。戻して合格
+  - わざと壊す確認: `golden/control/let-inner-rebind`（S85・効かない条件）— 束縛の重なりを今のブロックの中だけで探すと落ちた。戻して合格
+  - わざと壊す確認: `golden/control/shadow-global`（S85・正常系）— 最上位の名前を隠す `let` も `NAM:rebind` にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/control/if-else-chain`（S86・正常系）— `else` の枝を無視すると落ちた。戻して合格
+  - わざと壊す確認: `golden/control/if-nonbool`（S86・効かない条件）— 真偽値でない条件を真とみなすと落ちた。戻して合格
+  - わざと壊す確認: `golden/control/repeat-zero`（S87・境界・上限）— 0 回のとき 1 回評価すると落ちた。戻して合格
+  - わざと壊す確認: `golden/control/repeat-nonint`（S87・効かない条件）— 小数を切り捨てて通すと落ちた。戻して合格
+  - わざと壊す確認: `golden/control/for-list`（S88・正常系）— 最後の要素を飛ばすと落ちた。戻して合格
+  - わざと壊す確認: `golden/control/for-nonlist`（S88・効かない条件）— 並び以外を 1 要素の並びとみなすと落ちた。戻して合格
+  - わざと壊す確認: `golden/control/loop-scope-fresh`（S89・時間と順序）— ブロックを抜けても束縛を残す（範囲を回ごとに作らない）と落ちた。戻して合格
+  - わざと壊す確認: `golden/control/named-arg-unknown`（S90・効かない条件）— 名前付き引数を数えず、名前の検査も外す（`named-arg-duplicate` も落ちた）。戻して合格
+  - わざと壊す確認: `golden/control/annotation-attach`（S91・正常系）— 注釈を最後に出た手順に付けると落ちた。戻して合格
+  - わざと壊す確認: `golden/control/annotation-non-call`（S91・効かない条件）— 注釈を最後に出た手順に付ける（`annotation-macro-outer`・`annotation-outer-error` も落ちた）。戻して合格
+  - わざと壊す確認: `golden/control/error-poison`（S92・副作用とコスト）— 誤りを使う二項演算でも診断を出すと落ちた。戻して合格
+  - わざと壊す確認: `golden/fuel/stop-keeps-prior-output`（S93・時間と順序）— 止めたときに手順を出さないと落ちた。戻して合格
+  - わざと壊す確認: `golden/control/entry-select`（S94・正常系）— `entry` を無視して先頭のレシピを使うと落ちた。戻して合格
+  - わざと壊す確認: `golden/control/entry-ambiguous`（S94・効かない条件）— 曖昧なとき先頭を選ぶと落ちた。戻して合格
+  - わざと壊す確認: `golden/control/param-override`（S95・正常系）— 上書きを無視すると落ちた。戻して合格
+  - わざと壊す確認: `golden/control/param-unknown`（S95・効かない条件）— 知らない名前を無視すると落ちた。戻して合格
+  - わざと壊す確認: `golden/fuel/param-steps`（S95・副作用とコスト）— 上書きの式のステップを数えないと落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/args-unevaluated`（S96・副作用とコスト）— 呼び出しの時点で引数を評価すると落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/expand-basic`（S96・正常系）— 展開を呼び出しの位置で評価しない（展開した手順が出ない）と落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/hygiene-tmp`（S97・正常系）— 展開の印を付けない（`hygiene-two-expansions` も落ちた）。戻して合格
+  - わざと壊す確認: `golden/macro/hygiene-free-name`（S98・効かない条件）— 呼び出しの名前を呼び出し元の印で探すと落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/splice-caller-scope`（S99・正常系）— 差し込んだ引数にも展開の印を付けると落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/bind-caller-name`（S100・正常系）— `let $x` の名前に展開の印を付けると落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/bind-non-name`（S101・効かない条件）— 名前でない差し込みの検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/undefined-in-macro-uncalled`（S102・効かない条件）— 定義の時点の検査を外す（`param-without-dollar` も落ちた）。戻して合格
+  - わざと壊す確認: `golden/macro/macro-arity`（S103・効かない条件）— 余る引数を無視すると落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/diag-trail-nested`（S104・正常系）— 展開履歴を外側から並べると落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/diag-in-spliced-arg`（S105・正常系）— 差し込んだノードの位置と印をマクロの中にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/recursive-terminating`（S106・正常系）— マクロの中からのマクロの呼び出しを止める（再帰を禁止する）と落ちた。戻して合格
+  - わざと壊す確認: `golden/macro/recursive-infinite`（S106・境界・上限）— 燃料・深さ・生成ノードの検査を外す（ASan の構成でスタックが溢れて落ちた）。戻して合格
+  - わざと壊す確認: `golden/macro/body-not-quote`（S145・効かない条件）— 本体の形の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `golden/fuel/steps-exact`（S107・境界・上限）— リテラルを数えない（`steps-short` も落ちた）。戻して合格
+  - わざと壊す確認: `golden/fuel/count-each-node`（S107・データの完全性）— `ingredients` の項目を数えないと落ちた。戻して合格
+  - わざと壊す確認: `golden/fuel/steps-default`（S107・正常系）— 既定の燃料を 999,999 にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/fuel/depth-exact`（S108・境界・上限）— マクロの展開を深さに数えない（`depth-short` も落ちた）。戻して合格
+  - わざと壊す確認: `golden/fuel/nodes-short`（S109・境界・上限）— 手順を生成ノードに数えない（最初の `nodes-short` はマクロのコピーだけで上限に達したので検出できず、手順で上限を越える入力に直した）。戻して合格
+  - わざと壊す確認: `golden/fuel/steps-exact`（S110・境界・上限）— 3 つの上限の比較をどれも 1 つ手前で止める（`depth-exact`・`nodes-exact` も落ちた）。戻して合格
+  - わざと壊す確認: `c/limits_defaults`（S111・正常系）— 既定の深さを 128 にすると落ちた。戻して合格
+  - わざと壊す確認: `golden/diag/format`（S112・正常系）— 列を 0 始まりにすると落ちた。戻して合格
+  - わざと壊す確認: `golden/diag/column-bytes`（S112・境界・上限）— 列を文字の数で数えると落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-DIAG-REGISTRY`（S113・データの完全性）— 登録簿に同じ名前を 2 回書く（`1 duplicate names`）と落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-DIAG-REGISTRY`（S146・データの完全性）— 登録簿から `SYN:badEscape` を消すと `1 unlisted`、コードを `SY001` にすると `1 bad codes`と落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-DIAG-REGISTRY`（S147・データの完全性）— `golden/control/annotation-non-call` と、同じ診断を出す `annotation-macro-outer` を退けると `TYP007 annotationTarget` が `1 unused` になった（計画の壊し方は前者だけだが、後者にも同じ診断が出るので 2 つとも退けた）。戻して合格
+  - わざと壊す確認: `golden/diag/result-line`（S114・正常系）— 手順の数を 1 多く出す（`stats-line` も落ちた）。戻して合格
+  - わざと壊す確認: `golden/values/render-quantities`（S115・正常系）— 約分しないと落ちた。戻して合格
+  - わざと壊す確認: `golden/values/builtin-units`（S115・データの完全性）— `tsp` の倍率を 15 にすると落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-PURE`（S117・効かない条件）— コアに `printf` を 1 つ入れると記号が、`assert` を入れると `<assert.h>` が数えられた。戻して合格
+  - わざと壊す確認: `G-PROTO-NOGLOBAL`（S118・効かない条件）— 読み書きする `static int n;`（`return ++n;`）を置くと落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-NOFLOAT`（S119・効かない条件）— 比を `double` で計算する関数を置くと落ちた。戻して合格
+  - わざと壊す確認: `c/alloc_balance`（S120・副作用とコスト）— 確保した領域を 1 つ解放しないと落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-OOM`（S121・境界・上限）— 確保の失敗の後に NULL を参照する（ASan の構成で落ちた）。戻して合格
+  - わざと壊す確認: `G-PROTO-DETERMINISM`（S122・プラットフォームの経路）— 局所の変数のアドレスで候補の名前の順を変える（digest が 2 種類になった）。戻して合格
+  - わざと壊す確認: `sh/test-driver.sh`（S123・実際の経路）— `result error` でも 0 を返すと落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-UNIT`（S125・副作用とコスト）— アリーナの配列の範囲の検査を 1 ずらす（ASan の構成の golden で報告された）。戻して合格
 
 ### 9.4 D（コアの土台）
 
