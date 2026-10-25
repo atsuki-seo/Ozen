@@ -48,14 +48,22 @@ probe() {
     java) java -version 2>&1 | sed -nE '1s/.*version "([0-9][0-9.]*)".*/\1/p' ;;
     swift) swift --version 2>/dev/null | sed -nE 's/.*Swift version ([0-9][0-9.]*).*/\1/p' | head -n 1 ;;
     google-chrome) google-chrome --version 2>/dev/null | sed -nE 's/.* ([0-9][0-9.]*) *$/\1/p' ;;
+    xcode) xcodebuild -version 2>/dev/null | sed -nE '1s/^Xcode ([0-9][0-9.]*)$/\1/p' ;;
     *) return 1 ;;
   esac
 }
 
+case "$(uname -s)" in
+  Darwin) host=macos ;;
+  *) host=linux ;;
+esac
 checked=0
 mismatched=0
-while read -r name want _; do
+while read -r name want on _; do
   case "$name" in ''|'#'*) continue ;; esac
+  if [ -n "${on:-}" ] && [ "$on" != "$host" ]; then
+    continue
+  fi
   got=$(probe "$name")
   if [ "$print" -eq 1 ]; then
     printf '%s %s\n' "$name" "${got:-unknown}"

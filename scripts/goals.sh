@@ -109,7 +109,7 @@ goal_G_REPO_TOOLS() {
   local out n
   out=$(scripts/check-tools.sh 2>&1 | tail -n 1)
   want_re "tools" '^tools: [0-9]+ checked, 0 mismatched$' "$out"
-  n=$(grep -cvE '^[[:space:]]*(#|$)' toolchain.txt)
+  n=$(awk '$0 !~ /^[[:space:]]*(#|$)/ && ($3 == "" || $3 == "linux")' toolchain.txt | wc -l)
   want_eq "tools count" "$n" "$(last_num "$out" 1)"
 }
 

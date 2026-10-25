@@ -39,5 +39,9 @@ expect longer-version "$work/longer.txt" "tools: 2 checked, 1 mismatched" 1
 printf '# comment\n\nno-such-tool 1.0\n' > "$work/unknown.txt"
 expect unknown-tool "$work/unknown.txt" "tools: 1 checked, 1 mismatched" 1
 
+"$checker" --toolchain "$work/names.txt" --print | sed -n '1p' > "$work/host-lines.txt"
+printf 'xcode 99.9 macos\n' >> "$work/host-lines.txt"
+expect other-host-skipped "$work/host-lines.txt" "tools: 1 checked, 0 mismatched" 0
+
 echo "test-check-tools: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]
