@@ -2619,6 +2619,22 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-VOCAB-CHECK`（S13・データの完全性）— `actions.yaml` の `peel` の能力 `WorkSurface` を `WorkSurfase` にすると落ちた（`check: 1 errors`）。戻して合格
   - わざと壊す確認: `G-VOCAB-CHECK`（S22・データの完全性）— `capabilities.yaml` の `Blender` の `washTime` から `source` を消すと落ちた（`check: 1 errors`）。戻して合格
 - 成分表（P3-1）: 廃棄率の列の見出しのセルの文字列と位置、手で読んだ 3 件の食品番号と値、重量変化率が Excel にあるか（無ければ抽出の対象から外し、歩留まりの重量変化は暫定に戻す）、正誤表の反映の有無、元のファイル名、sha256、取得日
+  - 結果（P3-1、2026-10-26。取得の前にユーザーの確認を取った）: 文部科学省の「日本食品標準成分表（八訂）増補2023年」のページ（`https://www.mext.go.jp/a_menu/syokuhinseibun/mext_00001.html`）の「第2章（データ）」の Excel `20260327-mxt_kagsei-mext-000029402_02.xlsx`（1,973,402 バイト、Last-Modified 2026-03-27、sha256 `0d5a77077dd6cd91cbc2e6e317b8b218a38728c409eed452f1c10635a0d3099c`）と、正誤表 `20260327-mxt_kagsei-mext-000029402_16.xlsx`（68,693 バイト、sha256 `fb61037c7f66af0db1fb0729977913a629bc17097bc3ff7bf75217f9110acabb`）を `data/mext-fct-2023/source/` に置いた（`git check-ignore` で管理外を確かめた）。取得日 2026-10-26
+  - 読む列: シート `表全体` の B2 `食　品　番　号`、D3 `食　品　名`、E3 `廃　棄　率`、E12 の成分識別子 `REFUSE`（全角の空白を含む文字列のまま照合する）。データは 13 行目から
+  - 手で読んだ 3 件: `06153`（たまねぎ りん茎 生）6、`07107`（バナナ 生）40、`06061`（キャベツ 結球葉 生）15
+  - 重量変化率は、この Excel（第2章の本表）に無い。抽出の対象から外し、加熱による重量の変化は暫定の値のままにする
+  - 正誤表（令和 8 年 3 月 27 日）の訂正には廃棄率の項目が無く、本表のファイル名も同じ日付で公開されている。抽出の値に影響しない
+- P3-2・P3-3（2026-10-26）: `tools/fct/extract.py`（`--check` で再抽出して突き合わせる）と `test_extract.py`（`Ran 4 tests`・`OK`、本物の Excel の 3 件を含む）。表の 13 個の参照（食材 10、鶏の部位 3。にんじんは皮をむいた後の値として `06214` 皮なしを使う）から `data/mext-fct-2023/refuse.csv` の 13 行を作った。`G-VOCAB-FCT`（`fct: 13 rows, 0 mismatches; sha256 ok; order ok; refs ok; headers ok`）、`G-VOCAB-FCT-STABLE`、`G-REPO-NOTICE` が合格。表の検査は `--fct` の抽出データで食品番号を照合する（S59。フィクスチャは自分の `refuse.csv` を持てる）
+  - わざと壊す確認: `G-REPO-NOTICE`（S5・文書との一致）— `NOTICE` から出典の文言を消すと落ちた。戻して合格
+  - わざと壊す確認: `G-VOCAB-FCT`（S5・前提の固定）— README の sha256 を 1 文字変えると落ちた（`sha256 failed`）。戻して合格
+  - わざと壊す確認: `G-REPO-NOTICE`（S5・データの完全性）— README から `- Retrieved:` の行を消すと落ちた。戻して合格
+  - わざと壊す確認: `G-VOCAB-FCT`（S58・正常系）— `refuse.csv` のバナナの値を 41 にすると落ちた（`1 mismatches`）。戻して合格
+  - わざと壊す確認: `py/test_extract.test_reads_fixture_xlsx`（S58・境界・上限）— 括弧付きの値を空にすると落ちた。戻して合格
+  - わざと壊す確認: `py/test_extract.test_matches_real_xlsx`（S58・前提の固定）— 読む列を 1 つずらす（F 列のエネルギーを読む）と落ちた（`'139' != '6'`）。戻して合格
+  - わざと壊す確認: `fx/vocab-ng/fct-unknown-food`（S59・効かない条件）— 食品番号の照合を外すと落ちた。戻して合格
+  - わざと壊す確認: `G-VOCAB-FCT-STABLE`（S60・副作用とコスト）— 書き出しを `set` の反復の順にすると、3 回とも `refuse.csv` に差分が出て落ちた。戻して合格
+  - わざと壊す確認: `G-VOCAB-FCT`（S141・データの完全性）— 表が参照しない食品番号 `01001` の行も書き出すと落ちた（`refs failed`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-FCT`（S61・前提の固定）— README の sha256 を変えると落ちた（S5 の前提の固定と同じ壊し方で `sha256 failed`）。戻して合格
 - サンプルの `expect` の葉の数 k（P2-3）: 63
 - 先行研究との対応表（P3-7）: 要素の数、「対応なし」の数と、Ozen に足す候補の一覧（ユーザーに報告した日）
 - 一次情報の調査（P3-5）: 調べた値の数、一次情報が見つかった値と見つからなかった値の数、取得した資料の一覧（取得の確認を取った日）
