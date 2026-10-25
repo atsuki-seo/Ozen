@@ -7,3 +7,11 @@ sources:
     kind: fct
     title: Standard Tables of Food Composition in Japan 2020 (Eighth Revised Edition), 2023 Supplement
     publisher: Ministry of Education, Culture, Sports, Science and Technology (MEXT)
+  panasonic-sr-pw109-spec:
+    kind: primary
+    title: 可変圧力IHジャー炊飯器 SR-PW109 仕様
+    publisher: Panasonic
+    url: https://panasonic.jp/suihan/products/SR-PW109/spec.html
+    retrieved: "2026-10-26"
+    location: 仕様表「炊飯時間」の白米のコース（エコ炊飯・銀シャリ）
+    quote: "エコ炊飯 42分、銀シャリ ふつう 48分、銀シャリ かため 43分、銀シャリ やわらか 54分、銀シャリ もちもち 51分、銀シャリ 少量 47分"

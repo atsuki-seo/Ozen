@@ -238,7 +238,7 @@ ingredients:
     axes: [doneness]
     leaves: [light, allergen]
     props:
-      density: {value: "1.02..1.04 g/ml", source: provisional}
+      density: {value: "1.028..1.040 g/ml", source: provisional}
   Ice:
     traits: [Frozen, RawEdible]
     axes: []

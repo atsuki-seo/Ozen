@@ -1,0 +1,164 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+searches:
+  - date: "2026-10-26"
+    queries:
+      - "食材 下ごしらえ 所要時間 目安 公的資料"
+      - "皮むき 時間 玉ねぎ 研究"
+      - "調理動作 作業時間 論文 家庭"
+    consulted:
+      - "文部科学省 日本食品標準成分表（八訂）増補2023年（作業時間の項目は無い）"
+      - "消費者庁・農林水産省の調理の解説ページ（所要時間の数値は無い）"
+    reason: "手作業の動作（洗う・皮をむく・切る・混ぜるなど）の所要時間を数値で示す一次情報は見つからなかった。家電の仕様は動作の時間を示さない"
+    covers:
+      - actions.wash.time
+      - actions.peel.time
+      - actions.loosen.time
+      - actions.drain.time
+      - actions.cut.time
+      - actions.tear.time
+      - actions.dissolve.time
+      - actions.mix.time
+      - actions.toss.time
+      - actions.whip.time
+      - actions.season.time
+      - actions.blend.time
+      - actions.plate.time
+      - actions.layer.time
+      - actions.store.time
+      - actions.discard.time
+  - date: "2026-10-26"
+    queries:
+      - "鍋 ご飯 炊き方 時間 メーカー"
+      - "電子レンジ 炊飯 容器 時間 公式"
+    consulted:
+      - "パナソニック 炊飯器の仕様（炊飯器のコースだけ）"
+      - "日立 電子レンジのレシピの説明（ナンや炊飯の時間は無い）"
+    reason: "鍋と電子レンジでの炊飯の時間を示すメーカーの公式の情報は見つからなかった（容器ごとの説明書に依存し、一般の値が無い）"
+    covers:
+      - actions.cookRice.variants[1].time
+      - actions.cookRice.variants[2].time
+  - date: "2026-10-26"
+    queries:
+      - "市販 ナン 温め方 電子レンジ 500W 約 秒 オーブントースター 約 分 メーカー 公式"
+    consulted:
+      - "日立 電子レンジのレシピの説明 kadenfan.hitachi.co.jp（市販の冷凍食品は包装の表示を目安とする、とだけある）"
+    reason: "ナンの温め時間は商品の包装の表示に依存し、メーカーの一般の値は見つからなかった"
+    covers:
+      - actions.warm.variants[0].time
+      - actions.warm.variants[1].time
+      - actions.warm.variants[2].time
+  - date: "2026-10-26"
+    queries:
+      - "IHクッキングヒーター 湯沸かし 1L 約 分 仕様 公式"
+    consulted:
+      - "日立 IHクッキングヒーター HT-L シリーズの特長のページ（1.0 L を最大火力で 20 ℃から 95 ℃まで約 2 分 19 秒。特定の機種と火力での値）"
+    reason: "見つかった値は特定の機種の最大火力・1.0 L の 1 点で、量と熱源によらない範囲として使えない。暫定の範囲のままにする"
+    covers:
+      - actions.boilWater.time
+  - date: "2026-10-26"
+    queries:
+      - "まな板 洗う 時間 目安"
+      - "食器 手洗い 所要時間 調査"
+    consulted:
+      - "東京電力 家庭の省エネの調理の調査資料（PDF。取得はしていない）"
+      - "メーカーの道具の取扱説明書（洗う時間の数値は無い）"
+    reason: "道具を洗う・場所を拭く時間を数値で示す一次情報は見つからなかった"
+    covers:
+      - kinds.Counter.props.wipeTime
+      - kinds.Stove.props.wipeTime
+      - kinds.Oven.props.wipeTime
+      - kinds.Microwave.props.wipeTime
+      - kinds.Toaster.props.wipeTime
+      - kinds.OvenRange.props.wipeTime
+      - kinds.CuttingBoard.props.washTime
+      - kinds.Knife.props.washTime
+      - kinds.Peeler.props.washTime
+      - kinds.FryingPan.props.washTime
+      - kinds.Pot.props.washTime
+      - kinds.MixingBowl.props.washTime
+      - kinds.Colander.props.washTime
+      - kinds.CookingChopsticks.props.washTime
+      - kinds.Ladle.props.washTime
+      - kinds.Whisk.props.washTime
+      - kinds.MeasuringSpoon.props.washTime
+      - kinds.RiceCooker.props.washTime
+      - kinds.Blender.props.washTime
+  - date: "2026-10-26"
+    queries:
+      - "食品 密度 比重 一覧 公的"
+      - "植物油 比重 0.91 0.92 日本植物油協会"
+      - "water density 20 °C table NIST"
+    consulted:
+      - "文部科学省 日本食品標準成分表（密度の列は無い）"
+      - "日本植物油協会の資料（比重の値は無い）"
+      - "Columbia University の水の密度の表など（二次的な表。値は 20 ℃で 0.99820 g/cm3）"
+    reason: "食品の密度（かさ密度を含む）を範囲で示す公的機関・メーカーの一次情報は見つからなかった。水の密度は温度ごとの 1 点の値で、範囲としては暫定の値に含まれる"
+    covers:
+      - ingredients.Rice.props.density
+      - ingredients.Pork.props.density
+      - ingredients.Chicken.props.density
+      - ingredients.Beef.props.density
+      - ingredients.Buri.props.density
+      - ingredients.Onion.props.density
+      - ingredients.Carrot.props.density
+      - ingredients.Potato.props.density
+      - ingredients.Dashi.props.density
+      - ingredients.Oil.props.density
+      - ingredients.WorcesterSauce.props.density
+      - ingredients.Dressing.props.density
+      - ingredients.Cream.props.density
+      - ingredients.Sugar.props.density
+      - ingredients.ChocolateSauce.props.density
+      - ingredients.Ice.props.density
+      - ingredients.Water.props.density
+  - date: "2026-10-26"
+    queries:
+      - "牛乳 密度 比重 1.032 乳業協会 OR 農林水産省"
+      - "乳及び乳製品の成分規格等に関する省令 牛乳 比重"
+    consulted:
+      - "乳及び乳製品の成分規格等に関する省令（e-Gov 法令検索の API で本文を取得、sha256 2033db33efc31c4a0873a5c2036206bf8f85858354b189de77729f8f13c881c0）別表\
+  \ 二（二）（１）牛乳 成分規格「比重（摂氏一五度において） 一・〇二八以上」"
+    reason: "法令は牛乳の比重の下限（1.028 以上、15 ℃）だけを定め、上限や典型の値を示さない。下限を暫定の範囲の下端に使った"
+    covers:
+      - ingredients.Milk.props.density
+  - date: "2026-10-26"
+    queries:
+      - "農林水産省 キャベツ 1玉 重さ 約 kg 玉ねぎ 1個 重さ 約 g"
+      - "野菜 1個 重量 規格 公的"
+    consulted:
+      - "農畜産業振興機構 野菜情報の調査報告（PDF。取得はしていない）"
+      - "JA 全農の出荷規格を引いた記事（二次的な情報）"
+    reason: "1 つあたりの重さを範囲で示す公的機関の一次情報は、HTML のページでは見つからなかった。出荷規格は産地と時期で違い、引用の記事は二次的な情報なので使わない"
+    covers:
+      - ingredients.SteamedNoodles.props.unitWeight
+      - ingredients.Naan.props.unitWeight
+      - ingredients.Onion.props.unitWeight
+      - ingredients.Carrot.props.unitWeight
+      - ingredients.Potato.props.unitWeight
+      - ingredients.Cabbage.props.unitWeight
+      - ingredients.Lettuce.props.unitWeight
+      - ingredients.Tomato.props.unitWeight
+      - ingredients.Cucumber.props.unitWeight
+      - ingredients.Tofu.props.unitWeight
+      - ingredients.Strawberry.props.unitWeight
+      - ingredients.Banana.props.unitWeight
+  - date: "2026-10-26"
+    queries:
+      - "野菜 加熱 時間 厚さ 軟化 研究 煮る"
+      - "玉ねぎ 炒め 時間 研究"
+    consulted:
+      - "arXiv:2206.13900（ステーキの熱伝導の解析。野菜の時間は無い）"
+      - "文部科学省 日本食品標準成分表（加熱時間の項目は無い）"
+    reason: "食材と調理法ごとの中まで温まる時間・柔らかくなる時間を、この表の書き方（基準の厚さでの範囲）で示す一次情報は見つからなかった"
+    covers:
+      - ingredients.Onion.props.heating.simmer.heatUp
+      - ingredients.Onion.props.heating.simmer.soften
+      - ingredients.Onion.props.heating.fry.heatUp
+      - ingredients.Onion.props.heating.fry.soften
+      - ingredients.Carrot.props.heating.simmer.heatUp
+      - ingredients.Carrot.props.heating.simmer.soften
+      - ingredients.Potato.props.heating.simmer.heatUp
+      - ingredients.Potato.props.heating.simmer.soften
+      - ingredients.Cabbage.props.heating.fry.direct
+      - ingredients.Cabbage.props.heating.simmer.direct
+      - ingredients.BeanSprouts.props.heating.fry.direct
