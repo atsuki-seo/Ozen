@@ -1,0 +1,1 @@
+de17d51 fix of hand-calculation errors in four prototype golden expectations (nesting inputs, macro name position, span with closing parenthesis)
