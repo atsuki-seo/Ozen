@@ -2784,7 +2784,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - `check-pure.sh` の許可一覧に足した記号: `bcmp`（clang が等しさだけを見る `memcmp` を `bcmp` に置き換える）、`strlen`（gcc が `-O2` 以上でコアの長さを数えるループを `strlen` の呼び出しに置き換える）。コアは `strlen` を自分で呼ばない
   - `c/arena_poison_detects` は、4 つの構成でテストの数をそろえるために ASan でない構成にも登録し、そこでは「skipped」と出して合格にする（`WILL_FAIL` は ASan の構成だけ）
   - 有理数のオラクル: 20,000 件の式（2⁶² 付近・`INT64_MAX` 付近・小数・0 を含む）を 2,000 件ずつ実行し、seed 1 で正常 9,767 件・`MAC:overflow` 11,298 件・`MAC:divisionByZero` 1,214 件を `fractions.Fraction` の計算と照合して不一致 0
-- ゲート B1（P4-9、2026-10-26）: `G-PROTO-BUILD`・`UNIT`（15 件 × 4 構成）・`GOLDEN`（110 件 × 4 構成）・`RATIONAL-ORACLE`（seed 1〜3）・`OOM`（`oom: 110 files, …, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`EXPORTS`・`DETERMINISM`・`DIAG-REGISTRY`・`DIAG-APPEND`・`GOLDEN-INDEPENDENT`・`FLAGS`・`COMPILERS`・`NOINT128`、`G-REPO-SPDX`・`TOOLS`・`SELFTESTS`・`RED-FIRST` がすべて合格
+- ゲート B1（P4-9、2026-10-26）: `G-PROTO-BUILD`・`UNIT`（15 件 × 4 構成）・`GOLDEN`（109 件 × 4 構成）・`RATIONAL-ORACLE`（seed 1〜3）・`OOM`（`oom: 109 files, 244 points, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`EXPORTS`・`DETERMINISM`・`DIAG-REGISTRY`・`DIAG-APPEND`・`GOLDEN-INDEPENDENT`・`FLAGS`・`COMPILERS`・`NOINT128`、`G-REPO-SPDX`・`TOOLS`・`SELFTESTS`・`RED-FIRST` がすべて合格
   - わざと壊す確認: `c/rational_overflow_bounds`（S77・境界・上限）— 負の側の範囲を INT64_MIN まで許す（`-INT64_MAX - 1` と `INT64_MIN` が通った）。戻して合格
   - わざと壊す確認: `G-PROTO-NOINT128`（S149・効かない条件）— 128 bit の乗算に `unsigned __int128` を使う（コミットした後で `git grep` が 1 件を数えた）。戻して合格
   - わざと壊す確認: `golden/syntax/utf8-invalid`（S62・効かない条件）— UTF-8 の検査を外すと落ちた。戻して合格
