@@ -1,0 +1,264 @@
+{
+  "$comment": "SPDX-License-Identifier: MIT OR Apache-2.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/atsuki-seo/Ozen/spec/schema/sample.schema.json",
+  "type": "object",
+  "properties": {
+    "recipes": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/recipe"
+      }
+    },
+    "menus": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/menu"
+      }
+    },
+    "expect": {
+      "$ref": "#/$defs/expect"
+    }
+  },
+  "required": [
+    "recipes"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "names": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/name"
+      }
+    },
+    "arg": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/arg"
+          }
+        }
+      ]
+    },
+    "recipe": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "$ref": "#/$defs/name"
+            },
+            "traits": {
+              "$ref": "#/$defs/names"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        "ingredients": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "$ref": "#/$defs/name"
+              },
+              "part": {
+                "$ref": "#/$defs/name"
+              },
+              "amount": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "let": {
+                "$ref": "#/$defs/name"
+              },
+              "do": {
+                "$ref": "#/$defs/name"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/arg"
+                }
+              },
+              "named": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/arg"
+                }
+              }
+            },
+            "required": [
+              "do"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "result": {
+          "$ref": "#/$defs/name"
+        }
+      },
+      "required": [
+        "output",
+        "steps",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "menu": {
+      "type": "object",
+      "properties": {
+        "make": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/name"
+          }
+        },
+        "serve": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "plate": {
+                  "enum": [
+                    "perPerson",
+                    "shared"
+                  ]
+                },
+                "on": {
+                  "$ref": "#/$defs/names"
+                },
+                "items": {
+                  "$ref": "#/$defs/names"
+                }
+              },
+              "required": [
+                "plate",
+                "on",
+                "items"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      "required": [
+        "make"
+      ],
+      "additionalProperties": false
+    },
+    "diag": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "at": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "at"
+      ],
+      "additionalProperties": false
+    },
+    "value": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/name"
+        },
+        "part": {
+          "$ref": "#/$defs/name"
+        },
+        "state": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "traits": {
+          "$ref": "#/$defs/names"
+        },
+        "amount": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "expect": {
+      "type": "object",
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diag"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diag"
+          }
+        },
+        "infos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diag"
+          }
+        },
+        "requires": {
+          "$ref": "#/$defs/names"
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/value"
+          }
+        },
+        "steps": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/value"
+          }
+        }
+      },
+      "required": [
+        "errors"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

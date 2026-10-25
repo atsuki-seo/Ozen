@@ -1,0 +1,990 @@
+{
+  "$comment": "SPDX-License-Identifier: MIT OR Apache-2.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/atsuki-seo/Ozen/spec/schema/vocab.schema.json",
+  "$defs": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "names": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/name"
+      }
+    },
+    "qty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "valueProp": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/qty"
+        },
+        "source": {
+          "$ref": "#/$defs/name"
+        }
+      },
+      "required": [
+        "value",
+        "source"
+      ],
+      "additionalProperties": false,
+      "x-diag-required": {
+        "source": "NAM:provenance"
+      }
+    },
+    "fctProp": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "const": "mext-fct-2023"
+        },
+        "food": {
+          "type": "string",
+          "pattern": "^[0-9]{5}$"
+        },
+        "field": {
+          "enum": [
+            "refuse",
+            "weightChange"
+          ]
+        },
+        "value": {
+          "not": {},
+          "x-diag": "TYP:fctInlineValue"
+        }
+      },
+      "required": [
+        "source",
+        "food",
+        "field"
+      ],
+      "additionalProperties": false
+    },
+    "prop": {
+      "if": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "const": "mext-fct-2023"
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/fctProp"
+      },
+      "else": {
+        "$ref": "#/$defs/valueProp"
+      }
+    },
+    "heatMethod": {
+      "type": "object",
+      "properties": {
+        "heatUp": {
+          "$ref": "#/$defs/prop"
+        },
+        "at": {
+          "$ref": "#/$defs/qty"
+        },
+        "soften": {
+          "$ref": "#/$defs/prop"
+        },
+        "direct": {
+          "$ref": "#/$defs/prop"
+        }
+      },
+      "additionalProperties": false
+    },
+    "foodProps": {
+      "type": "object",
+      "properties": {
+        "density": {
+          "$ref": "#/$defs/prop"
+        },
+        "unitWeight": {
+          "$ref": "#/$defs/prop"
+        },
+        "refuse": {
+          "$ref": "#/$defs/prop"
+        },
+        "weightChange": {
+          "$ref": "#/$defs/prop"
+        },
+        "hardness": {
+          "$ref": "#/$defs/name"
+        },
+        "fat": {
+          "$ref": "#/$defs/name"
+        },
+        "heating": {
+          "type": "object",
+          "properties": {
+            "simmer": {
+              "$ref": "#/$defs/heatMethod"
+            },
+            "boil": {
+              "$ref": "#/$defs/heatMethod"
+            },
+            "fry": {
+              "$ref": "#/$defs/heatMethod"
+            },
+            "microwave": {
+              "$ref": "#/$defs/heatMethod"
+            },
+            "toaster": {
+              "$ref": "#/$defs/heatMethod"
+            },
+            "oven": {
+              "$ref": "#/$defs/heatMethod"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "part": {
+      "type": "object",
+      "properties": {
+        "extends": {
+          "$ref": "#/$defs/name"
+        },
+        "traits": {
+          "$ref": "#/$defs/names"
+        },
+        "discard": {
+          "type": "boolean"
+        },
+        "props": {
+          "$ref": "#/$defs/foodProps"
+        }
+      },
+      "additionalProperties": false
+    },
+    "parts": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/part"
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/name"
+          },
+          {
+            "$ref": "#/$defs/names"
+          },
+          {
+            "type": "object",
+            "minProperties": 1,
+            "maxProperties": 1,
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "in": {
+              "$ref": "#/$defs/names"
+            }
+          },
+          "required": [
+            "in"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "atLeast": {
+              "$ref": "#/$defs/name"
+            }
+          },
+          "required": [
+            "atLeast"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "atMost": {
+              "$ref": "#/$defs/name"
+            }
+          },
+          "required": [
+            "atMost"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "has": {
+              "$ref": "#/$defs/name"
+            }
+          },
+          "required": [
+            "has"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "alternative": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/name"
+        },
+        "traits": {
+          "$ref": "#/$defs/names"
+        },
+        "axes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/condition"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/name"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "add": {
+                "$ref": "#/$defs/name"
+              },
+              "args": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "add"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "set": {
+                "$ref": "#/$defs/name"
+              },
+              "args": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "set"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "param": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "kind": {
+          "enum": [
+            "food",
+            "foodList",
+            "quantity",
+            "enum",
+            "tool",
+            "place"
+          ]
+        },
+        "dimension": {
+          "$ref": "#/$defs/name"
+        },
+        "enum": {
+          "$ref": "#/$defs/name"
+        },
+        "default": {
+          "type": "string"
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/alternative"
+          },
+          "minItems": 1
+        },
+        "effects": {
+          "$ref": "#/$defs/effect"
+        },
+        "consumes": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "leave": {
+      "type": "object",
+      "properties": {
+        "dirt": {
+          "$ref": "#/$defs/name"
+        },
+        "from": {
+          "$ref": "#/$defs/name"
+        },
+        "on": {
+          "$ref": "#/$defs/names"
+        }
+      },
+      "required": [
+        "on"
+      ],
+      "additionalProperties": false
+    },
+    "usage": {
+      "type": "object",
+      "properties": {
+        "uses": {
+          "$ref": "#/$defs/names"
+        },
+        "time": {
+          "$ref": "#/$defs/prop"
+        },
+        "unattended": {
+          "type": "boolean"
+        },
+        "leaves": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/leave"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "variant": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "uses": {
+          "$ref": "#/$defs/names"
+        },
+        "time": {
+          "$ref": "#/$defs/prop"
+        },
+        "unattended": {
+          "type": "boolean"
+        },
+        "leaves": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/leave"
+          }
+        },
+        "steps": {
+          "$ref": "#/$defs/names"
+        }
+      },
+      "required": [
+        "name",
+        "uses"
+      ],
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "properties": {
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/param"
+          }
+        },
+        "output": {
+          "oneOf": [
+            {
+              "const": "none"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "param": {
+                  "$ref": "#/$defs/name"
+                }
+              },
+              "required": [
+                "param"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "$ref": "#/$defs/name"
+                },
+                "combine": {
+                  "type": "boolean"
+                },
+                "effects": {
+                  "$ref": "#/$defs/effect"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "uses": {
+          "$ref": "#/$defs/names"
+        },
+        "time": {
+          "$ref": "#/$defs/prop"
+        },
+        "unattended": {
+          "type": "boolean"
+        },
+        "leaves": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/leave"
+          }
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/variant"
+          },
+          "minItems": 1
+        },
+        "structural": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "params",
+        "output"
+      ],
+      "additionalProperties": false
+    },
+    "kindDef": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "enum": [
+            "place",
+            "tool"
+          ]
+        },
+        "extends": {
+          "$ref": "#/$defs/names"
+        },
+        "provides": {
+          "$ref": "#/$defs/names"
+        },
+        "abstract": {
+          "type": "boolean"
+        },
+        "props": {
+          "type": "object",
+          "properties": {
+            "washTime": {
+              "$ref": "#/$defs/prop"
+            },
+            "wipeTime": {
+              "$ref": "#/$defs/prop"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "category"
+      ],
+      "additionalProperties": false
+    },
+    "rule": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "$ref": "#/$defs/name"
+        },
+        "level": {
+          "$ref": "#/$defs/name"
+        },
+        "fixed": {
+          "type": "boolean"
+        },
+        "info": {
+          "type": "boolean"
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "when": {
+                "$ref": "#/$defs/name"
+              },
+              "level": {
+                "$ref": "#/$defs/name"
+              }
+            },
+            "required": [
+              "when",
+              "level"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "after",
+        "level"
+      ],
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "provisional",
+            "fct",
+            "primary",
+            "calculation"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "retrieved": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "publisher": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "files": {
+      "dimensions": {
+        "type": "object",
+        "properties": {
+          "dimensions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "dimensions"
+        ],
+        "additionalProperties": false
+      },
+      "units": {
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "dimension": {
+                  "$ref": "#/$defs/name"
+                },
+                "base": {
+                  "const": true
+                },
+                "def": {
+                  "$ref": "#/$defs/qty"
+                }
+              },
+              "required": [
+                "dimension"
+              ],
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "base"
+                  ]
+                },
+                {
+                  "required": [
+                    "def"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "units"
+        ],
+        "additionalProperties": false
+      },
+      "axes": {
+        "type": "object",
+        "properties": {
+          "axes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "ordered",
+                    "tagged",
+                    "set"
+                  ]
+                },
+                "values": {
+                  "$ref": "#/$defs/names"
+                },
+                "params": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/$defs/name"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "values"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "enums": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "$ref": "#/$defs/names"
+                },
+                "finer": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/$defs/names"
+                  }
+                }
+              },
+              "required": [
+                "values"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "axes",
+          "enums"
+        ],
+        "additionalProperties": false
+      },
+      "traits": {
+        "type": "object",
+        "properties": {
+          "traits": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "extends": {
+                  "$ref": "#/$defs/names"
+                },
+                "params": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/$defs/name"
+                  }
+                },
+                "parts": {
+                  "$ref": "#/$defs/parts"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "allergens": {
+            "$ref": "#/$defs/names"
+          }
+        },
+        "required": [
+          "traits",
+          "allergens"
+        ],
+        "additionalProperties": false
+      },
+      "ingredients": {
+        "type": "object",
+        "properties": {
+          "ingredients": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "traits": {
+                  "$ref": "#/$defs/names"
+                },
+                "axes": {
+                  "$ref": "#/$defs/names"
+                },
+                "initial": {
+                  "$ref": "#/$defs/state"
+                },
+                "leaves": {
+                  "$ref": "#/$defs/names"
+                },
+                "props": {
+                  "$ref": "#/$defs/foodProps"
+                },
+                "parts": {
+                  "$ref": "#/$defs/parts"
+                },
+                "structural": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "axes"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "ingredients"
+        ],
+        "additionalProperties": false
+      },
+      "aliases": {
+        "type": "object",
+        "properties": {
+          "aliases": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "of": {
+                  "$ref": "#/$defs/name"
+                },
+                "parts": {
+                  "$ref": "#/$defs/names"
+                },
+                "partTraits": {
+                  "$ref": "#/$defs/names"
+                },
+                "state": {
+                  "$ref": "#/$defs/state"
+                }
+              },
+              "required": [
+                "of"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "aliases"
+        ],
+        "additionalProperties": false
+      },
+      "actions": {
+        "type": "object",
+        "properties": {
+          "actions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/action"
+            }
+          }
+        },
+        "required": [
+          "actions"
+        ],
+        "additionalProperties": false
+      },
+      "capabilities": {
+        "type": "object",
+        "properties": {
+          "capabilities": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "params": {
+                  "$ref": "#/$defs/names"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "kinds": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/kindDef"
+            }
+          }
+        },
+        "required": [
+          "capabilities",
+          "kinds"
+        ],
+        "additionalProperties": false
+      },
+      "dirt": {
+        "type": "object",
+        "properties": {
+          "dirt": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "traits": {
+                  "$ref": "#/$defs/names"
+                }
+              },
+              "required": [
+                "traits"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "rules": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/rule"
+            }
+          }
+        },
+        "required": [
+          "dirt",
+          "rules"
+        ],
+        "additionalProperties": false
+      },
+      "vessels": {
+        "type": "object",
+        "properties": {
+          "vessels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "extends": {
+                  "$ref": "#/$defs/name"
+                },
+                "traits": {
+                  "$ref": "#/$defs/names"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "fallbacks": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "order": {
+                  "$ref": "#/$defs/names"
+                },
+                "dryOnly": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "order"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "vessels",
+          "fallbacks"
+        ],
+        "additionalProperties": false
+      },
+      "sources": {
+        "type": "object",
+        "properties": {
+          "sources": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/source"
+            }
+          }
+        },
+        "required": [
+          "sources"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}
