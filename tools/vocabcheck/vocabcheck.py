@@ -709,6 +709,126 @@ def run_check(vocab_dir, diags):
     return data
 
 
+class Lists:
+    def __init__(self, data):
+        c = Checker(data, Diags())
+        c.build()
+        self.c = c
+
+    def lookup(self, kind, owner, ident):
+        c = self.c
+        tables = {
+            "dimension": c.dimensions, "unit": c.units, "axis": c.axes, "trait": c.traits,
+            "ingredient": c.ingredients, "alias": c.aliases, "action": c.actions,
+            "capability": c.capabilities, "kind": c.kinds, "vessel": c.vessels, "dirt": c.dirt,
+            "rule": c.rules, "fallback": c.fallbacks,
+        }
+        if kind in tables:
+            return ident in tables[kind]
+        if kind == "axisValue":
+            return ident in ((c.axes.get(owner) or {}).get("values") or [])
+        if kind in ("cutStyle", "heat"):
+            enum = {"cutStyle": "CutStyle", "heat": "Heat"}[kind]
+            return ident in ((c.enums.get(enum) or {}).get("values") or [])
+        if kind == "part":
+            entry = c.ingredients.get(owner) if owner in c.ingredients else c.traits.get(owner)
+            return ident in ((entry or {}).get("parts") or {})
+        if kind == "capabilityParam":
+            return ident in ((c.capabilities.get(owner) or {}).get("params") or [])
+        if kind == "allergen":
+            return ident in c.allergens
+        return False
+
+    def value_ok(self, kind, ident, want):
+        c = self.c
+        if kind == "unit":
+            got = qtymod.parse((c.units.get(ident) or {}).get("def"), set(c.units))
+            exp = qtymod.parse(want, set(c.units))
+            return bool(got) and bool(exp) and (got.lo, got.hi, got.unit) == (exp.lo, exp.hi, exp.unit)
+        if kind == "axis":
+            return list((c.axes.get(ident) or {}).get("values") or []) == list(want)
+        if kind == "fallback":
+            return list((c.fallbacks.get(ident) or {}).get("order") or []) == list(want)
+        return False
+
+    def relation_ok(self, r):
+        c = self.c
+        k = r.get("kind")
+        if k == "dirtTraits":
+            return set((c.dirt.get(r["dirt"]) or {}).get("traits") or []) == set(r["traits"])
+        if k == "vesselTrait":
+            def has(v):
+                return r["trait"] in ((c.vessels.get(v) or {}).get("traits") or [])
+            return all(has(v) for v in r["has"]) and not any(has(v) for v in r["hasNot"]) \
+                and set(r["has"]) | set(r["hasNot"]) == set(c.vessels)
+        if k == "vesselExtends":
+            return (c.vessels.get(r["vessel"]) or {}).get("extends") == r["extends"]
+        if k == "kindProvides":
+            kd = c.kinds.get(r["of"]) or {}
+            return set(kd.get("extends") or []) == set(r["extends"]) and \
+                set(kd.get("provides") or []) == set(r["provides"])
+        if k == "ruleLevel":
+            rule = c.rules.get(r["rule"]) or {}
+            cases = {(x.get("when"), x.get("level")) for x in rule.get("cases") or []}
+            return rule.get("after") == r["after"] and rule.get("level") == r["level"] and \
+                cases == {(x["when"], x["level"]) for x in r["cases"]}
+        if k == "actionSignature":
+            act = c.actions.get(r["action"]) or {}
+            params = act.get("params") or []
+            return bool(params) and params[0].get("requires") == r["requires"] and \
+                (act.get("output") or {}).get("type") == r["output"] and \
+                [v.get("name") for v in act.get("variants") or []] == r["variants"]
+        if k == "actionEffect":
+            act = c.actions.get(r["action"]) or {}
+            prm = (act.get("params") or [{}])[0]
+            ins = [{a: (cond or {}).get("in") for a, cond in (alt.get("axes") or {}).items()}
+                   for alt in prm.get("requires") or []]
+            return any(all(x.get(a) == v for a, v in r["requiresIn"].items()) for x in ins) and \
+                all((prm.get("effects") or {}).get(a) == v for a, v in r["effects"].items())
+        if k == "actionNoEffect":
+            act = c.actions.get(r["action"]) or {}
+            return all(r["axis"] not in (p.get("effects") or {}) for p in act.get("params") or []) and \
+                r["axis"] not in (((act.get("output") or {}) if isinstance(act.get("output"), dict) else {}).get("effects") or {})
+        if k == "finer":
+            graph = (c.enums.get(r["enum"]) or {}).get("finer") or {}
+            seen, todo = set(), [r["from"]]
+            while todo:
+                n = todo.pop()
+                for m in graph.get(n) or []:
+                    if m not in seen:
+                        seen.add(m)
+                        todo.append(m)
+            return (r["to"] in seen) == bool(r["reachable"])
+        if k == "ingredientTraits":
+            return set(r["traits"]) <= set((c.ingredients.get(r["ingredient"]) or {}).get("traits") or [])
+        return False
+
+    def run(self, lists_path, relations_path):
+        with open(lists_path, encoding="utf-8") as f:
+            entries = (yaml.safe_load(f) or {}).get("entries") or []
+        with open(relations_path, encoding="utf-8") as f:
+            relations = (yaml.safe_load(f) or {}).get("relations") or []
+        missing = values = mismatched = rel_bad = 0
+        for e in entries:
+            label = "/".join(str(x) for x in (e.get("kind"), e.get("owner"), e.get("id")) if x is not None)
+            if not self.lookup(e.get("kind"), e.get("owner"), str(e.get("id"))):
+                missing += 1
+                print(f"missing: {label}", file=sys.stderr)
+                continue
+            if "value" in e:
+                values += 1
+                if not self.value_ok(e["kind"], str(e["id"]), e["value"]):
+                    mismatched += 1
+                    print(f"value mismatch: {label}", file=sys.stderr)
+        for i, r in enumerate(relations):
+            if not self.relation_ok(r):
+                rel_bad += 1
+                print(f"relation mismatch: [{i}] {json.dumps(r, ensure_ascii=False)}", file=sys.stderr)
+        print(f"lists: {len(entries)} listed, {missing} missing; values: {values} checked, {mismatched} mismatched; "
+              f"relations: {len(relations)} listed, {rel_bad} mismatched")
+        return 1 if missing or mismatched or rel_bad else 0
+
+
 def emit(diags, summary, as_json):
     if as_json:
         print(json.dumps({"diagnostics": diags.items, "summary": summary}, ensure_ascii=False, indent=1))
@@ -720,11 +840,16 @@ def emit(diags, summary, as_json):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="vocabcheck.py")
-    ap.add_argument("command", choices=["schema", "check"])
+    ap.add_argument("command", choices=["schema", "check", "lists"])
+    ap.add_argument("files", nargs="*")
     ap.add_argument("--vocab", default=os.path.join(ROOT, "spec", "vocab"))
     ap.add_argument("--json", action="store_true")
-    args = ap.parse_args(argv)
+    args = ap.parse_intermixed_args(argv)
     diags = Diags()
+    if args.command == "lists":
+        if len(args.files) != 2:
+            ap.error("lists needs CONCEPT_LISTS and CONCEPT_RELATIONS")
+        return Lists(load_vocab(args.vocab, diags)).run(*args.files)
     if args.command == "schema":
         _data, names, _ = run_schema(args.vocab, diags)
         errors = diags.count("error")

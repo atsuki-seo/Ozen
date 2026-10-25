@@ -48,6 +48,8 @@ LISTS_RE = re.compile(r"^lists: ([0-9]+) listed, ([0-9]+) missing; values: ([0-9
 
 class Lists(unittest.TestCase):
     def setUp(self):
+        if getattr(self, "tmp", None):
+            shutil.rmtree(self.tmp)
         self.tmp = tempfile.mkdtemp(prefix="ozen-vocab-")
         self.vocab = os.path.join(self.tmp, "vocab")
         shutil.copytree(os.path.join(ROOT, "spec", "vocab"), self.vocab)
