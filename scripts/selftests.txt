@@ -1,0 +1,4 @@
+scripts/check-spdx.sh scripts/test-check-spdx.sh
+scripts/check-plan-tests.sh scripts/test-check-plan-tests.sh
+scripts/check-lists-copy.py scripts/test-check-lists-copy.sh
+scripts/goals.sh scripts/test-goals.sh
