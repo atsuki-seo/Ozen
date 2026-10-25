@@ -567,8 +567,8 @@ P1-6 でこの表を `spec/coverage/concept-lists.yaml` に写し、S29 の検�
 | 汚れの種類 | 11 | `rawMeat` `rawFish` `rawEgg` `soil` `oil` `starch` `odor` `stain` `scorch` `light` `allergen` |
 | 相性ルール | 9 | `afterHazard` `afterAllergen` `afterSoiled` `afterSmelly` `afterGreasy` `afterSticky` `afterBurnt` `afterStaining` `afterLight` |
 | 器の代替順 | 4 | `deepPlate`（深皿 → 丼 → 鉢）`riceBowl`（飯碗 → 丼）`flatPlate`（平皿 → 大皿）`smallBowl`（小鉢 → 小皿、汁気の無いものだけ） |
-| アレルゲンの種類 | a | `Allergen` の引数。P1-4 の着手時に消費者庁の現行の特定原材料の一覧を確かめて決め、この行と §9.2 に書く |
-| 合計 | 258 + a | |
+| アレルゲンの種類 | 9 | `Allergen` の引数（消費者庁の特定原材料、令和 8 年 4 月時点。P1-4 で確かめた）: `shrimp`（えび）`cashew`（カシューナッツ）`crab`（かに）`walnut`（くるみ）`wheat`（小麦）`buckwheat`（そば）`egg`（卵）`milk`（乳）`peanut`（落花生） |
+| 合計 | 267 | |
 
 #### 4.7.1 concept が明文で決めている関係
 
@@ -2608,6 +2608,16 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 ### 9.2 A（表）
 
 - アレルゲンの種類（P1-4）: 消費者庁の現行の特定原材料の一覧を確かめて書く。成り立たなければ（一覧の取得ができなければ）concept §12.3 の「日本の表示義務の品目」を暫定とし、その旨を書く
+  - 結果（2026-10-26）: 消費者庁の「食物アレルギー表示に関する情報」のページ（`https://www.caa.go.jp/policies/policy/food_labeling/food_sanitation/allergy/`）に「特定原材料として、カシューナッツを追加しました」（令和 8 年 4 月 1 日施行）とあり、同じページの資料「アレルギー表示とは」（`assets/food_labeling_cms204_260401_01.pdf`、取得した PDF の sha256 `d5fab03732bc309221abb3ca37eb9f67f898c577a818b862a68ea0cbbc346d7b`、リポジトリには入れない）の表の特定原材料は「えび、カシューナッツ、かに、くるみ、小麦、そば、卵、乳、落花生」（令和８年４月時点）の 9 品目。識別子は `shrimp` `cashew` `crab` `walnut` `wheat` `buckwheat` `egg` `milk` `peanut` とし、§4.7 の行を a = 9、合計 267 に直した。カシューナッツの表示は令和 10 年 3 月 31 日まで経過措置がある（報道と事業者団体の告知による）が、語彙には含める
+- P1-4・P1-5（2026-10-26）: `spec/vocab/` の 11 ファイルを書いた。`G-VOCAB-SCHEMA`（`schema: 11 files, 0 errors` と 11 個の名前の一致）、`G-VOCAB-CHECK`（`check: 0 errors, 0 warnings, 0 infos`）、`G-REPO-SPDX` が合格。動作 28、食材 37（§4.7 のとおり）。表の値はすべて `provisional`（P3-5 で一次情報に置き換える）
+  - 表の書き方で決めたこと（すべて（補）、§8 でユーザーが確かめる）: 皮の無い食材（肉・キャベツ・トマトなど）は `SkinEdible` を持たせ、`cut` の「`SkinEdible` で `whole`」の選択肢で切れるようにした。`Beef` も `Hazard` を持つ。切り方の細かくなる関係は `slice → julienne, mince`・`julienne → mince`・`dice → mince`・`roughChop → biteSize, dice`・`biteSize → dice`・`rollCut → biteSize`（§4.7.1 の 7 の `dice → mince` を含む）。`pureed` はどの切り方よりも細かい形状の値として検査器が扱う。`dash` は `0.1..0.3 g`。相性ルールの「同じ食材を同じ状態で続ける」「その人の分」「デザート」「同じフライパンを続けて炒め物に使う」は `cases[].when` の決まった語で表す
+  - YAML 1.1 では素の `on`・`yes` などのキーが真偽値になるため、検査スクリプトはマッピングのキーを常に文字列として読む（値の暗黙の型変換は S12 のとおり残す）。動作の `leaves[].on` とサンプルの `serve` の `on` のため
+  - わざと壊す確認: `G-REPO-SPDX`（S2・正常系）— `spec/vocab/units.yaml` の SPDX を `CC-BY-4.0` にすると落ちた（`0 missing, 1 wrong`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-SCHEMA`（S137・データの完全性）— `vessels.yaml` を `vessel.yaml` に変えると落ちた（`FMT:unknownFile` と名前の一覧の不一致）。戻して合格
+  - わざと壊す確認: `G-VOCAB-SCHEMA`（S7・正常系）— `ingredients.yaml` の `Onion` に綴りの違うキー `lefaves` を足すと落ちた（`schema: 11 files, 1 errors`）。戻して合格
+  - わざと壊す確認: `py/test_vocabcheck.test_schema_covers_all_files`（S7・データの完全性）— `schema` が 1 ファイルを読み飛ばすようにすると落ちた（`10 != 11`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-CHECK`（S13・データの完全性）— `actions.yaml` の `peel` の能力 `WorkSurface` を `WorkSurfase` にすると落ちた（`check: 1 errors`）。戻して合格
+  - わざと壊す確認: `G-VOCAB-CHECK`（S22・データの完全性）— `capabilities.yaml` の `Blender` の `washTime` から `source` を消すと落ちた（`check: 1 errors`）。戻して合格
 - 成分表（P3-1）: 廃棄率の列の見出しのセルの文字列と位置、手で読んだ 3 件の食品番号と値、重量変化率が Excel にあるか（無ければ抽出の対象から外し、歩留まりの重量変化は暫定に戻す）、正誤表の反映の有無、元のファイル名、sha256、取得日
 - サンプルの `expect` の葉の数 k（P2-3）
 - 先行研究との対応表（P3-7）: 要素の数、「対応なし」の数と、Ozen に足す候補の一覧（ユーザーに報告した日）
