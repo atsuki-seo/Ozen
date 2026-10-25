@@ -65,6 +65,10 @@ def _dedupe(node, path, fname, diags):
         seen, kept = set(), []
         for k, v in node.value:
             key = k.value if isinstance(k, yaml.ScalarNode) else None
+            # YAML 1.1 resolves plain keys such as `on` and `yes` to booleans; the formats use `on`
+            # as a key, so every scalar key is read as a string (values keep the implicit types).
+            if key is not None:
+                k.tag = "tag:yaml.org,2002:str"
             if key is not None and key in seen:
                 diags.add("NAM:duplicate", fname, path + [key], [key])
                 continue
