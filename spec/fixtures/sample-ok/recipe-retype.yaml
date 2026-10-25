@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  curry:
+    output: {type: Curry, traits: [Dish, Liquid]}
+    ingredients:
+      onion: {type: Onion, amount: "2 pcs"}
+      roux: {type: CurryRoux, amount: "100 g"}
+      water: {type: Water, amount: "800 ml"}
+    steps:
+      - {let: peeled, do: peel, args: [onion]}
+      - {let: sliced, do: cut, args: [peeled], named: {style: slice, size: "3 mm"}}
+      - {let: fried, do: fry, args: [sliced], named: {time: "10 min", heat: medium}}
+      - {let: curry, do: simmer, args: [[fried, water, roux]], named: {time: "20 min"}}
+    result: curry
+menus:
+  m:
+    make: {c: curry}
+    serve:
+      main:
+        - {plate: perPerson, on: [DeepPlate], items: [c]}
+expect:
+  errors: []
+  states:
+    m.c:
+      type: Curry
+      state: {doneness: done, prep: "[]"}
+      traits: ["Allergen(milk)", "Allergen(wheat)", Dish, Liquid]

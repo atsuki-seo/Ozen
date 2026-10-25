@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Pork}
+    ingredients:
+      pork: {type: Pork, part: loin, amount: "200 g"}
+    steps:
+      - {let: pieces, do: cut, args: [pork], named: {style: biteSize, size: "20 mm"}}
+      - {let: boiled, do: parboil, args: [pieces], named: {time: "3 min"}}
+    result: boiled
+menus:
+  m:
+    make: {p: r}
+    serve:
+      main:
+        - {plate: perPerson, on: [FlatPlate], items: [p]}
+expect:
+  errors:
+    - {name: "SAF:undercooked", at: "menus.m.serve.main[0]", args: [p]}

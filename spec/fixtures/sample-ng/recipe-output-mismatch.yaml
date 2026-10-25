@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Onion}
+    ingredients:
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: cubes, do: cut, args: [carrot], named: {style: dice}}
+    result: cubes
+expect:
+  errors:
+    - {name: "TYP:output", at: recipes.r.result, args: [Onion, Carrot]}

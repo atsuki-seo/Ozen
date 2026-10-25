@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Buri}
+    ingredients:
+      buri: {type: Buri, part: back, amount: "150 g"}
+    steps:
+      - {let: sashimi, do: cut, args: [buri], named: {style: slice, size: "8 mm"}}
+    result: sashimi
+menus:
+  m:
+    make: {s: r}
+    serve:
+      main:
+        - {plate: perPerson, on: [FlatPlate], items: [s]}
+expect:
+  errors: []
+  states:
+    m.s:
+      type: Buri
+      part: back
+      state: {doneness: raw, browning: none, shape: "cut(style: slice, size: 8 mm)", prep: "[]"}

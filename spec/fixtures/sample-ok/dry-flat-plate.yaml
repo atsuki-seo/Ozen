@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Carrot}
+    ingredients:
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: cubes, do: cut, args: [carrot], named: {style: dice, size: "10 mm"}}
+    result: cubes
+menus:
+  m:
+    make: {c: r}
+    serve:
+      main:
+        - {plate: perPerson, on: [FlatPlate], items: [c]}
+expect:
+  errors: []

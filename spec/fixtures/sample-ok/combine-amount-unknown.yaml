@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: SaltWater}
+    ingredients:
+      salt: {type: Salt, amount: "1 tsp"}
+      water: {type: Water, amount: "200 ml"}
+    steps:
+      - {let: brine, do: combine, args: [[salt, water]]}
+    result: brine
+expect:
+  errors: []
+  infos:
+    - {name: "LIN:amountUnknown", at: "recipes.r.steps[0]", args: [brine]}
+  steps:
+    r.brine:
+      type: Mixture
+      amount: unknown

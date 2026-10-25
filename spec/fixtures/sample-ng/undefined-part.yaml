@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Pork}
+    ingredients:
+      pork: {type: Pork, part: lion, amount: "200 g"}
+    steps:
+      - {let: pieces, do: cut, args: [pork], named: {style: biteSize}}
+    result: pieces
+expect:
+  errors:
+    - {name: "NAM:undefined", at: recipes.r.ingredients.pork, args: [lion]}

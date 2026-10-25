@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Curry}
+    ingredients:
+      onion: {type: Onion, amount: "2 pcs"}
+      roux: {type: CurryRoux, amount: "100 g"}
+      water: {type: Water, amount: "800 ml"}
+    steps:
+      - {let: all, do: combine, args: [[onion, roux, water]]}
+    result: all
+expect:
+  errors: []
+  steps:
+    r.all:
+      type: Mixture
+      amount: "1192..1400 g"

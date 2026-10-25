@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: CookedRice}
+    ingredients:
+      rice: {type: Rice, amount: "300 g"}
+    steps:
+      - {let: washed, do: wash, args: [rice]}
+      - {let: soaked, do: soak, args: [washed], named: {time: "30 min"}}
+      - {let: cooked, do: cookRice, args: [soaked]}
+    result: cooked
+expect:
+  errors: []
+  infos:
+    - {name: "ASM:firstVariant", at: "recipes.r.steps[2]", args: [pot, microwave]}
+  steps:
+    r.cooked:
+      type: CookedRice
+      state: {doneness: done, prep: "[]"}
+      traits: [Grain]

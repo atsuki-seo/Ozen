@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: WhippedCream}
+    ingredients:
+      cream: {type: Cream, amount: "200 ml"}
+    steps:
+      - {let: whipped, do: whip, args: [cream]}
+    result: whipped
+expect:
+  errors: []
+  steps:
+    r.whipped:
+      type: WhippedCream
+      traits: ["Allergen(milk)", Dairy, RawEdible, Refrigerated]

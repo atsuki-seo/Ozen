@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Pork}
+    ingredients:
+      pork: {type: Pork, part: belly, amount: "200 g"}
+    steps:
+      - {let: pieces, do: cut, args: [pork], named: {style: biteSize, size: "20 mm"}}
+      - {let: fried, do: fry, args: [pieces], named: {time: "5 min"}}
+      - {let: boiled, do: parboil, args: [fried], named: {time: "3 min"}}
+    result: boiled
+expect:
+  errors: []
+  steps:
+    r.fried:
+      type: Pork
+      part: belly
+      state: {doneness: done, browning: light, shape: "cut(style: biteSize, size: 20 mm)", prep: "[]"}
+    r.boiled:
+      type: Pork
+      part: belly
+      state: {doneness: done, browning: light, shape: "cut(style: biteSize, size: 20 mm)", prep: "[]"}

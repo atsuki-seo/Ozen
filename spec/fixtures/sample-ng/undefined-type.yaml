@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Carrot}
+    ingredients:
+      carrot: {type: Carot, amount: "1 pcs"}
+    steps:
+      - {let: washed, do: wash, args: [carrot]}
+    result: washed
+expect:
+  errors:
+    - {name: "NAM:undefined", at: recipes.r.ingredients.carrot, args: [Carot]}

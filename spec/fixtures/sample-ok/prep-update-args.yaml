@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Rice}
+    ingredients:
+      rice: {type: Rice, amount: "300 g"}
+    steps:
+      - {let: first, do: soak, args: [rice], named: {time: "30 min"}}
+      - {let: second, do: soak, args: [first], named: {time: "60 min"}}
+    result: second
+expect:
+  errors: []
+  steps:
+    r.second:
+      type: Rice
+      state: {doneness: raw, prep: "[soaked(time: 60 min)]"}

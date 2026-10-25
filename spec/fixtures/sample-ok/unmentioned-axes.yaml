@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Onion}
+    ingredients:
+      onion: {type: Onion, amount: "1 pcs"}
+    steps:
+      - {let: peeled, do: peel, args: [onion]}
+      - {let: washed, do: wash, args: [peeled]}
+      - {let: sliced, do: cut, args: [washed], named: {style: slice, size: "3 mm"}}
+      - {let: fried, do: fry, args: [sliced], named: {time: "10 min", heat: medium}}
+    result: fried
+expect:
+  errors: []
+  steps:
+    r.fried:
+      type: Onion
+      state: {doneness: done, browning: light, shape: "cut(style: slice, size: 3 mm)", prep: "[washed]"}
+      traits: [Peelable, Vegetable]

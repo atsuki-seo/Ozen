@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Onion}
+    ingredients:
+      onion: {type: Onion, amount: "1 pcs"}
+    steps:
+      - {let: peeled, do: peel, args: [onion]}
+      - {let: sliced, do: cut, args: [peeled], named: {style: slice}}
+      - {let: fried, do: fry, args: [sliced], named: {time: "10 min"}}
+    result: fried
+expect:
+  errors: []
+  requires: [CuttingSurface, FryingPan, "HeatSource<stovetop>", Knife, WorkSurface]

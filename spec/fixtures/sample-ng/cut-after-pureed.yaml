@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Carrot}
+    ingredients:
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: puree, do: blend, args: [carrot]}
+      - {let: sliced, do: cut, args: [puree], named: {style: slice}}
+    result: sliced
+expect:
+  errors:
+    - {name: "TYP:stateRequirement", at: "recipes.r.steps[1]", args: [cut, x, puree]}
+    - {name: "TYP:cutCoarser", at: "recipes.r.steps[1]", args: [pureed, slice]}

@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Carrot}
+    ingredients:
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: sliced, do: cut, args: [carrot], named: {style: slice, size: "3 mm"}}
+    result: sliced
+expect:
+  errors: []
+  steps:
+    r.sliced:
+      type: Carrot
+      state: {doneness: raw, browning: none, shape: "cut(style: slice, size: 3 mm)", prep: "[]"}

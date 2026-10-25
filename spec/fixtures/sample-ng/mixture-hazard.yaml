@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Tartare}
+    ingredients:
+      pork: {type: Pork, part: leg, amount: "200 g"}
+      onion: {type: Onion, amount: "1 pcs"}
+    steps:
+      - {let: minced, do: cut, args: [pork], named: {style: mince, size: "2 mm"}}
+      - {let: peeled, do: peel, args: [onion]}
+      - {let: chopped, do: cut, args: [peeled], named: {style: mince, size: "2 mm"}}
+      - {let: mixed, do: mix, args: [[minced, chopped]]}
+    result: mixed
+menus:
+  m:
+    make: {t: r}
+    serve:
+      main:
+        - {plate: perPerson, on: [FlatPlate], items: [t]}
+expect:
+  errors:
+    - {name: "SAF:undercooked", at: "menus.m.serve.main[0]", args: [t]}

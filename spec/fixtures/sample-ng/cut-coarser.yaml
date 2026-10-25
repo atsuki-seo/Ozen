@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Carrot}
+    ingredients:
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: minced, do: cut, args: [carrot], named: {style: mince, size: "1 mm"}}
+      - {let: sliced, do: cut, args: [minced], named: {style: slice, size: "3 mm"}}
+    result: sliced
+expect:
+  errors:
+    - {name: "TYP:cutCoarser", at: "recipes.r.steps[1]", args: [mince, slice]}

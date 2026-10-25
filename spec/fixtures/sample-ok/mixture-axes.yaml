@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Mix}
+    ingredients:
+      onion: {type: Onion, amount: "1 pcs"}
+      water: {type: Water, amount: "100 ml"}
+    steps:
+      - {let: peeled, do: peel, args: [onion]}
+      - {let: sliced, do: cut, args: [peeled], named: {style: slice}}
+      - {let: fried, do: fry, args: [sliced], named: {time: "5 min"}}
+      - {let: both, do: combine, args: [[fried, water]]}
+    result: both
+expect:
+  errors: []
+  steps:
+    r.both:
+      type: Mixture
+      state: {doneness: raw, prep: "[]"}

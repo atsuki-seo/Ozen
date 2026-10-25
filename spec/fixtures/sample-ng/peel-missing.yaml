@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Onion}
+    ingredients:
+      onion: {type: Onion, amount: "1 pcs"}
+    steps:
+      - {let: sliced, do: cut, args: [onion], named: {style: slice, size: "3 mm"}}
+    result: sliced
+expect:
+  errors:
+    - {name: "TYP:stateRequirement", at: "recipes.r.steps[0]", args: [cut, x, onion]}

@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Smoothie}
+    ingredients:
+      banana: {type: Banana, amount: "1 pcs"}
+      milk: {type: Milk, amount: "200 ml"}
+    steps:
+      - {let: peeled, do: peel, args: [banana]}
+      - {let: juice, do: blend, args: [[peeled, milk]]}
+    result: juice
+expect:
+  errors: []
+  steps:
+    r.juice:
+      type: Mixture
+      state: {doneness: raw, prep: "[]"}
+      traits: ["Allergen(milk)"]
+      amount: "304..358 g"

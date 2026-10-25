@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Carrot}
+    ingredients:
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: cubes, do: cut, args: [carrot], named: {style: dice}}
+      - {let: fried, do: fry, args: [cubes], named: {time: "5 min", heat: extreme}}
+    result: fried
+expect:
+  errors:
+    - {name: "TYP:enumValue", at: "recipes.r.steps[1]", args: [heat, extreme]}

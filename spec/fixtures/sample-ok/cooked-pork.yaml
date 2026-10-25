@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Pork}
+    ingredients:
+      pork: {type: Pork, part: loin, amount: "200 g"}
+    steps:
+      - {let: pieces, do: cut, args: [pork], named: {style: biteSize, size: "20 mm"}}
+      - {let: fried, do: fry, args: [pieces], named: {time: "6 min"}}
+    result: fried
+menus:
+  m:
+    make: {p: r}
+    serve:
+      main:
+        - {plate: perPerson, on: [FlatPlate], items: [p]}
+expect:
+  errors: []
+  states:
+    m.p:
+      type: Pork
+      part: loin
+      state: {doneness: done, browning: light, shape: "cut(style: biteSize, size: 20 mm)", prep: "[]"}
+      traits: [Hazard, Meat, SkinEdible]

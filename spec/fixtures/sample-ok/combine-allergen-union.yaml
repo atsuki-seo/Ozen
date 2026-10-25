@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Sauce2}
+    ingredients:
+      roux: {type: CurryRoux, amount: "50 g"}
+      noodles: {type: SteamedNoodles, amount: "1 pcs"}
+      water: {type: Water, amount: "200 ml"}
+    steps:
+      - {let: both, do: combine, args: [[roux, noodles, water]]}
+    result: both
+expect:
+  errors: []
+  steps:
+    r.both:
+      type: Mixture
+      traits: ["Allergen(milk)", "Allergen(wheat)"]

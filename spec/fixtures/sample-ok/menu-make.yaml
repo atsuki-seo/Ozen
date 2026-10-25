@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Carrot}
+    ingredients:
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: cubes, do: cut, args: [carrot], named: {style: dice, size: "10 mm"}}
+    result: cubes
+  curry:
+    output: {type: Curry, traits: [Dish, Liquid]}
+    ingredients:
+      onion: {type: Onion, amount: "2 pcs"}
+      roux: {type: CurryRoux, amount: "100 g"}
+      water: {type: Water, amount: "800 ml"}
+    steps:
+      - {let: peeled, do: peel, args: [onion]}
+      - {let: sliced, do: cut, args: [peeled], named: {style: slice, size: "3 mm"}}
+      - {let: fried, do: fry, args: [sliced], named: {time: "10 min", heat: medium}}
+      - {let: curry, do: simmer, args: [[fried, water, roux]], named: {time: "20 min"}}
+    result: curry
+menus:
+  m:
+    make: {c: r, k: curry}
+    serve:
+      main:
+        - {plate: perPerson, on: [FlatPlate], items: [c]}
+        - {plate: perPerson, on: [DeepPlate], items: [k]}
+expect:
+  errors: []
+  states:
+    m.c:
+      type: Carrot
+      state: {doneness: raw, browning: none, shape: "cut(style: dice, size: 10 mm)", prep: "[]"}
+    m.k:
+      type: Curry
+      state: {doneness: done, prep: "[]"}

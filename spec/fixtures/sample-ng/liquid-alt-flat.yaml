@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Water}
+    ingredients:
+      water: {type: Water, amount: "200 ml"}
+    steps:
+      - {let: hot, do: boilWater, args: [water]}
+    result: hot
+menus:
+  m:
+    make: {w: r}
+    serve:
+      main:
+        - {plate: perPerson, on: [DeepPlate, FlatPlate], items: [w]}
+expect:
+  errors:
+    - {name: "TYP:vesselLiquid", at: "menus.m.serve.main[0]", args: [w, FlatPlate]}

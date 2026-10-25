@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Water}
+    ingredients:
+      water: {type: Water, amount: "200 ml"}
+    steps:
+      - {let: drained, do: drain, args: [water]}
+    result: drained
+expect:
+  errors:
+    - {name: "TYP:stateRequirement", at: "recipes.r.steps[0]", args: [drain, x, water]}

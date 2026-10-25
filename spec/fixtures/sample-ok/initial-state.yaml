@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+recipes:
+  r:
+    output: {type: Carrot}
+    ingredients:
+      carrot: {type: Carrot, amount: "1 pcs"}
+    steps:
+      - {let: washed, do: wash, args: [carrot]}
+    result: washed
+expect:
+  errors: []
+  steps:
+    r.washed:
+      type: Carrot
+      state: {doneness: raw, browning: none, shape: whole, prep: "[washed]"}
+      traits: [Peelable, Root, SkinEdible]
+      amount: "1 pcs"
