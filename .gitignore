@@ -1,8 +1,3 @@
-# Build outputs (CMake configurations, fuzz artifacts, test results)
 build/
-
-# Python bytecode
 __pycache__/
-
-# Original MEXT food composition workbook (kept out of the repository; see data/mext-fct-2023/README.md)
 data/mext-fct-2023/source/
