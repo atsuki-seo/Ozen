@@ -101,6 +101,9 @@ char *ozp_expand(const char *src, size_t src_len, const ozp_options *opt) {
       ozpi_evaluate(&c, opt->entry, opt->params);
     }
   }
+  /* Only the failing allocation is lost; the next request may succeed (the allocator decides), so
+     rendering retries instead of giving up, and MAC:outOfMemory can still reach the caller. */
+  c.ar.failed = false;
   ozpi_buf out = {0};
   char *result = nullptr;
   if (render(&c, &out, opt->stats != 0)) {
