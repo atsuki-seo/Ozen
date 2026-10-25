@@ -55,8 +55,12 @@ jobs:
                       if d["name"].startswith("iPhone"):
                           print(d["udid"]); sys.exit(0)
           sys.exit(1)')
-          xcrun simctl boot "$udid"
-          runner="xcrun simctl spawn $udid $PWD/build/ios-iphonesimulator/ozenproto"
+          xcrun simctl bootstatus "$udid" -b
+          driver="$PWD/build/ios-iphonesimulator/ozenproto"
+          file "$driver"
+          codesign -dv "$driver" 2>&1 || true
+          xcrun simctl spawn "$udid" "$driver" "$PWD/proto/tests/golden/values/kinds.ozen" || echo "probe exit $?"
+          runner="xcrun simctl spawn $udid $driver"
           bash proto/scripts/run-golden.sh "$runner"
           mkdir -p out
           bash proto/scripts/digest.sh "$runner" > out/digest.txt
