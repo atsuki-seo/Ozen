@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+sources:
+  provisional: {kind: provisional, title: Provisional value}
+  mext-fct-2023: {kind: fct, title: Standard Tables of Food Composition in Japan 2023}
