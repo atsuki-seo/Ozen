@@ -6,6 +6,7 @@ import sys
 sys.dont_write_bytecode = True
 
 import argparse
+import csv
 import json
 import os
 import re
@@ -161,10 +162,11 @@ def run_schema(vocab_dir, diags):
 
 
 class Checker:
-    def __init__(self, data, diags):
+    def __init__(self, data, diags, fct=None):
         self.d = {k: (v if isinstance(v, dict) else {}) for k, v in data.items()}
         self.diags = diags
         self.ns = {}
+        self.fct = fct
 
     def get(self, stem, key):
         v = self.d.get(stem, {}).get(key)
@@ -325,6 +327,8 @@ class Checker:
         if src not in self.sources:
             self.err("NAM:provenance", stem, path + ["source"], [src])
             return
+        if src == "mext-fct-2023" and self.fct is not None and value.get("food") not in self.fct:
+            self.err("NAM:undefined", stem, path + ["food"], [value.get("food")])
         if "value" in value and isinstance(value["value"], str) and src != "mext-fct-2023":
             q = self.quantity(value["value"], stem, path + ["value"], PROP_DIMENSIONS.get(key))
             kind = (self.sources.get(src) or {}).get("kind")
@@ -703,10 +707,18 @@ class Checker:
         self.check_vessels()
 
 
-def run_check(vocab_dir, diags):
+def read_fct(path):
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        rows = [line for line in f if not line.startswith("#")]
+    return {r["food"] for r in csv.DictReader(rows)}
+
+
+def run_check(vocab_dir, diags, fct_path):
     data, _names, blocking = run_schema(vocab_dir, diags)
     if blocking == 0:
-        Checker(data, diags).run()
+        Checker(data, diags, read_fct(fct_path)).run()
     return data
 
 
@@ -1448,6 +1460,7 @@ def main(argv=None):
     ap.add_argument("command", choices=["schema", "check", "lists", "sample"])
     ap.add_argument("files", nargs="*")
     ap.add_argument("--vocab", default=os.path.join(ROOT, "spec", "vocab"))
+    ap.add_argument("--fct", default=os.path.join(ROOT, "data", "mext-fct-2023", "refuse.csv"))
     ap.add_argument("--json", action="store_true")
     args = ap.parse_intermixed_args(argv)
     diags = Diags()
@@ -1476,7 +1489,7 @@ def main(argv=None):
         errors = diags.count("error")
         emit(diags, f"schema: {len(names)} files, {errors} errors", args.json)
     else:
-        run_check(args.vocab, diags)
+        run_check(args.vocab, diags, args.fct)
         errors = diags.count("error")
         emit(diags, f"check: {errors} errors, {diags.count('warning')} warnings, {diags.count('info')} infos", args.json)
     return 1 if errors else 0

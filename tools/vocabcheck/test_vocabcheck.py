@@ -129,7 +129,8 @@ def vocab_fixture_test(path):
     def test(self):
         with open(os.path.join(path, "expect.yaml"), encoding="utf-8") as f:
             expect = yaml.safe_load(f)
-        r = run("check", "--vocab", os.path.join(path, "vocab"), "--json")
+        extra = ["--fct", os.path.join(path, "refuse.csv")] if os.path.exists(os.path.join(path, "refuse.csv")) else []
+        r = run("check", "--vocab", os.path.join(path, "vocab"), "--json", *extra)
         got = json.loads(r.stdout)["diagnostics"]
         self.assertEqual(Counter(map(diag_key, got)), Counter(map(diag_key, expect["diagnostics"])))
         has_error = any(d["severity"] == "error" for d in expect["diagnostics"])
