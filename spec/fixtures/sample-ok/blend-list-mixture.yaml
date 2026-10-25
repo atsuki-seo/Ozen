@@ -16,4 +16,4 @@ expect:
       type: Mixture
       state: {doneness: raw, prep: "[]"}
       traits: ["Allergen(milk)"]
-      amount: "304..358 g"
+      amount: "305.6..358 g"
