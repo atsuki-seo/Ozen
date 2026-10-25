@@ -1,0 +1,4 @@
+%1 = mix(1 g, 2 g, heat: 3)
+%2 = mix([1, 2], 1 g, heat: 2)
+result ok steps=2 diagnostics=0
+exit 0

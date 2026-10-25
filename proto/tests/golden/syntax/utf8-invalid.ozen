@@ -1,0 +1,2 @@
+// bad byte follows
+recipe r() { ÿ }

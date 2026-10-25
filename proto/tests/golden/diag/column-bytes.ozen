@@ -1,0 +1,2 @@
+action a(x)
+recipe r() { let s = "玉ねぎ🧅"; a(1 g + 2 min) }

@@ -1,0 +1,5 @@
+error SYN005 nestingTooDeep 2:266-2:267 args=["256"]
+error SYN005 nestingTooDeep 5:1031-5:1034 args=["256"]
+error SYN005 nestingTooDeep 8:4091-8:4092 args=["256"]
+result error steps=0 diagnostics=3
+exit 1

@@ -1,0 +1,7 @@
+// args: --stats
+action a(x)
+recipe r() {
+  repeat 3 {
+    a(1 g)
+  }
+}

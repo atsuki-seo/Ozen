@@ -1,0 +1,4 @@
+action say(text)
+recipe r() {
+  say("玉ねぎ🧅を切る")  // コメント🧅
+}

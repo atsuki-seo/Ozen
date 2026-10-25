@@ -1,0 +1,18 @@
+error SYN010 reservedWord 2:7-2:13 args=["action"]
+error SYN010 reservedWord 3:7-3:12 args=["macro"]
+error SYN010 reservedWord 4:7-4:13 args=["recipe"]
+error SYN010 reservedWord 5:7-5:18 args=["ingredients"]
+error SYN010 reservedWord 6:7-6:10 args=["let"]
+error SYN010 reservedWord 7:7-7:9 args=["if"]
+error SYN010 reservedWord 8:7-8:11 args=["else"]
+error SYN010 reservedWord 9:7-9:10 args=["for"]
+error SYN010 reservedWord 10:7-10:9 args=["in"]
+error SYN010 reservedWord 11:7-11:13 args=["repeat"]
+error SYN010 reservedWord 12:7-12:12 args=["quote"]
+error SYN010 reservedWord 13:7-13:10 args=["and"]
+error SYN010 reservedWord 14:7-14:9 args=["or"]
+error SYN010 reservedWord 15:7-15:10 args=["not"]
+error SYN010 reservedWord 16:7-16:11 args=["true"]
+error SYN010 reservedWord 17:7-17:12 args=["false"]
+result error steps=0 diagnostics=16
+exit 1

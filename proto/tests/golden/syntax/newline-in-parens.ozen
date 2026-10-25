@@ -1,0 +1,9 @@
+action mix(a, b, heat)
+recipe r() {
+  mix(1 g,
+      2 g,
+      heat: 3)
+  let xs = [1,
+            2]
+  mix(xs, 1 g, heat: 2)
+}

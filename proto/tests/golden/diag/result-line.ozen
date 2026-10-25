@@ -1,0 +1,6 @@
+action a(x)
+recipe r() {
+  a(1 g)
+  a(1 g + 1 min)
+  a(2 g)
+}

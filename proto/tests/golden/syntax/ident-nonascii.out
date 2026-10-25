@@ -1,0 +1,4 @@
+error SYN002 nonAsciiIdent 1:8-1:13
+error SYN002 nonAsciiIdent 2:14-2:19
+result error steps=0 diagnostics=2
+exit 1
