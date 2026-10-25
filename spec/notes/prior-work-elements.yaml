@@ -1,0 +1,534 @@
+sources:
+  nakabe2021:
+    title: "Optimal Cooking Procedure Presentation System for Multiple Recipes and Investigating Its Effect"
+    authors: "Jin Nakabe, Teruhiro Mizumoto, Hirohiko Suwa, Keiichi Yasumoto"
+    venue: "Algorithms 14(2) 67, 2021"
+    url: "https://mdpi-res.com/d_attachment/algorithms/algorithms-14-00067/article_deploy/algorithms-14-00067.pdf"
+    retrieved: "2026-10-26"
+    sha256: 703576b3a09e2de5589053376f638c179492740464588e56b7752d21f70a541d
+  tasse2008:
+    title: "SOUR CREAM: Toward Semantic Processing of Recipes"
+    authors: "Dan Tasse, Noah A. Smith"
+    venue: "CMU-LTI-08-005, 2008"
+    url: "http://www.cs.cmu.edu/~nasmith/papers/tasse+smith.tr08.pdf"
+    retrieved: "2026-10-26"
+    sha256: 758d6d81f77d09816fdbfc61514d4f9137a3675bd26c61a250e86248e3cffb38
+  foon:
+    title: "Functional Object-Oriented Network for Manipulation Learning"
+    authors: "David Paulius, Yongqiang Huang, Roger Milton, William D. Buchanan, Jeanine Sam, Yu Sun"
+    venue: "arXiv:1902.01537"
+    url: "https://arxiv.org/pdf/1902.01537"
+    retrieved: "2026-10-26"
+    sha256: 5393a00fbc32bf2e6721f55b3a8e22f4d500c2cade77a2d90fe87847cbcbc75a
+  kumbhakern:
+    title: "Towards an Action-Centric Ontology for Cooking Procedures Using Temporal Graphs"
+    authors: "Aarush Kumbhakern, Saransh Kumar Gupta, Lipika Dey, Partha Pratim Das"
+    venue: "arXiv:2509.04159"
+    url: "https://arxiv.org/pdf/2509.04159"
+    retrieved: "2026-10-26"
+    sha256: ffbc97428714c09668bde321d98a2dae657ddaff329d0fea334c0bc343244d92
+elements:
+  - id: nakabe2021-task-graph
+    source: nakabe2021
+    category: data-unit
+    name: "task graph"
+    description: "The task set is a DAG G(T, E) with start node S and end node E; nodes are tasks with processing times and edges are partial-order constraints with overheads."
+    page: 4
+  - id: nakabe2021-cooking-task
+    source: nakabe2021
+    category: data-unit
+    name: "cooking task"
+    description: "The unit of work of each recipe, split so that one task handles one ingredient (cutting the onion and cutting the cabbage are separate tasks); it has an ingredient, a quantity, and other fields."
+    page: 4
+  - id: nakabe2021-quantity
+    source: nakabe2021
+    category: quantity
+    name: "quantity"
+    description: "A cooking task lists the quantity of its ingredient, but Table 1 omits it and the paper does not say how quantities affect scheduling."
+    page: 4
+  - id: nakabe2021-required-resource
+    source: nakabe2021
+    category: resource
+    name: "required resource"
+    description: "The set of resources used while the task runs (for example user, knife, board); the user is a resource like the tools."
+    page: 5
+  - id: nakabe2021-holding-resource
+    source: nakabe2021
+    category: resource
+    name: "holding resource"
+    description: "A resource occupied after the task to hold what it produced (for example a bowl or a pan); tasks of the same holding type can share it."
+    page: 5
+  - id: nakabe2021-cooking-time
+    source: nakabe2021
+    category: task-attribute
+    name: "cooking time"
+    description: "The time a task takes: the recipe's time if given, otherwise the time this user actually took before."
+    page: 5
+  - id: nakabe2021-preparing-time
+    source: nakabe2021
+    category: task-attribute
+    name: "preparing time"
+    description: "Time needed to prepare before a task starts; zero for tasks whose required resources include the user."
+    page: 5
+  - id: nakabe2021-cooking-holding-type
+    source: nakabe2021
+    category: cleaning
+    name: "cooking type / holding type"
+    description: "A type (for example vegetable, A, B) assigned to the required and holding resources after a task; a mismatch with the next task's type triggers washing."
+    page: 5
+  - id: nakabe2021-starting-requirement
+    source: nakabe2021
+    category: dependency
+    name: "starting requirement"
+    description: "The tasks that must finish before a task starts, expressed as finish time of the predecessor <= start time of the successor."
+    page: 5
+  - id: nakabe2021-holding-requirement
+    source: nakabe2021
+    category: dependency
+    name: "holding requirement"
+    description: "The condition that releases a holding resource; in the example the pan of task 6 cannot be used until task 7 starts."
+    page: 5
+  - id: nakabe2021-previous-task
+    source: nakabe2021
+    category: dependency
+    name: "previous task"
+    description: "A no-gap constraint: the end of one task must coincide with the start of the next (for example tasks 4 and 6)."
+    page: 5
+  - id: nakabe2021-resource-vector
+    source: nakabe2021
+    category: resource
+    name: "available resources RS"
+    description: "A vector of the number of users and tools of each kind, set by the user's environment; resources in use never exceed it."
+    page: 5
+  - id: nakabe2021-cooking-procedure
+    source: nakabe2021
+    category: data-unit
+    name: "cooking procedure"
+    description: "The output sequence S of all tasks of all chosen recipes, including washing during cooking and cleanup at the end."
+    page: 5
+  - id: nakabe2021-washing-task
+    source: nakabe2021
+    category: cleaning
+    name: "washing task"
+    description: "Washing that occurs when a resource's assigned type differs from the next task's type; it has per-resource durations WT and needs the resource and the user."
+    page: 6
+  - id: nakabe2021-washing-as-overhead
+    source: nakabe2021
+    category: cleaning
+    name: "washing tasks as overhead"
+    description: "Washing corresponds to overhead in general task scheduling, except that whether it is needed depends on the last task that used the resource, so it cannot be defined in advance."
+    page: 4
+  - id: nakabe2021-cleanup-task
+    source: nakabe2021
+    category: cleaning
+    name: "cleanup task"
+    description: "Washing all used resources at the end of cooking; included in the procedure and in the objective time."
+    page: 5
+  - id: nakabe2021-objective
+    source: nakabe2021
+    category: objective
+    name: "Minimize (Time(S))"
+    description: "Minimize the total time from the start of cooking to the end including washing and cleanup."
+    page: 6
+  - id: nakabe2021-gap-time
+    source: nakabe2021
+    category: other
+    name: "gap time"
+    description: "Time in the schedule when the user is idle; needed washing is put there first and before the task otherwise."
+    page: 8
+  - id: nakabe2021-pdf-ihs
+    source: nakabe2021
+    category: operation
+    name: "PDF/IHS"
+    description: "The base sequential optimization algorithm (a parallel version of DF/IHS) with preprocessing, branching, and bounding; branching includes a virtual task that leaves resources idle."
+    page: 7
+  - id: nakabe2021-allocation-resources
+    source: nakabe2021
+    category: operation
+    name: "AllocationResources"
+    description: "A priority rule for assigning resources: a free resource that needs no washing, then a free one that needs washing, then the one that frees earliest."
+    page: 10
+  - id: nakabe2021-preprocessing
+    source: nakabe2021
+    category: operation
+    name: "preprocessing (sorting by critical path / user-free time)"
+    description: "Executable tasks are sorted by critical path length or by user-free parallel time to reach a good initial solution quickly."
+    page: 10
+  - id: nakabe2021-bounding
+    source: nakabe2021
+    category: operation
+    name: "bounding operation"
+    description: "Branches are pruned when a lower bound (critical path of unassigned tasks or remaining resource time plus cleanup washing) cannot beat the incumbent."
+    page: 11
+  - id: nakabe2021-warm-dish-completion
+    source: nakabe2021
+    category: objective
+    name: "difference between the completion time of the dish that should be warm"
+    description: "Minimizing only the total time spread dish completion times and the miso soup got cold; the paper proposes also minimizing the gap between warm dishes' completion and the end (future work)."
+    page: 17
+  - id: tasse2008-ingredient
+    source: tasse2008
+    category: data-unit
+    name: "ingredient"
+    description: "A basic MILK type: any food in the recipe, created and destroyed by operations."
+    page: 2
+  - id: tasse2008-tool
+    source: tasse2008
+    category: resource
+    name: "tool"
+    description: "A basic MILK type: utensils, containers, and appliances, which can be created but not destroyed."
+    page: 2
+  - id: tasse2008-temporal-order
+    source: tasse2008
+    category: dependency
+    name: "temporal order"
+    description: "MILK is based on first-order logic but has a temporal order of instructions and the creation and deletion of ingredients; instructions form a sequence in the written order."
+    page: 2
+  - id: tasse2008-state-tuple
+    source: tasse2008
+    category: state
+    name: "state <I, T, S, Id, Td, C>"
+    description: "The world state is a tuple of the sets of ingredients, tools, and strings, their descriptions, and the relation of which tool contains which ingredient; all empty at the start."
+    page: 3
+  - id: tasse2008-final-state
+    source: tasse2008
+    category: state
+    name: "Final State"
+    description: "Tools may remain at the end (possibly the list of dishes to wash) but all ingredients should be destroyed by serve; a parse with leftover ingredients is still valid."
+    page: 3
+  - id: tasse2008-create
+    source: tasse2008
+    category: operation
+    name: "create_ing / create_tool"
+    description: "Instructions that create a new ingredient or tool with a name and a non-empty description."
+    page: 4
+  - id: tasse2008-quantity-in-description
+    source: tasse2008
+    category: quantity
+    name: "description"
+    description: "Quantities have no type of their own and are written inside the ingredient description string (for example 1 cup flour)."
+    page: 4
+  - id: tasse2008-combine
+    source: tasse2008
+    category: operation
+    name: "combine"
+    description: "Combines a set of ingredients into one new ingredient; the inputs are destroyed."
+    page: 4
+  - id: tasse2008-separate
+    source: tasse2008
+    category: operation
+    name: "separate"
+    description: "Separates one ingredient into two; the input is destroyed and two outputs are created."
+    page: 4
+  - id: tasse2008-manner
+    source: tasse2008
+    category: task-attribute
+    name: "manner"
+    description: "A string describing how an operation is done (for example toss); it does not affect the state and may be empty."
+    page: 4
+  - id: tasse2008-put
+    source: tasse2008
+    category: operation
+    name: "put"
+    description: "Puts an ingredient into a tool; adds a pair to the containment relation without creating or destroying anything."
+    page: 5
+  - id: tasse2008-remove-error
+    source: tasse2008
+    category: other
+    name: "remove"
+    description: "Removes an ingredient from a tool; it is an error if the tool does not contain the ingredient."
+    page: 5
+  - id: tasse2008-cut
+    source: tasse2008
+    category: operation
+    name: "cut"
+    description: "Cuts an ingredient: destroys the input and creates the cut ingredient (tool and manner optional)."
+    page: 5
+  - id: tasse2008-mix
+    source: tasse2008
+    category: operation
+    name: "mix"
+    description: "Mixes or stirs ingredients; distinct from combine, which only joins them, and typically follows combine."
+    page: 6
+  - id: tasse2008-cook
+    source: tasse2008
+    category: operation
+    name: "cook"
+    description: "Heats an ingredient with a tool in some way; destroys the input and creates the cooked ingredient (for example boiling water)."
+    page: 6
+  - id: tasse2008-do
+    source: tasse2008
+    category: operation
+    name: "do"
+    description: "A generic instruction for operations that fit no other category; discouraged because it loses information."
+    page: 6
+  - id: tasse2008-serve
+    source: tasse2008
+    category: operation
+    name: "serve"
+    description: "Declares that the remaining ingredients are served; the last instruction of a valid recipe, and served ingredients are destroyed."
+    page: 7
+  - id: tasse2008-set
+    source: tasse2008
+    category: operation
+    name: "set"
+    description: "Sets or changes a tool's setting (for example oven to 350 degrees, a lid on a pot); tools have no state, so the world state does not change."
+    page: 7
+  - id: tasse2008-leave
+    source: tasse2008
+    category: operation
+    name: "leave"
+    description: "Leaves an ingredient to cool or rest; the world state does not change."
+    page: 7
+  - id: tasse2008-chefcheck
+    source: tasse2008
+    category: operation
+    name: "chefcheck"
+    description: "The cook stops to check that a condition holds (the until condition of fry until the onion is translucent); the world state does not change."
+    page: 7
+  - id: tasse2008-curd-line
+    source: tasse2008
+    category: data-unit
+    name: "CURD"
+    description: "CURD, a database of 300 recipes annotated in MILK; each XML line pairs a recipe sentence with its MILK instructions."
+    page: 8
+  - id: foon-bipartite-network
+    source: foon
+    category: data-unit
+    name: "bipartite network"
+    description: "FOON is a bipartite graph of motion nodes and object state nodes, connecting input object states through a manipulation to output object states."
+    page: 2
+  - id: foon-object-node
+    source: foon
+    category: state
+    name: "object state node"
+    description: "A node for an object in a state; containers such as bowls, pots, and ovens are objects too, and a node is identified by its name and attributes."
+    page: 2
+  - id: foon-state-change
+    source: foon
+    category: state
+    name: "object state"
+    description: "The change of object states by a manipulation (a whole tomato and a clean knife become a chopped tomato and a dirty knife); tool dirt is a state."
+    page: 2
+  - id: foon-motion-node
+    source: foon
+    category: operation
+    name: "motion node"
+    description: "A node holding a manipulation type; motion nodes of the same type may appear in several places in the graph."
+    page: 2
+  - id: foon-edge
+    source: foon
+    category: dependency
+    name: "edge"
+    description: "Directed edges connect only object nodes and motion nodes: object to motion means input and motion to object means output."
+    page: 2
+  - id: foon-semi-acyclic
+    source: foon
+    category: dependency
+    name: "directed semi-acyclic graph"
+    description: "Because a manipulation may leave an object's state unchanged, loops can occur, so FOON is a directed semi-acyclic graph."
+    page: 2
+  - id: foon-functional-unit
+    source: foon
+    category: data-unit
+    name: "functional unit"
+    description: "The minimal learning unit: input object nodes, one motion node, and output object nodes, describing one atomic action of an activity."
+    page: 2
+  - id: foon-adjacency-matrix
+    source: foon
+    category: data-unit
+    name: "adjacency matrix"
+    description: "FOON is stored as an adjacency matrix with a list mapping nodes to rows and columns."
+    page: 2
+  - id: foon-subgraph-creation
+    source: foon
+    category: operation
+    name: "Creating Subgraphs"
+    description: "Input object states, manipulations, and output object states are annotated by hand for each video and joined automatically into a subgraph by their time order."
+    page: 3
+  - id: foon-merge
+    source: foon
+    category: operation
+    name: "universal FOON (merging)"
+    description: "Subgraphs are merged one by one by a union operation; an existing functional unit is not added again and existing object nodes are reused."
+    page: 3
+  - id: foon-parser
+    source: foon
+    category: operation
+    name: "parser"
+    description: "A parser builds an index of objects, relabels annotations consistently, keeps a change log, and uses WordNet to find likely duplicate objects and motions."
+    page: 3
+  - id: foon-motion-harmonics
+    source: foon
+    category: task-attribute
+    name: "motion harmonics"
+    description: "Manipulation types are represented by components extracted with fPCA from motion capture trajectories, used to generate trajectories for new environments."
+    page: 4
+  - id: foon-centrality
+    source: foon
+    category: operation
+    name: "centrality"
+    description: "Object centrality is computed on the one-mode projection without motion nodes to find the most used objects (the top one is bowl)."
+    page: 4
+  - id: foon-motion-frequency
+    source: foon
+    category: other
+    name: "motion frequency"
+    description: "The number of occurrences of each of 57 manipulation types is counted to estimate the next likely manipulation; pick-and-place is the most frequent."
+    page: 5
+  - id: foon-kitchen-list
+    source: foon
+    category: resource
+    name: "K (list of objects in scene or kitchen)"
+    description: "K, the list of objects available to the robot in the kitchen; a functional unit is executable when all its input objects are in K."
+    page: 5
+  - id: foon-task-tree-retrieval
+    source: foon
+    category: operation
+    name: "task tree retrieval"
+    description: "Starting from the goal node, find a functional unit producing it and add inputs missing from K as subgoals, repeating; a branch-and-bound mix of breadth- and depth-first search."
+    page: 5
+  - id: foon-unsolvable
+    source: foon
+    category: other
+    name: "no possible way of solving the manipulation task"
+    description: "The search continues until no executable task tree can be found for lack of objects, in which case there is no solution."
+    page: 6
+  - id: foon-motion-cost
+    source: foon
+    category: objective
+    name: "cost value"
+    description: "A proposed cost value (such as manipulation complexity) on each motion to weigh the choice of functional units, including shortest-path use."
+    page: 6
+  - id: foon-task-sequence
+    source: foon
+    category: operation
+    name: "task sequence"
+    description: "A task sequence of motions, objects, and states is made from the task tree as step-by-step instructions a robot can execute, with trajectories constrained by object positions."
+    page: 7
+  - id: foon-quantities-missing
+    source: foon
+    category: quantity
+    name: "quantities"
+    description: "Quantities are not in the current representation and are listed as missing information for future work."
+    page: 8
+  - id: kumbhakern-action-graph
+    source: kumbhakern
+    category: data-unit
+    name: "action graph (DAG)"
+    description: "A recipe is compiled into a DAG with actions and ingredients as nodes and dependencies as edges, allowing several valid execution orders under the partial order."
+    page: 2
+  - id: kumbhakern-process
+    source: kumbhakern
+    category: operation
+    name: "Process"
+    description: "A node for a physical or chemical state change, with inputs (ingredients or PPCs), technique, tool, temperature, time, termination condition, and modifiers."
+    page: 2
+  - id: kumbhakern-transfer
+    source: kumbhakern
+    category: operation
+    name: "Transfer"
+    description: "A node moving an ingredient or PPC from one environment to another (into a pot, the oven, the fridge), changing the environment of later actions."
+    page: 2
+  - id: kumbhakern-plate
+    source: kumbhakern
+    category: operation
+    name: "Plate"
+    description: "A node for final plating and assembly; not yet developed."
+    page: 2
+  - id: kumbhakern-ingredient-schema
+    source: kumbhakern
+    category: quantity
+    name: "Ingredients"
+    description: "Ingredients have name, quantity, unit, and optional form and modifiers; only named ingredients are roots of the graph."
+    page: 2
+  - id: kumbhakern-environment
+    source: kumbhakern
+    category: resource
+    name: "Environments"
+    description: "Each item is tied to a context (container, location, optional geometry such as tilt angle)."
+    page: 2
+  - id: kumbhakern-ppc
+    source: kumbhakern
+    category: state
+    name: "partially processed components (PPCs)"
+    description: "Partially processed components: the unnamed outputs of Process and Transfer, passed to the next action without becoming explicit nodes."
+    page: 2
+  - id: kumbhakern-provenance
+    source: kumbhakern
+    category: other
+    name: "provenance"
+    description: "Even without nodes for intermediate items, the ingredients an item came from can be recovered by walking the subgraph rooted at its use backwards."
+    page: 2
+  - id: kumbhakern-technique-lexicon
+    source: kumbhakern
+    category: task-attribute
+    name: "technique lexicon"
+    description: "The technique argument refers to an entry in a formal lexicon of cooking techniques with defaults and postconditions and technique-specific arguments."
+    page: 2
+  - id: kumbhakern-temperature
+    source: kumbhakern
+    category: task-attribute
+    name: "temperature specification"
+    description: "Process temperatures, including ramps and curves; subjective words such as medium heat are normalized to Celsius ranges."
+    page: 2
+  - id: kumbhakern-global-axioms
+    source: kumbhakern
+    category: other
+    name: "Global axioms and validation"
+    description: "Invariants: the top-level action graph is acyclic, arguments are type safe, and an item's environment persists until an explicit re-transfer; a recipe has one final output."
+    page: 2
+  - id: kumbhakern-concurrency
+    source: kumbhakern
+    category: dependency
+    name: "Concurrency"
+    description: "Concurrency is parallel branches synchronized at explicit join points (make buttercream while the cake bakes, join at icing)."
+    page: 2
+  - id: kumbhakern-relative-timing
+    source: kumbhakern
+    category: dependency
+    name: "relative timing / interjection"
+    description: "Interjected work (add garlic during frying) uses a relative timing field and subprocesses, distinguishing breaking (pausing the parent) and repeating."
+    page: 3
+  - id: kumbhakern-termination-condition
+    source: kumbhakern
+    category: task-attribute
+    name: "Termination Condition"
+    description: "A termination predicate on the result (browned and cooked through) alongside or instead of a fixed time, tied to sensor or human observable criteria."
+    page: 3
+  - id: kumbhakern-utensil
+    source: kumbhakern
+    category: resource
+    name: "Utensil Block"
+    description: "A block declaring the utensils an operation uses (such as a spatula); utensils constrain feasible techniques and support capacity checks."
+    page: 3
+  - id: kumbhakern-instance-tag
+    source: kumbhakern
+    category: data-unit
+    name: "per-item identity"
+    description: "Letter tags such as Sausages [A] distinguish items in the same container."
+    page: 3
+  - id: kumbhakern-environment-occupancy
+    source: kumbhakern
+    category: resource
+    name: "environment occupancy"
+    description: "The from/to pattern of taking cooked items out of a pot before putting the next in expresses that the pot must be emptied first; usable for scheduling and resource conflicts."
+    page: 3
+  - id: kumbhakern-plugin-recipe
+    source: kumbhakern
+    category: other
+    name: "Extensibility and modularity"
+    description: "A validated recipe (such as a poached egg) can be embedded as a reusable plugin node in another recipe."
+    page: 3
+  - id: kumbhakern-transfer-limitations
+    source: kumbhakern
+    category: quantity
+    name: "limitations in Transfer semantics"
+    description: "Still undecided: what is transferred (a PPC, a set, residues such as leftover fat), how much (all or part, absolute or ratio), and how (pour, scrape, scoop, drain)."
+    page: 4
+  - id: kumbhakern-implicit-step-recovery
+    source: kumbhakern
+    category: operation
+    name: "Implicit Step Recovery"
+    description: "A planned module that finds and adds steps required for execution but not written in the recipe text, placed before graph construction."
+    page: 5
