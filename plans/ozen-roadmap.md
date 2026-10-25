@@ -2570,7 +2570,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 
 ### 9.1 共通
 
-- 着手点の基準値 N0（P0-7）: テストの数 0（`plans/` 以外のコードは無い）。タグ `plan-start` の sha
+- 着手点の基準値 N0（P0-7、2026-10-26）: 網羅表のテストのうちリポジトリにあるものは `sh=5`（P0-3〜P0-6 の共通スクリプトの自己テスト）で、ほかの分類は 0（`golden=0 fx=0 py=0 c=0 sh=5 cgolden=0 cunit=0 prop=0 cli=0 sample=0 rtest=0`）。機能のテストの数は 0。タグ `plan-start` の sha は、タグを打った後の最初の記録のコミットで書く
 - 道具の版（P0-4）: gcc 13.3.0、clang 17.0.0（swiftly、Swift 6.2.3、LLVM 19.1.5 系）、cmake 3.28.3、node v20.20.2、Python 3.12.3、PyYAML 6.0.1、jsonschema 4.10.3、openpyxl 3.1.5、Java 25.0.4.1、google-chrome 154.0.8037.97（2026-10-25 時点）。emcc・NDK・Xcode の版はここに書く
 - emsdk（P0-4、2026-10-26 にユーザーの確認を取って導入）: `~/.local/share/emsdk` に github.com/emscripten-core/emsdk を clone してタグ `6.0.13` を checkout し、`./emsdk install 6.0.13`・`activate 6.0.13`。取得したのは `wasm-binaries.tar.xz`（311,791,988 バイト、リリースの hash `eb132757325583b787fe9414b09afea9442b72ad`）と、emsdk が添える node 24.19.0。導入後の大きさ 1.7 GB。`emcc --version` の 1 行目は `emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.13 (e13ee988ce3d87a738dd8f3661d02223308c412a)`。`emcc` は PATH に入れず、`check-tools.sh` は `$EMSDK`（既定は `~/.local/share/emsdk`）の `upstream/emscripten/emcc` を使う
 - P0-4 の結果（2026-10-26）: `toolchain.txt` は gcc 13.3.0・clang 17.0.0・cmake 3.28.3・node 20.20.2・python3 3.12.3・pyyaml 6.0.1・jsonschema 4.10.3・openpyxl 3.1.5・emcc 6.0.13 の 9 行。`G-REPO-TOOLS`（`tools: 9 checked, 0 mismatched`）、`test-check-tools: 4 cases, 0 failed`
