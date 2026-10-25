@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+actions:
+  peel:
+    params:
+      - name: x
+        kind: food
+        requires: [{traits: [Peelable], axes: {shape: {in: [whole]}}}]
+        effects: {shape: peeled}
+    output: {param: x}
+    uses: [hands, CuttingSurface]
+    time: {value: "1..2 min", source: provisional}
+  wash:
+    params:
+      - name: x
+        kind: food
+        effects: {prep: {add: washed}}
+    output: {param: x}
+    uses: [hands]
+    time: {value: "1..2 min", source: provisional}

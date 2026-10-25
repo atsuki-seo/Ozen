@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+diagnostics:
+  - {severity: error, name: "TYP:axisValue", file: actions.yaml, path: "actions.peel.params[0].requires[1].axes.shape.in[0]", args: ["shape", "hole"]}

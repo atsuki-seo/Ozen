@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+dirt:
+  rawMeat: {traits: [Hazard]}
+  Oil: {traits: [Hazard]}
+rules:
+  afterHazard: {after: Hazard, level: wash, fixed: true}

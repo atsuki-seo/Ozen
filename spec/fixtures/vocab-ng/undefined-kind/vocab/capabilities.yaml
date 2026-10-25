@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+capabilities:
+  CuttingSurface: {}
+kinds:
+  CuttingBoard: {category: tool, extends: [Boad], provides: [CuttingSurface]}

@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+diagnostics:
+  - {severity: error, name: "NAM:undefined", file: ingredients.yaml, path: "ingredients.Onion.traits[1]", args: ["Peeleble"]}
+  - {severity: error, name: "NAM:undefined", file: vessels.yaml, path: "vessels.FlatPlate.traits[0]", args: ["Peeleble"]}

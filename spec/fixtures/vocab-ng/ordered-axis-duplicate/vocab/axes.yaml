@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+axes:
+  doneness: {kind: ordered, values: [raw, done, raw]}
+  shape:
+    kind: tagged
+    values: [whole, peeled, cut]
+    params: {cut: {style: CutStyle, size: Length}}
+  prep:
+    kind: set
+    values: [washed, soaked]
+    params: {soaked: {time: Time}}
+  cleaning: {kind: ordered, values: [none, rinse, wash]}
+enums:
+  CutStyle:
+    values: [slice, mince]
+    finer: {slice: [mince]}

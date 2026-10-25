@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+ingredients:
+  Onion:
+    traits: [Vegetable, Peelable]
+    axes: [doneness, shape, prep]
+    initial: {doneness: rare}
+    props:
+      density: {value: "0.5..0.7 g/ml", source: provisional}

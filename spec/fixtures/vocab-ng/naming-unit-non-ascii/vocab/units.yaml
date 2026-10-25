@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+units:
+  g: {dimension: Mass, base: true}
+  kg: {dimension: Mass, def: "1000 g"}
+  ml: {dimension: Volume, base: true}
+  L: {dimension: Volume, def: "1000 ml"}
+  mm: {dimension: Length, base: true}
+  min: {dimension: Time, base: true}
+  "°C": {dimension: Temperature, base: true}

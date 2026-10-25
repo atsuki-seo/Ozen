@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+diagnostics:
+  - {severity: error, name: "NAM:partTraitClash", file: ingredients.yaml, path: "ingredients.Pork.parts.Fatty", args: ["Fatty"]}
+  - {severity: error, name: "NAM:naming", file: ingredients.yaml, path: "ingredients.Pork.parts.Fatty", args: ["Fatty"]}
