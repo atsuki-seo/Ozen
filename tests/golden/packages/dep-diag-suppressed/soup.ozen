@@ -1,0 +1,4 @@
+import dashi.stock.{Katsuobushi}
+recipe soup() {
+  ingredients { bonito: Katsuobushi 10 g }
+}

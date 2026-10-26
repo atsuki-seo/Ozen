@@ -1,0 +1,3 @@
+warning NAM018 expectUnfulfilled expect-unfulfilled.ozen:3:35-3:56 args=["leftoverPart"]: expect unfulfilled
+result ok errors=0 warnings=1 infos=0
+exit 0

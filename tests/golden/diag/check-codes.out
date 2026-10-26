@@ -1,0 +1,6 @@
+error PKG013 checkCodeRange check-codes.ozen:5:3-5:44 args=["TYP899"]: check code range
+error PKG014 checkCodeDuplicate check-codes.ozen:6:3-6:43 args=["TYP900"]: check code duplicate
+error PKG014 checkCodeDuplicate check-codes.ozen:7:3-7:43 args=["SCH101"]: check code duplicate
+warning TYP999 highest check-codes.ozen:9:9-9:14: highest
+result error errors=3 warnings=1 infos=0
+exit 1

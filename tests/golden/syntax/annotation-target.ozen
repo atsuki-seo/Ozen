@@ -1,0 +1,5 @@
+recipe r() {
+  ingredients { rice: 300 g }
+  let n = 5 g @unattended
+  let s = soak(rice) @unattended
+}

@@ -1,0 +1,5 @@
+// args: check --fixes
+recipe r() {
+  ingredients { onion: 1 pcs }
+  let s = cut(onion, style: slice)
+}

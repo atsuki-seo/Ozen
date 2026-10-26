@@ -1,0 +1,6 @@
+recipe a() @deny(strict) {
+  ingredients { salt: [any amount] }
+}
+recipe b() {
+  ingredients { pepper: [any amount] }
+}

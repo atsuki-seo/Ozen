@@ -1,0 +1,4 @@
+ingredient Katsuobushi : Seasoning
+recipe stockBase() {
+  ingredients { kombu: Wakame [any amount] }
+}

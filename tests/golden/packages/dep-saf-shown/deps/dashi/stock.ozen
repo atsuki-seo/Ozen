@@ -1,0 +1,5 @@
+ingredient Katsuobushi : Seasoning
+recipe rawPork() {
+  ingredients { pork: 200 g }
+  let c = cut(pork, style: slice)
+}

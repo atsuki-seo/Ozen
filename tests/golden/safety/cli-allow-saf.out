@@ -1,0 +1,3 @@
+error SAF001 undercooked cli-allow-saf.ozen:4:11-4:34 args=["Pork", "raw"]: undercooked
+result error errors=1 warnings=0 infos=0
+exit 1

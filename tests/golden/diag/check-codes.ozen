@@ -1,0 +1,11 @@
+// args: check --options today
+type MyOptions : Options {
+  check TYP900 lowest: cooks >= 1 else warn
+  check TYP999 highest: cooks <= 2 else warn
+  check TYP899 tooLow: cooks >= 1 else warn
+  check TYP900 again: cooks >= 1 else warn
+  check SCH101 clash: cooks >= 1 else warn
+}
+kitchen today : MyOptions {
+  cooks: 3
+}

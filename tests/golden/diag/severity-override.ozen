@@ -1,0 +1,9 @@
+// args: check --deny leftoverPart --allow vagueAmount
+recipe r() {
+  ingredients {
+    rice: 300 g
+    salt: [any amount]
+  }
+  let (a, b) = split(rice, 100 g)
+  let w = wash(a)
+}

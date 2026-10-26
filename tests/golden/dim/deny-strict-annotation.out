@@ -1,0 +1,4 @@
+error TYP003 vagueAmount deny-strict-annotation.ozen:2:23-2:35 args=["salt"]: vague amount
+warning TYP003 vagueAmount deny-strict-annotation.ozen:5:25-5:37 args=["pepper"]: vague amount
+result error errors=1 warnings=1 infos=0
+exit 1

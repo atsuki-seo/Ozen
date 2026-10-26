@@ -1,0 +1,10 @@
+recipe r() {
+  ingredients {
+    rice: 300 g
+    beans: BeanSprouts 300 g
+  }
+  let (a, b) = split(rice, 100 g) @allow(leftoverPart)
+  let (c, d) = split(beans, 100 g)
+  let w = wash(a)
+  let x = wash(c)
+}
