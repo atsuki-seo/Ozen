@@ -354,6 +354,55 @@ def sources(d):
     return out
 
 
+KITCHEN_TYPES = """enum Cleanup { none, beforeMeal, afterMeal }
+enum Preference { fewerWashes, lessWaiting, fewerTools, steadyPace }
+type EquipmentSpec {
+  count: Count in 0.. = 1
+}
+type FloorSpec : EquipmentSpec {
+  capacity: Count in 1.. = 1
+}
+type CounterSpec : EquipmentSpec {
+  workSpots: Count in 1.. = 1
+}
+type StoveSpec : EquipmentSpec {
+  burners: Count in 1.. = 1
+}
+type OvenSpec : EquipmentSpec {
+  maxTemp: Temperature?
+}
+type ContainerSpec : EquipmentSpec {
+  capacity: Volume?
+}
+type FryingPanSpec : EquipmentSpec {
+  diameter: Length in 10 cm..40 cm = 26 cm
+  capacity: Mass?
+}
+type RiceCookingSpec : EquipmentSpec {
+  capacity: Volume?
+}
+type VesselSpec : EquipmentSpec {
+  capacity: Volume?
+}
+type Kitchen {
+  places: {
+    floor: Floor = Floor
+    counter: Counter = Counter
+    sink: Sink = Sink
+  }
+  tools: [Tool] = []
+  tableware: [Vessel] = []
+}
+type Options {
+  servings: Count?
+  cooks: Count in 1.. = 1
+  cleanup: Cleanup = none
+  serveAt: Time?
+  prefer: [Preference] = []
+  check SCH101 tooManyCooks: cooks <= kitchen.floor.capacity else warn
+}""".split("\n")
+
+
 def write(path, lines):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
@@ -372,7 +421,7 @@ def main():
     write(os.path.join(a.out, "package.ozen"), [f"package std {{", f'  version: "{version}"', "}"])
     prelude = (dimensions(v["dimensions"]) + units(v["units"]) + axes(v["axes"]) + traits(v["traits"]) +
                capabilities(v["capabilities"]) + ["resource hands"] + vessels(v["vessels"]) + dirt(v["dirt"]) +
-               ingredients(v["ingredients"]) + aliases(v["aliases"]) + actions(v["actions"]))
+               ingredients(v["ingredients"]) + aliases(v["aliases"]) + actions(v["actions"]) + KITCHEN_TYPES)
     write(os.path.join(a.out, "prelude.ozen"), prelude)
     for region in ["jp", "us"]:
         write(os.path.join(a.out, "units", region + ".ozen"), units(v["units"], f"std.units.{region}"))

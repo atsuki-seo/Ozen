@@ -695,3 +695,50 @@ action combine(xs: [T]) -> Mixture {
   structural: true
   combine: true
 }
+enum Cleanup { none, beforeMeal, afterMeal }
+enum Preference { fewerWashes, lessWaiting, fewerTools, steadyPace }
+type EquipmentSpec {
+  count: Count in 0.. = 1
+}
+type FloorSpec : EquipmentSpec {
+  capacity: Count in 1.. = 1
+}
+type CounterSpec : EquipmentSpec {
+  workSpots: Count in 1.. = 1
+}
+type StoveSpec : EquipmentSpec {
+  burners: Count in 1.. = 1
+}
+type OvenSpec : EquipmentSpec {
+  maxTemp: Temperature?
+}
+type ContainerSpec : EquipmentSpec {
+  capacity: Volume?
+}
+type FryingPanSpec : EquipmentSpec {
+  diameter: Length in 10 cm..40 cm = 26 cm
+  capacity: Mass?
+}
+type RiceCookingSpec : EquipmentSpec {
+  capacity: Volume?
+}
+type VesselSpec : EquipmentSpec {
+  capacity: Volume?
+}
+type Kitchen {
+  places: {
+    floor: Floor = Floor
+    counter: Counter = Counter
+    sink: Sink = Sink
+  }
+  tools: [Tool] = []
+  tableware: [Vessel] = []
+}
+type Options {
+  servings: Count?
+  cooks: Count in 1.. = 1
+  cleanup: Cleanup = none
+  serveAt: Time?
+  prefer: [Preference] = []
+  check SCH101 tooManyCooks: cooks <= kitchen.floor.capacity else warn
+}
