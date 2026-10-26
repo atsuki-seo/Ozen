@@ -2943,6 +2943,9 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-CORE-C23-SUBSET`（S151・効かない条件）— `core/src/check.c` に `#include <stdckdint.h>` を足すと `1 banned uses` で落ちた。戻して合格
   - わざと壊す確認: `G-CORE-DIAG-APPEND`（S266・時間と順序）— 使い捨ての複製で登録簿の `SYN004` の行の名前を書き換えてコミットすると落ちた（削除の行 1）。複製は消した
   - わざと壊す確認: `G-CORE-DIAG-REGISTRY`（S268・データの完全性）— 分類 `XYZ` の診断を登録すると `1 bad codes` で落ちた。戻して合格
+- P7-2（2026-10-26）: アリーナ（`arena.c`。ASan の構成で割り当てごとに毒の余白。確保の失敗は回数を数えるだけで、後の要求は確保関数に任せる）と、添字で引く表（`ozni_table`。型 `struct ozni_arena_table` は `arena.c` の中だけで定義し、ほかからは不完全型。64 要素から倍々のブロックを足すので、要素のアドレスは動かない。範囲の外は `nullptr`）、インターン（`intern.c`。FNV-1a の開番地法。ID は 1 から）、UTF-8 の検査（`utf8.c`。誤りの位置はバイトの位置で返す）、span（ファイルの番号と開始・終わりのバイト位置）と診断の配列（`ctx.c`。引数はインターンした文字列）。試作から `u128.c`・`rational.c`・`num.h` を接頭辞だけ変えて移し、単体テスト 8 件も移した。`cunit/*` 18 件（と `symbols_prefixed`）が 4 つの構成で合格、`G-CORE-ARENA-ACCESS`・`G-CORE-NOINT128`・`G-CORE-UNIT` が合格。`symbols_prefixed` は clang の ASan が足す `___asan_globals_registered` を除くようにした
+  - わざと壊す確認: `G-CORE-ARENA-ACCESS`（S152・効かない条件）— `ctx.c` に `struct ozni_arena_table` の定義を写すと落ちた（`arena structs outside arena.c: got '2'`）。戻して合格
+  - わざと壊す確認: `cunit/intern_same_id`（S153・正常系）— 同じ綴りでも毎回新しい ID を振るようにすると落ちた。戻して合格
 
 ### 9.5 E（型検査）
 
