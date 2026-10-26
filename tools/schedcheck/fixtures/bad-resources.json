@@ -7,7 +7,7 @@
    "id": "sink",
    "kind": "Sink",
    "capacity": 1,
-   "category": "place"
+   "category": "fixture"
   },
   {
    "id": "board",
@@ -237,6 +237,91 @@
    ],
    "unattended": true,
    "wave": null
+  },
+  {
+   "id": 101,
+   "kind": "wipe",
+   "op": "wipe",
+   "deps": [],
+   "start": {
+    "num": 700,
+    "den": 1
+   },
+   "endHi": {
+    "num": 760,
+    "den": 1
+   },
+   "endLo": {
+    "num": 730,
+    "den": 1
+   },
+   "cook": 1,
+   "uses": [
+    "stove"
+   ],
+   "unattended": false,
+   "wave": null,
+   "cleans": {
+    "resource": "stove",
+    "level": "wipe"
+   }
+  },
+  {
+   "id": 102,
+   "kind": "wipe",
+   "op": "wipe",
+   "deps": [],
+   "start": {
+    "num": 240,
+    "den": 1
+   },
+   "endHi": {
+    "num": 300,
+    "den": 1
+   },
+   "endLo": {
+    "num": 270,
+    "den": 1
+   },
+   "cook": 2,
+   "uses": [
+    "range"
+   ],
+   "unattended": false,
+   "wave": null,
+   "cleans": {
+    "resource": "range",
+    "level": "wipe"
+   }
+  },
+  {
+   "id": 103,
+   "kind": "wash",
+   "op": "wash",
+   "deps": [],
+   "start": {
+    "num": 300,
+    "den": 1
+   },
+   "endHi": {
+    "num": 360,
+    "den": 1
+   },
+   "endLo": {
+    "num": 330,
+    "den": 1
+   },
+   "cook": 2,
+   "uses": [
+    "sink",
+    "board"
+   ],
+   "unattended": false,
+   "wave": null,
+   "cleans": {
+    "resource": "board",
+    "level": "wash"
+   }
   }
  ],
  "waves": [
@@ -279,7 +364,13 @@
  "rules": [
   {
    "dirt": "rawMeat",
-   "level": "wash"
+   "cases": [
+    {
+     "rule": 0,
+     "level": "wash",
+     "when": null
+    }
+   ]
   }
  ]
 }

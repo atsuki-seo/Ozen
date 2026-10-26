@@ -72,30 +72,61 @@ def check(doc):
             if wave["serveAt"] - ready["endLo"] > num(limit):
                 out.append(("serving", f"dish {dish['id']} waits longer than allowed"))
 
-    rules = {r["dirt"]: r["level"] for r in doc.get("rules", [])}
+    rules = {r["dirt"]: r["cases"] for r in doc.get("rules", [])}
+
+    def need(mark, later, rid):
+        best = 0
+        cases = rules.get(mark["dirt"], [])
+        for rule in sorted({c["rule"] for c in cases}):
+            default, hit = None, None
+            for c in (c for c in cases if c["rule"] == rule):
+                when = c["when"]
+                if when is None:
+                    default = c["level"] if default is None else default
+                elif hit is not None:
+                    continue
+                elif when == "sameFoodSameState":
+                    if mark.get("food") is not None and mark.get("food") == later.get("food"):
+                        hit = c["level"]
+                elif when == "sameTool":
+                    if any(m["dirt"] == mark["dirt"] and m["resource"] == rid for m in later.get("leaves", [])):
+                        hit = c["level"]
+                elif when in later.get("targets", []):
+                    hit = c["level"]
+            level = hit if hit is not None else (default or "none")
+            best = max(best, LEVELS.index(level))
+        return best
+
     order = sorted(tasks.values(), key=lambda t: (t["start"], t["id"]))
-    dirty = {}
+    history = {}
+    cleaned = {}
+    used = {}
     for t in order:
         clean = t.get("cleans")
         for rid in t.get("uses", []):
-            cleaning = clean is not None and clean["resource"] == rid
-            if rid in dirty and t["id"] not in dirty[rid][1] and not cleaning:
-                out.append(("washing", f"task {t['id']} uses {rid} still dirty after task {dirty[rid][0]}"))
-                del dirty[rid]
-        if clean is not None and clean["resource"] in dirty:
-            need = dirty[clean["resource"]][2]
-            if LEVELS.index(clean["level"]) >= LEVELS.index(need):
-                del dirty[clean["resource"]]
+            if t.get("kind") == "soak" or (clean is not None and clean["resource"] == rid):
+                continue
+            marks = history.get(rid, [])
+            level = max((need(m, t, rid) for _, m in marks), default=0)
+            done = cleaned.get(rid)
+            if level > 0 and (done is None or done < level):
+                out.append(("washing", f"task {t['id']} uses {rid} still dirty after task {marks[0][0]}"))
+            if done is not None:
+                history[rid] = []
+                cleaned[rid] = None
+            used[rid] = t["id"]
+        if clean is not None:
+            rid = clean["resource"]
+            cleaned[rid] = 99 if clean["level"] == "wipe" else LEVELS.index(clean["level"])
+            used.pop(rid, None)
         for mark in t.get("leaves", []):
-            level = rules.get(mark["dirt"], "none")
-            if level != "none":
-                dirty[mark["resource"]] = (t["id"], set(mark.get("sameFoodAs", [])), level)
+            history.setdefault(mark["resource"], []).append((t["id"], mark))
 
     cleanup = doc.get("cleanup", "none")
     if cleanup != "none":
-        for rid, (tid, _, _) in sorted(dirty.items()):
+        for rid, tid in sorted(used.items()):
             kind = resources.get(rid, {}).get("category")
-            if cleanup == "afterMeal" or kind in ("tool", "place"):
+            if kind in ("tool", "place") or (kind == "vessel" and cleanup == "afterMeal"):
                 out.append(("cleanup", f"resource {rid} is still dirty after task {tid}"))
     return out
 
