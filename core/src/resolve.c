@@ -1195,7 +1195,9 @@ static void resolve_decl_types(walker *w, ozni_index file, ozni_index d) {
     } else if (k == OZNI_N_Param || k == OZNI_N_Output || k == OZNI_N_Where || k == OZNI_N_Requires ||
                k == OZNI_N_TypeField) {
       for (ozni_index t = cn->first; t != 0; t = node(w->pr, file, t)->next) {
-        if (node(w->pr, file, t)->kind != OZNI_N_Default) {
+        bool names_output =
+            k == OZNI_N_Output && n->kind == OZNI_N_Recipe && node(w->pr, file, t)->kind == OZNI_N_TypeRef;
+        if (node(w->pr, file, t)->kind != OZNI_N_Default && !names_output) {
           resolve_types(w, file, t);
         }
       }

@@ -22,6 +22,7 @@ typedef struct ozni_settings {
   bool strict;
   const char *kitchen;
   const char *options;
+  const char *entry;
 } ozni_settings;
 
 typedef struct ozni_source {
