@@ -151,6 +151,14 @@ static ozni_index expect_ident(parser *p) {
   return text;
 }
 
+static ozni_index name_of(parser *p, ozni_index n) {
+  if (n != 0 && !p->failed) {
+    N(p, n)->name_start = cur(p)->start;
+    N(p, n)->name_end = cur(p)->end;
+  }
+  return expect_ident(p);
+}
+
 static bool enter(parser *p) {
   if (p->failed) {
     return false;
@@ -299,7 +307,7 @@ static void annotations(parser *p, ozni_index target) {
     mark(p, OZNI_R_annotation);
     ozni_index n = node_here(p, OZNI_N_Annotation);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     if (at(p, OZNI_T_LPAREN)) {
       call_args(p, n);
     }
@@ -445,7 +453,7 @@ static ozni_index primary(parser *p) {
     mark(p, OZNI_R_splice);
     ozni_index n = node_here(p, OZNI_N_Splice);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     finish(p, n);
     if (p->quote_depth == 0 && !p->failed) {
       diag_at(p, OZNI_D_SYN_spliceOutsideQuote, N(p, n)->span.start, N(p, n)->span.end, nullptr, 0);
@@ -559,7 +567,7 @@ static ozni_index primary(parser *p) {
       ozni_index n = node_here(p, choose ? OZNI_N_Choose : OZNI_N_Assemble);
       advance(p);
       if (choose) {
-        set_text(p, n, expect_ident(p));
+        set_text(p, n, name_of(p, n));
         if (!p->failed && !at_word(p, "from")) {
           unexpected(p);
         }
@@ -1078,7 +1086,7 @@ static ozni_index type_field(parser *p) {
 static ozni_index param(parser *p) {
   mark(p, OZNI_R_param);
   ozni_index n = node_here(p, OZNI_N_Param);
-  set_text(p, n, expect_ident(p));
+  set_text(p, n, name_of(p, n));
   expect(p, OZNI_T_COLON);
   if (p->failed) {
     return 0;
@@ -1154,7 +1162,7 @@ static ozni_index let_stmt(parser *p) {
     advance(p);
     for (int k = 0; !p->failed; k++) {
       ozni_index b = node_here(p, OZNI_N_BindName);
-      set_text(p, b, expect_ident(p));
+      set_text(p, b, name_of(p, b));
       add(p, n, finish(p, b));
       if (!at(p, OZNI_T_COMMA)) {
         if (k == 0) {
@@ -1181,7 +1189,7 @@ static ozni_index let_stmt(parser *p) {
     }
   } else {
     n = node(p, OZNI_N_Let, start);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
   }
   expect(p, OZNI_T_EQ);
   add(p, n, expr(p));
@@ -1213,7 +1221,7 @@ static ozni_index plate_stmt(parser *p) {
   mark(p, OZNI_R_plate);
   ozni_index n = node_here(p, OZNI_N_Plate);
   advance(p);
-  set_text(p, n, expect_ident(p));
+  set_text(p, n, name_of(p, n));
   if (at_word(p, "on") && !p->failed) {
     ozni_index on = node_here(p, OZNI_N_On);
     advance(p);
@@ -1233,12 +1241,12 @@ static ozni_index serve_stmt(parser *p) {
   mark(p, OZNI_R_serve);
   ozni_index n = node_here(p, OZNI_N_Serve);
   advance(p);
-  set_text(p, n, expect_ident(p));
+  set_text(p, n, name_of(p, n));
   if (at_word(p, "after") && !p->failed) {
     mark(p, OZNI_R_serve_after);
     ozni_index a = node_here(p, OZNI_N_After);
     advance(p);
-    set_text(p, a, expect_ident(p));
+    set_text(p, a, name_of(p, a));
     if (at(p, OZNI_T_PLUS) && !p->failed) {
       advance(p);
       add(p, a, sum(p));
@@ -1269,7 +1277,7 @@ static ozni_index ingredients_stmt(parser *p) {
   while (!at(p, OZNI_T_RBRACE) && !p->failed) {
     mark(p, OZNI_R_ingredient_item);
     ozni_index it = node_here(p, OZNI_N_Item);
-    set_text(p, it, expect_ident(p));
+    set_text(p, it, name_of(p, it));
     expect(p, OZNI_T_COLON);
     if (at(p, OZNI_T_IDENT) && !p->failed &&
         (is_amount_start(p, 1) || kind_at(p, 1) == OZNI_T_LT || kind_at(p, 1) == OZNI_T_LBRACKET)) {
@@ -1304,7 +1312,7 @@ static ozni_index stmt(parser *p, block_kind kind, bool top) {
         mark(p, OZNI_R_branch);
         ozni_index b = node_here(p, OZNI_N_Branch);
         advance(p);
-        set_text(p, b, expect_ident(p));
+        set_text(p, b, name_of(p, b));
         add(p, b, block(p, BLOCK_PLAIN));
         add(p, n, finish(p, b));
         skip_seps(p);
@@ -1321,7 +1329,7 @@ static ozni_index stmt(parser *p, block_kind kind, bool top) {
     mark(p, OZNI_R_for);
     ozni_index n = node_here(p, OZNI_N_ForIn);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     if (!p->failed && !at_kw(p, "in")) {
       unexpected(p);
     }
@@ -1428,7 +1436,7 @@ static ozni_index member(parser *p, body_kind kind) {
       mark(p, OZNI_R_variant);
       n = node_here(p, OZNI_N_Variant);
       advance(p);
-      set_text(p, n, expect_ident(p));
+      set_text(p, n, name_of(p, n));
       ozni_index body = decl_body(p, BODY_VARIANT);
       if (body != 0) {
         for (ozni_index c = N(p, body)->first; c != 0; c = N(p, c)->next) {
@@ -1558,11 +1566,11 @@ static ozni_index value_set(parser *p, ozni_index parent) {
       mark(p, OZNI_R_finer);
       ozni_index f = node_here(p, OZNI_N_Finer);
       advance(p);
-      set_text(p, f, expect_ident(p));
+      set_text(p, f, name_of(p, f));
       expect(p, OZNI_T_ARROW);
       for (;;) {
         ozni_index nm = node_here(p, OZNI_N_Name);
-        set_text(p, nm, expect_ident(p));
+        set_text(p, nm, name_of(p, nm));
         add(p, f, finish(p, nm));
         if (p->failed || !at(p, OZNI_T_COMMA)) {
           break;
@@ -1573,7 +1581,7 @@ static ozni_index value_set(parser *p, ozni_index parent) {
     } else {
       mark(p, OZNI_R_enum_value);
       ozni_index v = node_here(p, OZNI_N_Value);
-      set_text(p, v, expect_ident(p));
+      set_text(p, v, name_of(p, v));
       if (at(p, OZNI_T_LPAREN)) {
         paren_params(p, v, true);
       }
@@ -1593,7 +1601,7 @@ static ozni_index simple_decl(parser *p, ozni_node_kind kind, ozni_rule rule, bo
   mark(p, rule);
   ozni_index n = node_here(p, kind);
   advance(p);
-  set_text(p, n, expect_ident(p));
+  set_text(p, n, name_of(p, n));
   if (allow_params && at(p, OZNI_T_LPAREN)) {
     paren_params(p, n, true);
   }
@@ -1612,7 +1620,7 @@ static ozni_index action_decl(parser *p) {
   mark(p, OZNI_R_action);
   ozni_index n = node_here(p, OZNI_N_Action);
   advance(p);
-  set_text(p, n, expect_ident(p));
+  set_text(p, n, name_of(p, n));
   paren_params(p, n, true);
   if (at(p, OZNI_T_ARROW) && !p->failed) {
     ozni_index o = node_here(p, OZNI_N_Output);
@@ -1626,7 +1634,7 @@ static ozni_index action_decl(parser *p) {
     for (;;) {
       mark(p, OZNI_R_where_item);
       ozni_index w = node_here(p, OZNI_N_Where);
-      set_text(p, w, expect_ident(p));
+      set_text(p, w, name_of(p, w));
       expect(p, OZNI_T_COLON);
       add(p, w, type_ref(p));
       add(p, n, finish(p, w));
@@ -1647,7 +1655,7 @@ static ozni_index recipe_or_menu(parser *p, bool recipe) {
   mark(p, recipe ? OZNI_R_recipe : OZNI_R_menu);
   ozni_index n = node_here(p, recipe ? OZNI_N_Recipe : OZNI_N_Menu);
   advance(p);
-  set_text(p, n, expect_ident(p));
+  set_text(p, n, name_of(p, n));
   paren_params(p, n, false);
   if (recipe && at(p, OZNI_T_ARROW) && !p->failed) {
     ozni_index o = node_here(p, OZNI_N_Output);
@@ -1671,7 +1679,7 @@ static ozni_index type_decl(parser *p) {
   mark(p, OZNI_R_type_decl);
   ozni_index n = node_here(p, OZNI_N_Type);
   advance(p);
-  set_text(p, n, expect_ident(p));
+  set_text(p, n, name_of(p, n));
   if (at(p, OZNI_T_COLON) && !p->failed) {
     advance(p);
     type_list(p, n);
@@ -1752,7 +1760,7 @@ static ozni_index decl(parser *p) {
     advance(p);
     for (;;) {
       ozni_index nm = node_here(p, OZNI_N_Name);
-      set_text(p, nm, expect_ident(p));
+      set_text(p, nm, name_of(p, nm));
       add(p, n, finish(p, nm));
       if (p->failed || !at(p, OZNI_T_COMMA)) {
         break;
@@ -1766,7 +1774,7 @@ static ozni_index decl(parser *p) {
     mark(p, OZNI_R_unit);
     ozni_index n = node_here(p, OZNI_N_Unit);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     if (at(p, OZNI_T_COLON) && !p->failed) {
       advance(p);
       add(p, n, type_ref(p));
@@ -1787,7 +1795,7 @@ static ozni_index decl(parser *p) {
     mark(p, axis ? OZNI_R_axis : OZNI_R_enum);
     ozni_index n = node_here(p, axis ? OZNI_N_Axis : OZNI_N_Enum);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     if (axis) {
       expect(p, OZNI_T_COLON);
     }
@@ -1812,7 +1820,7 @@ static ozni_index decl(parser *p) {
     mark(p, OZNI_R_alias);
     ozni_index n = node_here(p, OZNI_N_Alias);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     expect(p, OZNI_T_EQ);
     add(p, n, type(p));
     annotations(p, n);
@@ -1830,7 +1838,7 @@ static ozni_index decl(parser *p) {
     add(p, n, type_ref(p));
     expect(p, OZNI_T_COLON);
     ozni_index lv = node_here(p, OZNI_N_Name);
-    set_text(p, lv, expect_ident(p));
+    set_text(p, lv, name_of(p, lv));
     add(p, n, finish(p, lv));
     if (at_word(p, "before") && !p->failed) {
       mark(p, OZNI_R_rule_target);
@@ -1851,7 +1859,7 @@ static ozni_index decl(parser *p) {
     mark(p, OZNI_R_property);
     ozni_index n = node_here(p, OZNI_N_Property);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     expect(p, OZNI_T_EQ);
     add(p, n, expr(p));
     annotations(p, n);
@@ -1861,7 +1869,7 @@ static ozni_index decl(parser *p) {
     mark(p, OZNI_R_source);
     ozni_index n = node_here(p, OZNI_N_Source);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     body_into(p, n, BODY_PLAIN);
     return p->failed ? 0 : finish(p, n);
   }
@@ -1888,7 +1896,7 @@ static ozni_index decl(parser *p) {
     mark(p, OZNI_R_kitchen);
     ozni_index n = node_here(p, OZNI_N_Kitchen);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     if (at(p, OZNI_T_COLON) && !p->failed) {
       advance(p);
       add(p, n, type_ref(p));
@@ -1924,12 +1932,12 @@ static ozni_index macro_decl(parser *p) {
   mark(p, OZNI_R_macro);
   ozni_index n = node_here(p, OZNI_N_Macro);
   advance(p);
-  set_text(p, n, expect_ident(p));
+  set_text(p, n, name_of(p, n));
   if (expect(p, OZNI_T_LPAREN)) {
     if (!at(p, OZNI_T_RPAREN)) {
       for (;;) {
         ozni_index mp = node_here(p, OZNI_N_MacroParam);
-        set_text(p, mp, expect_ident(p));
+        set_text(p, mp, name_of(p, mp));
         add(p, n, finish(p, mp));
         if (p->failed || !at(p, OZNI_T_COMMA)) {
           break;
@@ -1995,7 +2003,7 @@ static bool item(parser *p, ozni_index parent) {
         advance(p);
         for (;;) {
           ozni_index in = node_here(p, OZNI_N_ImportName);
-          set_text(p, in, expect_ident(p));
+          set_text(p, in, name_of(p, in));
           add(p, n, finish(p, in));
           if (p->failed || !at(p, OZNI_T_COMMA)) {
             break;
@@ -2007,11 +2015,12 @@ static bool item(parser *p, ozni_index parent) {
         diag_at(p, OZNI_D_SYN_importStar, cur(p)->start, tok_at(p, 1)->end, nullptr, 0);
         advance(p);
         advance(p);
+        p->failed = true;
       } else if (at_word(p, "as")) {
         mark(p, OZNI_R_import_alias);
         ozni_index al = node_here(p, OZNI_N_ImportAlias);
         advance(p);
-        set_text(p, al, expect_ident(p));
+        set_text(p, al, name_of(p, al));
         add(p, n, finish(p, al));
       }
     }
@@ -2041,14 +2050,14 @@ static bool item(parser *p, ozni_index parent) {
     mark(p, OZNI_R_package);
     n = node_here(p, OZNI_N_Package);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     body_into(p, n, BODY_PLAIN);
     n = p->failed ? 0 : finish(p, n);
   } else if (at_kw(p, "phrases")) {
     mark(p, OZNI_R_phrases);
     n = node_here(p, OZNI_N_Phrases);
     advance(p);
-    set_text(p, n, expect_ident(p));
+    set_text(p, n, name_of(p, n));
     if (!p->failed && (at(p, OZNI_T_STRING) || at(p, OZNI_T_MLSTRING))) {
       add(p, n, string_node(p));
     } else {

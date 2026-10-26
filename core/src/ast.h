@@ -31,6 +31,8 @@ typedef struct ozni_node {
   ozni_index text;
   ozni_index text2;
   ozni_index text3;
+  uint32_t name_start;
+  uint32_t name_end;
   ozni_index first;
   ozni_index last;
   ozni_index next;
