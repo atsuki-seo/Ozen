@@ -75,6 +75,26 @@ expect wrong-order "samples: 1 samples, 8 expectations, 1 failed" 1 "$ozen"
 expect not-json "samples: 1 samples, 1 expectations, 1 failed" 1 "$work/garbage"
 write_expect 0 "[peel, cut]"
 expect schedcheck-violation "samples: 1 samples, 8 expectations, 2 failed" 1 "$work/overlap"
+write_extended() {
+  cat > "$work/samples/one/expect.yaml" <<YAML
+entry: one
+runs:
+  - name: extended
+    cooks: 1
+    expect:
+      diagnostics:
+        include: [{name: unlimitedEquipment}]
+      ir:
+        kinds: {in: 1}
+        inputs: {cut: [peel]}
+      schedule:
+        taskCount: {cut@Onion: $1}
+YAML
+}
+write_extended 1
+expect extended "samples: 1 samples, 6 expectations, 0 failed" 0 "$ozen"
+write_extended 2
+expect wrong-count "samples: 1 samples, 6 expectations, 1 failed" 1 "$ozen"
 rm "$work/samples/one/expect.yaml"
 expect no-samples "samples: 0 samples, 0 expectations, 0 failed" 1 "$ozen"
 echo "test-check: $cases cases, $failed failed"

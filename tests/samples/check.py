@@ -44,8 +44,24 @@ class Run:
 def check_ir(r, ir, spec):
     nodes = ir.get("nodes", []) if ir else []
     labels = {n["label"] for n in nodes}
+    by_id = {n["id"]: n for n in nodes}
     for label in spec.get("labels", []):
         r.want(f"ir label {label}", label in labels)
+    for kind, least in spec.get("kinds", {}).items():
+        got = sum(1 for n in nodes if n["kind"] == kind)
+        r.want(f"ir kind {kind}", got >= least, str(got))
+    for label, want in spec.get("inputs", {}).items():
+        node = next((n for n in nodes if n["label"] == label), None)
+        got = [by_id[i["node"]]["label"] for i in node["inputs"] if i["node"] in by_id] if node else None
+        r.want(f"ir inputs of {label}", got == want, str(got))
+    for label, want in spec.get("allergens", {}).items():
+        found = [n for n in nodes if n["label"] == label]
+        r.want(f"ir allergens of {label}", any(set(want) <= set(n.get("allergens", [])) for n in found),
+               str([n.get("allergens") for n in found]))
+    options = [o for c in (ir.get("choices", []) if ir else []) for o in c["options"]]
+    for label, count in spec.get("choices", {}).items():
+        got = [o["count"] for o in options if o["label"] == label]
+        r.want(f"choice {label}", count in got, str(got))
     parents = {n["id"]: [i["node"] for i in n["inputs"]] + list(n.get("after", [])) for n in nodes}
     for item in spec.get("reaches", []):
         for target in [n for n in nodes if matches(n, item["to"], "kind", "label")] or [None]:
@@ -63,9 +79,14 @@ def check_ir(r, ir, spec):
 
 def check_schedule(r, sched, spec):
     tasks = sched.get("tasks", []) if sched else []
+    kinds = {res["id"]: res["kind"] for res in (sched.get("resources", []) if sched else [])}
 
     def named(name):
-        return [t for t in tasks if matches(t, name, "kind", "op")]
+        op, _, food = name.partition("@")
+        return [t for t in tasks if matches(t, op, "kind", "op") and (not food or (t.get("food") or "").split("/")[0] == food)]
+
+    def working(t):
+        return bool(t.get("uses")) or t.get("cook") is not None or not t.get("unattended")
 
     for name in spec.get("tasks", []):
         r.want(f"task {name}", bool(named(name)))
@@ -76,6 +97,16 @@ def check_schedule(r, sched, spec):
         r.want("cooks used", len(used) == spec["cooksUsed"], str(sorted(used)))
     if "waves" in spec:
         r.want("waves", sched is not None and len(sched.get("waves", [])) == spec["waves"])
+    for name, count in spec.get("taskCount", {}).items():
+        got = sum(1 for t in named(name) if working(t))
+        r.want(f"task count {name}", got == count, str(got))
+    for name, wave in spec.get("wave", {}).items():
+        r.want(f"wave of {name}", any(t.get("wave") == wave for t in named(name)))
+    for name, kind in spec.get("usesKind", []):
+        r.want(f"{name} uses {kind}", any(kinds.get(u) == kind for t in named(name) for u in t.get("uses", [])))
+    for item, kind in spec.get("holds", []):
+        holds = sched.get("holds", []) if sched else []
+        r.want(f"hold {item} in {kind}", any(item in h["item"] and kinds.get(h["resource"]) == kind for h in holds))
     for a, b in spec.get("order", []):
         first, then = named(a), named(b)
         ok = bool(first and then) and max(frac(t["endHi"]) for t in first) <= min(frac(t["start"]) for t in then)
@@ -89,9 +120,12 @@ def check_run(r, doc, spec, entry):
             r.want(key, outcome.get(key) == spec[key], str(outcome.get(key)))
     if "level" in spec:
         r.want("level", doc.get("level") == spec["level"], str(doc.get("level")))
-    names = {d["name"] for d in doc.get("diagnostics", [])}
-    for name in spec.get("diagnostics", {}).get("include", []):
-        r.want(f"diagnostic {name}", name in names)
+    diags = doc.get("diagnostics", [])
+    names = {d["name"] for d in diags}
+    for want in spec.get("diagnostics", {}).get("include", []):
+        name, args = (want["name"], [str(a) for a in want.get("args", [])]) if isinstance(want, dict) else (want, [])
+        r.want(f"diagnostic {name} {args}" if args else f"diagnostic {name}",
+               any(d["name"] == name and d.get("args", [])[:len(args)] == args for d in diags))
     for name in spec.get("diagnostics", {}).get("exclude", []):
         r.want(f"no diagnostic {name}", name not in names)
     irs = doc.get("ir", [])
