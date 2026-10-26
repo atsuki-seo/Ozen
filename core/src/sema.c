@@ -3533,7 +3533,7 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
     }
   }
   for (uint32_t k = 0; k < np; k++) {
-    if (params[k].kind == V_LIST) {
+    if (params[k].kind == V_LIST && params[k].items != nullptr) {
       uint32_t n = ozni_table_count(params[k].items);
       value items[64];
       for (uint32_t i = 0; i < n && i < 64; i++) {
