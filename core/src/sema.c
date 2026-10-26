@@ -140,6 +140,7 @@ typedef struct sema {
   uint32_t depth;
   bool top;
   ozni_index deprecated_unit;
+  int level;
 } sema;
 
 typedef struct mframe {
@@ -2576,6 +2577,7 @@ static void setup_configs(sema *s) {
   s->kfile = mod_at(s, s->mod)->file;
   if (s->knode != 0) {
     load_kitchen(s);
+    s->level = 2;
   }
   s->onode = find_config(s, s->c->set.options);
   s->ofile = mod_at(s, s->mod)->file;
@@ -2594,6 +2596,18 @@ static void setup_configs(sema *s) {
     if (cn->kind == OZNI_N_Field && cn->first != 0 && type_field(s, tf, tn, cn->text, &ff, &fn, 0) &&
         field_type_node(s, ff, fn) != 0) {
       check_value(s, s->ofile, cn->first, ff, field_type_node(s, ff, fn), cn->text);
+      for (ozni_index a = nd(s, ff, fn)->first; s->knode == 0 && a != 0; a = nd(s, ff, a)->next) {
+        const ozni_node *an = nd(s, ff, a);
+        if (an->kind == OZNI_N_Annotation && str_is(S(s, an->text), "needs") && an->first != 0 &&
+            str_is(S(s, nd(s, ff, an->first)->text), "kitchen")) {
+          ozni_str arg = S(s, cn->text);
+          diag_node(s, OZNI_D_TYP_optionLevel, s->ofile, nd(s, s->ofile, cn->first), &arg, 1);
+        }
+      }
+    }
+    if (cn->kind == OZNI_N_Field && (str_is(S(s, cn->text), "servings") || str_is(S(s, cn->text), "cooks")) &&
+        s->level < 1) {
+      s->level = 1;
     }
   }
   run_checks(s, tf, tn, 0);
@@ -2781,6 +2795,22 @@ static void note_requirements(sema *s, ozni_index file, const ozni_node *call, o
     if (s->knode == 0 || variant_met(s, vars[k].file, vars[k].node, params, pnames, np)) {
       usable |= 1u << k;
     }
+  }
+  if (s->knode == 0 && s->entry_dish && nv > 1) {
+    ozni_buf b = {.a = s->c->allocator};
+    for (uint32_t k = 1; k < nv; k++) {
+      ozni_buf_puts(&b, k == 1 ? "" : ", ");
+      ozni_str v = S(s, nd(s, vars[k].file, vars[k].node)->text);
+      ozni_buf_put(&b, v.p, v.len);
+    }
+    if (b.failed) {
+      s->c->oom = true;
+    } else {
+      ozni_str args[3] = {S(s, nd(s, afile, anode)->text), S(s, nd(s, vars[0].file, vars[0].node)->text),
+                          {b.p, (uint32_t)b.len}};
+      diag_node(s, OZNI_D_ASM_firstVariant, file, call, args, 3);
+    }
+    ozni_buf_discard(&b);
   }
   if (usable == 0) {
     ozni_buf b = {.a = s->c->allocator};
@@ -4708,6 +4738,22 @@ static value eval_choose(sema *s, const ozni_node *n) {
   return unknown();
 }
 
+static void level_assumptions(sema *s, ozni_index file, const ozni_node *dish) {
+  uint32_t start, end;
+  name_span(dish, S(s, dish->text), &start, &end);
+  if (s->level < 2) {
+    diag(s, OZNI_D_ASM_unlimitedEquipment, file, start, end, nullptr, 0);
+  }
+  for (ozni_index c = dish->first; c != 0; c = nd(s, file, c)->next) {
+    const ozni_node *cn = nd(s, file, c);
+    ozni_index def = cn->kind == OZNI_N_Param && str_is(S(s, cn->text), "servings") ? field_default(s, file, c) : 0;
+    if (def != 0 && (s->onode == 0 || options_value(s, cn->text) == 0)) {
+      ozni_str arg = src_text(s, file, nd(s, file, def));
+      diag(s, OZNI_D_ASM_defaultServings, file, start, end, &arg, 1);
+    }
+  }
+}
+
 static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
   const ozni_module *m = mod_at(s, mi);
   const ozni_node *n = nd(s, m->file, d->node);
@@ -4760,6 +4806,9 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
   }
   if (s->entry_dish && n->kind == OZNI_N_Recipe) {
     wrap_entry(s, m->file, n);
+  }
+  if (s->entry_dish) {
+    level_assumptions(s, m->file, n);
   }
   finish_dish(s);
   s->entry_dish = false;
