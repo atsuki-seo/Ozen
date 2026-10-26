@@ -1,0 +1,5 @@
+// args: debug steps
+recipe r() {
+  ingredients { banana: 1 pcs }
+  let b = blend(banana)
+}

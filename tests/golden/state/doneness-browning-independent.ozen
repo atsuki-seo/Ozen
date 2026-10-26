@@ -1,0 +1,6 @@
+// args: debug steps
+action sear(x: T) -> T<browning: golden>
+recipe r() {
+  ingredients { pork: 200 g }
+  let s = sear(pork)
+}

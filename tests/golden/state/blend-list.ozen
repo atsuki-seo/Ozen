@@ -1,0 +1,8 @@
+// args: debug steps
+recipe r() {
+  ingredients {
+    strawberry: 100 g
+    milk: 200 ml
+  }
+  let j = blend([strawberry, milk])
+}

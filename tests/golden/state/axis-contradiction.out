@@ -1,0 +1,3 @@
+error TYP008 axisDefinition axis-contradiction.ozen:6:1-6:61 args=["contradiction", "ripeness", "green"]: axis definition
+result error errors=1 warnings=0 infos=0
+exit 1

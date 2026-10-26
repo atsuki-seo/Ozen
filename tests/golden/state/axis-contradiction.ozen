@@ -1,0 +1,6 @@
+axis ripeness : ordered { green, ripe }
+ingredient Mango : Fruit {
+  axes: ripeness
+}
+action ripen(x: T) -> T<ripeness: ripe>
+action unripen(x: T<ripeness >= ripe>) -> T<ripeness: green>

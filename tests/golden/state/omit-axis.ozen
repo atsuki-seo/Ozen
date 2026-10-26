@@ -1,0 +1,5 @@
+// args: debug steps
+recipe r() {
+  ingredients { water: 500 ml }
+  let h = fry(water, 1 min)
+}

@@ -1,0 +1,4 @@
+error TYP007 cutCoarser blend-after-pureed.ozen:4:11-4:31 args=["pureed", "slice"]: cut coarser
+error TYP006 stateRequired blend-after-pureed.ozen:4:15-4:16 args=["cut", "x", "p"]: state required
+result error errors=2 warnings=0 infos=0
+exit 1

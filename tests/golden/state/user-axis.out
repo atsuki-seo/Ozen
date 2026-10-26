@@ -1,0 +1,3 @@
+error TYP006 stateRequired user-axis.ozen:12:18-12:19 args=["slab", "x", "a"]: state required
+result error errors=1 warnings=0 infos=0
+exit 1

@@ -1,0 +1,6 @@
+recipe r
+  potato : Potato 1 pcs
+  %1 = boil(potato, 1200 s) : Potato<doneness: done> 1 pcs
+  %2 = parboil(%1, 300 s) : Potato<doneness: done> 1 pcs
+result ok errors=0 warnings=0 infos=0
+exit 0

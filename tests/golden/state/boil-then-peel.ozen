@@ -1,0 +1,6 @@
+// args: debug steps
+recipe r() {
+  ingredients { potato: 2 pcs }
+  let b = boil(potato, 20 min)
+  let p = peel(b)
+}

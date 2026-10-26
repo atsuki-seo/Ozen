@@ -1,0 +1,3 @@
+error TYP007 cutCoarser cut-coarser.ozen:4:11-4:35 args=["dice", "roughChop"]: cut coarser
+result error errors=1 warnings=0 infos=0
+exit 1

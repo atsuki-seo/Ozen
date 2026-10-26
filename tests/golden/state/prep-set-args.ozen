@@ -1,0 +1,7 @@
+// args: debug steps
+recipe r() {
+  ingredients { rice: 300 g }
+  let w = wash(rice)
+  let s = soak(w, 30 min)
+  let t = soak(s, 45 min)
+}

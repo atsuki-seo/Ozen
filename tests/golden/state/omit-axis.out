@@ -1,0 +1,5 @@
+recipe r
+  water : Water 500 ml
+  %1 = fry(water, 60 s) : Water<doneness: done> 500 ml
+result ok errors=0 warnings=0 infos=0
+exit 0

@@ -1,0 +1,9 @@
+action plateHot(x: T<doneness >= done>) -> T
+recipe r() {
+  ingredients {
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let a = plateHot(onion)
+  let c = plateHot(boil(carrot, 10 min))
+}

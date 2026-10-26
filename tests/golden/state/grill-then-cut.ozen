@@ -1,0 +1,6 @@
+// args: debug steps
+recipe r() {
+  ingredients { pork: 200 g }
+  let f = fry(pork, 5 min)
+  let c = cut(f, style: slice)
+}

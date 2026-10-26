@@ -1,0 +1,14 @@
+axis firmness : ordered { soft, firm }
+ingredient Kinugoshi : Vegetable {
+  axes: firmness
+}
+action press(x: T) -> T<firmness: firm>
+action slab(x: T<firmness >= firm>) -> T
+recipe r() {
+  ingredients {
+    a: Kinugoshi 1 pcs
+    b: Kinugoshi 1 pcs
+  }
+  let bad = slab(a)
+  let good = slab(press(b))
+}

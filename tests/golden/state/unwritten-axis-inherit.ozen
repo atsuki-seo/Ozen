@@ -1,0 +1,6 @@
+// args: debug steps
+recipe r() {
+  ingredients { carrot: 1 pcs }
+  let w = wash(carrot)
+  let c = cut(w, style: slice)
+}
