@@ -6,3 +6,4 @@ f8ba286 nodes-short rewritten so that the limit is crossed by a step; the first 
 c83c9e3 out-of-memory golden added after the implementation so that MAC:outOfMemory appears in a golden output; the allocation number depends on the implementation
 fce74b8 the import-star golden in this commit was already green because the parser reported star imports since P7-3; the S164 mutation shows that it detects accepting star imports
 f34f36d the std package golden passes with the existing resolver by design; the S357 mutation (renaming the std package) shows that it detects the change
+9e3c407 the no-overload golden passes with the existing duplicate definition check from P7; the S229 mutation (letting the second definition replace the first) shows that it detects overloading
