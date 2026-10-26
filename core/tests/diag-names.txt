@@ -74,3 +74,10 @@ ASM:externalIngredient
 TYP:type
 NAM:undefinedInMacro
 TYP:spliceNotName
+NAM:unknownDiagnostic
+NAM:expectUnfulfilled
+TYP:annotationTarget
+SAF:fixedSeverity
+PKG:deprecated
+PKG:checkCodeRange
+PKG:checkCodeDuplicate
