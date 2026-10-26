@@ -1,0 +1,27 @@
+// args: debug schedule --entry dinner --kitchen home --options today
+action stewB(x: T) -> T<doneness: done> {
+  uses hands for 30 min
+}
+recipe stew() {
+  ingredients {
+    pork: 300 g
+  }
+  let s = stewB(pork)
+}
+menu dinner() {
+  let c = make stew()
+  serve main {
+    plate perPerson on DeepPlate { c, buy Ice 100 g @frozen }
+    plate perPerson on Glass {
+      assemble { buy Cornflakes 30 g, buy VanillaIce 100 g @frozen, buy Strawberry 2 pcs }
+    }
+  }
+}
+kitchen home {
+  places {
+    freezer: Freezer
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

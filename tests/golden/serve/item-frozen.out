@@ -1,0 +1,13 @@
+schedule dinner level=2 cooks=1
+  0..1800 (1800) %2 stewB by cook1
+  0..2100 hold buy Ice 100 g @frozen [freezer#1]
+  0..1800 hold buy VanillaIce 100 g @frozen [freezer#1]
+  1800..1980 (1860) %8 assemble by cook1
+  1980..2040 (1998) %4 plate perPerson by cook1
+  2040..2100 (2058) %9 plate perPerson by cook1
+  serve main at 2100
+  total 2100
+info ASM007 provisionalValue item-frozen.ozen:9:11-9:22 args=["assemble"]: provisional value
+info ASM007 provisionalValue item-frozen.ozen:14:5-14:62 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=2
+exit 0
