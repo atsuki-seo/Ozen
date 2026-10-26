@@ -3358,6 +3358,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cli/diag-display`（S356・正常系）— 識別子からの英語の表示を出さないと落ちた。戻して合格
   - わざと壊す確認: `cli/out-removed-entry`（S443・永続化）— 前回の出力を消さないと落ちた（`out-rebuild-identical` は同じ入力で 1 バイトも違わないことを確かめる）。戻して合格
 - P10-5（2026-10-26）: `VERSION`・`ozen --version`・`stdlib/package.ozen`・ライブラリの結果の JSON の `ozenVersion`（`VERSION` からビルドの時に埋め込む）がすべて `0.1.0` でそろっている。`G-REPO-VERSION` が合格
+- ゲート G（P10-6、2026-10-26）: P9-8 のゴール（`G-CORE-BUILD`・`FLAGS`・`C23-SUBSET`・`DIAG-REGISTRY`・`DIAG-APPEND`・`UNIT`・`ARENA-ACCESS`・`NOINT128`・`GOLDEN`（318 件 × 4 構成）・`GRAMMAR`・`STD-EMBED`・`G-STD-LISTS`・`STATIC`・`SOURCES`・`PROVENANCE`・`G-REPO-VERSION`・`G-CORE-OOM`・`PURE`・`NOGLOBAL`・`NOFLOAT`・`DETERMINISM`・`G-REPO-SPDX`・`SELFTESTS`・`RED-FIRST`・`TOOLS`・`G-PLAN-COVERAGE`・`G-TYPE-SEVERITY-TABLE`・`G-SCHED-CHECK`・`G-CORE-FUZZ`（`parse` `72694 execs in 602 s`・`expand` `37395 execs in 601 s`・`typecheck` `38277 execs in 601 s`・`schedule` `39318 execs in 601 s`、すべて 0 crashes, 0 leaks, 0 timeouts））と P10 のゴール（`G-API-EXPORTS`・`G-API-HEADER`・`G-API-SCHEMA`（`json: 318 files, 0 invalid`）・`G-API-SARIF`（`sarif: 168 files, 0 invalid`）・`G-CLI-TESTS`（`cli: 15 cases, 0 failed`）・`vendorcheck`（SARIF の分）が合格。計画との食い違い: `G-CORE-PROPS` の `std_copy`（P13-1）・`bundle_roundtrip`（P15-2）と `G-REND-VENDOR` の Fluent のライセンス（フェーズ K）は、その作業で作るのでまだ合格しない（ゲート F と同じ扱い）
 
 ### 9.8 H（4 環境）
 
