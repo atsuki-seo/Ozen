@@ -104,6 +104,9 @@ def check_schedule(r, sched, spec):
         r.want(f"wave of {name}", any(t.get("wave") == wave for t in named(name)))
     for name, kind in spec.get("usesKind", []):
         r.want(f"{name} uses {kind}", any(kinds.get(u) == kind for t in named(name) for u in t.get("uses", [])))
+    if "serveWithin" in spec:
+        got = sum(1 for d in (sched.get("dishes", []) if sched else []) if d.get("serveWithin") is not None)
+        r.want("serveWithin dishes", got == spec["serveWithin"], str(got))
     for item, kind in spec.get("holds", []):
         holds = sched.get("holds", []) if sched else []
         r.want(f"hold {item} in {kind}", any(item in h["item"] and kinds.get(h["resource"]) == kind for h in holds))
