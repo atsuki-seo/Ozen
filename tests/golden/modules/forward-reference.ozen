@@ -1,0 +1,7 @@
+menu dinner() {
+  let c = make curry()
+}
+recipe curry() {
+  ingredients { rice: 300 g }
+  let r = wash(rice)
+}
