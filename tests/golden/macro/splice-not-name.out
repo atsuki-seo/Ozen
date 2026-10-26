@@ -1,0 +1,3 @@
+error TYP016 spliceNotName splice-not-name.ozen:3:5-3:25 args=["$into"] via splice-not-name.ozen:8:3-8:24: splice not name
+result error errors=1 warnings=0 infos=0
+exit 1

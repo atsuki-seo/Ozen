@@ -1,0 +1,9 @@
+macro marinate(x, into) {
+  quote {
+    let $into = wash($x)
+  }
+}
+recipe r() {
+  ingredients { carrot: 1 pcs }
+  marinate(carrot, 1 g)
+}
