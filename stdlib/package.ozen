@@ -1,0 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+package std {
+  version: "0.1.0"
+}

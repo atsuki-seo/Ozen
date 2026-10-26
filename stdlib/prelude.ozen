@@ -1,0 +1,703 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+dimension Mass, Volume, Length, Time, Temperature, Count
+unit g : Mass = base
+unit kg : Mass = 1000 g
+unit pinch : Mass = 0.3..0.5 g
+unit dash : Mass = 0.1..0.3 g
+unit ml : Volume = base
+unit L : Volume = 1000 ml
+unit tbsp : Volume = 15 ml
+unit tsp : Volume = 5 ml
+unit gou : Volume = 180 ml
+unit mm : Length = base
+unit cm : Length = 10 mm
+unit s : Time = base
+unit min : Time = 60 s
+unit h : Time = 60 min
+unit degC : Temperature = base
+unit pcs : Count = base
+axis doneness : ordered { raw, surface, par, done }
+axis browning : ordered { none, light, golden, dark, charred }
+axis shape : { whole, peeled, cut(style: CutStyle, size: Length), pureed }
+axis prep : set { washed, soaked(time: Time), salted, marinated(with: Sauce) }
+axis cleaning : ordered { none, rinse, wash, soakThenWash }
+enum CutStyle {
+  slice, dice, rollCut, roughChop, julienne, biteSize, mince
+  finer slice -> julienne, mince
+  finer julienne -> mince
+  finer dice -> mince
+  finer roughChop -> biteSize, dice
+  finer biteSize -> dice
+  finer rollCut -> biteSize
+}
+enum Heat { low, medium, high }
+enum Hardness { soft, medium, hard }
+enum FatLevel { low, medium, high }
+trait Vegetable
+trait Root : Vegetable
+trait LeafyVegetable : Vegetable
+trait Meat
+trait Fish
+trait Grain
+trait Noodle : Grain
+trait Dairy
+trait Fruit
+trait Seasoning
+trait Peelable
+trait SkinEdible
+trait RawEdible
+trait Hazard
+trait Refrigerated
+trait Frozen
+trait Allergen(kind: AllergenKind)
+trait Smelly
+trait Soiled
+trait Greasy
+trait Sticky
+trait Staining
+trait Burnt
+trait Light
+trait Fatty
+trait RoundFish : Fish {
+  parts {
+    head
+    collar
+    back
+    belly {
+      traits: Fatty
+    }
+    frame
+    skin
+    guts {
+      discard: true
+    }
+    scales {
+      discard: true
+    }
+  }
+}
+trait Dish
+trait Liquid
+trait Sauce : Liquid
+trait HoldsLiquid
+enum AllergenKind { shrimp, cashew, crab, walnut, wheat, buckwheat, egg, milk, peanut }
+trait Capability
+trait Place
+trait Tool
+trait HeatSource : Capability {
+  modes: stovetop, oven, microwave, toaster
+}
+trait CuttingSurface : Capability
+trait Container : Capability
+trait RiceCooking : Capability
+trait Blending : Capability
+trait Chilling : Capability
+trait Freezing : Capability
+trait Washing : Capability
+trait Vessel : Capability
+trait WorkSurface : Capability
+kind Floor : Place
+kind Counter : Place, WorkSurface {
+  props {
+    wipeTime: 0.5..1 min @source(provisional)
+  }
+}
+kind Sink : Place, Washing
+kind Stove : Place {
+  abstract: true
+  props {
+    wipeTime: 1..2 min @source(provisional)
+  }
+}
+kind GasStove : Place, Stove, HeatSource<stovetop>
+kind IHStove : Place, Stove, HeatSource<stovetop>
+kind Oven : Place, HeatSource<oven> {
+  props {
+    wipeTime: 1..3 min @source(provisional)
+  }
+}
+kind Microwave : Place, HeatSource<microwave> {
+  props {
+    wipeTime: 0.5..1 min @source(provisional)
+  }
+}
+kind Toaster : Place, HeatSource<toaster> {
+  props {
+    wipeTime: 0.5..1 min @source(provisional)
+  }
+}
+kind OvenRange : Place, HeatSource<oven>, HeatSource<microwave> {
+  props {
+    wipeTime: 1..3 min @source(provisional)
+  }
+}
+kind Fridge : Place, Chilling
+kind Freezer : Place, Freezing
+kind Dishwasher : Place, Washing
+kind CuttingBoard : Tool, CuttingSurface {
+  props {
+    washTime: 1..2 min @source(provisional)
+  }
+}
+kind Knife : Tool {
+  props {
+    washTime: 0.5..1 min @source(provisional)
+  }
+}
+kind Peeler : Tool {
+  props {
+    washTime: 0.3..0.5 min @source(provisional)
+  }
+}
+kind FryingPan : Tool {
+  props {
+    washTime: 1..3 min @source(provisional)
+  }
+}
+kind Pot : Tool, Container {
+  props {
+    washTime: 1..3 min @source(provisional)
+  }
+}
+kind MixingBowl : Tool, Container {
+  props {
+    washTime: 0.5..1 min @source(provisional)
+  }
+}
+kind Colander : Tool {
+  props {
+    washTime: 0.5..1 min @source(provisional)
+  }
+}
+kind CookingChopsticks : Tool {
+  props {
+    washTime: 0.3..0.5 min @source(provisional)
+  }
+}
+kind Ladle : Tool {
+  props {
+    washTime: 0.3..0.5 min @source(provisional)
+  }
+}
+kind Whisk : Tool {
+  props {
+    washTime: 0.5..1 min @source(provisional)
+  }
+}
+kind MeasuringSpoon : Tool {
+  props {
+    washTime: 0.2..0.5 min @source(provisional)
+  }
+}
+kind RiceCooker : Tool, RiceCooking {
+  props {
+    washTime: 1..3 min @source(provisional)
+  }
+}
+kind Blender : Tool, Blending {
+  props {
+    washTime: 2..4 min @source(provisional)
+  }
+}
+resource hands
+vessel FlatPlate
+vessel LongPlate : FlatPlate
+vessel DeepPlate : HoldsLiquid
+vessel Donburi : HoldsLiquid
+vessel RiceBowl
+vessel SoupBowl : HoldsLiquid
+vessel Bowl : HoldsLiquid
+vessel SmallBowl : HoldsLiquid
+vessel SmallPlate
+vessel Platter
+vessel Glass : HoldsLiquid
+property deepPlate = vesselOrder(DeepPlate, Donburi, Bowl)
+property riceBowl = vesselOrder(RiceBowl, Donburi)
+property flatPlate = vesselOrder(FlatPlate, Platter)
+property smallBowl = vesselOrder(SmallBowl, SmallPlate, dryOnly: true)
+dirt rawMeat : Hazard
+dirt rawFish : Hazard, Smelly
+dirt rawEgg : Hazard
+dirt soil : Soiled
+dirt oil : Greasy
+dirt starch : Sticky
+dirt odor : Smelly
+dirt stain : Staining
+dirt scorch : Burnt
+dirt light : Light
+dirt allergen : Allergen
+rule after Hazard: wash @fixed
+rule after Hazard: none before sameFoodSameState @fixed
+rule after Allergen: none @fixed
+rule after Allergen: wash before allergicPerson @fixed
+rule after Soiled: rinse
+rule after Soiled: wash before RawEdible
+rule after Smelly: none
+rule after Smelly: rinse before RawEdible
+rule after Smelly: rinse before dessert
+rule after Greasy: wash
+rule after Greasy: none before sameTool
+rule after Sticky: soakThenWash
+rule after Burnt: soakThenWash
+rule after Staining: none @info
+rule after Light: none
+ingredient Rice : Grain {
+  axes: doneness, prep
+  leaves: starch
+  props {
+    density: 0.80..0.86 g/ml @source(provisional)
+  }
+}
+ingredient SteamedNoodles : Noodle, Allergen(wheat) {
+  axes: doneness, browning, prep
+  initial: { doneness: done }
+  leaves: starch, allergen
+  props {
+    unitWeight: 140..160 g/pcs @source(provisional)
+  }
+}
+ingredient Naan : Grain, Allergen(wheat), Allergen(milk) {
+  axes: doneness, browning
+  initial: { doneness: done }
+  leaves: allergen
+  props {
+    unitWeight: 80..120 g/pcs @source(provisional)
+  }
+}
+ingredient Pork : Meat, Hazard, SkinEdible {
+  axes: doneness, browning, shape, prep
+  leaves: rawMeat
+  props {
+    density: 1.00..1.10 g/ml @source(provisional)
+  }
+  parts {
+    shoulder
+    loin
+    shoulderLoin {
+      extends: loin
+      traits: Fatty
+    }
+    tenderloin
+    belly {
+      traits: Fatty
+    }
+    leg
+  }
+}
+ingredient Chicken : Meat, Hazard, SkinEdible {
+  axes: doneness, browning, shape, prep
+  leaves: rawMeat
+  props {
+    density: 1.00..1.10 g/ml @source(provisional)
+  }
+  parts {
+    thigh {
+      traits: Fatty
+    }
+    breast
+    tender {
+      props {
+        refuse: fct(mextFct2023, food: "11227", field: refuse)
+      }
+    }
+    wingTip {
+      props {
+        refuse: fct(mextFct2023, food: "11285", field: refuse)
+      }
+    }
+    wingStick {
+      props {
+        refuse: fct(mextFct2023, food: "11286", field: refuse)
+      }
+    }
+  }
+}
+ingredient Beef : Meat, Hazard, SkinEdible {
+  axes: doneness, browning, shape, prep
+  leaves: rawMeat
+  props {
+    density: 1.00..1.10 g/ml @source(provisional)
+  }
+  parts {
+    shoulder
+    shoulderLoin {
+      traits: Fatty
+    }
+    ribLoin {
+      traits: Fatty
+    }
+    sirloin {
+      traits: Fatty
+    }
+    tenderloin
+    belly {
+      traits: Fatty
+    }
+    leg
+  }
+}
+ingredient Buri : RoundFish, Hazard, RawEdible, SkinEdible {
+  axes: doneness, browning, shape, prep
+  leaves: rawFish
+  props {
+    density: 1.00..1.10 g/ml @source(provisional)
+  }
+}
+ingredient Onion : Vegetable, Peelable {
+  axes: doneness, browning, shape, prep
+  leaves: odor
+  props {
+    refuse: fct(mextFct2023, food: "06153", field: refuse)
+    density: 0.50..0.70 g/ml @source(provisional)
+    unitWeight: 150..250 g/pcs @source(provisional)
+    hardness: medium
+    heating {
+      simmer {
+        heatUp: 3..5 min @source(provisional)
+        at: 10 mm
+        soften: 5..10 min @source(provisional)
+      }
+      fry {
+        heatUp: 2..4 min @source(provisional)
+        at: 3 mm
+        soften: 3..8 min @source(provisional)
+      }
+    }
+  }
+}
+ingredient Carrot : Root, Peelable, SkinEdible {
+  axes: doneness, browning, shape, prep
+  leaves: soil
+  props {
+    refuse: fct(mextFct2023, food: "06214", field: refuse)
+    density: 0.55..0.75 g/ml @source(provisional)
+    unitWeight: 150..200 g/pcs @source(provisional)
+    hardness: hard
+    heating {
+      simmer {
+        heatUp: 4..6 min @source(provisional)
+        at: 20 mm
+        soften: 8..12 min @source(provisional)
+      }
+    }
+  }
+}
+ingredient Potato : Root, Peelable {
+  axes: doneness, browning, shape, prep
+  leaves: soil, starch
+  props {
+    refuse: fct(mextFct2023, food: "02017", field: refuse)
+    density: 0.60..0.80 g/ml @source(provisional)
+    unitWeight: 130..170 g/pcs @source(provisional)
+    hardness: hard
+    heating {
+      simmer {
+        heatUp: 4..6 min @source(provisional)
+        at: 20 mm
+        soften: 8..12 min @source(provisional)
+      }
+    }
+  }
+}
+ingredient Cabbage : LeafyVegetable, SkinEdible, RawEdible {
+  axes: doneness, browning, shape, prep
+  leaves: light
+  props {
+    refuse: fct(mextFct2023, food: "06061", field: refuse)
+    unitWeight: 1000..1300 g/pcs @source(provisional)
+    hardness: soft
+    heating {
+      fry {
+        direct: 2..4 min @source(provisional)
+      }
+      simmer {
+        direct: 3..6 min @source(provisional)
+      }
+    }
+  }
+}
+ingredient BeanSprouts : Vegetable, SkinEdible {
+  axes: doneness, prep
+  leaves: light
+  props {
+    refuse: fct(mextFct2023, food: "06291", field: refuse)
+    hardness: soft
+    heating {
+      fry {
+        direct: 1..2 min @source(provisional)
+      }
+    }
+  }
+}
+ingredient Lettuce : LeafyVegetable, SkinEdible, RawEdible {
+  axes: shape, prep
+  leaves: light
+  props {
+    refuse: fct(mextFct2023, food: "06312", field: refuse)
+    unitWeight: 300..500 g/pcs @source(provisional)
+  }
+}
+ingredient Tomato : Vegetable, SkinEdible, RawEdible {
+  axes: doneness, shape, prep
+  leaves: stain
+  props {
+    refuse: fct(mextFct2023, food: "06182", field: refuse)
+    unitWeight: 150..200 g/pcs @source(provisional)
+  }
+}
+ingredient Cucumber : Vegetable, SkinEdible, RawEdible {
+  axes: shape, prep
+  leaves: light
+  props {
+    refuse: fct(mextFct2023, food: "06065", field: refuse)
+    unitWeight: 90..110 g/pcs @source(provisional)
+  }
+}
+ingredient Miso : Seasoning {
+  axes: []
+  leaves: odor
+}
+ingredient Dashi : Seasoning, Liquid {
+  axes: doneness
+  leaves: light
+  props {
+    density: 1.00..1.01 g/ml @source(provisional)
+  }
+}
+ingredient Tofu : SkinEdible, RawEdible, Refrigerated {
+  axes: doneness, shape
+  leaves: light
+  props {
+    unitWeight: 300..400 g/pcs @source(provisional)
+  }
+}
+ingredient Wakame : Vegetable, SkinEdible, RawEdible {
+  axes: shape, prep
+  leaves: light
+}
+ingredient Salt : Seasoning {
+  axes: []
+}
+ingredient Pepper : Seasoning {
+  axes: []
+}
+ingredient Oil : Seasoning, Liquid {
+  axes: []
+  leaves: oil
+  props {
+    density: 0.90..0.93 g/ml @source(provisional)
+  }
+}
+ingredient CurryRoux : Seasoning, Allergen(wheat), Allergen(milk) {
+  axes: doneness
+  initial: { doneness: done }
+  leaves: stain, oil, allergen
+}
+ingredient WorcesterSauce : Seasoning, Sauce {
+  axes: []
+  leaves: stain
+  props {
+    density: 1.15..1.25 g/ml @source(provisional)
+  }
+}
+ingredient Dressing : Seasoning, Sauce, RawEdible {
+  axes: []
+  leaves: oil
+  props {
+    density: 0.95..1.10 g/ml @source(provisional)
+  }
+}
+ingredient VanillaIce : Dairy, Frozen, RawEdible, Allergen(milk) {
+  axes: []
+  leaves: allergen, starch
+}
+ingredient Cream : Dairy, Refrigerated, RawEdible, Liquid, Allergen(milk) {
+  axes: []
+  leaves: oil, allergen
+  props {
+    density: 1.00..1.03 g/ml @source(provisional)
+  }
+}
+ingredient WhippedCream : Dairy, Refrigerated, RawEdible {
+  axes: []
+  leaves: oil
+}
+ingredient Sugar : Seasoning {
+  axes: []
+  leaves: starch
+  props {
+    density: 0.60..0.85 g/ml @source(provisional)
+  }
+}
+ingredient Strawberry : Fruit, RawEdible, SkinEdible {
+  axes: shape, prep
+  leaves: stain
+  props {
+    refuse: fct(mextFct2023, food: "07012", field: refuse)
+    unitWeight: 10..25 g/pcs @source(provisional)
+  }
+}
+ingredient Banana : Fruit, Peelable, RawEdible {
+  axes: shape
+  leaves: starch
+  props {
+    refuse: fct(mextFct2023, food: "07107", field: refuse)
+    unitWeight: 100..150 g/pcs @source(provisional)
+  }
+}
+ingredient Cornflakes : Grain, RawEdible {
+  axes: []
+  leaves: light
+}
+ingredient ChocolateSauce : Sauce, RawEdible, Allergen(milk) {
+  axes: []
+  leaves: starch, allergen
+  props {
+    density: 1.20..1.40 g/ml @source(provisional)
+  }
+}
+ingredient Milk : Dairy, Liquid, Refrigerated, RawEdible, Allergen(milk) {
+  axes: doneness
+  leaves: light, allergen
+  props {
+    density: 1.028..1.040 g/ml @source(provisional)
+  }
+}
+ingredient Ice : Frozen, RawEdible {
+  axes: []
+  leaves: light
+  props {
+    density: 0.91..0.92 g/ml @source(provisional)
+  }
+}
+ingredient Water : Liquid, RawEdible {
+  axes: doneness
+  leaves: light
+  props {
+    density: 0.99..1.00 g/ml @source(provisional)
+  }
+}
+ingredient CookedRice : Grain {
+  axes: doneness, prep
+  initial: { doneness: done }
+  leaves: starch
+}
+ingredient Mixture {
+  structural: true
+  axes: doneness, prep
+}
+alias Komagire = Pork<shoulder, shape: cut(style: biteSize) | shoulderLoin, shape: cut(style: biteSize) | loin, shape: cut(style: biteSize) | belly, shape: cut(style: biteSize) | leg, shape: cut(style: biteSize)>
+alias Karubi = Beef<belly | Fatty>
+action wash(x: T) -> T<prep has washed> {
+  uses hands, Washing for 1..3 min @source(provisional)
+}
+action soak(x: T, time: Time = 30 min) -> T<prep has soaked(time)> {
+  uses Container @unattended
+}
+action peel(x: T<Peelable, shape: whole>) -> T<shape: peeled> {
+  uses hands, WorkSurface for 1..2 min @source(provisional)
+}
+action loosen(x: T<Noodle>) -> T {
+  uses hands for 0.5..1 min @source(provisional)
+}
+action drain(x: T<prep has washed | prep has soaked>) -> T {
+  uses hands, Colander for 0.5..1 min @source(provisional)
+}
+action cut(x: T<shape: peeled | shape: cut | SkinEdible, shape: whole>, style: CutStyle, size: Length = 3 mm) -> T<shape: cut(style, size)> {
+  uses hands, WorkSurface, CuttingSurface, Knife for 1..3 min @source(provisional)
+  leaves: x on CuttingSurface, x on Knife
+}
+action tear(x: T<LeafyVegetable>) -> T<shape: cut(biteSize)> {
+  uses hands for 0.5..2 min @source(provisional)
+}
+action cookRice(x: Rice<prep has soaked>) -> CookedRice {
+  variant cooker {
+    uses RiceCooking for 42..54 min @unattended @source(panasonicSrPw109Spec)
+    leaves: starch on RiceCooker
+  }
+  variant pot {
+    uses hands, HeatSource<stovetop>, Pot for 25..35 min @source(provisional)
+    leaves: starch on Pot
+    steps { boil; simmer; rest }
+  }
+  variant microwave {
+    uses HeatSource<microwave>, Container for 15..20 min @unattended @source(provisional)
+    leaves: starch on Container
+  }
+}
+action fry(x: T, time: Time, heat: Heat = medium) -> T<doneness: done, browning: light> {
+  uses hands, HeatSource<stovetop>, FryingPan
+  leaves: oil on FryingPan
+}
+action simmer(x: T, time: Time, heat: Heat = low) -> T<doneness: done> {
+  uses HeatSource<stovetop>, Pot @unattended
+  leaves: x on Pot
+}
+action boil(x: T, time: Time) -> T<doneness: done> {
+  uses HeatSource<stovetop>, Pot @unattended
+}
+action parboil(x: T, time: Time) -> T<doneness: par> {
+  uses HeatSource<stovetop>, Pot @unattended
+}
+action boilWater(x: Water) -> Water<doneness: done> {
+  uses HeatSource<stovetop>, Pot for 5..10 min @unattended @source(provisional)
+}
+action dissolve(x: T) -> T {
+  uses hands, HeatSource<stovetop>, Ladle for 1..3 min @source(provisional)
+}
+action warm(x: T) -> T {
+  variant microwave {
+    uses HeatSource<microwave> for 0.5..1 min @source(provisional)
+  }
+  variant toaster {
+    uses HeatSource<toaster> for 2..3 min @source(provisional)
+  }
+  variant pan {
+    uses hands, HeatSource<stovetop>, FryingPan for 2..4 min @source(provisional)
+  }
+}
+action mix(x: T) -> T {
+  uses hands, MixingBowl for 0.5..2 min @source(provisional)
+  leaves: x on MixingBowl
+}
+action toss(x: T) -> T {
+  uses hands, MixingBowl for 0.5..1 min @source(provisional)
+  leaves: x on MixingBowl
+}
+action whip(x: T<Liquid>) -> WhippedCream {
+  uses hands, Whisk, MixingBowl for 3..6 min @source(provisional)
+  leaves: x on Whisk, x on MixingBowl
+}
+action season(x: T, with: T<Seasoning>) -> T {
+  uses hands for 0.2..0.5 min @source(provisional)
+}
+action blend(x: T) -> T<shape: pureed> {
+  uses Blending for 0.5..1.5 min @source(provisional)
+  leaves: starch on Blender, x on Blender
+}
+action chill(x: T, time: Time) -> T {
+  uses Chilling @unattended
+}
+action rest(x: T, time: Time) -> T @unattended
+action plate(x: T) {
+  uses hands, Vessel for 0.3..1 min @source(provisional)
+}
+action layer(x: T) -> T {
+  uses hands, Vessel for 1..3 min @source(provisional)
+}
+action clean(t: Tool) {
+  uses hands, Washing
+}
+action wipe(p: Place) {
+  uses hands
+}
+action store(x: T) {
+  uses hands, Chilling for 0.3..1 min @source(provisional)
+}
+action discard(x: T) {
+  uses hands for 0.1..0.5 min @source(provisional)
+}
+action combine(xs: [T]) -> Mixture {
+  structural: true
+  combine: true
+}
