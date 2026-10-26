@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "lex.h"
+#include "text.h"
 
 static const char *const reserved[] = {
     "and",    "assemble", "branch",  "buy",   "check",   "choose", "else",  "false",   "finer",
@@ -83,8 +84,8 @@ static void lex_number(lexer *lx) {
     if (lx->i - frac > 18 || total >= sizeof digits) {
       too_large = true;
     } else {
-      memcpy(digits, lx->s + start, int_end - start);
-      memcpy(digits + (int_end - start), lx->s + frac, lx->i - frac);
+      ozni_copy(digits, lx->s + start, int_end - start);
+      ozni_copy(digits + (int_end - start), lx->s + frac, lx->i - frac);
       too_large = too_large || !fits_int64(digits, total);
     }
   } else if (lx->i + 1 < lx->n && lx->s[lx->i] == '/' && is_digit((unsigned char)lx->s[lx->i + 1])) {

@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "render.h"
+#include "text.h"
 
 typedef struct pos {
   uint32_t line;
@@ -68,7 +69,7 @@ static int cmp_diag(const ozni_ctx *c, const ozni_diag *x, const ozni_diag *y) {
   if (x->span.start != y->span.start) {
     return x->span.start < y->span.start ? -1 : 1;
   }
-  int r = strcmp(ozni_diag_code(x->id), ozni_diag_code(y->id));
+  int r = ozni_strcmp(ozni_diag_code(x->id), ozni_diag_code(y->id));
   if (r != 0) {
     return r;
   }
@@ -243,7 +244,7 @@ bool ozni_render_ast(const ozni_ctx *c, const ozni_ast *ast, unsigned flags, ozn
     for (size_t i = 1; i < n; i++) {
       const char *x = names[i];
       size_t j = i;
-      while (j > 0 && strcmp(names[j - 1], x) > 0) {
+      while (j > 0 && ozni_strcmp(names[j - 1], x) > 0) {
         names[j] = names[j - 1];
         j--;
       }
