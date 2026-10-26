@@ -33,9 +33,9 @@ expected_id() {
     */vendor/*) return ;;
   esac
   case "$path" in
-    proto/*|tools/*|scripts/*|.github/*)
+    proto/*|tools/*|scripts/*|.github/*|core/*|cli/*|tests/*)
       case "$base" in
-        CMakeLists.txt|*.c|*.h|*.def|*.py|*.sh|*.mjs|*.cmake|*.yml) echo "$code_id" ;;
+        CMakeLists.txt|*.c|*.h|*.def|*.py|*.sh|*.mjs|*.cmake|*.yml|*.ebnf) echo "$code_id" ;;
       esac ;;
     spec/vocab/*|spec/schema/*|spec/coverage/*|spec/fixtures/*)
       echo "$code_id" ;;
