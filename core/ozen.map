@@ -1,0 +1,8 @@
+{
+  global:
+    recipe_build;
+    recipe_default_config;
+    recipe_free_string;
+  local:
+    *;
+};

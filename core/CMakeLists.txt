@@ -37,6 +37,14 @@ target_include_directories(ozen_lib PUBLIC src)
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/../VERSION OZN_LIB_VERSION LIMIT_COUNT 1)
 target_compile_definitions(ozen_lib PRIVATE OZEN_VERSION="${OZN_LIB_VERSION}")
 
+if(NOT EMSCRIPTEN AND NOT APPLE AND NOT ANDROID)
+  add_library(ozen_shared SHARED ${OZN_SOURCES} ${OZN_STD_C})
+  set_target_properties(ozen_shared PROPERTIES OUTPUT_NAME ozen LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  target_include_directories(ozen_shared PRIVATE src)
+  target_compile_definitions(ozen_shared PRIVATE OZEN_VERSION="${OZN_LIB_VERSION}")
+  target_link_options(ozen_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/ozen.map)
+endif()
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cli ${CMAKE_CURRENT_BINARY_DIR}/cli)
 
 enable_testing()
