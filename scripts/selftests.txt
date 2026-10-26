@@ -30,3 +30,4 @@ tools/stdcheck/provenance.py scripts/test-stdcheck.sh
 tools/stdcheck/sources.py scripts/test-stdcheck.sh
 scripts/check-severity-table.py scripts/test-check-severity-table.sh
 tools/schedcheck/schedcheck.py scripts/test-schedcheck.sh
+scripts/collect-schedules.sh scripts/test-collect-schedules.sh

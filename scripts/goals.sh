@@ -550,6 +550,7 @@ goal_G_STD_PHRASES() {
 }
 
 goal_G_SCHED_CHECK() {
+  scripts/collect-schedules.sh build/core-gcc-release/ozen tests/golden build/results/schedules >/dev/null
   want_re "schedcheck" '^schedcheck: [1-9][0-9]* schedules, 0 violations$' "$(python3 -B tools/schedcheck/schedcheck.py build/results/schedules/*.json 2>&1 | tail -n 1)"
 }
 
