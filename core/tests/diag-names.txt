@@ -68,3 +68,6 @@ KIT:noVariant
 KIT:requiresUnmet
 SCH:vesselOverflow
 SCH:tooManyCooks
+ASM:evenChoice
+ASM:noPlating
+ASM:externalIngredient
