@@ -1,0 +1,15 @@
+// args: check --entry dinner
+recipe soup() {
+  ingredients { water: 300 ml }
+  let w = boilWater(water)
+}
+menu dinner(people: 2) {
+  let a = make soup()
+  let b = make soup()
+  let c = make soup()
+  serve main {
+    plate perPerson on deepPlate { a }
+    plate perPerson on flatPlate { b }
+    plate perPerson on smallBowl { c }
+  }
+}
