@@ -139,6 +139,7 @@ typedef struct sema {
   const struct mframe *frame;
   uint32_t depth;
   bool top;
+  ozni_index deprecated_unit;
 } sema;
 
 typedef struct mframe {
@@ -185,10 +186,6 @@ static void diag(sema *s, ozni_diag_id id, ozni_index file, uint32_t start, uint
   if (!ozni_diag_add(s->c, id, (ozni_span){file, start, end}, s->trail, args, nargs)) {
     s->c->oom = true;
     return;
-  }
-  if (s->c->set.strict && id == OZNI_D_TYP_vagueAmount) {
-    ozni_diag *d = ozni_table_at(s->c->diags, ozni_table_count(s->c->diags) - 1);
-    d->severity = OZNI_SEV_ERROR;
   }
 }
 
@@ -523,6 +520,11 @@ static bool unit_path(sema *s, ozni_index mod, ozni_str path, ozni_ival *f, ozni
     if (!unit_resolve(s, u)) {
       return false;
     }
+    for (ozni_index c = nd(s, u->file, u->node)->first; c != 0; c = nd(s, u->file, c)->next) {
+      if (nd(s, u->file, c)->kind == OZNI_N_Annotation && str_is(S(s, nd(s, u->file, c)->text), "deprecated")) {
+        s->deprecated_unit = u->name;
+      }
+    }
     ozni_ival nf;
     if (!(sign > 0 ? ival_mul(*f, u->f, &nf) : ival_divide(*f, u->f, &nf))) {
       return false;
@@ -551,11 +553,16 @@ static bool qty_of(sema *s, ozni_index mod, ozni_index file, ozni_index node, oz
     if (!ival_parse(amount.p, amount.len, &a)) {
       return false;
     }
+    s->deprecated_unit = 0;
     if (!unit_path(s, mod, unit, &f, &d, &bad)) {
       if (report && bad.len > 0) {
         diag_node(s, OZNI_D_NAM_unknownUnit, file, n, &bad, 1);
       }
       return false;
+    }
+    if (report && s->deprecated_unit != 0 && file < s->c->nuser) {
+      ozni_str arg = S(s, s->deprecated_unit);
+      diag_node(s, OZNI_D_PKG_deprecated, file, n, &arg, 1);
     }
     ozni_ival v;
     if (!ival_mul(a, f, &v)) {
@@ -2486,8 +2493,16 @@ static void run_checks(sema *s, ozni_index tfile, ozni_index tnode, uint32_t dep
       continue;
     }
     ozni_qty l, r;
-    if (!check_operand(s, tfile, expr->first, &l) || !check_operand(s, tfile, nd(s, tfile, expr->first)->next, &r) ||
-        !dims_equal(l.d, r.d)) {
+    if (!check_operand(s, tfile, expr->first, &l) || !check_operand(s, tfile, nd(s, tfile, expr->first)->next, &r)) {
+      continue;
+    }
+    int count = dim_named(s, "Count");
+    if (count >= 0 && dimensionless(r.d) && l.d.e[count] == 1) {
+      r.d = l.d;
+    } else if (count >= 0 && dimensionless(l.d) && r.d.e[count] == 1) {
+      l.d = r.d;
+    }
+    if (!dims_equal(l.d, r.d)) {
       continue;
     }
     ozni_str op = S(s, expr->text);
@@ -2499,11 +2514,30 @@ static void run_checks(sema *s, ozni_index tfile, ozni_index tnode, uint32_t dep
     }
     ozni_diag_id id;
     ozni_str code = S(s, cn->text2);
-    if (!ozni_diag_lookup(code.p, code.len, &id)) {
+    bool user = tfile < s->c->nuser;
+    if (cn->text2 == 0 || (!user && !ozni_diag_lookup(code.p, code.len, &id))) {
       continue;
     }
     const ozni_node *on = nd(s, s->ofile, s->onode);
-    diag(s, id, s->ofile, on->name_start, on->name_end, nullptr, 0);
+    diag(s, user ? OZNI_D_TYP_type : id, s->ofile, on->name_start, on->name_end, nullptr, 0);
+    if (user && ozni_table_count(s->c->diags) > 0) {
+      ozni_diag *d = ozni_table_at(s->c->diags, ozni_table_count(s->c->diags) - 1);
+      ozni_buf b = {.a = s->c->allocator};
+      if (s->pr->root_pkg != NONE) {
+        const ozni_package *pkg = ozni_table_get(s->pr->packages, s->pr->root_pkg);
+        ozni_str pname = S(s, pkg->name);
+        ozni_buf_put(&b, pname.p, pname.len);
+        ozni_buf_puts(&b, ":");
+      }
+      ozni_buf_put(&b, code.p, code.len);
+      if (b.failed) {
+        s->c->oom = true;
+      } else {
+        d->code_text = intern(s, b.p, b.len) + 1;
+        d->name_text = cn->text + 1;
+      }
+      ozni_buf_discard(&b);
+    }
     ozni_str sev = S(s, cn->text3);
     uint32_t nd_count = ozni_table_count(s->c->diags);
     if (nd_count > 0) {
@@ -2901,6 +2935,65 @@ static value butcher(sema *s, const ozni_node *act, ozni_index afile, ozni_index
   return make_tuple(s, ref, outs, n);
 }
 
+static bool fix_candidate(sema *s, ozni_index file, ozni_index node, const food *f, ozni_index afile,
+                          ozni_index ptype) {
+  const ozni_node *act = nd(s, file, node);
+  ozni_index food_type = 0, output = 0;
+  uint32_t required = 0;
+  for (ozni_index c = act->first; c != 0; c = nd(s, file, c)->next) {
+    const ozni_node *cn = nd(s, file, c);
+    if (cn->kind == OZNI_N_Param && field_default(s, file, c) == 0) {
+      required++;
+      food_type = field_type_node(s, file, c);
+    } else if (cn->kind == OZNI_N_Output) {
+      output = cn->first;
+    }
+  }
+  if (required != 1 || food_type == 0 || output == 0 || type_var_of(s, file, food_type) == 0 ||
+      type_var_of(s, file, output) == 0 || !satisfies(s, f, file, food_type)) {
+    return false;
+  }
+  food *trial = food_copy(s, f);
+  if (trial == nullptr) {
+    return false;
+  }
+  s->quiet++;
+  apply_effects(s, trial, file, output, nullptr, nullptr, 0, file, act);
+  s->quiet--;
+  return satisfies(s, trial, afile, ptype);
+}
+
+static void suggest_fix(sema *s, const food *f, ozni_index afile, ozni_index anode, ozni_index ptype, ozni_str arg) {
+  ozni_index order[2] = {s->pr->prelude, s->mod};
+  for (int pass = 0; pass < 2; pass++) {
+    if (order[pass] == NONE) {
+      continue;
+    }
+    const ozni_module *m = mod_at(s, order[pass]);
+    for (ozni_index d = 0; d < ozni_table_count(m->defs); d++) {
+      const ozni_def *e = def_at(s, order[pass], d);
+      if ((m->file == afile && e->node == anode) || nd(s, m->file, e->node)->kind != OZNI_N_Action ||
+          !fix_candidate(s, m->file, e->node, f, afile, ptype)) {
+        continue;
+      }
+      ozni_buf b = {.a = s->c->allocator};
+      ozni_str name = S(s, nd(s, m->file, e->node)->text);
+      ozni_buf_put(&b, name.p, name.len);
+      ozni_buf_puts(&b, "(");
+      ozni_buf_put(&b, arg.p, arg.len);
+      ozni_buf_puts(&b, ")");
+      uint32_t count = ozni_table_count(s->c->diags);
+      if (b.failed) {
+        s->c->oom = true;
+      } else if (count > 0) {
+        ((ozni_diag *)ozni_table_at(s->c->diags, count - 1))->fix = intern(s, b.p, b.len) + 1;
+      }
+      ozni_buf_discard(&b);
+      return;
+    }
+  }
+}
+
 static void arg_site(const sema *s, ozni_index file, ozni_index node, ozni_index *sfile, ozni_index *snode,
                      ozni_index *strail) {
   const mframe *f = s->frame;
@@ -3090,6 +3183,9 @@ static value call_action(sema *s, ozni_index file, const ozni_node *call, ozni_i
       } else {
         ozni_str args[3] = {S(s, act->text), S(s, pnames[k]), arg_text};
         diag_node(s, OZNI_D_TYP_stateRequired, sfile, argn, args, 3);
+        if (s->quiet == 0) {
+          suggest_fix(s, pf, afile, anode, ptype, arg_text);
+        }
       }
     }
     ozni_index tv = ptype != 0 ? type_var_of(s, afile, ptype) : 0;
@@ -3768,6 +3864,27 @@ static void type_error(sema *s, const ozni_node *at, const char *want, vkind got
   diag_node(s, OZNI_D_TYP_type, s->file, at, args, 2);
 }
 
+static bool action_call(sema *s, ozni_index node) {
+  const ozni_node *n = nd(s, s->file, node);
+  ozni_index df, dn;
+  if (n->kind == OZNI_N_Make) {
+    return true;
+  }
+  return n->kind == OZNI_N_Call && n->first != 0 && nd(s, s->file, n->first)->kind == OZNI_N_Name &&
+         find_def(s, nd(s, s->file, n->first)->text, &df, &dn) &&
+         (nd(s, df, dn)->kind == OZNI_N_Action || nd(s, df, dn)->kind == OZNI_N_Macro);
+}
+
+static void check_targets(sema *s, const ozni_node *holder, ozni_index expr) {
+  for (ozni_index c = holder->first; c != 0; c = nd(s, s->file, c)->next) {
+    const ozni_node *an = nd(s, s->file, c);
+    if (an->kind == OZNI_N_Annotation && str_is(S(s, an->text), "unattended") && (expr == 0 || !action_call(s, expr))) {
+      ozni_str arg = S(s, an->text);
+      diag_node(s, OZNI_D_TYP_annotationTarget, s->file, an, &arg, 1);
+    }
+  }
+}
+
 static void tick_annotations(sema *s, const ozni_node *n) {
   for (ozni_index c = n->first; c != 0; c = nd(s, s->file, c)->next) {
     if (nd(s, s->file, c)->kind == OZNI_N_Annotation) {
@@ -3896,6 +4013,7 @@ static void eval_block(sema *s, ozni_index block, bool top) {
         break;
       }
       tick_annotations(s, n);
+      check_targets(s, n, n->first);
       value v = n->first != 0 ? eval(s, n->first) : unknown();
       if (v.kind == V_FOOD) {
         label(v.f, n->text, (ozni_span){s->file, n->name_start, n->name_end});
@@ -3916,10 +4034,11 @@ static void eval_block(sema *s, ozni_index block, bool top) {
       value v = unknown();
       ozni_index expr = 0;
       for (ozni_index c = n->first; c != 0; c = nd(s, s->file, c)->next) {
-        if (nd(s, s->file, c)->kind != OZNI_N_BindName) {
+        if (nd(s, s->file, c)->kind != OZNI_N_BindName && nd(s, s->file, c)->kind != OZNI_N_Annotation) {
           expr = c;
         }
       }
+      tick_annotations(s, n);
       if (expr != 0) {
         v = eval(s, expr);
       }
@@ -3968,6 +4087,9 @@ static void eval_block(sema *s, ozni_index block, bool top) {
     } else if (n->kind == OZNI_N_Repeat) {
       eval_repeat(s, n, top);
     } else {
+      if (n->kind == OZNI_N_Call) {
+        check_targets(s, n, st);
+      }
       value v = eval(s, st);
       s->top = top;
       if (top && v.kind == V_FOOD) {
@@ -4865,7 +4987,51 @@ static void check_macro_names(sema *s, ozni_index file, ozni_index body, ozni_in
   }
 }
 
+static void check_codes(sema *s) {
+  ozni_table *seen = ozni_table_new(s->c->arena, sizeof(ozni_index));
+  if (seen == nullptr) {
+    s->c->oom = true;
+    return;
+  }
+  for (ozni_index mi = 0; mi < ozni_table_count(s->pr->modules); mi++) {
+    const ozni_module *m = mod_at(s, mi);
+    if (m->is_std) {
+      continue;
+    }
+    for (ozni_index d = nd(s, m->file, m->root)->first; d != 0; d = nd(s, m->file, d)->next) {
+      if (nd(s, m->file, d)->kind != OZNI_N_Type) {
+        continue;
+      }
+      for (ozni_index c = nd(s, m->file, d)->first; c != 0; c = nd(s, m->file, c)->next) {
+        const ozni_node *cn = nd(s, m->file, c);
+        if (cn->kind != OZNI_N_Check || cn->text2 == 0) {
+          continue;
+        }
+        ozni_str code = S(s, cn->text2);
+        bool shape = code.len == 6;
+        for (uint32_t k = 0; shape && k < 6; k++) {
+          shape = k < 3 ? code.p[k] >= 'A' && code.p[k] <= 'Z' : code.p[k] >= '0' && code.p[k] <= '9';
+        }
+        bool duplicate = false;
+        ozni_diag_id id;
+        for (ozni_index k = 0; k < ozni_table_count(seen); k++) {
+          duplicate = duplicate || *(const ozni_index *)ozni_table_get(seen, k) == cn->text2;
+        }
+        if (duplicate || ozni_diag_lookup(code.p, code.len, &id)) {
+          diag_node(s, OZNI_D_PKG_checkCodeDuplicate, m->file, cn, &code, 1);
+        } else if (!shape || code.p[3] != '9') {
+          diag_node(s, OZNI_D_PKG_checkCodeRange, m->file, cn, &code, 1);
+        }
+        if (!duplicate && !ozni_table_push(seen, &cn->text2, nullptr)) {
+          s->c->oom = true;
+        }
+      }
+    }
+  }
+}
+
 static void check_definitions(sema *s) {
+  check_codes(s);
   for (ozni_index mi = 0; mi < ozni_table_count(s->pr->modules); mi++) {
     const ozni_module *m = mod_at(s, mi);
     if (m->is_std) {
