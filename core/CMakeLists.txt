@@ -61,3 +61,13 @@ foreach(l IN LISTS OZN_UNIT_LINES)
     set_tests_properties(${t} PROPERTIES WILL_FAIL TRUE)
   endif()
 endforeach()
+
+add_executable(ozen_oom_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/oom/oom_test.c)
+target_link_libraries(ozen_oom_test PRIVATE ozen_lib)
+
+if(OZN_FUZZ)
+  add_executable(fuzz_parse ${CMAKE_CURRENT_SOURCE_DIR}/fuzz/fuzz_parse.c)
+  target_compile_options(fuzz_parse PRIVATE -fsanitize=fuzzer)
+  target_link_options(fuzz_parse PRIVATE -fsanitize=fuzzer)
+  target_link_libraries(fuzz_parse PRIVATE ozen_lib)
+endif()
