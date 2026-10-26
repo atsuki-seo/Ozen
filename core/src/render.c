@@ -104,6 +104,8 @@ static void sort_diags(const ozni_ctx *c, const ozni_diag **v, const ozni_diag *
   memcpy(v, tmp, n * sizeof *v);
 }
 
+static void put_text(ozni_buf *b, const ozni_ctx *c, ozni_index text);
+
 static const char *severity_word(ozni_severity s) {
   switch (s) {
   case OZNI_SEV_ERROR:
@@ -129,12 +131,21 @@ bool ozni_render_check(ozni_ctx *c, ozni_buf *b, bool *has_errors) {
   uint64_t counts[3] = {0, 0, 0};
   for (ozni_index i = 0; i < n; i++) {
     const ozni_diag *d = v[i];
+    if (d->hidden) {
+      continue;
+    }
     counts[d->severity]++;
     ozni_buf_puts(b, severity_word(d->severity));
     ozni_buf_puts(b, " ");
-    ozni_buf_puts(b, ozni_diag_code(d->id));
-    ozni_buf_puts(b, " ");
-    ozni_buf_puts(b, ozni_diag_name(d->id));
+    if (d->code_text != 0) {
+      put_text(b, c, d->code_text - 1);
+      ozni_buf_puts(b, " ");
+      put_text(b, c, d->name_text - 1);
+    } else {
+      ozni_buf_puts(b, ozni_diag_code(d->id));
+      ozni_buf_puts(b, " ");
+      ozni_buf_puts(b, ozni_diag_name(d->id));
+    }
     ozni_buf_puts(b, " ");
     put_path(b, c, d->span.file);
     ozni_buf_puts(b, ":");
@@ -161,8 +172,23 @@ bool ozni_render_check(ozni_ctx *c, ozni_buf *b, bool *has_errors) {
       put_span(b, c, e->span);
       t = e->prev;
     }
+    if (c->set.fixes && d->fix != 0) {
+      ozni_buf_puts(b, " fixes=[");
+      ozni_str fx = ozni_intern_get(c->names, d->fix - 1);
+      ozni_buf_quoted(b, fx.p, fx.len);
+      ozni_buf_puts(b, "]");
+    }
     ozni_buf_puts(b, ": ");
-    put_english(b, ozni_diag_name(d->id));
+    if (d->name_text != 0) {
+      ozni_str nm = ozni_intern_get(c->names, d->name_text - 1);
+      char tmp[128];
+      size_t len = nm.len < sizeof tmp - 1 ? nm.len : sizeof tmp - 1;
+      ozni_copy(tmp, nm.p, len);
+      tmp[len] = '\0';
+      put_english(b, tmp);
+    } else {
+      put_english(b, ozni_diag_name(d->id));
+    }
     ozni_buf_puts(b, "\n");
   }
   *has_errors = counts[OZNI_SEV_ERROR] > 0;

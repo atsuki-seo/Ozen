@@ -22,6 +22,10 @@ typedef struct ozni_diag {
   ozni_span span;
   ozni_index args;
   ozni_index trail;
+  bool hidden;
+  ozni_index fix;
+  ozni_index code_text;
+  ozni_index name_text;
 } ozni_diag;
 
 typedef struct ozni_ctx {

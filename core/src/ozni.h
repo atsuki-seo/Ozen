@@ -23,7 +23,13 @@ typedef struct ozni_settings {
   const char *kitchen;
   const char *options;
   const char *entry;
+  const char *const *level_names;
+  const uint8_t *level_kinds;
+  size_t nlevels;
+  bool fixes;
 } ozni_settings;
+
+enum { OZNI_LEVEL_ALLOW, OZNI_LEVEL_WARN, OZNI_LEVEL_DENY, OZNI_LEVEL_EXPECT };
 
 typedef struct ozni_source {
   const char *path;

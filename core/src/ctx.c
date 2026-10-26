@@ -26,7 +26,7 @@ void ozni_ctx_free(ozni_ctx *c) {
 
 bool ozni_diag_add(ozni_ctx *c, ozni_diag_id id, ozni_span span, ozni_index trail, const ozni_str *args,
                    uint16_t nargs) {
-  ozni_diag d = {id, ozni_diag_default_severity(id), nargs, span, ozni_table_count(c->diag_args), trail};
+  ozni_diag d = {id, ozni_diag_default_severity(id), nargs, span, ozni_table_count(c->diag_args), trail, false, 0, 0, 0};
   for (uint16_t i = 0; i < nargs; i++) {
     ozni_index sid;
     if (!ozni_intern_put(c->names, args[i].p, args[i].len, &sid) || !ozni_table_push(c->diag_args, &sid, nullptr)) {
