@@ -71,3 +71,6 @@ SCH:tooManyCooks
 ASM:evenChoice
 ASM:noPlating
 ASM:externalIngredient
+TYP:type
+NAM:undefinedInMacro
+TYP:spliceNotName
