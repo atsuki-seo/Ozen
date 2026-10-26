@@ -1,5 +1,5 @@
 // args: debug steps
-macro prep(v) {
+macro peelIt(v) {
   quote {
     let onion = 1
     let p = peel($v)
@@ -7,5 +7,5 @@ macro prep(v) {
 }
 recipe r() {
   ingredients { onion: 1 pcs }
-  prep(onion)
+  peelIt(onion)
 }

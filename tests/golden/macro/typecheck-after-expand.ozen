@@ -1,4 +1,4 @@
-macro prep(v) {
+macro peelIt(v) {
   quote {
     let p = peel($v)
   }
@@ -8,6 +8,6 @@ recipe r() {
     onion: 1 pcs
     water: 200 ml
   }
-  prep(onion)
-  prep(water)
+  peelIt(onion)
+  peelIt(water)
 }
