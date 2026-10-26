@@ -3265,6 +3265,23 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/wash/rule-override`（S440・正常系）— 利用者のルールで置き換えないと落ちた。戻して合格
   - わざと壊す確認: `cgolden/wash/staining-info`（S441・正常系）— `Staining` の汚れで洗いを要るようにすると落ちた。戻して合格
   - わざと壊す確認: `cgolden/sched/veg-before-meat`（S442・正常系）— 同じ優先度の作業の並びで洗いを数えないと落ちた。戻して合格
+- P9-6（2026-10-26）: §4.22.1 の手順で手で組んだ期待値の golden 19 件（`serve/serve-within`・`keep-warm-occupies`・`chilled-frozen`・`fridge-capacity-when-written`・`just-before-serve`・`long-wait-info`・`plating-time`・`vessel-busy-until-meal-end`、`vessels/fallback-order`・`count-exact`・`count-short`・`shared-platter`・`shared-leftover`、`menus/assemble-order`・`plate-overrides-dish`、`sched/meal-blocks-hands`・`meal-duration-from-interval`・`shared-cutting`、`cleanup/dishwasher-during-meal`）と、出す時刻の行を足した `cleanup/before-meal`・`after-meal` の期待値を先にコミットし、器の数と代替順・取り分け・盛り付けによる消費と盛り残し・`Dish` の既定の器・出すタイミング（遅らせて組み直す）・保温と冷蔵冷凍の保持・待ちの長い料理の情報・波と食事（食事中は人を使わない）・`assemble`・共有の切る作業・食洗機の運転を足した。登録簿に `KIT003 vesselShortage`・`KIT004 vesselSubstituted`・`SCH008 longWait` を、`std` に `FridgeSpec`・`FreezerSpec`・`Dishwasher` の `runTime`（調べた記録つき）・`longWait` を足した。段取りの JSON に波・出すタイミングの料理・盛り付けの波・食洗機が洗う道具の並びを足し、`schedcheck` は 1 つの作業が複数の資源を洗う形を受けるようにした。詳細は §4.22.1 の（補）。最初の実行で 304 件すべてが合格し、4 構成・確保の失敗の注入（`284 files, 3755 points, 0 failures`）・`G-SCHED-CHECK`（`52 schedules, 0 violations`）・性質のテスト（差分 0）も合格。`keepWarm` の `on` は型引数を注釈に書けないため、能力や種類の名前（`Stove` など）で書くことにした
+  - わざと壊す確認: `cgolden/vessels/fallback-order`（S239・正常系）— 代替順を逆にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/vessels/count-short`・`count-exact`（S240・境界・上限）— 足りない判定を 1 枚ゆるめると `count-short` が、1 枚きつくすると `count-exact` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/assemble-order`（S246・時間と順序）— `assemble` の入力の並びを逆にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/meal-blocks-hands`（S316・時間と順序）— 食事中にも人を使う作業を置くと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/cleanup/dishwasher-during-meal`（S317・正常系）— 食洗機を最後の食事の後に回すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/serve/serve-within`（S318・境界・上限）— 出すタイミングの制約を外すと落ちた（ちょうど 5 分の待ちで通る配置）。戻して合格
+  - わざと壊す確認: `cgolden/serve/keep-warm-occupies`（S319・副作用とコスト）— 保温でコンロの口を埋めないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/serve/chilled-frozen`（S320・正常系）— 冷蔵庫の容量を書かなくても 1 とすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/serve/just-before-serve`（S321・正常系）— `std` の `justBeforeServe` を 5 分にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/serve/long-wait-info`（S322・境界・上限）— 比較を `>=` にすると落ちた（30 分ちょうどの料理にも情報が出る）。戻して合格
+  - わざと壊す確認: `cgolden/serve/plating-time`（S323・副作用とコスト）— 盛り付けを 0 分にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/serve/vessel-busy-until-meal-end`（S324・時間と順序）— 盛り付けごとに器を返すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/shared-cutting`（S325・正常系）— 切る作業をまとめないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/meal-duration-from-interval`（S326・時間と順序）— 食事の長さを 0 にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/plate-overrides-dish`（S423・時間と順序）— レシピの `@vessel` を献立の `plate` より優先すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/vessels/shared-platter`・`shared-leftover`（S435・境界・上限）— 盛り付けで料理を消費しないと `shared-leftover` が、`shared` でも人数分の器を数えると `shared-platter` が落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.7 G（API・JSON・CLI）
