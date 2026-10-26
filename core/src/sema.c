@@ -4020,7 +4020,9 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
           ptype = c;
         }
       }
-      if (foods && ptype != 0 && nd(s, afile, ptype)->kind == OZNI_N_TypeRef) {
+      bool combining = ptype != 0 && nd(s, afile, ptype)->kind == OZNI_N_ListType &&
+                       field_first(s, afile, anode, "combine") != 0;
+      if (foods && ptype != 0 && (nd(s, afile, ptype)->kind == OZNI_N_TypeRef || combining)) {
         const ozni_node *argn = nullptr;
         for (ozni_index arg = nd(s, file, call->first)->next; arg != 0; arg = nd(s, file, arg)->next) {
           if (nd(s, file, arg)->kind == OZNI_N_List && argn == nullptr) {
