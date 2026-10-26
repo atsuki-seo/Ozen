@@ -110,6 +110,17 @@ static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sc
         continue;
       }
       ozni_rat at = later(st->cook_free[c], now);
+      for (uint32_t pass = 0; pass <= s->nblocks; pass++) {
+        for (uint32_t k = 0; k < s->nblocks; k++) {
+          ozni_rat end;
+          if (!add(at, alt->hi, &end)) {
+            return false;
+          }
+          if (ozni_rat_cmp(at, s->blocks[2 * k + 1]) < 0 && ozni_rat_cmp(end, s->blocks[2 * k]) > 0) {
+            at = s->blocks[2 * k + 1];
+          }
+        }
+      }
       if (!found || ozni_rat_cmp(at, best) < 0) {
         best = at;
         *cook = c;
@@ -340,7 +351,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
       if (s->tasks[i].placed) {
         continue;
       }
-      bool ok = true;
+      bool ok = !s->tasks[i].has_release || ozni_rat_cmp(s->tasks[i].release, now) <= 0;
       for (uint32_t d = 0; d < dep_count[i] && ok; d++) {
         const ozni_sched_task *p = &s->tasks[deps[dep_first[i] + d]];
         ok = p->placed && ozni_rat_cmp(p->end_hi, now) <= 0;
@@ -442,6 +453,9 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
       for (uint32_t g = 0; g < alt->ngroups; g++) {
         uint32_t unit = s->groups[alt->first_group + g].pick;
         st.unit_free[unit] = t->end_hi;
+        if (t->has_hold && g < 64 && (alt->hold_mask >> g & 1) != 0) {
+          st.unit_free[unit] = later(t->end_hi, t->hold_until);
+        }
         if (st.nhist < st.hist_cap) {
           st.hist[st.nhist] = (hist){ti, g, st.head[unit]};
           st.head[unit] = ++st.nhist;
@@ -467,6 +481,27 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
       const ozni_sched_extra *e = &s->extras[k];
       if (ozni_rat_cmp(e->end_hi, now) > 0 && (!found || ozni_rat_cmp(e->end_hi, next) < 0)) {
         next = e->end_hi;
+        found = true;
+      }
+    }
+    for (uint32_t i = 0; i < n; i++) {
+      const ozni_sched_task *t = &s->tasks[i];
+      if (!t->placed && t->has_release && ozni_rat_cmp(t->release, now) > 0 &&
+          (!found || ozni_rat_cmp(t->release, next) < 0)) {
+        next = t->release;
+        found = true;
+      }
+    }
+    for (uint32_t k = 0; k < s->nblocks; k++) {
+      ozni_rat end = s->blocks[2 * k + 1];
+      if (ozni_rat_cmp(end, now) > 0 && (!found || ozni_rat_cmp(end, next) < 0)) {
+        next = end;
+        found = true;
+      }
+    }
+    for (uint32_t u = 0; u < s->nunits; u++) {
+      if (ozni_rat_cmp(st.unit_free[u], now) > 0 && (!found || ozni_rat_cmp(st.unit_free[u], next) < 0)) {
+        next = st.unit_free[u];
         found = true;
       }
     }
@@ -576,7 +611,35 @@ static bool cleanup(ozni_arena *ar, ozni_sched *s) {
       }
     }
   }
+  if (s->serves_known) {
+    serve = s->last_serve;
+  }
   ozni_rat floor = s->cleanup == OZNI_CLEANUP_AFTER_MEAL ? serve : ozni_rat_int(0);
+  uint32_t washer = UINT32_MAX;
+  for (uint32_t u = 0; u < nu && s->cleanup == OZNI_CLEANUP_AFTER_MEAL; u++) {
+    washer = washer == UINT32_MAX && s->unit_info[u].dishwasher ? u : washer;
+  }
+  if (washer != UINT32_MAX) {
+    ozni_sched_extra run = {.kind = OZNI_EXTRA_RUN, .level = OZNI_CLEAN_WASH, .unit = washer, .sink = UINT32_MAX,
+                            .dirt = UINT32_MAX, .task = UINT32_MAX, .first_tool = s->ntools,
+                            .start = later(unit_free[washer], s->serves_known ? s->first_serve : serve)};
+    for (uint32_t u = 0; u < nu; u++) {
+      if (used[u] && s->unit_info[u].category == OZNI_UNIT_TOOL) {
+        s->tools[s->ntools++] = u;
+        run.ntools++;
+        run.start = later(run.start, unit_free[u]);
+        used[u] = false;
+      }
+    }
+    if (run.ntools > 0) {
+      const ozni_sched_unit *wi = &s->unit_info[washer];
+      if (!add(run.start, wi->clean_hi, &run.end_hi) || !add(run.start, wi->clean_lo, &run.end_lo) ||
+          !push_extra(s, run)) {
+        return false;
+      }
+      unit_free[washer] = run.end_hi;
+    }
+  }
   uint32_t nlist = 0;
   for (uint32_t u = 0; u < nu; u++) {
     uint8_t cat = s->unit_info[u].category;
@@ -684,10 +747,12 @@ bool ozni_schedule(ozni_arena *ar, ozni_sched *s) {
   s->extras_cap = 4 * (groups + 1) + 2 * s->nunits + 8;
   s->extras = ozni_arena_alloc(ar, s->extras_cap * sizeof *s->extras);
   s->nextras = 0;
+  s->tools = ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *s->tools);
+  s->ntools = 0;
   uint32_t *first = ozni_arena_alloc(ar, (n + 1) * sizeof *first);
   uint32_t *count = ozni_arena_alloc(ar, (n + 1) * sizeof *count);
   uint32_t *deps = ozni_arena_alloc(ar, (total + 1) * sizeof *deps);
-  if (first == nullptr || count == nullptr || deps == nullptr || s->extras == nullptr) {
+  if (first == nullptr || count == nullptr || deps == nullptr || s->extras == nullptr || s->tools == nullptr) {
     return false;
   }
   if (!s->backward) {

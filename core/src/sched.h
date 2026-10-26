@@ -11,7 +11,7 @@ enum { OZNI_WHEN_DEFAULT, OZNI_WHEN_SAME_FOOD, OZNI_WHEN_SAME_TOOL, OZNI_WHEN_TA
 
 enum { OZNI_UNIT_OTHER, OZNI_UNIT_TOOL, OZNI_UNIT_PLACE, OZNI_UNIT_VESSEL };
 
-enum { OZNI_EXTRA_WASH, OZNI_EXTRA_RINSE, OZNI_EXTRA_SOAK, OZNI_EXTRA_WIPE };
+enum { OZNI_EXTRA_WASH, OZNI_EXTRA_RINSE, OZNI_EXTRA_SOAK, OZNI_EXTRA_WIPE, OZNI_EXTRA_RUN };
 
 enum { OZNI_CLEANUP_NONE, OZNI_CLEANUP_BEFORE_MEAL, OZNI_CLEANUP_AFTER_MEAL };
 
@@ -23,6 +23,7 @@ typedef struct ozni_sched_alt {
   uint32_t first_mark;
   uint32_t nmarks;
   uint64_t banned;
+  uint64_t hold_mask;
   bool hands;
 } ozni_sched_alt;
 
@@ -37,10 +38,14 @@ typedef struct ozni_sched_task {
   ozni_rat start;
   ozni_rat end_hi;
   ozni_rat end_lo;
+  ozni_rat release;
+  ozni_rat hold_until;
   uint32_t cook;
   uint32_t chosen;
   bool placed;
   bool cleanup;
+  bool has_release;
+  bool has_hold;
 } ozni_sched_task;
 
 typedef struct ozni_sched_group {
@@ -73,6 +78,7 @@ typedef struct ozni_sched_unit {
   ozni_rat clean_hi;
   uint8_t category;
   bool sink;
+  bool dishwasher;
 } ozni_sched_unit;
 
 typedef struct ozni_sched_extra {
@@ -83,6 +89,8 @@ typedef struct ozni_sched_extra {
   uint32_t cook;
   uint32_t dirt;
   uint32_t task;
+  uint32_t first_tool;
+  uint32_t ntools;
   ozni_rat start;
   ozni_rat end_hi;
   ozni_rat end_lo;
@@ -109,6 +117,13 @@ typedef struct ozni_sched {
   ozni_sched_extra *extras;
   uint32_t nextras;
   uint32_t extras_cap;
+  uint32_t *tools;
+  uint32_t ntools;
+  const ozni_rat *blocks;
+  uint32_t nblocks;
+  ozni_rat first_serve;
+  ozni_rat last_serve;
+  bool serves_known;
 } ozni_sched;
 
 [[nodiscard]] bool ozni_schedule(ozni_arena *ar, ozni_sched *s);
