@@ -1,0 +1,20 @@
+{
+  "$defs": {
+    "rational": {
+      "additionalProperties": false,
+      "properties": {"den": {"minimum": 1, "type": "integer"}, "num": {"type": "integer"}},
+      "required": ["den", "num"],
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "kind": {"enum": ["op", "in"]},
+    "label": {"oneOf": [{"type": "string"}, {"type": "null"}]},
+    "time": {"$ref": "#/$defs/rational"},
+    "tags": {"items": {"type": "string"}, "type": "array"},
+    "schemaVersion": {"const": 1}
+  },
+  "required": ["kind", "schemaVersion", "time"],
+  "type": "object"
+}

@@ -1,0 +1,1909 @@
+{
+  "$defs": {
+    "definition": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "type": "string"
+        },
+        "annotations": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "args": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "args",
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "cases": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "level": {
+                "type": "string"
+              },
+              "when": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "level",
+              "when"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "dimension": {
+          "type": "string"
+        },
+        "file": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "finer": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "local": {
+          "type": "boolean"
+        },
+        "members": {
+          "items": {
+            "$ref": "#/$defs/member"
+          },
+          "type": "array"
+        },
+        "module": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "ordering": {
+          "type": "string"
+        },
+        "output": {
+          "$ref": "#/$defs/type"
+        },
+        "params": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "default": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/expr"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/type"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "default",
+              "name",
+              "type"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "supers": {
+          "items": {
+            "$ref": "#/$defs/type"
+          },
+          "type": "array"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/expr"
+            },
+            {
+              "$ref": "#/$defs/type"
+            }
+          ]
+        },
+        "values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "module",
+        "file",
+        "local",
+        "supers",
+        "params",
+        "values",
+        "finer",
+        "members",
+        "annotations"
+      ],
+      "type": "object"
+    },
+    "definitions": {
+      "additionalProperties": false,
+      "properties": {
+        "definitions": {
+          "items": {
+            "$ref": "#/$defs/definition"
+          },
+          "type": "array"
+        },
+        "diagnostics": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "definitions",
+        "diagnostics"
+      ],
+      "type": "object"
+    },
+    "diagnostic": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "category": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "defaultSeverity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "fixes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "via"
+              },
+              "span": {
+                "$ref": "#/$defs/span"
+              }
+            },
+            "required": [
+              "kind",
+              "span"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "span": {
+          "$ref": "#/$defs/span"
+        }
+      },
+      "required": [
+        "args",
+        "category",
+        "code",
+        "defaultSeverity",
+        "fixes",
+        "name",
+        "related",
+        "severity",
+        "span"
+      ],
+      "type": "object"
+    },
+    "expr": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "args": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "args",
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "annotations",
+        "text"
+      ],
+      "type": "object"
+    },
+    "irdish": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/irnode"
+          },
+          "type": "array"
+        },
+        "waves": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "after": {
+                "oneOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "gap": {
+                "$ref": "#/$defs/rational"
+              },
+              "id": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "after",
+              "gap",
+              "id",
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "nodes",
+        "waves"
+      ],
+      "type": "object"
+    },
+    "irnode": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "items": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "args": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "id": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "inputs": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "node": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "part": {
+                "oneOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "node",
+              "part"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "in",
+            "buy",
+            "op",
+            "choose",
+            "plate"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "quantity": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/quantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "requires": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/range"
+        },
+        "unattended": {
+          "type": "boolean"
+        },
+        "variants": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "requires": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "time": {
+                "$ref": "#/$defs/range"
+              },
+              "unattended": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "requires",
+              "time",
+              "unattended"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "wave": {
+          "oneOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "after",
+        "args",
+        "id",
+        "inputs",
+        "kind",
+        "label",
+        "quantity",
+        "requires",
+        "time",
+        "unattended",
+        "variants",
+        "wave"
+      ],
+      "type": "object"
+    },
+    "member": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "annotations": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "args": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "args",
+                  "name"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "field": {
+              "type": "string"
+            },
+            "values": {
+              "items": {
+                "$ref": "#/$defs/expr"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "annotations",
+            "field",
+            "values"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "annotations": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "args": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "args",
+                  "name"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "members": {
+              "items": {
+                "$ref": "#/$defs/member"
+              },
+              "type": "array"
+            },
+            "section": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "annotations",
+            "members",
+            "section"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "annotations": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "args": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "args",
+                  "name"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "members": {
+              "items": {
+                "$ref": "#/$defs/member"
+              },
+              "type": "array"
+            },
+            "variant": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "annotations",
+            "members",
+            "variant"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "marker": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "marker"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "annotations": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "args": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "args",
+                  "name"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "for": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/expr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "uses": {
+              "items": {
+                "$ref": "#/$defs/type"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "annotations",
+            "for",
+            "uses"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "takes": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "takes"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "steps": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "steps"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "pos": {
+      "additionalProperties": false,
+      "properties": {
+        "column": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "line": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "column",
+        "line"
+      ],
+      "type": "object"
+    },
+    "quantity": {
+      "additionalProperties": false,
+      "properties": {
+        "unit": {
+          "type": "string"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/rational"
+            },
+            {
+              "$ref": "#/$defs/range"
+            }
+          ]
+        }
+      },
+      "required": [
+        "unit",
+        "value"
+      ],
+      "type": "object"
+    },
+    "range": {
+      "additionalProperties": false,
+      "properties": {
+        "hi": {
+          "$ref": "#/$defs/rational"
+        },
+        "lo": {
+          "$ref": "#/$defs/rational"
+        }
+      },
+      "required": [
+        "hi",
+        "lo"
+      ],
+      "type": "object"
+    },
+    "rational": {
+      "additionalProperties": false,
+      "properties": {
+        "den": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "num": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "den",
+        "num"
+      ],
+      "type": "object"
+    },
+    "schedule": {
+      "additionalProperties": false,
+      "properties": {
+        "cleanup": {
+          "enum": [
+            "none",
+            "beforeMeal",
+            "afterMeal"
+          ]
+        },
+        "cooks": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dishes": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "ready": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "serveWithin": {
+                "$ref": "#/$defs/rational"
+              },
+              "wave": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "ready",
+              "serveWithin",
+              "wave"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "resources": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "capacity": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "category": {
+                "enum": [
+                  "other",
+                  "tool",
+                  "place",
+                  "vessel",
+                  "fixture"
+                ]
+              },
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "capacity",
+              "category",
+              "id",
+              "kind"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "rules": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "cases": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "enum": [
+                        "none",
+                        "rinse",
+                        "wash",
+                        "soakThenWash"
+                      ]
+                    },
+                    "rule": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "when": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "level",
+                    "rule",
+                    "when"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "dirt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "cases",
+              "dirt"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "tasks": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "cleans": {
+                "oneOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "level": {
+                        "enum": [
+                          "rinse",
+                          "wash",
+                          "soakThenWash",
+                          "wipe"
+                        ]
+                      },
+                      "resource": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "level",
+                      "resource"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "level": {
+                          "enum": [
+                            "rinse",
+                            "wash",
+                            "soakThenWash",
+                            "wipe"
+                          ]
+                        },
+                        "resource": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "level",
+                        "resource"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                ]
+              },
+              "cook": {
+                "oneOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "deps": {
+                "items": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "endHi": {
+                "$ref": "#/$defs/rational"
+              },
+              "endLo": {
+                "$ref": "#/$defs/rational"
+              },
+              "food": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "id": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "kind": {
+                "enum": [
+                  "op",
+                  "plate",
+                  "wash",
+                  "rinse",
+                  "soak",
+                  "wipe",
+                  "run"
+                ]
+              },
+              "leaves": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "dirt": {
+                      "type": "string"
+                    },
+                    "food": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "resource": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "dirt",
+                    "food",
+                    "resource"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "op": {
+                "type": "string"
+              },
+              "start": {
+                "$ref": "#/$defs/rational"
+              },
+              "targets": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "unattended": {
+                "type": "boolean"
+              },
+              "uses": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "wave": {
+                "oneOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "cook",
+              "deps",
+              "endHi",
+              "endLo",
+              "food",
+              "id",
+              "kind",
+              "leaves",
+              "op",
+              "start",
+              "targets",
+              "unattended",
+              "uses",
+              "wave"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "waves": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "after": {
+                "oneOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "gap": {
+                "$ref": "#/$defs/rational"
+              },
+              "id": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "serveAt": {
+                "$ref": "#/$defs/rational"
+              }
+            },
+            "required": [
+              "after",
+              "gap",
+              "id",
+              "serveAt"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "cleanup",
+        "cooks",
+        "dishes",
+        "resources",
+        "rules",
+        "schemaVersion",
+        "tasks",
+        "waves"
+      ],
+      "type": "object"
+    },
+    "signature": {
+      "additionalProperties": false,
+      "properties": {
+        "module": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "output": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "params": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "default": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "default",
+              "name",
+              "type"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "provisional": {
+          "type": "boolean"
+        },
+        "requires": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "variants": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "module",
+        "name",
+        "output",
+        "params",
+        "provisional",
+        "requires",
+        "variants"
+      ],
+      "type": "object"
+    },
+    "span": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "$ref": "#/$defs/pos"
+        },
+        "file": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "start": {
+          "$ref": "#/$defs/pos"
+        }
+      },
+      "required": [
+        "end",
+        "file",
+        "start"
+      ],
+      "type": "object"
+    },
+    "step": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "args": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "cook": {
+          "oneOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "end": {
+          "$ref": "#/$defs/rational"
+        },
+        "foods": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "op",
+            "plate",
+            "wash",
+            "rinse",
+            "soak",
+            "wipe",
+            "run",
+            "hold"
+          ]
+        },
+        "reason": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "resources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "start": {
+          "$ref": "#/$defs/rational"
+        }
+      },
+      "required": [
+        "action",
+        "args",
+        "cook",
+        "end",
+        "foods",
+        "kind",
+        "reason",
+        "resources",
+        "start"
+      ],
+      "type": "object"
+    },
+    "type": {
+      "additionalProperties": false,
+      "properties": {
+        "alts": {
+          "items": {
+            "items": {
+              "oneOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "bare": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "bare"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "axis": {
+                      "type": "string"
+                    },
+                    "op": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "axis",
+                    "op",
+                    "value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "type": "array"
+        },
+        "callArgs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "form": {
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/type"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "type": "object"
+    },
+    "types": {
+      "additionalProperties": false,
+      "properties": {
+        "equipment": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "category": {
+                "enum": [
+                  "place",
+                  "tool"
+                ]
+              },
+              "fields": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "default": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "max": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "min": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "default",
+                    "max",
+                    "min",
+                    "name",
+                    "type"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "category",
+              "fields",
+              "kind"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "kitchen": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "default": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "max": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "min": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "default",
+              "max",
+              "min",
+              "name",
+              "type"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "options": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "default": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "max": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "min": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "default",
+              "max",
+              "min",
+              "name",
+              "type"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "vessels": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "fields": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "default": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "max": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "min": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "default",
+                    "max",
+                    "min",
+                    "name",
+                    "type"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "fields",
+              "kind"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "equipment",
+        "kitchen",
+        "options",
+        "vessels"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/atsuki-seo/Ozen/schemas/result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "definitions": {
+      "$ref": "#/$defs/definitions"
+    },
+    "diagnostics": {
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      },
+      "type": "array"
+    },
+    "entry": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "files": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "ir": {
+      "items": {
+        "$ref": "#/$defs/irdish"
+      },
+      "type": "array"
+    },
+    "level": {
+      "enum": [
+        0,
+        1,
+        2
+      ]
+    },
+    "outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "errors": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "infos": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "error"
+          ]
+        },
+        "warnings": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "errors",
+        "infos",
+        "status",
+        "warnings"
+      ],
+      "type": "object"
+    },
+    "ozenVersion": {
+      "type": "string"
+    },
+    "schedules": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "schedule": {
+            "$ref": "#/$defs/schedule"
+          }
+        },
+        "required": [
+          "name",
+          "schedule"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "signatures": {
+      "items": {
+        "$ref": "#/$defs/signature"
+      },
+      "type": "array"
+    },
+    "steps": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/$defs/step"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "steps"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "types": {
+      "$ref": "#/$defs/types"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "ozenVersion",
+    "level",
+    "entry",
+    "files",
+    "outcome",
+    "diagnostics"
+  ],
+  "title": "Ozen build result",
+  "type": "object"
+}
