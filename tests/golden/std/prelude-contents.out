@@ -1,0 +1,19 @@
+recipe basics
+  rice : Rice 180 ml
+  pork : Pork 200 g
+  onion : Onion 1 pcs
+  water : Water 1000 ml
+  salt : Salt 0.3..0.5 g
+  oil : Oil 15 ml
+  sugar : Sugar 5 ml
+  %1 = wash(rice) : Rice<prep has washed> 180 ml
+  %2 = soak(%1, 1800 s) : Rice<prep has washed, prep has soaked(1800 s)> 180 ml
+  %3 = cookRice(%2) : CookedRice 180 ml
+  %4 = peel(onion) : Onion<shape: peeled> 1 pcs
+  %5 = cut(%4, slice, 3 mm) : Onion<shape: cut(slice, 3 mm)> 1 pcs
+  %6 = combine([pork, %5]) : Mixture 350..450 g with Hazard
+  %7 = fry(%6, 300 s) : Mixture<doneness: done> 350..450 g with Hazard
+  %8 = combine([%7, water, salt, oil, sugar]) : Mixture 1356.8..1468.7 g with Hazard
+  %9 = simmer(%8, 3600 s) : Mixture<doneness: done> 1356.8..1468.7 g with Hazard
+result ok errors=0 warnings=0 infos=0
+exit 0

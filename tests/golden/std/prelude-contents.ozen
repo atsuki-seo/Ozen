@@ -1,0 +1,17 @@
+// args: debug steps
+recipe basics() {
+  ingredients {
+    rice: 1 gou
+    pork: 0.2 kg
+    onion: 1 pcs
+    water: 1 L
+    salt: Salt 1 pinch
+    oil: Oil 1 tbsp
+    sugar: Sugar 1 tsp
+  }
+  let soaked = soak(wash(rice), 30 min)
+  let cooked = cookRice(soaked)
+  let sliced = cut(peel(onion), slice, 3 mm)
+  let fried = fry([pork, sliced], 5 min)
+  let soup = simmer([fried, water, salt, oil, sugar], 1 h)
+}
