@@ -408,7 +408,9 @@ type Options {
 property whileWarm = serveWithin(5..15 min)
 property piping = serveWithin(0..3 min)
 property beforeMelts = serveWithin(0..5 min)
-property justBeforeServe = serveWithin(2 min)""".split("\n")
+property justBeforeServe = serveWithin(2 min)
+property strict = diagnostics(vagueAmount)
+unit cc : Volume = 1 ml @deprecated""".split("\n")
 
 
 def write(path, lines):
