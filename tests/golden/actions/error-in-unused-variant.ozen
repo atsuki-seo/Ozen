@@ -1,0 +1,8 @@
+action steam(x: T) -> T<doneness: done> {
+  variant pot {
+    uses HeatSource<stovetop>, Pot for 10 min
+  }
+  variant microwave {
+    uses HeatSource<microwave> for 3 g
+  }
+}

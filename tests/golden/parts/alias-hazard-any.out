@@ -1,0 +1,3 @@
+error SAF001 undercooked alias-hazard-any.ozen:4:11-4:30 args=["TofuOrPork", "raw"]: undercooked
+result error errors=1 warnings=0 infos=0
+exit 1

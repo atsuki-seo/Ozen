@@ -1,0 +1,6 @@
+recipe r
+  k : Karubi 300 g
+  %1 = cut(k, style: slice) : Karubi<shape: cut(slice, 3 mm)> 300 g
+error SAF001 undercooked alias-name-in-diag.ozen:4:11-4:31 args=["Karubi", "raw"]: undercooked
+result error errors=1 warnings=0 infos=0
+exit 1

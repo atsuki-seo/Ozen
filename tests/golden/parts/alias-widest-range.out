@@ -1,0 +1,7 @@
+recipe r
+  b : BoarCut 100 ml
+  salt : Salt 2 g
+  %1 = combine([b, salt]) : Mixture 92..112 g with Hazard
+  %2 = fry(%1, 300 s) : Mixture<doneness: done> 92..112 g with Hazard
+result ok errors=0 warnings=0 infos=0
+exit 0

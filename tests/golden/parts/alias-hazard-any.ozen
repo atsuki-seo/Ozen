@@ -1,0 +1,5 @@
+alias TofuOrPork = Tofu | Pork
+recipe r() {
+  ingredients { p: TofuOrPork 200 g }
+  let c = cut(p, style: dice)
+}

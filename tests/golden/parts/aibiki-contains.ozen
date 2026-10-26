@@ -1,0 +1,28 @@
+// args: debug steps
+ingredient Lean : Meat {
+  axes: doneness
+  props {
+    density: 1.05..1.10 g/ml
+  }
+}
+ingredient Fat : Meat, Hazard {
+  axes: doneness
+  props {
+    density: 0.90..0.95 g/ml
+  }
+}
+ingredient Aibiki : Mixture {
+  axes: doneness
+  contains: { Lean: 0..100 %, Fat: 0..100 % }
+}
+ingredient Aibiki37 : Mixture {
+  axes: doneness
+  contains: { Lean: 30..40 %, Fat: 60..70 % }
+}
+recipe r() {
+  ingredients {
+    a: Aibiki 100 ml
+    b: Aibiki37 100 ml
+  }
+  let m = fry([a, b], 5 min)
+}

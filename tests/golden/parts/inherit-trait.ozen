@@ -1,0 +1,11 @@
+// args: debug steps
+action roastLoin(x: T<loin>) -> T<doneness: done>
+action braise(x: T<Fatty>) -> T<doneness: done>
+recipe r() {
+  ingredients {
+    a: Pork<shoulderLoin> 300 g
+    b: Pork<shoulderLoin> 200 g
+  }
+  let x = roastLoin(a)
+  let y = braise(b)
+}

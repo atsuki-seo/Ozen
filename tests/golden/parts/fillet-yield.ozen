@@ -1,0 +1,25 @@
+// args: debug steps
+ingredient Saba : Fish, Hazard, RawEdible, SkinEdible {
+  axes: doneness, shape
+  parts {
+    fillet {
+      props {
+        yield: 50..60 %
+      }
+    }
+    head {
+      props {
+        yield: 15..20 %
+      }
+    }
+    frame
+  }
+}
+action fillet3(x: T) -> (T<fillet>, T<head>, T<frame>)
+recipe r() {
+  ingredients { saba: 1000 g }
+  let (f, h, a) = fillet3(saba)
+  let s = cut(f, style: slice)
+  store(h)
+  discard(a)
+}

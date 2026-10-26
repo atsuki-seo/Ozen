@@ -1,0 +1,10 @@
+// args: debug steps
+extend action warm {
+  variant oven {
+    uses HeatSource<oven> for 5..8 min
+  }
+}
+recipe r() {
+  ingredients { naan: 1 pcs }
+  let w = warm(naan)
+}

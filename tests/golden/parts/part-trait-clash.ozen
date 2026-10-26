@@ -1,0 +1,7 @@
+ingredient Boar : Meat {
+  axes: doneness
+  parts {
+    loin
+    Fatty
+  }
+}

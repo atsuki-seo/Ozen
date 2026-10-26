@@ -1,0 +1,7 @@
+// args: debug steps
+action gut(x: T) -> (T<back>, T<guts>, T<scales>)
+recipe r() {
+  ingredients { buri: 2000 g }
+  let (b, g, s) = gut(buri)
+  let sashimi = cut(b, style: slice)
+}

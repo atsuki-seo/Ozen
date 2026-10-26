@@ -1,0 +1,27 @@
+// args: debug steps
+ingredient Boar : Meat, Hazard {
+  axes: doneness, shape
+  props {
+    density: 1.00 g/ml
+  }
+  parts {
+    lean {
+      props {
+        density: 1.05..1.10 g/ml
+      }
+    }
+    fat {
+      props {
+        density: 0.90..0.95 g/ml
+      }
+    }
+  }
+}
+alias BoarCut = Boar<lean | fat>
+recipe r() {
+  ingredients {
+    b: BoarCut 100 ml
+    salt: 2 g
+  }
+  let m = fry([b, salt], 5 min)
+}

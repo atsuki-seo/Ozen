@@ -1,0 +1,6 @@
+recipe r
+  naan : Naan 1 pcs
+  %1 = warm(naan) : Naan 1 pcs
+  variants warm: microwave | toaster | pan | oven
+result ok errors=0 warnings=0 infos=0
+exit 0

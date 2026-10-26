@@ -1,0 +1,4 @@
+recipe r() {
+  ingredients { onion: 1 pcs }
+  let f = fry(onion, 5 min, power: high)
+}

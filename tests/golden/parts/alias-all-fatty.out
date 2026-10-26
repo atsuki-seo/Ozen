@@ -1,0 +1,5 @@
+recipe r
+  k : Karubi 300 g
+  %1 = braise(k) : Karubi<doneness: done> 300 g
+result ok errors=0 warnings=0 infos=0
+exit 0

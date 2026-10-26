@@ -1,0 +1,3 @@
+recipe r() {
+  ingredients { o: Onion<belly> 1 pcs }
+}

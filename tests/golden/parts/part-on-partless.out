@@ -1,0 +1,3 @@
+error TYP009 partless part-on-partless.ozen:2:26-2:31 args=["Onion", "belly"]: partless
+result error errors=1 warnings=0 infos=0
+exit 1

@@ -1,0 +1,3 @@
+error TYP001 dimension error-in-unused-variant.ozen:6:36-6:39 args=["Mass", "Time"]: dimension
+result error errors=1 warnings=0 infos=0
+exit 1

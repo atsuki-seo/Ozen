@@ -1,0 +1,2 @@
+action stir(x: T<Vegetable>) -> T
+action stir(x: T<Meat>) -> T

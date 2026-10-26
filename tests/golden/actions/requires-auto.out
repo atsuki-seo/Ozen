@@ -1,0 +1,8 @@
+recipe r
+  onion : Onion 1 pcs
+  %1 = peel(onion) : Onion<shape: peeled> 1 pcs
+  %2 = cut(%1, style: slice) : Onion<shape: cut(slice, 3 mm)> 1 pcs
+  %3 = fry(%2, 300 s) : Onion<doneness: done, browning: light, shape: cut(slice, 3 mm)> 1 pcs
+  requires CuttingSurface, FryingPan, HeatSource<stovetop>, Knife, Oven, WorkSurface
+result ok errors=0 warnings=0 infos=0
+exit 0

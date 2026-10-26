@@ -1,0 +1,5 @@
+// args: debug steps
+recipe r() {
+  ingredients { k: Karubi 300 g }
+  let s = cut(k, style: slice)
+}

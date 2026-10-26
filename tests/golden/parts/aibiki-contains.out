@@ -1,0 +1,7 @@
+recipe r
+  a : Aibiki 100 ml with Hazard
+  b : Aibiki37 100 ml with Hazard
+  %1 = combine([a, b]) : Mixture 184.5..211 g with Hazard
+  %2 = fry(%1, 300 s) : Mixture<doneness: done> 184.5..211 g with Hazard
+result ok errors=0 warnings=0 infos=0
+exit 0

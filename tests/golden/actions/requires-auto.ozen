@@ -1,0 +1,7 @@
+// args: debug steps
+recipe r() requires Oven {
+  ingredients { onion: 1 pcs }
+  let p = peel(onion)
+  let c = cut(p, style: slice)
+  let f = fry(c, 5 min)
+}

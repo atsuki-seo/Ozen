@@ -1,0 +1,3 @@
+error NAM015 partTraitClash part-trait-clash.ozen:5:5-5:10 args=["Fatty"]: part trait clash
+result error errors=1 warnings=0 infos=0
+exit 1
