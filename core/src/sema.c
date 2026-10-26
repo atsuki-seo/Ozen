@@ -8634,7 +8634,9 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
     for (ozni_index d = 0; d < ozni_table_count(m->defs); d++) {
       const ozni_def *e = ozni_table_get(m->defs, d);
       ozni_node_kind k = nd(&s, m->file, e->node)->kind;
-      if (k == OZNI_N_Recipe || k == OZNI_N_Menu) {
+      bool other = pr->c->set.api && pr->c->set.entry != nullptr &&
+                   !str_is(ozni_intern_get(pr->c->names, e->name), pr->c->set.entry);
+      if ((k == OZNI_N_Recipe || k == OZNI_N_Menu) && !other) {
         eval_dish(&s, mi, e);
       }
     }
