@@ -1830,6 +1830,9 @@ static ozni_index decl(parser *p) {
     mark(p, OZNI_R_rule);
     ozni_index n = node_here(p, OZNI_N_Rule);
     advance(p);
+    if (at(p, OZNI_T_IDENT) && kind_at(p, 1) == OZNI_T_IDENT && text_is(p, tok_at(p, 1), "after")) {
+      set_text(p, n, name_of(p, n));
+    }
     if (!at_word(p, "after")) {
       unexpected(p);
       return 0;
@@ -1837,20 +1840,27 @@ static ozni_index decl(parser *p) {
     advance(p);
     add(p, n, type_ref(p));
     expect(p, OZNI_T_COLON);
-    ozni_index lv = node_here(p, OZNI_N_Name);
-    set_text(p, lv, name_of(p, lv));
-    add(p, n, finish(p, lv));
-    if (at_word(p, "before") && !p->failed) {
-      mark(p, OZNI_R_rule_target);
-      advance(p);
-      if (at_word(p, "any") && kind_at(p, 1) == OZNI_T_IDENT && text_is(p, tok_at(p, 1), "use")) {
-        ozni_index a = node_here(p, OZNI_N_AnyUse);
+    for (;;) {
+      mark(p, OZNI_R_rule_case);
+      ozni_index rc = node_here(p, OZNI_N_RuleCase);
+      set_text(p, rc, name_of(p, rc));
+      if (at_word(p, "before") && !p->failed) {
+        mark(p, OZNI_R_rule_target);
         advance(p);
-        advance(p);
-        add(p, n, finish(p, a));
-      } else {
-        add(p, n, type_ref(p));
+        if (at_word(p, "any") && kind_at(p, 1) == OZNI_T_IDENT && text_is(p, tok_at(p, 1), "use")) {
+          ozni_index a = node_here(p, OZNI_N_AnyUse);
+          advance(p);
+          advance(p);
+          add(p, rc, finish(p, a));
+        } else {
+          add(p, rc, type_ref(p));
+        }
       }
+      add(p, n, finish(p, rc));
+      if (p->failed || !at(p, OZNI_T_COMMA)) {
+        break;
+      }
+      advance(p);
     }
     annotations(p, n);
     return p->failed ? 0 : finish(p, n);

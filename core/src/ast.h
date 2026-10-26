@@ -6,7 +6,7 @@
 
 #define OZNI_NODE_KINDS(X)                                                                              \
   X(Error) X(File) X(Local) X(Dimension) X(Unit) X(Base) X(Axis) X(Enum) X(Value) X(Finer) X(Trait)       \
-  X(Ingredient) X(Kind) X(Vessel) X(Dirt) X(Resource) X(Tool) X(Alias) X(Rule) X(AnyUse) X(Property)      \
+  X(Ingredient) X(Kind) X(Vessel) X(Dirt) X(Resource) X(Tool) X(Alias) X(Rule) X(RuleCase) X(AnyUse) X(Property)      \
   X(Source) X(Action) X(Extend) X(Where) X(Param) X(Default) X(Output) X(Recipe) X(Requires) X(Menu)    \
   X(Kitchen) X(Type) X(TypeField) X(Check) X(Macro) X(MacroParam) X(Package) X(Module) X(Bundle)        \
   X(BundleFrom) X(Phrases) X(Import) X(ImportName) X(ImportAlias) X(Uses) X(For) X(Takes) X(Variant)    \

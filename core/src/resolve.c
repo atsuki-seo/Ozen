@@ -316,7 +316,7 @@ static bool names_decl(ozni_node_kind k) {
       OZNI_N_Unit,     OZNI_N_Axis,     OZNI_N_Enum,   OZNI_N_Trait,    OZNI_N_Ingredient, OZNI_N_Kind,
       OZNI_N_Vessel,   OZNI_N_Dirt,     OZNI_N_Resource, OZNI_N_Tool,   OZNI_N_Alias,      OZNI_N_Property,
       OZNI_N_Source,   OZNI_N_Action,   OZNI_N_Recipe, OZNI_N_Menu,     OZNI_N_Kitchen,    OZNI_N_Type,
-      OZNI_N_Macro,
+      OZNI_N_Macro,    OZNI_N_Rule,
   };
   for (size_t i = 0; i < sizeof kinds / sizeof kinds[0]; i++) {
     if (kinds[i] == k) {
@@ -1196,7 +1196,7 @@ static void resolve_bodies(ozni_project *pr, ozni_index mi) {
   }
   for (ozni_index i = node(pr, m->file, m->root)->first; i != 0; i = node(pr, m->file, i)->next) {
     const ozni_node *n = node(pr, m->file, i);
-    if (n->kind == OZNI_N_Extend || n->kind == OZNI_N_Rule) {
+    if (n->kind == OZNI_N_Extend || (n->kind == OZNI_N_Rule && n->text == 0)) {
       w.scope = ozni_table_new(pr->c->arena, sizeof(scope_entry));
       if (w.scope == nullptr) {
         pr->c->oom = true;
