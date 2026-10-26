@@ -1132,6 +1132,8 @@ void ozp_free_string(const ozp_options *opt, char *s);
 - 台所と条件の型（補、P8-5）: `std` の前置きに `enum Cleanup`・`enum Preference`・`type Kitchen`（`places` の既定の `floor`・`counter`・`sink`、`tools`・`tableware`）・`type Options`（`servings`・`cooks: Count in 1.. = 1`・`cleanup`・`serveAt`・`prefer` と `check SCH101 tooManyCooks: cooks <= kitchen.floor.capacity else warn`）と設備の項目の型（`EquipmentSpec` の `count: Count in 0.. = 1` と、`FloorSpec`・`CounterSpec`・`StoveSpec`・`OvenSpec`・`ContainerSpec`・`FryingPanSpec`・`RiceCookingSpec`・`VesselSpec`）を置く（変換のスクリプトが語彙の後ろに足す）。台所の項目 `名前: 種類 { 属性 }` の属性の型は、種類とその上の種類・トレイトの名前に `Spec` を付けた型（最初に見つかったもの。無ければ器は `VesselSpec`、ほかは `EquipmentSpec`）。`places` の既定は名前で足す。単位の無い数は `Count` の項目だけ受け付ける。次元の違いは `TYP:dimension`、区間の外は `TYP:rangeViolation`（引数は項目の名前・値の式・区間の式。区間は端を含む）、列挙型に無い値は `TYP:axisValue`（引数は列挙型と値）。台所と条件は選んだものだけを検査する。名前の無い台所・条件は `NAM:undefined`（位置はファイルの先頭）
 - 台所の照合（補、P8-5）: 要求（`uses` の型と `requires`）は、数が 0 でない台所の項目のうち、種類の名前が要求の名前と同じか、種類・その上の種類とトレイトの型の並びに要求の名前があり（要求の裸の引数 `HeatSource<stovetop>` はその並びの引数にすべてある）、要求の状態の引数（`Container<capacity >= volume(x) * 1.2>`）を満たす項目があれば満たす。状態の引数の式は動作の引数を束縛して評価し（組み込みの `volume(x)` は量を体積に直す）、項目の値が無ければ満たすとみなす。`resource`（`hands`）は照合しない。台所があるとき、`variant` の無い動作の満たせない要求とレシピの満たせない `requires` は `KIT:requiresUnmet`（引数は要求の式、位置は呼び出しか `requires` の型）、`variant` がすべて外れたら `KIT:noVariant`（引数は動作と候補の名前を `, ` で並べたもの、位置は呼び出し）。`debug requires` の `variants` の行は台所で使える候補だけを出す。型の `check` は、台所を参照するものは台所があるときだけ評価し、成り立たなければ `check` のコードの診断（重さは `else` の `warn`・`info`・`error`。無ければエラー）を条件の宣言の名前の位置に出す
 - 料理の引数と器（補、P8-5）: 料理の引数は既定値（条件に同じ名前の項目があればその値）で束縛し、引数の型で検査する（`servings` は器の検査に使う）。`serve` の `plate` の項目は、液体（`Liquid` を持つか、液体を混ぜた値）を `HoldsLiquid` を持たない器に盛ると、`on` の器ごとに `TYP:vesselLiquid`（引数は項目の式と器）。台所があるとき、`on` の最初の器の台所の項目に容量があり、量を `servings` で割った 1 人分が容量を超えたら `SCH:vesselOverflow`（警告。引数は器・1 人分の量・容量、位置は項目）
+- 献立（補、P8-6）: `make レシピ(引数)` は、引数をレシピの引数に束縛し（食材の値は献立の側で消費し、写しを渡す。型は引数の型で検査する）、レシピの本体を診断と表示を出さずに評価し、最後の値を出力にする。出力の型は `-> T` があれば T（新しい名前は名前の解決で未定義にしない）、無ければレシピ名の先頭を大文字にした名前で、値は最後の値の写し（状態の軸・量・`Hazard` と `Allergen` を引き継ぐ）。組の出力は最後の組の値の写しを `%n.1`… で返し、部位として残りの検査に入る。`buy 型 [量]` は型の値を作る。`choose 名前 from { … }` の内訳は、条件の `people`（`Person { picks: [型の名前] }` の並び）があれば、各人の `picks` に出力の型の名前がある最初の候補（無ければ最初の候補）に数え、無ければ献立の引数 `people`（無ければ 1）を候補に均等に分ける（余りは前の候補から）。`std` の `Options` に `people: [Person] = []` と `type Person { picks: [Dish] = [] }`、`property whileWarm`・`piping`・`beforeMelts`・`justBeforeServe`（`serveWithin(範囲)`）を足した。`debug steps` は `%n = make r(引数) : 型 量`、`%n = buy 型 量 : 型 量`、`%n = choose 名前 { %a: 人数, … }`、`serve 名前[ after 波 + 間隔]`、`    plate 名前 on 器[ or 器] { 参照, … }` を出す
+- 単体のビルドと仮定（補、P8-6）: 仮定（`ASM`）は、`--entry 名前` で選んだ料理（単体でビルドする料理）を評価するときだけ出す。選んだレシピの材料の引数は型の値を作って束縛し `ASM:externalIngredient`（引数は引数の名前と型の式、位置は引数の名前）、`@vessel(器 or 器)` があれば `debug steps` に `serve main` と `plate perPerson on 器 { 最後の値 }` を補い、無ければ `ASM:noPlating`（引数はレシピ名、位置はレシピ名）。選んだ献立の均等な `choose` は `ASM:evenChoice`（引数は `choose` の名前と人数、位置は `choose` の式）
 - 燃料（評価ステップ）の数え方: 名前の解決で名前を 1 つ引くたびに 1（D と同じ）、評価で次のノードを 1 つ評価するたびに 1。ブロック・`let`・`if`（`else if` は else 側の `if`）・`for`・`repeat`・呼び出し（動作・レシピ・組み込み。引数を左から）・マクロの呼び出し（引数は評価せず、展開したブロック）・名前・量（`1 h 30 min` も 1 つ）・数・文字列・真偽値・並び・レコード・二項演算（短絡しなければ右も）・単項演算・メンバーの参照・注釈・`make`・`buy`・`choose`・`assemble`・`ingredients`（と項目ごとに 1）・`parallel`・`branch`・`serve`・`plate`。生成ノードは D の数え方に、マクロの展開でコピーしたノードの数を足す。深さは評価の入れ子の数（D の解決の深さと同じ上限）
 
 ### 4.22 F: IR と段取り（§13-6）
@@ -3103,6 +3105,18 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/vessels/capacity-over-warn`（S241・境界・上限）— 容量の検査を外すと落ちた。戻して合格
   - わざと壊す確認: `cgolden/kitchen/requires-unmet`（S429・効かない条件）— レシピの `requires` を型検査の段階で照合しないと落ちた（段取りは F なので、E では照合を外す形で確かめた）。戻して合格
   - わざと壊す確認: `cgolden/kitchen/default-places`（S430・正常系）— 省いた場所を足さないと落ちた。戻して合格
+- P8-6（2026-10-26）: golden 14 件を先にコミットし、献立の評価（`make`・`buy`・`choose`・組の出力・波の表示）、出力の型の決め方、`--entry` で選んだ料理の仮定（`ASM001 evenChoice`・`ASM002 noPlating`・`ASM003 externalIngredient` を登録）、`std` の `Person` と出すタイミングの性質を足した。詳細は §4.21.1 の（補）。`multiple-outputs` は献立に `ingredients` を書いていた（D の規則で書けない）ので、`buy` で魚を買う形に直した（期待値の修正のコミット）。`serve-time-in-code`（構文解析が既に時刻を受け付けない）と `while-warm-strict-ok`（名前つきの性質を曖昧とみなすものが無い）は実装の前から通るので、red-first の例外に書いた。最初の実行で 188 件すべてが合格し、4 構成・確保の失敗の注入も合格
+  - わざと壊す確認: `cgolden/menus/output-type-*`（S242・正常系）— 出力の型を付けない（最後の値の型のまま）と 2 件とも落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/make-buy-swap`（S243・正常系）— `buy` の型を別の名前にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/output-properties`（S244・正常系）— 出力にアレルゲンを引き継がないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/choose-*`（S245・正常系）— 人ごとの内訳を無視する（常に均等）と `choose-breakdown` が落ちた（`choose-default-even` は均等のままなので合格）。戻して合格
+  - わざと壊す確認: `cgolden/menus/split-pass`（S247・正常系）— `split` を消費に数えないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/single-recipe-wrap`・`no-vessel-until-done`（S248・正常系）— 器の既定値があっても盛り付けを補わないと `single-recipe-wrap` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/recipe-arg-external`（S249・正常系）— 外から来る材料の仮定を出さないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/waves`（S250・正常系）— 2 つ目の波の間隔を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/serve-time-in-code`（S251・効かない条件）— 構文解析が波の名前の後の `at` と時刻を受け付けると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/while-warm-strict-ok`（S252・効かない条件）— 名前つきの性質の注釈を曖昧な量として報告すると（厳密モードでエラー）落ちた。戻して合格
+  - わざと壊す確認: `cgolden/menus/multiple-outputs`（S422・正常系）— 組の出力の 2 つ目以降を捨てると落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
