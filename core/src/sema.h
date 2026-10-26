@@ -17,6 +17,65 @@ typedef struct ozni_qty {
   bool known;
 } ozni_qty;
 
-[[nodiscard]] bool ozni_sema_run(ozni_project *pr, bool steps, bool requires, ozni_buf *out);
+typedef enum ozni_ir_kind : uint8_t {
+  OZNI_IR_IN,
+  OZNI_IR_BUY,
+  OZNI_IR_OP,
+  OZNI_IR_CHOOSE,
+  OZNI_IR_PLATE,
+  OZNI_IR_WAVE
+} ozni_ir_kind;
+
+typedef struct ozni_ir_node {
+  ozni_rat time_lo;
+  ozni_rat time_hi;
+  uint32_t number;
+  ozni_index dish;
+  ozni_index label;
+  ozni_index text;
+  ozni_index first_input;
+  uint32_t ninputs;
+  ozni_index first_req;
+  uint32_t nreqs;
+  ozni_index first_variant;
+  uint32_t nvariants;
+  ozni_index wave;
+  ozni_ir_kind kind;
+  bool unattended;
+  uint8_t reserved[2];
+} ozni_ir_node;
+
+typedef struct ozni_ir_input {
+  ozni_index node;
+  uint32_t part;
+  ozni_index divisor;
+} ozni_ir_input;
+
+typedef struct ozni_ir_req {
+  ozni_index text;
+  ozni_index file;
+  ozni_index type;
+} ozni_ir_req;
+
+typedef struct ozni_ir_variant {
+  ozni_rat time_lo;
+  ozni_rat time_hi;
+  ozni_index name;
+  ozni_index first_req;
+  uint32_t nreqs;
+  bool unattended;
+  uint8_t reserved[3];
+} ozni_ir_variant;
+
+typedef struct ozni_ir {
+  ozni_table *nodes;
+  ozni_table *inputs;
+  ozni_table *reqs;
+  ozni_table *variants;
+} ozni_ir;
+
+typedef enum ozni_sema_out : uint8_t { OZNI_OUT_NONE, OZNI_OUT_STEPS, OZNI_OUT_REQUIRES, OZNI_OUT_IR } ozni_sema_out;
+
+[[nodiscard]] bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir *ir);
 
 #endif

@@ -38,6 +38,7 @@ static int usage(void) {
         "       ozen debug definitions [FILE]\n"
         "       ozen debug steps [FILE]\n"
         "       ozen debug requires [FILE]\n"
+        "       ozen debug ir [FILE]\n"
         "       ozen debug entry [--entry NAME] [FILE]\n"
         "       ozen debug embedded-std\n"
         "       ozen --version\n"
@@ -173,7 +174,7 @@ static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const 
       return 2;
     }
   } else if (mode == OZNI_MODE_CHECK || mode == OZNI_MODE_MODULES || mode == OZNI_MODE_STEPS ||
-             mode == OZNI_MODE_REQUIRES) {
+             mode == OZNI_MODE_REQUIRES || mode == OZNI_MODE_IR) {
     fputs("ozen: no FILE given and no package.ozen in this folder\n", stderr);
     return 2;
   }
@@ -357,6 +358,9 @@ int main(int argc, char **argv) {
   }
   if (strcmp(argv[2], "requires") == 0 && argc <= 4) {
     return run(&a, OZNI_MODE_REQUIRES, argc == 4 ? argv[3] : nullptr, nullptr);
+  }
+  if (strcmp(argv[2], "ir") == 0 && argc <= 4) {
+    return run(&a, OZNI_MODE_IR, argc == 4 ? argv[3] : nullptr, nullptr);
   }
   if (strcmp(argv[2], "modules") == 0 && argc == 3) {
     return run(&a, OZNI_MODE_MODULES, nullptr, nullptr);
