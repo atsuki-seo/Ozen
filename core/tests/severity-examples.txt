@@ -22,9 +22,9 @@ category	local の import	NAM:importLocal	-	D
 category	量の不足	LIN:insufficient	-	E
 category	残った部位	LIN:leftoverPart	-	E
 category	加熱不足	SAF:undercooked	-	E
-category	アレルゲン	SAF:allergen	-	E
+category	アレルゲン	SAF:allergen	-	F
 category	設備がない	KIT:noVariant	-	E
-category	器が足りない	KIT:vesselShortage	-	E
+category	器が足りない	KIT:vesselShortage	-	F
 category	器の容量超過	SCH:vesselOverflow	-	E
 category	立てる人数を超える	SCH:tooManyCooks	-	E
 category	燃料切れ	MAC:fuelExhausted	-	D

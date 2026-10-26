@@ -3159,6 +3159,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `prop/monotonic`（S273・境界・上限）— 台所があるとき `vagueAmount` を出さないと `56 cases, 2 decreases`。戻して `0 decreases`
   - わざと壊す確認: `cgolden/levels/first-variant-assumed`（S275・正常系）— 最後の候補を使うと落ちた。戻して合格
   - わざと壊す確認: `cgolden/actions/extend-in-assumptions`（S424・正常系）— 足した候補を候補の並びに入れないと落ちた。戻して合格
+- ゲート E（P8-10、2026-10-26）: P7-6 のゴール（`G-CORE-BUILD`・`FLAGS`・`C23-SUBSET`・`DIAG-REGISTRY`（`87 codes … 0 unused`）・`DIAG-APPEND`・`UNIT`・`ARENA-ACCESS`・`NOINT128`・`GOLDEN`（232 件 × 4 構成）・`GRAMMAR`（131 規則）・`STD-EMBED`・`G-STD-LISTS`・`STATIC`・`SOURCES`・`PROVENANCE`・`G-REPO-VERSION`・`G-CORE-OOM`（`212 files, 2716 points, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`DETERMINISM`、`prop/reindent`（`984 cases, 0 differences`）、`G-REPO-SPDX`・`SELFTESTS`・`RED-FIRST`・`TOOLS`・`G-PLAN-COVERAGE`）と P8 のゴール（`G-TYPE-SEVERITY-TABLE`（`--phase E`、`12 examples, 0 mismatched; categories: 13 examples, 0 mismatched`）、`prop/monotonic`（`56 cases, 0 decreases`）、`G-CORE-FUZZ`（`parse` `71283 execs in 602 s`・`expand` `41114 execs in 601 s`・`typecheck` `46557 execs in 601 s`、すべて 0 crashes, 0 leaks, 0 timeouts））がすべて合格。計画との食い違い: 分類の表の `SAF:allergen`（`safety/allergen-bowl` は P9-5）と `KIT:vesselShortage`（`vessels/count-short` は P9-6）は、計画の表で golden が F の作業にあるので、`core/tests/severity-examples.txt` の段階を F に直した（ゲート F の `G-TYPE-SEVERITY-TABLE`（17 例すべて）で確かめる）。`G-CORE-PROPS` の残りの性質（`split_merge` など）と `G-STD-PHRASES`（レンダラーの道具）は F 以降の作業で足す
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
