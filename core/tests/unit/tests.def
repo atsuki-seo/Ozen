@@ -1,2 +1,8 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
 OZN_TEST(diag_registry)
+OZN_TEST(arena_basic)
+OZN_TEST(arena_alignment)
+OZN_TEST(arena_large)
+OZN_TEST(arena_oom)
+OZN_TEST(arena_poison_detects)
+OZN_TEST(index_is_32bit)

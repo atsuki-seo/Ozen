@@ -44,4 +44,7 @@ file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/tests/unit/tests.def OZN_UNIT_LINES REG
 foreach(l IN LISTS OZN_UNIT_LINES)
   string(REGEX REPLACE "^OZN_TEST\\(([a-z0-9_]+)\\)$" "\\1" t "${l}")
   add_test(NAME ${t} COMMAND ozen_unit ${t})
+  if(t STREQUAL "arena_poison_detects" AND OZN_SANITIZE)
+    set_tests_properties(${t} PROPERTIES WILL_FAIL TRUE)
+  endif()
 endforeach()
