@@ -13,4 +13,5 @@ cmd="cd $(quote "$device/repo/$rel") && $(quote "$device/ozen")"
 for a in "$@"; do
   cmd+=" $(quote "$a")"
 done
-exec adb shell "$cmd"
+# adb shell forwards stdin to the device, which would swallow the entry list the golden runner reads in a loop.
+exec adb shell "$cmd" < /dev/null
