@@ -34,3 +34,5 @@ scripts/collect-schedules.sh scripts/test-collect-schedules.sh
 tools/jsoncheck/validate.py scripts/test-validate.sh
 tools/vendorcheck.py scripts/test-vendorcheck.sh
 scripts/run-cli-tests.sh scripts/test-run-cli-tests.sh
+bindings/linux/swift-test.sh scripts/test-bridge-tests.sh
+bindings/android/jvm-test.sh scripts/test-bridge-tests.sh
