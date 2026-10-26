@@ -46,3 +46,6 @@ TYP:vagueAmount
 TYP:unitCycle
 TYP:baseUnitChanged
 NAM:unknownUnit
+TYP:stateRequired
+TYP:cutCoarser
+TYP:axisDefinition
