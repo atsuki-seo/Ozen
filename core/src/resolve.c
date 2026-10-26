@@ -126,11 +126,11 @@ static const ozni_def *def_at(const ozni_module *m, ozni_index d) { return ozni_
 
 /* Sources, packages and modules */
 
-static bool starts_with(const char *s, const char *prefix) { return strncmp(s, prefix, strlen(prefix)) == 0; }
+static bool starts_with(const char *s, const char *prefix) { return ozni_strncmp(s, prefix, strlen(prefix)) == 0; }
 
 static bool admit(ozni_ctx *c, ozni_index file) {
   const ozni_source *s = &c->srcs[file];
-  if (s->len > c->lim.input_bytes) {
+  if (file < c->nuser && s->len > c->lim.input_bytes) {
     char a[24], b[24];
     size_t na = 0, nb = 0;
     uint64_t v = s->len, w = c->lim.input_bytes;
@@ -263,7 +263,7 @@ static ozni_index package_of(const ozni_project *pr, const char *path) {
   size_t best_len = 0;
   for (ozni_index i = 0; i < ozni_table_count(pr->packages); i++) {
     const ozni_package *p = ozni_table_get(pr->packages, i);
-    if (strncmp(path, p->prefix, p->prefix_len) == 0 && (best == NONE || p->prefix_len > best_len)) {
+    if (ozni_strncmp(path, p->prefix, p->prefix_len) == 0 && (best == NONE || p->prefix_len > best_len)) {
       best = i;
       best_len = p->prefix_len;
     }
@@ -284,12 +284,12 @@ static ozni_index module_name_for(ozni_project *pr, ozni_index file, ozni_index 
     if (pn.len + 1 >= sizeof buf) {
       return 0;
     }
-    memcpy(buf, pn.p, pn.len);
+    ozni_copy(buf, pn.p, pn.len);
     n = pn.len;
     buf[n++] = '.';
   }
   size_t len = strlen(path);
-  if (len >= 5 && strcmp(path + len - 5, ".ozen") == 0) {
+  if (len >= 5 && ozni_strcmp(path + len - 5, ".ozen") == 0) {
     len -= 5;
   }
   for (size_t i = skip; i < len && n < sizeof buf; i++) {
@@ -416,9 +416,9 @@ static ozni_index resolve_module_name(ozni_project *pr, ozni_index from, ozni_st
   if (m->pkg != NONE) {
     ozni_str pn = str_of(c, ((const ozni_package *)ozni_table_get(pr->packages, m->pkg))->name);
     if (pn.len + 1 + q.len < sizeof buf) {
-      memcpy(buf, pn.p, pn.len);
+      ozni_copy(buf, pn.p, pn.len);
       buf[pn.len] = '.';
-      memcpy(buf + pn.len + 1, q.p, q.len);
+      ozni_copy(buf + pn.len + 1, q.p, q.len);
       ozni_index r = find_module(pr, intern(c, buf, pn.len + 1 + q.len));
       if (r != NONE) {
         return r;
@@ -683,7 +683,7 @@ static void check_requires(ozni_project *pr) {
     ozni_str name = str_of(c, en->text);
     bool range = false;
     for (size_t k = 0; k < want.len; k++) {
-      range = range || strchr("<>=~^* ", want.p[k]) != nullptr;
+      range = range || ozni_strchr("<>=~^* ", want.p[k]) != nullptr;
     }
     if (range) {
       ozni_str args[2] = {name, want};
@@ -736,7 +736,7 @@ static void check_requires(ozni_project *pr) {
   }
   for (ozni_index i = 0; i < pr->nuser; i++) {
     const char *path = c->srcs[i].path;
-    const char *slash = strchr(path, '/');
+    const char *slash = ozni_strchr(path, '/');
     if (slash == nullptr || starts_with(path, "deps/") || package_of(pr, path) != pr->root_pkg) {
       continue;
     }
@@ -748,7 +748,7 @@ static void check_requires(ozni_project *pr) {
     bool seen = false;
     for (ozni_index k = 0; k < i && !seen; k++) {
       const char *other = c->srcs[k].path;
-      seen = strncmp(other, path, (size_t)(slash - path) + 1) == 0 && package_of(pr, other) == pr->root_pkg;
+      seen = ozni_strncmp(other, path, (size_t)(slash - path) + 1) == 0 && package_of(pr, other) == pr->root_pkg;
     }
     if (seen) {
       continue;
@@ -798,6 +798,27 @@ static bool scope_has(const walker *w, ozni_index name) {
 static found lookup_global(walker *w, ozni_index name, ozni_index file, const ozni_node *at) {
   ozni_project *pr = w->pr;
   ozni_module *m = M(pr, w->mod);
+  if (!m->is_std) {
+    if (pr->c->limit_hit) {
+      return (found){F_OTHER, NONE, NONE};
+    }
+    if (++pr->c->steps_used > pr->c->lim.steps) {
+      char num[24], rev[24];
+      size_t n = 0;
+      uint64_t v = pr->c->lim.steps;
+      do {
+        rev[n++] = (char)('0' + v % 10);
+        v /= 10;
+      } while (v != 0);
+      for (size_t k = 0; k < n; k++) {
+        num[k] = rev[n - 1 - k];
+      }
+      ozni_str arg = {num, (uint32_t)n};
+      diag_node(pr, OZNI_D_MAC_fuelExhausted, file, at, &arg, 1);
+      pr->c->limit_hit = true;
+      return (found){F_OTHER, NONE, NONE};
+    }
+  }
   ozni_index d = defs_find(m, name);
   if (d != NONE) {
     return (found){F_DEF, w->mod, d};
@@ -876,7 +897,7 @@ static found resolve_name(walker *w, ozni_index name, ozni_index file, const ozn
 static void resolve_type_ref(walker *w, ozni_index file, ozni_index i) {
   const ozni_node *t = node(w->pr, file, i);
   ozni_str q = str_of(w->pr->c, t->text);
-  const char *dot = memchr(q.p, '.', q.len);
+  const char *dot = ozni_memchr(q.p, '.', q.len);
   if (dot != nullptr) {
     ozni_index head = intern(w->pr->c, q.p, (size_t)(dot - q.p));
     found f = lookup_global(w, head, file, t);
@@ -1018,7 +1039,7 @@ static void resolve_ingredients(walker *w, ozni_index file, const ozni_node *n) 
     ozni_str s = str_of(w->pr->c, item->text);
     char buf[256];
     if (!typed && s.len > 0 && s.len < sizeof buf) {
-      memcpy(buf, s.p, s.len);
+      ozni_copy(buf, s.p, s.len);
       if (buf[0] >= 'a' && buf[0] <= 'z') {
         buf[0] = (char)(buf[0] - 'a' + 'A');
       }
@@ -1232,17 +1253,18 @@ bool ozni_project_load(ozni_ctx *c, const ozni_source *user, size_t nuser, ozni_
     if (path == nullptr) {
       return false;
     }
-    memcpy(path, "std/", 4);
-    memcpy(path + 4, ozni_std_files[k].path, n + 1);
+    ozni_copy(path, "std/", 4);
+    ozni_copy(path + 4, ozni_std_files[k].path, n + 1);
     all[nuser + k] = (ozni_source){path, ozni_std_files[k].text, ozni_std_files[k].len};
   }
   c->srcs = all;
   c->nsrcs = total;
+  c->nuser = nuser;
   bool *parsed = ozni_arena_alloc(c->arena, total + 1);
   if (parsed == nullptr) {
     return false;
   }
-  for (ozni_index f = 0; f < total; f++) {
+  for (ozni_index f = 0; f < total && !c->limit_hit; f++) {
     if (admit(c, f)) {
       if (!ozni_parse(c, f, &pr->asts[f])) {
         return false;
@@ -1256,18 +1278,18 @@ bool ozni_project_load(ozni_ctx *c, const ozni_source *user, size_t nuser, ozni_
   }
   for (ozni_index f = 0; f < total; f++) {
     const char *path = all[f].path;
-    if (strcmp(path, "package.ozen") == 0) {
+    if (ozni_strcmp(path, "package.ozen") == 0) {
       pr->root_pkg = ozni_table_count(pr->packages);
       load_manifest(pr, f, "", 0, false);
       if (pr->root_pkg == ozni_table_count(pr->packages)) {
         pr->root_pkg = NONE;
       }
-    } else if (strcmp(path, "std/package.ozen") == 0) {
+    } else if (ozni_strcmp(path, "std/package.ozen") == 0) {
       pr->std_pkg = ozni_table_count(pr->packages);
       load_manifest(pr, f, "std/", 4, true);
     } else if (starts_with(path, "deps/")) {
-      const char *slash = strchr(path + 5, '/');
-      if (slash != nullptr && strcmp(slash, "/package.ozen") == 0) {
+      const char *slash = ozni_strchr(path + 5, '/');
+      if (slash != nullptr && ozni_strcmp(slash, "/package.ozen") == 0) {
         load_manifest(pr, f, path, (size_t)(slash - path) + 1, false);
       }
     }
@@ -1275,7 +1297,7 @@ bool ozni_project_load(ozni_ctx *c, const ozni_source *user, size_t nuser, ozni_
   for (ozni_index f = 0; f < total && !c->oom; f++) {
     const char *path = all[f].path;
     size_t len = strlen(path);
-    bool manifest = (len >= 12 && strcmp(path + len - 12, "package.ozen") == 0 &&
+    bool manifest = (len >= 12 && ozni_strcmp(path + len - 12, "package.ozen") == 0 &&
                      (len == 12 || path[len - 13] == '/'));
     if (!parsed[f] || manifest) {
       continue;

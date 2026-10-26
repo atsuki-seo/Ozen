@@ -54,6 +54,30 @@ static void mark(parser *p, ozni_rule r) { p->ast->rules[r / 8] |= (uint8_t)(1u 
 static ozni_node *N(parser *p, ozni_index i) { return ozni_table_at(p->ast->nodes, i); }
 
 static ozni_index node(parser *p, ozni_node_kind kind, uint32_t start) {
+  if (p->c->limit_hit) {
+    p->failed = true;
+    return 0;
+  }
+  if (p->file < p->c->nuser && ++p->c->nodes_used > p->c->lim.nodes) {
+    char num[24];
+    size_t n = 0;
+    char rev[24];
+    uint64_t v = p->c->lim.nodes;
+    do {
+      rev[n++] = (char)('0' + v % 10);
+      v /= 10;
+    } while (v != 0);
+    for (size_t k = 0; k < n; k++) {
+      num[k] = rev[n - 1 - k];
+    }
+    ozni_str arg = {num, (uint32_t)n};
+    if (!ozni_diag_add(p->c, OZNI_D_MAC_nodeLimit, (ozni_span){p->file, start, start}, 0, &arg, 1)) {
+      p->oom = true;
+    }
+    p->c->limit_hit = true;
+    p->failed = true;
+    return 0;
+  }
   ozni_node n = {.kind = kind, .span = {p->file, start, start}};
   ozni_index i = 0;
   if (!ozni_table_push(p->ast->nodes, &n, &i)) {
@@ -163,12 +187,13 @@ static bool enter(parser *p) {
   if (p->failed) {
     return false;
   }
-  if (++p->depth > p->c->lim.depth) {
+  uint32_t limit = p->file < p->c->nuser ? p->c->lim.depth : ozni_default_limits().depth;
+  if (++p->depth > limit) {
     if (!p->depth_reported) {
       char num[24];
       size_t n = 0;
       char rev[24];
-      uint32_t v = p->c->lim.depth;
+      uint32_t v = limit;
       do {
         rev[n++] = (char)('0' + v % 10);
         v /= 10;
@@ -1377,7 +1402,7 @@ static ozni_index block(parser *p, block_kind kind) {
   }
   skip_seps(p);
   bool top_quote = kind == BLOCK_MACRO;
-  while (!at(p, OZNI_T_RBRACE) && !at(p, OZNI_T_EOF) && !p->oom) {
+  while (!at(p, OZNI_T_RBRACE) && !at(p, OZNI_T_EOF) && !p->oom && !p->c->limit_hit) {
     if (top_quote) {
       p->quote_depth = at_kw(p, "quote") ? -1 : 0;
     }
@@ -1527,7 +1552,7 @@ static ozni_index decl_body(parser *p, body_kind kind) {
     return 0;
   }
   skip_seps(p);
-  while (!at(p, OZNI_T_RBRACE) && !at(p, OZNI_T_EOF) && !p->oom) {
+  while (!at(p, OZNI_T_RBRACE) && !at(p, OZNI_T_EOF) && !p->oom && !p->c->limit_hit) {
     ozni_index m = member(p, kind);
     if (m != 0 && (at(p, OZNI_T_COMMA) || block_end(p))) {
       add(p, n, m);
@@ -1690,7 +1715,7 @@ static ozni_index type_decl(parser *p) {
     return 0;
   }
   skip_seps(p);
-  while (!at(p, OZNI_T_RBRACE) && !at(p, OZNI_T_EOF) && !p->oom) {
+  while (!at(p, OZNI_T_RBRACE) && !at(p, OZNI_T_EOF) && !p->oom && !p->c->limit_hit) {
     mark(p, OZNI_R_type_member);
     ozni_index m;
     if (at_kw(p, "check")) {
@@ -2042,7 +2067,7 @@ static bool item(parser *p, ozni_index parent) {
     set_text(p, n, qual_name(p));
     if (expect(p, OZNI_T_LBRACE) && enter(p)) {
       skip_seps(p);
-      while (!at(p, OZNI_T_RBRACE) && !at(p, OZNI_T_EOF) && !p->oom) {
+      while (!at(p, OZNI_T_RBRACE) && !at(p, OZNI_T_EOF) && !p->oom && !p->c->limit_hit) {
         if (item(p, n) && !at(p, OZNI_T_SEP) && !at(p, OZNI_T_RBRACE)) {
           unexpected(p);
         }
@@ -2142,7 +2167,7 @@ bool ozni_parse(ozni_ctx *c, ozni_index file, ozni_ast *ast) {
   }
   N(&p, ast->root)->text = path;
   skip_seps(&p);
-  while (!at(&p, OZNI_T_EOF) && !p.oom) {
+  while (!at(&p, OZNI_T_EOF) && !p.oom && !c->limit_hit) {
     if (item(&p, ast->root) && !at(&p, OZNI_T_SEP) && !at(&p, OZNI_T_EOF)) {
       unexpected(&p);
     }

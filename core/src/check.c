@@ -43,31 +43,34 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
   }
   ozni_project pr;
   bool loaded = ozni_project_load(&c, srcs, n, &pr);
+  if (!loaded || c.oom) {
+    c.oom = true;
+    ozni_diag_add(&c, OZNI_D_MAC_outOfMemory, (ozni_span){0, 0, 0}, 0, nullptr, 0);
+  }
   char *out = nullptr;
   bool errors = false;
-  if (loaded && !c.oom) {
-    bool done = false;
-    if (mode == OZNI_MODE_MODULES && !any_error(&c)) {
-      done = ozni_render_modules(&pr, &b);
-    } else if (mode == OZNI_MODE_DEFINITIONS && !any_error(&c)) {
-      done = ozni_render_definitions(&pr, &b);
-    } else if (mode == OZNI_MODE_ENTRY && !any_error(&c)) {
-      bool ok = false;
-      done = ozni_render_entry(&pr, entry, &b, &ok) && ok;
-      if (!done) {
-        ozni_buf_discard(&b);
-      }
+  bool done = false;
+  if (!c.oom && mode == OZNI_MODE_MODULES && !any_error(&c)) {
+    done = ozni_render_modules(&pr, &b);
+  } else if (!c.oom && mode == OZNI_MODE_DEFINITIONS && !any_error(&c)) {
+    done = ozni_render_definitions(&pr, &b);
+  } else if (!c.oom && mode == OZNI_MODE_ENTRY && !any_error(&c)) {
+    bool ok = false;
+    done = ozni_render_entry(&pr, entry, &b, &ok) && ok;
+    if (!done) {
+      ozni_buf_discard(&b);
     }
-    if (done) {
-      errors = any_error(&c);
-      out = ozni_buf_finish(&b);
-    } else if (ozni_render_check(&c, &b, &errors)) {
+  }
+  if (done) {
+    errors = any_error(&c);
+    out = ozni_buf_finish(&b);
+  } else {
+    ozni_buf_discard(&b);
+    if (ozni_render_check(&c, &b, &errors)) {
       out = ozni_buf_finish(&b);
     } else {
       ozni_buf_discard(&b);
     }
-  } else {
-    ozni_buf_discard(&b);
   }
   *has_errors = errors;
   ozni_ctx_free(&c);

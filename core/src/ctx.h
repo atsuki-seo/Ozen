@@ -28,6 +28,10 @@ typedef struct ozni_ctx {
   ozni_table *diag_args;
   const ozni_source *srcs;
   size_t nsrcs;
+  size_t nuser;
+  uint64_t nodes_used;
+  uint64_t steps_used;
+  bool limit_hit;
   bool oom;
 } ozni_ctx;
 
