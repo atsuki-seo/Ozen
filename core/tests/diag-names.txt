@@ -96,3 +96,6 @@ SAF:allergen
 SCH:washInserted
 SCH:stainLeft
 ASM:smallToolsAssumed
+KIT:vesselShortage
+KIT:vesselSubstituted
+SCH:longWait
