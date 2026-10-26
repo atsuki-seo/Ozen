@@ -1236,7 +1236,7 @@ IR:
   - `  <開始>..<上限の終わり> (<下限の終わり>) <作業> by <人>|unattended [<資源の個体>, …]`（時刻は開始からの秒の有理数。作業は `%n <動作>`、挿入した洗いは `wash <道具> after <汚れ>`、拭きは `wipe <場所> after <汚れ>`、選んだ候補は `%n <動作>/<候補>`。資源の個体は台所の項目の名前と番号 `board#2`、レベル 1 では人だけ）
   - `  serve <波> at <時刻>`、最後に `total <上限の終わり>` と、診断と結果の行
 - 段取りの JSON（`schedcheck` の入力。G の JSON の一部になる）: `{"schemaVersion":1,"cooks":n,"resources":[{"id","kind","capacity"}],"tasks":[{"id","op","deps":[…],"start","endHi","endLo","cook"|null,"uses":[資源の id…],"unattended","wave"|null}],"waves":[{"id","serveAt","after"|null,"gap"}],"dishes":[{"id","serveWithin"|null,"ready"}]}`。時刻は `{num, den}`
-- `tools/schedcheck/` の検査（実装と別の経路で、段取りの JSON だけを読む）: (1) 依存: どの作業も、依存する作業の上限の終わり以降に始まる、(2) 資源: どの時刻でも、資源ごとに使っている作業の数が容量以下（区間は `[開始, 上限の終わり)`）、(3) 人: 人を使う作業は人ごとに重ならず、人の数は `cooks` 以下、`unattended` の作業は人を使わない、(4) 1 台の複数の能力: 同じ個体を同時に 2 つの作業が使わない、(5) 波: 波の盛り付けはその波の出す時刻までに終わり、2 つ目からの波の出す時刻は前の波の出す時刻 + 間隔以降、(6) 出すタイミング: `serveWithin` を持つ料理は、下限で仕上がった時刻から出す時刻までが幅以下、(7) 洗い: 汚れの相性で洗いが要る道具は、次に使う前にその道具の洗いの作業がある、(8) 片付け: `--cleanup` の指定どおりに、終わりの時点で道具・場所がきれい。検査の出力は `schedcheck: <作業の数> tasks, <違反の数> violations`
+- `tools/schedcheck/` の検査（実装と別の経路で、段取りの JSON だけを読む）: (1) 依存: どの作業も、依存する作業の上限の終わり以降に始まる、(2) 資源: どの時刻でも、資源ごとに使っている作業の数が容量以下（区間は `[開始, 上限の終わり)`）、(3) 人: 人を使う作業は人ごとに重ならず、人の数は `cooks` 以下、`unattended` の作業は人を使わない、(4) 1 台の複数の能力: 同じ個体を同時に 2 つの作業が使わない、(5) 波: 波の盛り付けはその波の出す時刻までに終わり、2 つ目からの波の出す時刻は前の波の出す時刻 + 間隔以降、(6) 出すタイミング: `serveWithin` を持つ料理は、下限で仕上がった時刻から出す時刻までが幅以下、(7) 洗い: 汚れの相性で洗いが要る道具は、次に使う前にその道具の洗いの作業がある、(8) 片付け: `--cleanup` の指定どおりに、終わりの時点で道具・場所がきれい。検査の出力は `schedcheck: <段取りの数> schedules, <違反の数> violations`。洗いと片付けの検査のため、作業は `leaves`（`[{resource, dirt, sameFoodAs}]`）と `cleans`（`{resource, level}`）を、段取りは `rules`（汚れごとに要る洗い方）と `cleanup` を、資源は `category`（`tool`・`place`・`vessel`）と、複数の能力を持つ個体は `capabilities` を持つ（P9-2）
 - 小さな例の期待の段取りを手で組む手順は §9.6 に書く
 
 ### 4.23 G: 公開 API と JSON（§13-7）
@@ -3202,6 +3202,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/ir/text-dump-format`（S285・正常系）— 資源の欄を省くと落ちた。戻して合格
   - わざと壊す確認: `cgolden/ir/rational-amounts`（S286・正常系）— 割り切れない量を小数で書くと落ちた。戻して合格
   - わざと壊す確認: `cgolden/ir/kitchen-dependent-info`（S463・正常系）— 台所の値の情報を出さないと落ちた。戻して合格
+- P9-2（2026-10-26）: `tools/schedcheck/schedcheck.py`（段取りの JSON だけを読み、有理数は `Fraction`）と自己テスト `scripts/test-schedcheck.sh`（`scripts/selftests.txt` に登録）を書いた。検査は §4.22.1 の 8 つに、開始・下限の終わり・上限の終わりの順の検査を足した 9 つ。洗いと片付けを検査するため、段取りの JSON に `leaves`・`cleans`・`rules`・`cleanup`・`category`・`capabilities` を足した（§4.22.1 に追記）。出力は `G-SCHED-CHECK` に合わせて `schedcheck: <段取りの数> schedules, <違反の数> violations` にした。自己テストは `test-schedcheck: 10 cases, 0 failed`
+  - わざと壊す確認: 自己テストの 9 つの段取りは、正しい段取りから制約を 1 つずつ破ったもので（依存・資源・人・1 台の複数の能力・波・出すタイミング・洗い・片付け・時刻の順）、それぞれその検査の違反だけで落ちることを確かめた
 - わざと壊す確認の記録
 
 ### 9.7 G（API・JSON・CLI）
