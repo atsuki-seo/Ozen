@@ -4,7 +4,7 @@ recipe filletBuri(fish: Buri) -> (Buri<back>, Buri<collar>, Buri<frame>) {
   let (b, c, f) = fillet3(fish)
 }
 menu dinner() {
-  ingredients { buri: 3000 g }
+  let buri = buy Buri 3000 g
   let (b, c, f) = make filletBuri(fish: buri)
   let s = cut(b, style: slice)
   store(c)
