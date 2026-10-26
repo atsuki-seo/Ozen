@@ -3,6 +3,55 @@
 
 static bool add(ozni_rat a, ozni_rat b, ozni_rat *out) { return ozni_rat_add(a, b, out) == OZNI_OK; }
 
+static ozni_rat later(ozni_rat a, ozni_rat b) { return ozni_rat_cmp(a, b) > 0 ? a : b; }
+
+static bool fit(const ozni_sched *s, const ozni_sched_alt *alt, const ozni_rat *cook_free, const ozni_rat *unit_free,
+                ozni_rat now, ozni_rat *start, uint32_t *cook) {
+  *start = now;
+  *cook = 0;
+  if (alt->hands && s->cooks > 0) {
+    bool found = false;
+    ozni_rat best = now;
+    for (uint32_t c = 1; c <= s->cooks; c++) {
+      if (c <= 64 && (alt->banned >> (c - 1) & 1) != 0) {
+        continue;
+      }
+      ozni_rat at = later(cook_free[c], now);
+      if (!found || ozni_rat_cmp(at, best) < 0) {
+        best = at;
+        *cook = c;
+        found = true;
+      }
+    }
+    if (!found) {
+      return false;
+    }
+    *start = best;
+  }
+  for (uint32_t g = 0; g < alt->ngroups; g++) {
+    ozni_sched_group *grp = &s->groups[alt->first_group + g];
+    grp->pick = UINT32_MAX;
+    ozni_rat best = now;
+    for (uint32_t u = 0; u < grp->nunits; u++) {
+      uint32_t unit = s->units[grp->first_unit + u];
+      bool taken = false;
+      for (uint32_t h = 0; h < g; h++) {
+        taken = taken || s->groups[alt->first_group + h].pick == unit;
+      }
+      ozni_rat at = later(unit_free[unit], now);
+      if (!taken && (grp->pick == UINT32_MAX || ozni_rat_cmp(at, best) < 0)) {
+        best = at;
+        grp->pick = unit;
+      }
+    }
+    if (grp->pick == UINT32_MAX) {
+      return false;
+    }
+    *start = later(*start, best);
+  }
+  return true;
+}
+
 static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const uint32_t *dep_count,
                 const uint32_t *deps) {
   uint32_t n = s->ntasks;
@@ -11,9 +60,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
   ozni_rat *cook_free = ozni_arena_alloc(ar, (s->cooks + 1) * sizeof *cook_free);
   ozni_rat *unit_free = ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *unit_free);
   uint32_t *ready = ozni_arena_alloc(ar, (n + 1) * sizeof *ready);
-  bool *order_desc = ozni_arena_alloc(ar, (n + 1) * sizeof *order_desc);
-  if (prio == nullptr || best == nullptr || cook_free == nullptr || unit_free == nullptr || ready == nullptr ||
-      order_desc == nullptr) {
+  if (prio == nullptr || best == nullptr || cook_free == nullptr || unit_free == nullptr || ready == nullptr) {
     return false;
   }
   for (uint32_t i = 0; i < n; i++) {
@@ -21,7 +68,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
   }
   for (uint32_t k = n; k > 0; k--) {
     uint32_t i = k - 1;
-    if (!add(s->tasks[i].hi, best[i], &prio[i])) {
+    if (!add(s->alts[s->tasks[i].first_alt].hi, best[i], &prio[i])) {
       return false;
     }
     for (uint32_t d = 0; d < dep_count[i]; d++) {
@@ -66,46 +113,44 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
     }
     for (uint32_t r = 0; r < nready; r++) {
       ozni_sched_task *t = &s->tasks[ready[r]];
-      uint32_t cook = 0;
-      if (t->hands && s->cooks > 0) {
-        for (uint32_t c = 1; c <= s->cooks && cook == 0; c++) {
-          cook = ozni_rat_cmp(cook_free[c], now) <= 0 ? c : 0;
-        }
-        if (cook == 0) {
+      uint32_t pick = UINT32_MAX, pick_cook = 0;
+      ozni_rat pick_start = now, pick_end = now;
+      for (uint32_t a = 0; a < t->nalts; a++) {
+        const ozni_sched_alt *alt = &s->alts[t->first_alt + a];
+        ozni_rat start, end;
+        uint32_t cook;
+        if (!fit(s, alt, cook_free, unit_free, now, &start, &cook) || !add(start, alt->hi, &end)) {
           continue;
         }
-      }
-      bool ok = true;
-      for (uint32_t g = 0; g < t->ngroups && ok; g++) {
-        ozni_sched_group *grp = &s->groups[t->first_group + g];
-        grp->pick = UINT32_MAX;
-        for (uint32_t u = 0; u < grp->nunits && grp->pick == UINT32_MAX; u++) {
-          uint32_t unit = s->units[grp->first_unit + u];
-          bool taken = false;
-          for (uint32_t h = 0; h < g; h++) {
-            taken = taken || s->groups[t->first_group + h].pick == unit;
-          }
-          if (!taken && ozni_rat_cmp(unit_free[unit], now) <= 0) {
-            grp->pick = unit;
-          }
+        if (pick == UINT32_MAX || ozni_rat_cmp(end, pick_end) < 0) {
+          pick = a;
+          pick_cook = cook;
+          pick_start = start;
+          pick_end = end;
         }
-        ok = grp->pick != UINT32_MAX;
       }
-      if (!ok) {
+      if (pick == UINT32_MAX || ozni_rat_cmp(pick_start, now) > 0) {
         continue;
       }
+      const ozni_sched_alt *alt = &s->alts[t->first_alt + pick];
+      uint32_t cook;
+      ozni_rat start;
+      if (!fit(s, alt, cook_free, unit_free, now, &start, &cook)) {
+        continue;
+      }
+      t->chosen = pick;
       t->start = now;
-      if (!add(now, t->hi, &t->end_hi) || !add(now, t->lo, &t->end_lo)) {
+      if (!add(now, alt->hi, &t->end_hi) || !add(now, alt->lo, &t->end_lo)) {
         return false;
       }
-      t->cook = cook;
+      t->cook = pick_cook;
       t->placed = true;
       left--;
-      if (cook != 0) {
-        cook_free[cook] = t->end_hi;
+      if (pick_cook != 0) {
+        cook_free[pick_cook] = t->end_hi;
       }
-      for (uint32_t g = 0; g < t->ngroups; g++) {
-        unit_free[s->groups[t->first_group + g].pick] = t->end_hi;
+      for (uint32_t g = 0; g < alt->ngroups; g++) {
+        unit_free[s->groups[alt->first_group + g].pick] = t->end_hi;
       }
     }
     if (left == 0) {
@@ -187,10 +232,12 @@ bool ozni_schedule(ozni_arena *ar, ozni_sched *s) {
     const ozni_sched_task *r = &rev[n - 1 - i];
     ozni_sched_task *t = &s->tasks[i];
     if (ozni_rat_sub(s->serve_at, r->end_hi, &t->start) != OZNI_OK ||
-        ozni_rat_sub(s->serve_at, r->start, &t->end_hi) != OZNI_OK || !add(t->start, t->lo, &t->end_lo)) {
+        ozni_rat_sub(s->serve_at, r->start, &t->end_hi) != OZNI_OK ||
+        !add(t->start, s->alts[t->first_alt + r->chosen].lo, &t->end_lo)) {
       return false;
     }
     t->cook = r->cook;
+    t->chosen = r->chosen;
     t->placed = true;
   }
   return true;
