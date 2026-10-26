@@ -87,3 +87,7 @@ ASM:firstVariant
 TYP:optionLevel
 SCH:kitchenDependent
 ASM:provisionalValue
+SCH:variantChosen
+SCH:softBeforeHard
+SCH:capacityShortage
+TYP:outputMismatch
