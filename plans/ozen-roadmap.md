@@ -2915,6 +2915,11 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-PROTO-WASM-BRIDGE`（S64・プラットフォームの経路）— 橋渡しで UTF-16 の長さ（`text.length`）を渡すと日本語・絵文字を含む入力が `bridge: 4 inputs, 4 mismatches` で落ちた。戻して合格
   - わざと壊す確認: `G-PROTO-WASM-BRIDGE`（S128・プラットフォームの経路）— 橋渡しで長さに `str.length` を渡すと `bridge: 4 inputs, 4 mismatches` で落ちた（S64 と同じ壊し方）。戻して合格
   - わざと壊す確認: `G-PROTO-WASM-WORKER`（S150・プラットフォームの経路）— Worker の中で長さに `str.length` を渡すと `worker: 4 inputs, 4 mismatches` で落ちた。戻して合格
+- P5-3（2026-10-26）: `.github/workflows/ios-proto.yml`。ランナーは `macos-26`（image `macos26 20261013.0424.1`・`20261021.0445.8`）、Xcode 26.6（`toolchain.txt` の `xcode 26.6 macos`）、1 回の実行はおよそ 9 分。端末用とシミュレーター用の静的ライブラリを `OzenProto.xcframework` にまとめ、arm64 のシミュレーター（iPhone 17 Pro）で golden 109 件がすべて通り、digest がネイティブ・WASM と一致した（`9a6479fb…`）。最初の 3 回の実行で直したこと: CMake が iOS 向けの実行ファイルを既定で `.app` にするので `CMAKE_MACOSX_BUNDLE=OFF` にした（`simctl spawn` が `exit 111`）、起動の完了を `simctl bootstatus -b` で待つ、`simctl spawn` は 10 秒を超えることがあるので `OZP_RUN_TIMEOUT`（golden と digest の 1 回の制限）を足して iOS では 120 秒にした。シミュレーターの golden の要約も成果物 `ios-digest` に入れ、`G-PROTO-IOS` が `build/results/golden-ios.txt` に写す。`G-PROTO-IOS` は最後に push したコミット `ae60feb` で合格
+  - わざと壊す確認: `G-PROTO-IOS`（S129・プラットフォームの経路）— 使い捨てのブランチ `mut/s129` で、`__APPLE_EMBEDDED_SIMULATOR__` のときだけ量の単位の前の空白を出さないようにすると、シミュレーターの golden が 33 件落ちて実行が失敗した。ブランチは確認を取って消した
+  - わざと壊す確認: `G-PROTO-IOS`（S130・正常系）— 使い捨てのブランチ `mut/s130` で端末用の静的ライブラリを入れずに xcframework を作ると、実行は成功するが xcframework の中が `ios-arm64-simulator/` だけになり、`xcframework slices: got 1, want 2` で落ちる。ブランチは確認を取って消した
+  - わざと壊す確認: `G-PROTO-IOS`（S131・プラットフォームの経路）— 使い捨てのブランチ `mut/s131` でワークフローの Xcode の版の指定を外しても、ランナーの既定の Xcode が 26.6 なので検出されなかった。固定した版以外の Xcode を選ぶ変種も、別名の `Xcode_26.6.0.app` を選んで検出されなかったので、別名を除いて選び直す変種を用意した（結果は追記する）
+- ゲート B2（P5-4、2026-10-26）: P4-9 のゴール（`G-PROTO-BUILD` から `G-REPO-RED-FIRST` まで）、`G-PROTO-FUZZ`（`fuzz: 746382 execs in 601 s, 0 crashes, 0 leaks, 0 timeouts`、カバレッジ 1,184）、`G-PROTO-WASM`・`WASM-BRIDGE`・`WASM-WORKER`、`G-PROTO-IOS`（`ae60feb`）がすべて合格
 - P6-1（2026-10-26）: README に試作の節（ビルド・実行・診断の例）を足し、`check-readme-example.sh` が README の例を実行して比べる。`readme: 1 examples, 0 mismatches`
   - わざと壊す確認: `G-PROTO-README-EXAMPLE`（S136・文書との一致）— README の例の出力を 1 行変えると落ちた。戻して合格
 - P6-2（2026-10-26）: 報告書 `docs/prototype-report.md`（§4.16 の 4 節）、`check-report.py`（見出し・行数の表・環境ごとの結果の表・ファズの行・検出した手段ごとの欠陥の数・`defects.tsv` のコミットが祖先か・件名が `fix` で始まり `proto/src/` を変えたコミットがすべて `defects.tsv` にあるか）と自己テスト（`test-check-report: 10 cases, 0 failed`）。`G-PROTO-REPORT` は結果のファイルの数 + 4 以上の検査の数も確かめる。`plan-start..HEAD` には件名が `fix` で始まるコミットが無い（直したコミットの件名は「Avoid …」「Reuse …」などで書いた）ので、最後の検査は自己テストの `fix-row-removed` で確かめた
@@ -2924,6 +2929,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-PROTO-REPORT`（S135・文書との一致）— golden で見つけた欠陥の数を 4 にすると落ちた。戻して合格
   - わざと壊す確認: `G-PROTO-REPORT`（S135・データの完全性）— `defects.tsv` から最後の行を消すと、欠陥の数の検査が落ちた（`goal` の行が無くなり合計 5）。戻して合格
 - P6-3（2026-10-26）: `G-PROTO-VERSION` が合格
+- ゲート C（P6-4、2026-10-26）: ゲート B2 のゴールと `G-PROTO-README-EXAMPLE`・`G-PROTO-REPORT`・`G-PROTO-VERSION` がすべて合格。報告書の行数の表（P7-1 で `proto/scripts/` の自己テストが 8 行増えた）とファズの数値（ゲートの実行に合わせた）を直してから判定した
 
 ### 9.4 D（コアの土台）
 
