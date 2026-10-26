@@ -2995,6 +2995,14 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-STD-STATIC`（S461・効かない条件）— `Blender` から `Blending` を外すと `1 capability-unprovided` で落ちた。戻して合格
   - わざと壊す確認: `G-STD-LISTS`（S462・データの完全性）— 定義から器 `Platter` を落とすと `1 missing` と関係 `vesselTrait` の不一致で落ちた。戻して合格
   - わざと壊す確認: `G-STD-SOURCES`（S468・データの完全性）— `stdlib/sources.ozen` の一次情報から書き写し（`quote`）を消すと `1 missing fields, 1 quote mismatches` で落ちた。炊飯器の時間を書き写しと違う `42..55 min` にしても `1 quote mismatches` で落ちた。戻して合格
+- P7-5（2026-10-26）: 上限の golden 8 件を先にコミットし、CLI に `--max-input-bytes`・`--max-depth`・`--max-nodes`・`--max-steps`・`--fail-alloc-at` を足した（すべて（補））。D の上限の数え方（補）: 入力の大きさは利用者のファイルごと、深さは構文の入れ子（P7-3 の数え方）、生成ノードは利用者のファイルの AST のノードの合計、手順は利用者のモジュールでの名前の引き当ての回数（E で評価のステップを足す）。埋め込んだ `std` は上限の外。上限に達したら診断を出し、残りのファイルは読まず、解決もしない。`a + b + c` のような連鎖は構文の深さを増やさずに AST を深くするので、解決の再帰に深さの上限（`MAC:depthExceeded`、`diag/depth-exceeded`）を、AST のダンプに再帰の上限を入れた。確保の失敗の注入は `ozen_oom_test`（`oom: 76 files, 913 points, 0 failures`）。`_FORTIFY_SOURCE` が局所の配列への `memcpy` を `__memcpy_chk` に置き換えるので、局所の配列への写しと `strcmp` などは `str.c` の自前の関数にした（純粋性の許可一覧は試作と同じ）。ファズの対象 `parse` は `debug ast` の経路（毎回 `std` を解析・解決すると毎秒 90 回ほどしか回らないため）。`G-CORE-OOM`・`G-CORE-PURE`・`G-CORE-NOGLOBAL`・`G-CORE-NOFLOAT`・`G-CORE-DETERMINISM`・`G-CORE-FUZZ`（`fuzz-parse: 87077 execs in 601 s, 0 crashes, 0 leaks, 0 timeouts`、カバレッジ 1,293）が合格。`diag/out-of-memory` は確保の番号が実装で決まるので実装の後に足し、red-first の例外に書いた
+  - わざと壊す確認: `cgolden/limits/*`（S180・境界・上限）— 生成ノードの比較を `>=` にすると `nodes-exact`・`nodes-over` が落ちた（`6 passed, 2 failed`）。戻して合格
+  - わざと壊す確認: `G-CORE-PURE`（S181・効かない条件）— コアに `fopen` を入れると `2 disallowed symbols, 1 disallowed includes` で落ちた。戻して合格
+  - わざと壊す確認: `G-CORE-NOGLOBAL`（S182・効かない条件）— 読み書きする `static int` を置くと `2 writable sections` で落ちた。戻して合格
+  - わざと壊す確認: `G-CORE-NOFLOAT`（S183・効かない条件）— 比を `double` で計算する関数を置くと、`-mgeneral-regs-only` のコンパイルと字句の数の両方で落ちた。戻して合格
+  - わざと壊す確認: `G-CORE-OOM`（S184・境界・上限）— インターンで確保の失敗を確かめずに写すと、UBSan が `null pointer passed as argument 1` で止めた。戻して合格
+  - わざと壊す確認: `G-CORE-DETERMINISM`（S185・プラットフォームの経路）— `debug modules` の並びをスタックのアドレスから作った値の順にすると、digest が 2 種類になった。戻して合格
+- ゲート D（P7-6、2026-10-26）: P7-1〜P7-5 のゴール（`G-CORE-BUILD`・`FLAGS`・`C23-SUBSET`・`DIAG-REGISTRY`（`42 codes … 0 unused`）・`DIAG-APPEND`・`UNIT`・`ARENA-ACCESS`・`NOINT128`・`GOLDEN`（95 件 × 4 構成）・`GRAMMAR`（131 規則）・`STD-EMBED`・`G-STD-LISTS`・`STATIC`・`SOURCES`・`G-REPO-VERSION`・`G-CORE-OOM`・`PURE`・`NOGLOBAL`・`NOFLOAT`・`DETERMINISM`・`FUZZ`（`86279 execs in 601 s`））、`prop/reindent`（`416 cases, 0 differences`）、`G-REPO-SPDX`・`SELFTESTS`・`RED-FIRST`・`TOOLS`・`G-PLAN-COVERAGE` がすべて合格。red-first は、P7-4 の `modules/import-star`（P7-3 のパーサーがすでに `importStar` を出していた）を例外に足して合格
 
 ### 9.5 E（型検査）
 
