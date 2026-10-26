@@ -3332,6 +3332,14 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cunit/api_free_balance`（S329・副作用とコスト）— `recipe_free_string` で解放しないと落ちた（AddressSanitizer の漏れ）。戻して合格
   - わざと壊す確認: `G-API-HEADER`（S336・プラットフォームの経路）— ヘッダーで `nullptr` を使うと `-std=c17` の 2 組が落ちた。戻して合格
   - わざと壊す確認: `cunit/api_options_merge`（S476・正常系）— 最初の宣言の値を使うと落ちた。戻して合格
+- P10-2（2026-10-26）: golden 5 件（`api/diag-json-fields`・`signatures-json`・`text-material`・`types-json`・`local-not-listed`）を先にコミットし、結果の JSON に `ir`（数量と引数つき）・`schedules`・`steps`（文章の材料）・`signatures`・`definitions`（`local` を除く）・`types` を足した。`schemas/result.schema.json`（すべての object を閉じた）、外部のライブラリなしの `tools/jsoncheck/validate.py` と自己テスト `scripts/test-validate.sh`（`test-validate: 10 cases, 0 failed`）、`ozen check --format json --emit …`（公開 API を通す。台所と条件の宣言を名前で探してテキストを切り出し、行と列が元のファイルと同じになるよう前を空白で埋める）、`run-golden.sh --json OUT`（golden ごとに結果の JSON を書く）を足した。構文エラーのときに定義の一覧で空の出力になる誤りと、書き手の型を付けた条件の宣言を CLI が条件と見なさない誤りを見つけて直した。`G-API-SCHEMA`（`json: 317 files, 0 invalid`）・`G-STD-LISTS` と golden 317 件 × 4 構成が合格。`api/local-not-listed`・`types-json`・`signatures-json` は `std` の定義を含むので、`std` を変えたときは期待値も直す
+  - わざと壊す確認: `G-API-SCHEMA`（S330・正常系）— 有理数を文字列で書くと不正のファイルが出た（分母 0 の値で止まるものは時間切れで出力なし）。戻して合格
+  - わざと壊す確認: `G-API-SCHEMA`（S331・データの完全性）— 診断にスキーマに無い項目を足すと `242 invalid` になった（`scripts/test-validate.sh` の `bad-additional` も同じ検査）。戻して合格
+  - わざと壊す確認: `cgolden/api/diag-json-fields`（S332・データの完全性）— 関連する位置（展開履歴）を出さないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/api/signatures-json`・`text-material`（S334・正常系）— 引数の型を出さないと `signatures-json` が、文章の材料の食材を出さないと `text-material` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/api/types-json`（S335・正常系）— 範囲の制約を出さないと落ちた。戻して合格
+  - わざと壊す確認: `G-API-SCHEMA`（S337・効かない条件）— 診断に英語の文の項目を足すと `242 invalid` になった。戻して合格
+  - わざと壊す確認: `cgolden/api/local-not-listed`（S425・効かない条件）— `local` も一覧に出すと落ちた。戻して合格
 
 ### 9.8 H（4 環境）
 
