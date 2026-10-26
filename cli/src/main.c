@@ -231,7 +231,7 @@ static void find_kitchen(const ozni_source *srcs, size_t n, const char *name, bo
       if (typed) {
         j = skip_space(t, len, j + 1);
       }
-      bool is_options = typed && word_at(t, len, j, "Options");
+      bool is_options = typed;
       while (j < len && t[j] != '{') {
         j++;
       }
