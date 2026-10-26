@@ -285,8 +285,11 @@ goal_G_PROTO_VERSION() {
 }
 
 goal_G_PROTO_REPORT() {
-  want_re "report" '^report: [0-9]+ checks, 0 failed$' \
-    "$(python3 -B proto/scripts/check-report.py docs/prototype-report.md build/results proto/defects.tsv 2>&1 | tail -n 1)"
+  local out k
+  out=$(python3 -B proto/scripts/check-report.py docs/prototype-report.md build/results proto/defects.tsv 2>&1 | tail -n 1)
+  want_re "report" '^report: [0-9]+ checks, 0 failed$' "$out"
+  k=$(last_num "$out" 1)
+  if [ "${k:-0}" -ge $(($(ls build/results | wc -l) + 4)) ]; then pass "report checks >= results + 4: $k"; else fail "report checks '$k' < results + 4"; fi
 }
 
 goal_G_PROTO_README_EXAMPLE() {
@@ -388,6 +391,7 @@ goal_G_PROTO_IOS() {
   want_eq "ios run" "success $(git rev-parse HEAD)" "$(gh run view "$id" --json conclusion,headSha -q '.conclusion + " " + .headSha')"
   want_eq "ios artifacts" "ios-digest xcframework " "$(gh api "repos/{owner}/{repo}/actions/runs/$id/artifacts" -q '.artifacts[].name' | sort | tr '\n' ' ')"
   rm -rf build/ios && gh run download "$id" -n ios-digest -D build/ios && mkdir -p build/results && cp build/ios/digest.txt build/results/digest-ios.txt
+  [ ! -f build/ios/golden.txt ] || cp build/ios/golden.txt build/results/golden-ios.txt
   want_eq "ios digest" "$(cat build/results/digest-native.txt 2>/dev/null)" "$(cat build/results/digest-ios.txt 2>/dev/null)"
   gh run download "$id" -n xcframework -D build/ios
   want_eq "xcframework slices" 2 "$(unzip -l build/ios/OzenProto.xcframework.zip | grep -oE 'ios-arm64(-simulator)?/' | sort -u | wc -l)"
