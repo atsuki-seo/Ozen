@@ -8,3 +8,4 @@ jsonschema 4.10.3
 openpyxl 3.1.5
 emcc 6.0.13
 xcode 26.6 macos
+ndk 30.0.16248370 ci
