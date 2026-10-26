@@ -1137,6 +1137,9 @@ void ozp_free_string(const ozp_options *opt, char *s);
 - コンパイル時の評価（補、P8-7）: `if` の条件は真偽値で、範囲の量の比較で真偽が決まらないもの（`15..20 min > 18 min`）は調理時に決まる値として `TYP:type`（引数は `Bool` と `Range`）、真偽値でない値も `TYP:type`（`Quantity`・`Food`・`String`・`List`）。`repeat` の回数は 0 以上の整数（でなければ `TYP:type`、引数は `Count`）、`for` は並び。`if`・`for`・`repeat` の中の `let` は外に出ない。組み込みの `ceil`・`floor`・`min`・`max`・`len`。料理から台所の値は `kitchen.<項目>.<属性>` と `kitchen.has(種類)` で読み（台所が無いとき `has` は真、項目は不明）、`kitchen` は組み込みの名前。食材を同じ次元の量で割ると数、数で割ると 1/n の部分（表示は `pork/3`）になり、n 回取り出すと元の食材を使い切る
 - 燃料の数え方の細目（補、P8-7）: 名前の解決（D）に足して、利用者のファイルのノードを、ブロック・`let`・`if`・`for`・`repeat`・`ingredients` とその項目・`parallel`・`branch`・`serve`・`plate`・注釈・名前・量・数・文字列・真偽値・並び・レコード・二項演算・単項演算・メンバーの参照・呼び出し（呼ばれる名前は数えない）・`make`・`buy`・`choose` を評価するたびに 1 数える。差し込み `$x` は、差し込んだ引数の式を数える。条件の型の `check` の式も数える（`std` の `check` は数えない）。深さは評価の入れ子の数。マクロの展開ごとに `quote` の中のノードの数を生成ノードに足す。上限の診断は呼ばれた料理の評価の中でも出す
 - マクロ（補、P8-7）: マクロの呼び出しは、`quote` の中の文を、展開ごとの新しい範囲（呼び出し元の局所の束縛は見えない）で、マクロを定義したモジュールで評価する。`$x` は呼び出し元の範囲（呼び出し元が展開の中ならその展開）で評価し、`let $x = …` は呼び出し元から渡された名前を呼び出し元の範囲に束縛する（渡したものが名前でなければ `TYP:spliceNotName`）。名前の解決は、マクロの呼び出しで `let $x` に当たる引数の名前を呼び出し元の束縛として扱う。引数の数の違いは `NAM:arity`。展開の中の診断は、展開の中の位置と、呼び出しの位置を内側から並べた ` via …` を持ち、差し込んだ引数の中の診断は呼び出し元の位置と呼び出し元の展開履歴を持つ。定義の時点では、`quote` の中で `$` なしで書いた名前が、本体の `let`・最上位の定義・組み込み・列挙型と軸の値のどれでもなければ `NAM:undefinedInMacro`（型は展開の後で検査する）
+- 重さの仕組み（補、P8-8）: 診断の重さは、作った時点の重さ（登録簿の既定値、`check` は `else`）に、`--strict`（`--deny strict`）、`--allow`・`--warn`・`--deny` を書いた順に、続けて注釈 `@allow`・`@warn`・`@deny`・`@expect` のうち診断の位置を含む一番狭い範囲（注釈を付けた宣言・文の span）のものを当てて決める。指定は診断の名前・分類の接頭辞（3 文字）・まとまりの名前で、知らない名前は `NAM:unknownDiagnostic`（注釈は名前の位置、ビルド時の指定はファイルの先頭）。まとまりは `property 名前 = diagnostics(名前, …)` で、`std` の `strict = diagnostics(vagueAmount)` に、同じ名前の書き手の `property` が足される（上書きの情報は出さない）。`@allow`・`@expect` は隠す。`@expect` が何にも当たらなければ `NAM:expectUnfulfilled`（警告、位置は注釈）。`SAF` のエラーは何をしてもエラーのままで、注釈で下げようとしたときは注釈の位置に `SAF:fixedSeverity`（情報）。依存先のパッケージのファイルの診断は、`SAF` のエラーを除いて隠す
+- 注釈の付く先と非推奨（補、P8-8）: 文に付けた `@unattended` は、文の式の一番外側が動作・マクロの呼び出しか `make` でなければ `TYP:annotationTarget`（位置は注釈）。重さの注釈は範囲を変えるだけで付く先を問わない。`std` の定義に `@deprecated` を付けると、書き手のファイルの量の単位で使ったとき `PKG:deprecated`（警告、引数は単位）。`std` の `cc`（1 ml）を非推奨にした
+- 直し方の候補と `check` のコード（補、P8-8）: `TYP:stateRequired` は、既定値の無い引数が食材 1 つだけで、その食材の要求を満たし、出力の効果で要求を満たす動作（`std` の前置き、続けて書き手のモジュールの順で最初のもの）を `動作(式)` の候補として持つ。テキストの出力では `--fixes` のときだけ ` fixes=["…"]` を引数と展開履歴の後ろに出す（JSON は G で）。書き手の型の `check` のコードは、`std`（C の登録簿）とパッケージの中の重複が `PKG:checkCodeDuplicate`、`XXX9nn` の形でなければ `PKG:checkCodeRange`（位置は `check`）。書き手の `check` の診断は、そのコード（根のパッケージがあれば `パッケージ名:コード`）と `check` の名前で出す
 - 燃料（評価ステップ）の数え方: 名前の解決で名前を 1 つ引くたびに 1（D と同じ）、評価で次のノードを 1 つ評価するたびに 1。ブロック・`let`・`if`（`else if` は else 側の `if`）・`for`・`repeat`・呼び出し（動作・レシピ・組み込み。引数を左から）・マクロの呼び出し（引数は評価せず、展開したブロック）・名前・量（`1 h 30 min` も 1 つ）・数・文字列・真偽値・並び・レコード・二項演算（短絡しなければ右も）・単項演算・メンバーの参照・注釈・`make`・`buy`・`choose`・`assemble`・`ingredients`（と項目ごとに 1）・`parallel`・`branch`・`serve`・`plate`。生成ノードは D の数え方に、マクロの展開でコピーしたノードの数を足す。深さは評価の入れ子の数（D の解決の深さと同じ上限）
 
 ### 4.22 F: IR と段取り（§13-6）
@@ -3132,6 +3135,21 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/kitchen/capacity-compile-time`（S236・正常系）— 台所の値を不明（調理時の値）として扱うと落ちた。戻して合格
   - わざと壊す確認: `cgolden/kitchen/check-fuel`（S431・境界・上限）— `check` の式で燃料を数えないと落ちた。戻して合格
   - わざと壊す確認: `cgolden/kitchen/kitchen-has-branch`（S432・正常系）— `kitchen.has` の結果を調理時に決まる値にすると落ちた。戻して合格
+- P8-8（2026-10-26）: golden 18 件を先にコミットし、重さの仕組み（ビルド時の指定・注釈・狭い範囲の優先・`@expect`・まとまり・`SAF` の固定・依存先の抑制）、注釈の付く先、非推奨の単位、直し方の候補、`check` のコードの検査と書き手の `check` の診断を足した。登録簿に `NAM017 unknownDiagnostic`・`NAM018 expectUnfulfilled`・`TYP017 annotationTarget`・`SAF002 fixedSeverity`・`PKG012 deprecated`・`PKG013 checkCodeRange`・`PKG014 checkCodeDuplicate` を足し、`unknownDiagnostic` を使う `diag/unknown-diagnostic` を実装の前に足した。詳細は §4.21.1 の（補）。注釈を付けた組の `let` で注釈を式と取り違える誤り（P8-3 から）を見つけて直した。`asm-strict-info`・`expect-suppresses`（上の誤りのため）・`dep-saf-shown` は実装の前から通るので red-first の例外に書いた。最初の実行で 224 件すべてが合格し、4 構成・確保の失敗の注入も合格。`--phase E` の重さの表は `12 examples, 2 mismatched; categories: 15 examples, 3 mismatched`（`ASM:unlimitedEquipment`・`TYP:optionLevel` は P8-9、`SAF:allergen`・`KIT:vesselShortage` はゲート E で扱う）
+  - わざと壊す確認: `cgolden/packages/dep-*`（S178・効かない条件）— 依存先の `SAF` も隠すと `dep-saf-shown` が落ち、依存先を隠さないと `dep-diag-suppressed` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/dim/deny-strict-annotation`（S190・正常系）— 注釈の範囲を無視すると落ちた（`diag/annotation-scope` も落ちた）。戻して合格
+  - わざと壊す確認: `cgolden/dim/strict-group-extended`（S191・正常系）— まとまりの中身を `std` のものだけにすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/dim/asm-strict-info`（S192・効かない条件）— 厳密モードで仮定もエラーにすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/safety/allow-saf-stays-error`・`cli-allow-saf`（S208・効かない条件）— `SAF` の固定を外すと 2 件とも落ちた。戻して合格
+  - わざと壊す確認: `cgolden/diag/severity-override`（S261・正常系）— ビルド時の指定を無視する（重さをコードで固定する）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/diag/select-by-name-prefix-group`（S262・正常系）— 分類の接頭辞での指定を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/diag/annotation-scope`（S263・境界・上限）— 注釈を宣言の外にも効かせると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/diag/expect-*`（S264・正常系）— `@expect` を `@allow` と同じにする（当たらなくても警告しない）と `expect-unfulfilled` が落ち、`@expect` を無視すると `expect-suppresses` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/diag/precedence`・`nested-annotations`（S265・時間と順序）— ビルド時の指定を注釈より優先すると `precedence` が落ち、外側の注釈を優先すると `nested-annotations` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/diag/fix-suggestion`（S267・正常系）— 直し方の候補を出さないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/syntax/annotation-target`（S415・効かない条件）— 付く先の無い注釈を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/packages/deprecated-warning`（S428・正常系）— 警告を出さないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/diag/check-codes`（S464・境界・上限）— 書き手の番号の範囲を検査しないと落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
