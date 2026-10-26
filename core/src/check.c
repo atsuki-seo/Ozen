@@ -47,11 +47,13 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
   }
   ozni_project pr;
   bool loaded = ozni_project_load(&c, srcs, n, &pr);
-  bool steps = mode == OZNI_MODE_STEPS || mode == OZNI_MODE_REQUIRES || mode == OZNI_MODE_IR;
+  bool steps = mode == OZNI_MODE_STEPS || mode == OZNI_MODE_REQUIRES || mode == OZNI_MODE_IR ||
+               mode == OZNI_MODE_SCHEDULE;
   if (loaded && !c.oom && !pr.syntax_errors && !c.limit_hit && (mode == OZNI_MODE_CHECK || steps)) {
     ozni_sema_out what = mode == OZNI_MODE_STEPS      ? OZNI_OUT_STEPS
                          : mode == OZNI_MODE_REQUIRES ? OZNI_OUT_REQUIRES
                          : mode == OZNI_MODE_IR       ? OZNI_OUT_IR
+                         : mode == OZNI_MODE_SCHEDULE ? OZNI_OUT_SCHEDULE
                                                       : OZNI_OUT_NONE;
     loaded = ozni_sema_run(&pr, what, steps ? &b : nullptr, nullptr);
   }

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
 #include <string.h>
 
+#include "sched.h"
 #include "sema.h"
 #include "text.h"
 
@@ -146,12 +147,18 @@ typedef struct sema {
   ozni_index deprecated_unit;
   int level;
   bool ir_print;
+  bool schedule;
   ozni_ir *ir_keep;
   ozni_ir ir;
   ozni_index ir_base;
   uint32_t wave_no;
   ozni_table *wave_names;
   uint32_t ir_count;
+  ozni_table *join;
+  bool in_branch;
+  ozni_index branch_last;
+  ozni_index ir_call_file;
+  ozni_index ir_call_node;
 } sema;
 
 typedef struct mframe {
@@ -1367,7 +1374,31 @@ static ozni_index ir_add(sema *s, ozni_ir_node node) {
     s->c->oom = true;
     return 0;
   }
+  if (s->in_branch && (node.kind == OZNI_IR_OP || node.kind == OZNI_IR_CHOOSE || node.kind == OZNI_IR_PLATE)) {
+    s->branch_last = at + 1;
+  }
   return at + 1;
+}
+
+static void ir_afters(sema *s, ozni_buf *b, ozni_ir_node *node) {
+  node->first_after = ozni_table_count(s->ir.afters);
+  ozni_index list[64];
+  uint32_t n = 0;
+  for (ozni_index k = 0; s->join != nullptr && k < ozni_table_count(s->join) && n < 64; k++) {
+    list[n++] = *(const ozni_index *)ozni_table_get(s->join, k);
+  }
+  if (s->in_branch && s->branch_last != 0 && n < 64) {
+    list[n++] = s->branch_last;
+  }
+  for (uint32_t k = 0; k < n; k++) {
+    const ozni_ir_node *dep = ozni_table_get(s->ir.nodes, list[k] - 1);
+    ozni_buf_puts(b, k == 0 ? " after %" : ", %");
+    ozni_buf_putu(b, dep != nullptr ? dep->number : 0);
+    if (!ozni_table_push(s->ir.afters, &list[k], nullptr)) {
+      s->c->oom = true;
+    }
+  }
+  node->nafter = n;
 }
 
 static ozni_index ir_text(sema *s, ozni_buf *b) {
@@ -1415,7 +1446,7 @@ static void ir_put_ref(sema *s, ozni_buf *b, food *f) {
 
 static void ir_put_uses(sema *s, ozni_buf *b, ozni_index file, ozni_index holder, const value *params,
                         const ozni_index *pnames, uint32_t np, ozni_rat *lo, ozni_rat *hi, bool *unattended,
-                        uint32_t *nreqs) {
+                        uint32_t *nreqs, bool *provisional) {
   bool first = true, timed = false;
   *lo = *hi = ozni_rat_int(0);
   for (ozni_index c = nd(s, file, holder)->first; c != 0; c = nd(s, file, c)->next) {
@@ -1447,6 +1478,9 @@ static void ir_put_uses(sema *s, ozni_buf *b, ozni_index file, ozni_index holder
         }
       } else if (un->kind == OZNI_N_Annotation && str_is(S(s, un->text), "unattended")) {
         *unattended = true;
+      } else if (un->kind == OZNI_N_Annotation && str_is(S(s, un->text), "source") && un->first != 0 &&
+                 str_is(S(s, nd(s, file, un->first)->text), "provisional")) {
+        *provisional = true;
       }
     }
   }
@@ -1487,6 +1521,7 @@ static ozni_index ir_simple(sema *s, const char *label, food *const *ins, uint32
     ozni_buf_puts(&b, "=");
     put_value(s, &b, arg);
   }
+  ir_afters(s, &b, &node);
   ozni_buf_puts(&b, " :");
   for (uint32_t k = 0; k < nin; k++) {
     ozni_buf_puts(&b, k == 0 ? " " : ", ");
@@ -2980,6 +3015,9 @@ static ozni_index ir_record_call(sema *s, const ozni_node *act, ozni_index afile
       put_value(s, &b, &params[k]);
     }
   }
+  ir_afters(s, &b, &node);
+  node.file = s->ir_call_file;
+  node.src = s->ir_call_node;
   ozni_buf_puts(&b, " :");
   bool first = true;
   for (uint32_t k = 0; k < np; k++) {
@@ -3003,7 +3041,7 @@ static ozni_index ir_record_call(sema *s, const ozni_node *act, ozni_index afile
   if (nv == 0) {
     ozni_buf_puts(&b, " [");
     ir_put_uses(s, &b, afile, anode, params, pnames, np, &node.time_lo, &node.time_hi, &node.unattended,
-                &node.nreqs);
+                &node.nreqs, &node.provisional);
     ozni_buf_puts(&b, "]");
   } else {
     ozni_buf_puts(&b, " { ");
@@ -3014,7 +3052,7 @@ static ozni_index ir_record_call(sema *s, const ozni_node *act, ozni_index afile
       ozni_buf_put(&b, vn.p, vn.len);
       ozni_buf_puts(&b, " [");
       ir_put_uses(s, &b, vars[k].file, vars[k].node, params, pnames, np, &v.time_lo, &v.time_hi, &v.unattended,
-                  &v.nreqs);
+                  &v.nreqs, &v.provisional);
       ozni_buf_puts(&b, "]");
       if (!ozni_table_push(s->ir.variants, &v, nullptr)) {
         s->c->oom = true;
@@ -3306,7 +3344,8 @@ static void arg_site(const sema *s, ozni_index file, ozni_index node, ozni_index
   }
 }
 
-static value call_action(sema *s, ozni_index file, const ozni_node *call, ozni_index afile, ozni_index anode) {
+static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_index afile, ozni_index anode) {
+  const ozni_node *call = nd(s, file, callnode);
   const ozni_node *act = nd(s, afile, anode);
   value params[32];
   ozni_index pnames[32], pnodes[32], argnodes[32];
@@ -3545,6 +3584,8 @@ static value call_action(sema *s, ozni_index file, const ozni_node *call, ozni_i
       apply_effects(s, out, afile, output, params, pnames, np, file, call);
     }
   }
+  s->ir_call_file = file;
+  s->ir_call_node = callnode;
   ozni_index irn = ir_record_call(s, act, afile, anode, params, pnames, np, out, nullptr, 0);
   if (out != nullptr) {
     out->irn = irn;
@@ -4060,7 +4101,7 @@ static value eval_inner(sema *s, ozni_index node) {
     ozni_index afile, anode;
     if (callee->kind == OZNI_N_Name && find_def(s, callee->text, &afile, &anode) &&
         nd(s, afile, anode)->kind == OZNI_N_Action) {
-      return call_action(s, s->file, n, afile, anode);
+      return call_action(s, s->file, node, afile, anode);
     }
     if (callee->kind == OZNI_N_Name && str_is(S(s, callee->text), "split") && callee->next != 0 &&
         nd(s, s->file, callee->next)->next != 0) {
@@ -4382,15 +4423,37 @@ static void eval_block(sema *s, ozni_index block, bool top) {
         break;
       }
       uint32_t saved_group = s->group, saved_branch = s->branch;
+      bool saved_in = s->in_branch;
+      ozni_index saved_last = s->branch_last;
+      ozni_index first_node = ir_on(s) ? ozni_table_count(s->ir.nodes) : 0;
       s->group = ++s->next_id;
       for (ozni_index b = n->first; b != 0 && !s->c->limit_hit; b = nd(s, s->file, b)->next) {
         s->branch = ++s->next_id;
+        s->in_branch = true;
+        s->branch_last = 0;
         if (tick(s, s->file, nd(s, s->file, b)) && nd(s, s->file, b)->first != 0) {
           eval_scoped(s, nd(s, s->file, b)->first, false);
         }
       }
       s->group = saved_group;
       s->branch = saved_branch;
+      s->in_branch = saved_in;
+      s->branch_last = saved_last;
+      if (ir_on(s)) {
+        ozni_table *join = ozni_table_new(s->c->arena, sizeof(ozni_index));
+        for (ozni_index k = first_node; join != nullptr && k < ozni_table_count(s->ir.nodes); k++) {
+          ozni_ir_kind kind = ((const ozni_ir_node *)ozni_table_get(s->ir.nodes, k))->kind;
+          ozni_index id = k + 1;
+          if ((kind == OZNI_IR_OP || kind == OZNI_IR_CHOOSE || kind == OZNI_IR_PLATE) &&
+              !ozni_table_push(join, &id, nullptr)) {
+            s->c->oom = true;
+          }
+        }
+        if (join == nullptr) {
+          s->c->oom = true;
+        }
+        s->join = join;
+      }
     } else if (n->kind == OZNI_N_Serve) {
       if (tick(s, s->file, n)) {
         eval_serve(s, n);
@@ -4522,6 +4585,7 @@ static void ir_plate(sema *s, const ozni_node *pn, ozni_index on, food *const *i
     ozni_buf_puts(&b, k == 0 ? " " : ", ");
     ir_put_ref(s, &b, items[k]);
   }
+  ir_afters(s, &b, &node);
   bool first = true;
   for (ozni_index vs = on != 0 ? nd(s, s->file, on)->first : 0; vs != 0; vs = nd(s, s->file, vs)->next) {
     ozni_str vname = S(s, nd(s, s->file, vs)->text);
@@ -4532,7 +4596,8 @@ static void ir_plate(sema *s, const ozni_node *pn, ozni_index on, food *const *i
   ozni_index pf, pd;
   ozni_buf_puts(&b, " [");
   if (find_def(s, intern(s, "plate", 5), &pf, &pd) && nd(s, pf, pd)->kind == OZNI_N_Action) {
-    ir_put_uses(s, &b, pf, pd, nullptr, nullptr, 0, &node.time_lo, &node.time_hi, &node.unattended, &node.nreqs);
+    ir_put_uses(s, &b, pf, pd, nullptr, nullptr, 0, &node.time_lo, &node.time_hi, &node.unattended, &node.nreqs,
+                &node.provisional);
   }
   ozni_buf_puts(&b, "]");
   node.text = ir_text(s, &b);
@@ -5133,6 +5198,305 @@ static void ir_dump(sema *s, ozni_index name) {
   }
 }
 
+typedef struct sched_unit {
+  ozni_index entry;
+  uint32_t number;
+  ozni_index kfile;
+  ozni_index knode;
+} sched_unit;
+
+static const ozni_ir_variant *chosen_variant(sema *s, const ozni_ir_node *node) {
+  for (uint32_t v = 0; v < node->nvariants; v++) {
+    const ozni_ir_variant *var = ozni_table_get(s->ir.variants, node->first_variant + v);
+    bool ok = true;
+    for (uint32_t r = 0; s->knode != 0 && r < var->nreqs && ok; r++) {
+      const ozni_ir_req *req = ozni_table_get(s->ir.reqs, var->first_req + r);
+      ok = str_is(S(s, req->text), "hands") || req_met(s, req->file, req->type, nullptr, nullptr, 0);
+    }
+    if (ok) {
+      return var;
+    }
+  }
+  return node->nvariants > 0 ? ozni_table_get(s->ir.variants, node->first_variant) : nullptr;
+}
+
+static void put_json_rat(ozni_buf *b, ozni_rat r) {
+  ozni_buf_puts(b, "{\"num\":");
+  if (r.num < 0) {
+    ozni_buf_puts(b, "-");
+  }
+  ozni_buf_putu(b, (uint64_t)(r.num < 0 ? -r.num : r.num));
+  ozni_buf_puts(b, ",\"den\":");
+  ozni_buf_putu(b, (uint64_t)r.den);
+  ozni_buf_puts(b, "}");
+}
+
+static void put_unit_id(sema *s, ozni_buf *b, const sched_unit *su) {
+  ozni_str en = S(s, su->entry);
+  ozni_buf_puts(b, "\"");
+  ozni_buf_put(b, en.p, en.len);
+  ozni_buf_puts(b, "#");
+  ozni_buf_putu(b, su->number);
+  ozni_buf_puts(b, "\"");
+}
+
+static void schedule_json(sema *s, const ozni_sched_task *tasks, uint32_t ntasks, const uint32_t *node_of,
+                          const uint32_t *deps, const ozni_sched_group *groups, const ozni_table *units,
+                          uint32_t cooks) {
+  ozni_buf *b = s->out;
+  ozni_buf_puts(b, "{\"schemaVersion\":1,\"cooks\":");
+  ozni_buf_putu(b, cooks);
+  ozni_buf_puts(b, ",\"cleanup\":\"none\",\"rules\":[],\"waves\":[],\"dishes\":[],\"resources\":[");
+  for (ozni_index u = 0; u < ozni_table_count(units); u++) {
+    const sched_unit *su = ozni_table_get(units, u);
+    ozni_buf_puts(b, u == 0 ? "{\"id\":" : ",{\"id\":");
+    put_unit_id(s, b, su);
+    ozni_str kind = S(s, nd(s, su->kfile, su->knode)->text);
+    ozni_buf_puts(b, ",\"kind\":\"");
+    ozni_buf_put(b, kind.p, kind.len);
+    ozni_buf_puts(b, "\",\"capacity\":1}");
+  }
+  ozni_buf_puts(b, "],\"tasks\":[");
+  for (uint32_t i = 0; i < ntasks; i++) {
+    const ozni_sched_task *t = &tasks[i];
+    const ozni_ir_node *node = ozni_table_get(s->ir.nodes, s->ir_base + node_of[i]);
+    ozni_str label = S(s, node->label);
+    ozni_buf_puts(b, i == 0 ? "{\"id\":" : ",{\"id\":");
+    ozni_buf_putu(b, node->number);
+    ozni_buf_puts(b, ",\"op\":\"");
+    ozni_buf_put(b, label.p, label.len);
+    ozni_buf_puts(b, "\",\"deps\":[");
+    for (uint32_t d = 0; d < t->ndeps; d++) {
+      const ozni_ir_node *dep = ozni_table_get(s->ir.nodes, s->ir_base + node_of[deps[t->first_dep + d]]);
+      ozni_buf_puts(b, d == 0 ? "" : ",");
+      ozni_buf_putu(b, dep->number);
+    }
+    ozni_buf_puts(b, "],\"start\":");
+    put_json_rat(b, t->start);
+    ozni_buf_puts(b, ",\"endHi\":");
+    put_json_rat(b, t->end_hi);
+    ozni_buf_puts(b, ",\"endLo\":");
+    put_json_rat(b, t->end_lo);
+    ozni_buf_puts(b, ",\"cook\":");
+    if (t->cook != 0) {
+      ozni_buf_putu(b, t->cook);
+    } else {
+      ozni_buf_puts(b, "null");
+    }
+    ozni_buf_puts(b, ",\"uses\":[");
+    for (uint32_t g = 0; g < t->ngroups; g++) {
+      ozni_buf_puts(b, g == 0 ? "" : ",");
+      put_unit_id(s, b, ozni_table_get(units, groups[t->first_group + g].pick));
+    }
+    ozni_buf_puts(b, t->hands ? "],\"unattended\":false,\"wave\":null}" : "],\"unattended\":true,\"wave\":null}");
+  }
+  ozni_buf_puts(b, "]}\n");
+}
+
+static void schedule_dish(sema *s, ozni_index name) {
+  uint32_t total = ozni_table_count(s->ir.nodes) - s->ir_base;
+  ozni_sched_task *tasks = ozni_arena_alloc(s->c->arena, (total + 1) * sizeof *tasks);
+  uint32_t *task_of = ozni_arena_alloc(s->c->arena, (total + 1) * sizeof *task_of);
+  uint32_t *node_of = ozni_arena_alloc(s->c->arena, (total + 1) * sizeof *node_of);
+  ozni_table *deps = ozni_table_new(s->c->arena, sizeof(uint32_t));
+  ozni_table *groups = ozni_table_new(s->c->arena, sizeof(ozni_sched_group));
+  ozni_table *lists = ozni_table_new(s->c->arena, sizeof(uint32_t));
+  ozni_table *units = ozni_table_new(s->c->arena, sizeof(sched_unit));
+  if (tasks == nullptr || task_of == nullptr || node_of == nullptr || deps == nullptr || groups == nullptr ||
+      lists == nullptr || units == nullptr) {
+    s->c->oom = true;
+    return;
+  }
+  for (ozni_index k = 0; s->level == 2 && k < ozni_table_count(s->kentries); k++) {
+    const kentry *e = ozni_table_get(s->kentries, k);
+    ozni_qty count, burners;
+    uint32_t n = entry_field(s, e, "count", &count) && count.v.lo.den == 1 ? (uint32_t)count.v.lo.num : 1;
+    if (entry_field(s, e, "burners", &burners) && burners.v.lo.den == 1) {
+      n *= (uint32_t)burners.v.lo.num;
+    }
+    for (uint32_t u = 1; u <= n && u < 100; u++) {
+      sched_unit su = {e->name, u, e->kfile, e->knode};
+      if (!ozni_table_push(units, &su, nullptr)) {
+        s->c->oom = true;
+      }
+    }
+  }
+  uint32_t ntasks = 0;
+  for (uint32_t k = 0; k < total; k++) {
+    const ozni_ir_node *node = ozni_table_get(s->ir.nodes, s->ir_base + k);
+    task_of[k] = UINT32_MAX;
+    if (node->kind != OZNI_IR_OP && node->kind != OZNI_IR_CHOOSE && node->kind != OZNI_IR_PLATE) {
+      continue;
+    }
+    const ozni_ir_variant *var = node->kind == OZNI_IR_CHOOSE ? chosen_variant(s, node) : nullptr;
+    ozni_sched_task *t = &tasks[ntasks];
+    *t = (ozni_sched_task){.lo = var != nullptr ? var->time_lo : node->time_lo,
+                           .hi = var != nullptr ? var->time_hi : node->time_hi,
+                           .first_dep = ozni_table_count(deps),
+                           .first_group = ozni_table_count(groups),
+                           .order = node->number};
+    uint32_t first_req = var != nullptr ? var->first_req : node->first_req;
+    uint32_t nreqs = var != nullptr ? var->nreqs : node->nreqs;
+    bool unattended = var != nullptr ? var->unattended : node->unattended;
+    for (uint32_t r = 0; r < nreqs; r++) {
+      const ozni_ir_req *req = ozni_table_get(s->ir.reqs, first_req + r);
+      if (str_is(S(s, req->text), "hands")) {
+        t->hands = !unattended;
+        continue;
+      }
+      if (s->level < 2) {
+        continue;
+      }
+      ozni_sched_group g = {ozni_table_count(lists), 0, 0};
+      for (ozni_index u = 0; u < ozni_table_count(units); u++) {
+        const sched_unit *su = ozni_table_get(units, u);
+        if (kind_has(s, su->kfile, su->knode, req->file, nd(s, req->file, req->type), 0)) {
+          if (!ozni_table_push(lists, &u, nullptr)) {
+            s->c->oom = true;
+          }
+          g.nunits++;
+        }
+      }
+      if (g.nunits > 0 && !ozni_table_push(groups, &g, nullptr)) {
+        s->c->oom = true;
+      }
+      t->ngroups += g.nunits > 0 ? 1 : 0;
+    }
+    for (uint32_t i = 0; i < node->ninputs + node->nafter; i++) {
+      ozni_index src = i < node->ninputs
+                           ? ((const ozni_ir_input *)ozni_table_get(s->ir.inputs, node->first_input + i))->node
+                           : *(const ozni_index *)ozni_table_get(s->ir.afters, node->first_after + i - node->ninputs);
+      if (src > s->ir_base && task_of[src - 1 - s->ir_base] != UINT32_MAX) {
+        uint32_t d = task_of[src - 1 - s->ir_base];
+        if (!ozni_table_push(deps, &d, nullptr)) {
+          s->c->oom = true;
+        }
+        t->ndeps++;
+      }
+    }
+    task_of[k] = ntasks;
+    node_of[ntasks++] = k;
+  }
+  if (s->c->oom) {
+    return;
+  }
+  uint32_t ndep = ozni_table_count(deps), ngroup = ozni_table_count(groups), nlist = ozni_table_count(lists);
+  uint32_t *dep_array = ozni_arena_alloc(s->c->arena, (ndep + 1) * sizeof *dep_array);
+  ozni_sched_group *group_array = ozni_arena_alloc(s->c->arena, (ngroup + 1) * sizeof *group_array);
+  uint32_t *list_array = ozni_arena_alloc(s->c->arena, (nlist + 1) * sizeof *list_array);
+  if (dep_array == nullptr || group_array == nullptr || list_array == nullptr) {
+    s->c->oom = true;
+    return;
+  }
+  for (uint32_t k = 0; k < ndep; k++) {
+    dep_array[k] = *(const uint32_t *)ozni_table_get(deps, k);
+  }
+  for (uint32_t k = 0; k < ngroup; k++) {
+    group_array[k] = *(const ozni_sched_group *)ozni_table_get(groups, k);
+  }
+  for (uint32_t k = 0; k < nlist; k++) {
+    list_array[k] = *(const uint32_t *)ozni_table_get(lists, k);
+  }
+  uint32_t cooks = 0;
+  ozni_qty q;
+  if (s->level >= 1) {
+    ozni_index cv = s->onode != 0 ? options_value(s, intern(s, "cooks", 5)) : 0;
+    cooks = cv != 0 && value_qty(s, s->ofile, cv, &q) && q.v.lo.den == 1 && q.v.lo.num > 0 ? (uint32_t)q.v.lo.num : 1;
+  }
+  ozni_index serve = s->onode != 0 ? options_value(s, intern(s, "serveAt", 7)) : 0;
+  ozni_sched plan = {tasks, ntasks, dep_array, group_array, list_array, ozni_table_count(units), cooks,
+                     serve != 0 && value_qty(s, s->ofile, serve, &q), serve != 0 ? q.v.lo : ozni_rat_int(0)};
+  if (!ozni_schedule(s->c->arena, &plan)) {
+    return;
+  }
+  if (s->c->set.json) {
+    schedule_json(s, tasks, ntasks, node_of, dep_array, group_array, units, cooks);
+    return;
+  }
+  ozni_buf *b = s->out;
+  ozni_str nm = S(s, name);
+  ozni_buf_puts(b, "schedule ");
+  ozni_buf_put(b, nm.p, nm.len);
+  ozni_buf_puts(b, " level=");
+  ozni_buf_putu(b, (uint64_t)s->level);
+  if (s->level >= 1) {
+    ozni_buf_puts(b, " cooks=");
+    ozni_buf_putu(b, cooks);
+  }
+  ozni_buf_puts(b, "\n");
+  uint32_t *order = ozni_arena_alloc(s->c->arena, (ntasks + 1) * sizeof *order);
+  if (order == nullptr) {
+    s->c->oom = true;
+    return;
+  }
+  ozni_rat end = ntasks > 0 ? tasks[0].end_hi : ozni_rat_int(0);
+  for (uint32_t i = 0; i < ntasks; i++) {
+    uint32_t j = i;
+    while (j > 0) {
+      const ozni_sched_task *a = &tasks[order[j - 1]];
+      int r = ozni_rat_cmp(a->start, tasks[i].start);
+      if (r < 0 || (r == 0 && a->order < tasks[i].order)) {
+        break;
+      }
+      order[j] = order[j - 1];
+      j--;
+    }
+    order[j] = i;
+    end = ozni_rat_cmp(tasks[i].end_hi, end) > 0 ? tasks[i].end_hi : end;
+  }
+  for (uint32_t i = 0; i < ntasks; i++) {
+    const ozni_sched_task *t = &tasks[order[i]];
+    const ozni_ir_node *node = ozni_table_get(s->ir.nodes, s->ir_base + node_of[order[i]]);
+    ozni_str label = S(s, node->label);
+    ozni_buf_puts(b, "  ");
+    put_rat(b, t->start);
+    ozni_buf_puts(b, "..");
+    put_rat(b, t->end_hi);
+    ozni_buf_puts(b, " (");
+    put_rat(b, t->end_lo);
+    ozni_buf_puts(b, ") %");
+    ozni_buf_putu(b, node->number);
+    ozni_buf_puts(b, node->kind == OZNI_IR_PLATE ? " plate " : " ");
+    ozni_buf_put(b, label.p, label.len);
+    const ozni_ir_variant *var = node->kind == OZNI_IR_CHOOSE ? chosen_variant(s, node) : nullptr;
+    if (var != nullptr) {
+      ozni_str vn = S(s, var->name);
+      ozni_buf_puts(b, "/");
+      ozni_buf_put(b, vn.p, vn.len);
+    }
+    if (s->level >= 1) {
+      if (t->cook != 0) {
+        ozni_buf_puts(b, " by cook");
+        ozni_buf_putu(b, t->cook);
+      } else {
+        ozni_buf_puts(b, " unattended");
+      }
+    }
+    for (uint32_t g = 0; g < t->ngroups; g++) {
+      const sched_unit *su = ozni_table_get(units, group_array[t->first_group + g].pick);
+      ozni_str en = S(s, su->entry);
+      ozni_buf_puts(b, g == 0 ? " [" : ", ");
+      ozni_buf_put(b, en.p, en.len);
+      ozni_buf_puts(b, "#");
+      ozni_buf_putu(b, su->number);
+    }
+    ozni_buf_puts(b, t->ngroups > 0 ? "]\n" : "\n");
+    if (s->entry_dish && (node->provisional || (var != nullptr && var->provisional))) {
+      bool seen = false;
+      for (uint32_t p = 0; p < i; p++) {
+        const ozni_ir_node *other = ozni_table_get(s->ir.nodes, s->ir_base + node_of[order[p]]);
+        seen = seen || other->label == node->label;
+      }
+      if (!seen && node->src != 0) {
+        diag_node(s, OZNI_D_ASM_provisionalValue, node->file, nd(s, node->file, node->src), &label, 1);
+      }
+    }
+  }
+  ozni_buf_puts(b, "  total ");
+  put_rat(b, end);
+  ozni_buf_puts(b, "\n");
+}
+
 static void level_assumptions(sema *s, ozni_index file, const ozni_node *dish) {
   uint32_t start, end;
   name_span(dish, S(s, dish->text), &start, &end);
@@ -5173,6 +5537,9 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
   s->wave_names = ozni_table_new(s->c->arena, sizeof(ozni_index));
   s->wave_no = 0;
   s->ir_count = 0;
+  s->join = nullptr;
+  s->in_branch = false;
+  s->branch_last = 0;
   s->ir_base = ir_on(s) ? ozni_table_count(s->ir.nodes) : 0;
   if (s->wave_names == nullptr) {
     s->c->oom = true;
@@ -5209,6 +5576,9 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
   }
   if (s->ir_print && s->out != nullptr && (s->c->set.entry == nullptr || s->entry_dish)) {
     ir_dump(s, n->text);
+  }
+  if (s->schedule && s->out != nullptr && (s->c->set.entry == nullptr || s->entry_dish)) {
+    schedule_dish(s, n->text);
   }
   if (s->entry_dish && n->kind == OZNI_N_Recipe) {
     wrap_entry(s, m->file, n);
@@ -5513,18 +5883,21 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
             .steps = what == OZNI_OUT_STEPS,
             .requires = what == OZNI_OUT_REQUIRES,
             .ir_print = what == OZNI_OUT_IR,
+            .schedule = what == OZNI_OUT_SCHEDULE,
             .ir_keep = ir};
   s.dims = ozni_table_new(pr->c->arena, sizeof(ozni_index));
   s.units = ozni_table_new(pr->c->arena, sizeof(unit_info));
   if (s.dims == nullptr || s.units == nullptr) {
     return false;
   }
-  if (s.ir_print || s.ir_keep != nullptr) {
+  if (s.ir_print || s.schedule || s.ir_keep != nullptr) {
     s.ir = (ozni_ir){ozni_table_new(pr->c->arena, sizeof(ozni_ir_node)),
                      ozni_table_new(pr->c->arena, sizeof(ozni_ir_input)),
                      ozni_table_new(pr->c->arena, sizeof(ozni_ir_req)),
-                     ozni_table_new(pr->c->arena, sizeof(ozni_ir_variant))};
-    if (s.ir.nodes == nullptr || s.ir.inputs == nullptr || s.ir.reqs == nullptr || s.ir.variants == nullptr) {
+                     ozni_table_new(pr->c->arena, sizeof(ozni_ir_variant)),
+                     ozni_table_new(pr->c->arena, sizeof(ozni_index))};
+    if (s.ir.nodes == nullptr || s.ir.inputs == nullptr || s.ir.reqs == nullptr || s.ir.variants == nullptr ||
+        s.ir.afters == nullptr) {
       return false;
     }
   }

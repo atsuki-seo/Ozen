@@ -43,7 +43,7 @@ static bool same_table(const ozni_table *x, const ozni_table *y, size_t size) {
 }
 
 void test_ir_flat_ids(void) {
-  static_assert(sizeof(ozni_ir_node) == 80, "IR nodes hold only integers without padding");
+  static_assert(sizeof(ozni_ir_node) == 96, "IR nodes hold only integers without padding");
   static_assert(sizeof(ozni_ir_variant) == 48, "IR variants hold only integers without padding");
   ozni_source src = {"ir.ozen", recipe_text, sizeof recipe_text - 1};
   built *x = calloc(1, sizeof *x), *y = calloc(1, sizeof *y);
@@ -62,6 +62,7 @@ void test_ir_flat_ids(void) {
     CHECK(same_table(x->ir.inputs, y->ir.inputs, sizeof(ozni_ir_input)));
     CHECK(same_table(x->ir.reqs, y->ir.reqs, sizeof(ozni_ir_req)));
     CHECK(same_table(x->ir.variants, y->ir.variants, sizeof(ozni_ir_variant)));
+    CHECK(same_table(x->ir.afters, y->ir.afters, sizeof(ozni_index)));
     for (ozni_index k = 0; k < ozni_table_count(x->ir.nodes); k++) {
       const ozni_ir_node *n = ozni_table_get(x->ir.nodes, k);
       CHECK(n->first_input + n->ninputs <= ozni_table_count(x->ir.inputs));

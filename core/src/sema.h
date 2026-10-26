@@ -40,9 +40,14 @@ typedef struct ozni_ir_node {
   ozni_index first_variant;
   uint32_t nvariants;
   ozni_index wave;
+  ozni_index first_after;
+  uint32_t nafter;
+  ozni_index file;
+  ozni_index src;
   ozni_ir_kind kind;
   bool unattended;
-  uint8_t reserved[2];
+  bool provisional;
+  uint8_t reserved[1];
 } ozni_ir_node;
 
 typedef struct ozni_ir_input {
@@ -64,7 +69,8 @@ typedef struct ozni_ir_variant {
   ozni_index first_req;
   uint32_t nreqs;
   bool unattended;
-  uint8_t reserved[3];
+  bool provisional;
+  uint8_t reserved[2];
 } ozni_ir_variant;
 
 typedef struct ozni_ir {
@@ -72,9 +78,16 @@ typedef struct ozni_ir {
   ozni_table *inputs;
   ozni_table *reqs;
   ozni_table *variants;
+  ozni_table *afters;
 } ozni_ir;
 
-typedef enum ozni_sema_out : uint8_t { OZNI_OUT_NONE, OZNI_OUT_STEPS, OZNI_OUT_REQUIRES, OZNI_OUT_IR } ozni_sema_out;
+typedef enum ozni_sema_out : uint8_t {
+  OZNI_OUT_NONE,
+  OZNI_OUT_STEPS,
+  OZNI_OUT_REQUIRES,
+  OZNI_OUT_IR,
+  OZNI_OUT_SCHEDULE
+} ozni_sema_out;
 
 [[nodiscard]] bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir *ir);
 

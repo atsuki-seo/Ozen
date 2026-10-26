@@ -27,6 +27,7 @@ typedef struct ozni_settings {
   const uint8_t *level_kinds;
   size_t nlevels;
   bool fixes;
+  bool json;
 } ozni_settings;
 
 enum { OZNI_LEVEL_ALLOW, OZNI_LEVEL_WARN, OZNI_LEVEL_DENY, OZNI_LEVEL_EXPECT };
@@ -68,6 +69,7 @@ typedef enum ozni_mode : uint8_t {
   OZNI_MODE_STEPS,
   OZNI_MODE_REQUIRES,
   OZNI_MODE_IR,
+  OZNI_MODE_SCHEDULE,
 } ozni_mode;
 
 char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_settings *set,
