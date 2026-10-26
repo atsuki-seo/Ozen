@@ -1,0 +1,14 @@
+macro bad() {
+  quote {
+    let x = wash(nosuch)
+  }
+}
+macro typed() {
+  quote {
+    let y = 1 g + 1 min
+  }
+}
+recipe r() {
+  ingredients { rice: 300 g }
+  let w = wash(rice)
+}

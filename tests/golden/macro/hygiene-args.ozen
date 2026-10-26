@@ -1,0 +1,20 @@
+// args: debug steps
+macro twice(v) {
+  quote {
+    let a = wash($v)
+    let b = wash($v)
+  }
+}
+macro never(v) {
+  quote {
+    let n = 1
+  }
+}
+recipe r() {
+  ingredients {
+    carrot: 1 pcs
+    onion: 1 pcs
+  }
+  twice(peel(carrot))
+  never(peel(onion))
+}

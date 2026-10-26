@@ -1,0 +1,6 @@
+// args: check --max-steps 9
+recipe r() {
+  repeat 2 {
+    let a = 1
+  }
+}

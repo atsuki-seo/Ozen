@@ -1,0 +1,11 @@
+// args: debug steps
+macro prep(v) {
+  quote {
+    let p = peel($v)
+  }
+}
+recipe r() {
+  ingredients { onion: 1 pcs }
+  let peel = 5 g
+  prep(onion)
+}

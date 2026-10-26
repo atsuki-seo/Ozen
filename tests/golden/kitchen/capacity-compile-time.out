@@ -1,0 +1,7 @@
+recipe r
+  pork : Pork 600 g
+  %1 = fry(pork/3, 480 s) : Pork<doneness: done, browning: light> 200 g
+  %2 = fry(pork/3, 480 s) : Pork<doneness: done, browning: light> 200 g
+  %3 = fry(pork/3, 480 s) : Pork<doneness: done, browning: light> 200 g
+result ok errors=0 warnings=0 infos=0
+exit 0

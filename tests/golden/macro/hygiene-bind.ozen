@@ -1,0 +1,11 @@
+// args: debug steps
+macro marinate(x, into) {
+  quote {
+    let $into = wash($x)
+  }
+}
+recipe r() {
+  ingredients { carrot: 1 pcs }
+  marinate(carrot, washed)
+  let c = cut(washed, style: slice)
+}

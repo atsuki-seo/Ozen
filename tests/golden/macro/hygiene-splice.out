@@ -1,0 +1,5 @@
+recipe r
+  onion : Onion 1 pcs
+  %1 = peel(onion) : Onion<shape: peeled> 1 pcs
+result ok errors=0 warnings=0 infos=0
+exit 0

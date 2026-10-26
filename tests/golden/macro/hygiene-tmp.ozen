@@ -1,0 +1,16 @@
+// args: debug steps
+macro rinse(v) {
+  quote {
+    let tmp = wash($v)
+  }
+}
+recipe r() {
+  ingredients {
+    rice: 300 g
+    beans: BeanSprouts 100 g
+    tmp: Carrot 1 pcs
+  }
+  rinse(rice)
+  rinse(beans)
+  let c = cut(tmp, style: slice)
+}

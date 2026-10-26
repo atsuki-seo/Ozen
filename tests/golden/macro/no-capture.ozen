@@ -1,0 +1,9 @@
+macro useRice() {
+  quote {
+    let w = wash(rice)
+  }
+}
+recipe r() {
+  ingredients { rice: 300 g }
+  useRice()
+}

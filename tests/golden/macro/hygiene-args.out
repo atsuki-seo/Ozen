@@ -1,0 +1,10 @@
+recipe r
+  carrot : Carrot 1 pcs
+  onion : Onion 1 pcs
+  %1 = peel(carrot) : Carrot<shape: peeled> 1 pcs
+  %2 = wash(%1) : Carrot<shape: peeled, prep has washed> 1 pcs
+  %3 = peel(carrot) : Carrot<shape: peeled> 1 pcs
+  %4 = wash(%3) : Carrot<shape: peeled, prep has washed> 1 pcs
+error LIN001 doubleUse hygiene-args.ozen:18:14-18:20 args=["carrot"]: double use
+result error errors=1 warnings=0 infos=0
+exit 1

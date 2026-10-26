@@ -1,0 +1,13 @@
+macro inner(v) {
+  quote {
+    let y = $v + 1 min
+  }
+}
+macro outer(v) {
+  quote {
+    inner($v)
+  }
+}
+recipe r() {
+  outer(1 g)
+}

@@ -1,0 +1,20 @@
+// args: debug steps --kitchen home
+action roast(x: T) -> T<doneness: done> {
+  uses HeatSource<oven>
+}
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pan: FryingPan
+  }
+}
+recipe r() {
+  ingredients { pork: 200 g }
+  if kitchen.has(Oven) {
+    let a = roast(pork)
+  } else {
+    let b = fry(pork, 5 min)
+  }
+}

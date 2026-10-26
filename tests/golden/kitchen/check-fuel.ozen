@@ -1,0 +1,7 @@
+// args: check --options today --max-steps 4
+type MyOptions : Options {
+  check bigCrew: cooks <= 2 else warn
+}
+kitchen today : MyOptions {
+  cooks: 2
+}

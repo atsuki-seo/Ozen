@@ -1,0 +1,13 @@
+macro prep(v) {
+  quote {
+    let p = peel($v)
+  }
+}
+recipe r() {
+  ingredients {
+    onion: 1 pcs
+    water: 200 ml
+  }
+  prep(onion)
+  prep(water)
+}

@@ -1,0 +1,7 @@
+recipe r() {
+  ingredients { onion: 1 pcs }
+  let t = 15..20 min
+  if t > 18 min {
+    let p = peel(onion)
+  }
+}
