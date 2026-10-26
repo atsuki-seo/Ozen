@@ -3376,6 +3376,12 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 
 ### 9.8 H（4 環境）
 
+- P11-0（2026-10-26）: §4.24.1 に成果物の名前、Swift・Java・JS の橋渡しの API、橋渡しの一致の比べ方（入力の一覧のファイルごとに `recipe_build` の JSON の文字列を 1 バイトずつ）、`javac --release 17`、CI のジョブの名前（`linux`・`fuzz`・`wasm`・`ios`・`android`）を書いた。新しい S と D は無い
+- P11-1（2026-10-26）: `libozen.so`（版の台本 `core/ozen.map` で公開の 3 つの記号だけを見せる）、Swift の module map（`COzen`）と `Ozen.swift`・`bindings/linux/swift-test.sh`、JNI のラッパー `ozen_jni.c` と `ozen.Ozen`・`bindings/android/jvm-test.sh`、入力の一覧 `bindings/inputs.txt`（日本語と絵文字を持つ `bindings/inputs/utf8.ozen` を含む 12 件）、自己テスト `scripts/test-bridge-tests.sh` を足した。Swift の橋渡しは文字列で受け取るため、不正な UTF-8 の入力（`syntax/utf8-invalid`）は一覧に入れない。`G-PLAT-LINUX`（`swift: 12 inputs, 0 mismatches`、`jni: 12 inputs, 0 mismatches`、動的な記号 3 つ）が合格
+  - わざと壊す確認: `G-PLAT-LINUX`（`jni`、S340・境界・上限）— Java の側で結果を UTF-8 でなく ASCII として読むと `10 mismatches` になった（`NewStringUTF` の修正 UTF-8 と同じく日本語と絵文字が壊れる形）。戻して合格
+  - わざと壊す確認: `G-PLAT-LINUX`（動的な記号、S341・正常系）— 版の台本を外すと内部の記号が見えて落ちた。戻して合格
+  - わざと壊す確認: `G-PLAT-LINUX`（`swift`、S343 の Linux の行・プラットフォームの経路）— Swift の橋渡しで出力の末尾の改行を落とすと `12 mismatches` になった。戻して合格
+
 - NDK の版（r30 の clang-r574158c の予定）と、手元で取得したか（P11-4）
 - `javac --release` の版（D29、P11-0）: 17（Android Gradle Plugin 8 系の d8 が受け付けるクラスファイルの版。手元の JDK 25 の `javac --release 17` で作る）
 - Xcode の版と、12 のプローブの結果（P11-3）
