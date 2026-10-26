@@ -2964,6 +2964,37 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/syntax/utf8-invalid`（S410・効かない条件）— UTF-8 の検査を外すと落ちた。戻して合格
   - わざと壊す確認: `cgolden/syntax/ident-nonascii`（S411・効かない条件）— 識別子の ASCII 以外の検査を外す（UTF-8 を許す）と落ちた。戻して合格
   - わざと壊す確認: `cgolden/syntax/multiline-string`（S412・正常系）— 複数行の文字列を改行で終えると落ちた。戻して合格
+- P7-4（2026-10-26）: golden 32 件（名前 4・モジュール 17・パッケージ 10・ほか 1）を実装より先にコミットした（エラーが出ない単一ファイルの 4 件は構文解析だけでも通るので別のコミットにし、red-first の例外に書いた）。`VERSION` を `0.1.0` にし、表から `stdlib/` への変換（`tools/std-from-vocab/convert.py`。`stdlib/package.ozen`・`prelude.ozen`・`units/jp.ozen`・`units/us.ozen`・`sources.ozen` の 730 行）を 1 回走らせた。`spec/vocab/` を変えずにもう一度走らせても差分は出ない。`std` はビルドの時に `core/gen/embed-std.cmake` が C の配列にして埋め込み、`ozen debug embedded-std` と `scripts/concat-std.sh stdlib` が一致する。解決（`resolve.c`）は、パッケージ（`package.ozen`・`deps/<名前>/package.ozen`・埋め込んだ `std`）、モジュール（パッケージ名 + フォルダの道筋。インラインの `module`）、定義、`import` の 3 つの形、上書きの情報、循環・料理から献立の `import`・最上位のフォルダと依存の衝突・`requires` の版、本体の名前（局所の束縛 → ファイルの定義 → `import` → `std.prelude` → 組み込み関数 → 列挙型と軸の値）を扱う。`std` の中の名前も同じ規則で解決し、診断は 0 件。`ozen debug definitions`（全定義の JSON、S462）と `tools/stdcheck/`（`lists.py`・`static.py`・`provenance.py`・`sources.py`。自己テスト `test-stdcheck: 12 cases, 0 failed`）を書き、`scripts/retired-tests.txt` に表の型検査のテスト 81 件を書いた。`G-CORE-GOLDEN`（85 件 × 4 構成）・`G-CORE-STD-EMBED`・`G-STD-LISTS`（`lists: 267 listed, 0 missing; values: 13 checked, 0 mismatched; relations: 47 listed, 0 mismatched`）・`G-STD-STATIC`（211 定義、すべて 0）・`G-STD-PROVENANCE`（96 値）・`G-STD-SOURCES`（一次情報 1・暫定 82、表のときと同じ）・`G-REPO-VERSION` が合格
+  - 本計画が決めた細目（すべて（補））: 診断の位置は、`rebind`・`undefined`（材料の型を省いたとき）は名前の位置、`duplicateDefinition`・`localOverride` は宣言の全体、パッケージの診断は `package.ozen` の該当の項目か宣言、入口の診断はファイルの先頭（`1:1-1:1`）。型の変数は、動作の宣言の中の 1 文字の未定義の型の名前。`std.prelude` の名前を同じ名前の定義で隠すと `localOverride`（情報）が出る。構文の誤りが 1 件でもあれば解決はしない。`ozen check`・`ozen debug modules` は FILE を渡さなければ、今のフォルダの `package.ozen` から下を 1 つのプロジェクトとして読む（`package.ozen` が無ければ使い方の誤り）。開発用に `ozen debug modules`（モジュールの名前と道筋）と `ozen debug entry [--entry 名前]`（選んだ入口）を足した
+  - 文法を直した: `rule` は `rule [名前] after 分類: 洗い方 [before 対象], …` の形にした（表の照合 `ruleLevel` が相性ルールを名前で引き、場合を持つため。golden `decl/rule` を先に直した）。`plate` は `serve` の中だけで綴りを見る語にした（`std` が動作 `plate` を定義するため）。期待値の手計算の誤りは 1 件（`modules/top-folder-clash` の終わりの列）で、実装より先に直した
+  - わざと壊す確認: `cgolden/names/case-insensitive-free`（S161・効かない条件）— 小文字で始まる型の名前を見つからないことにすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/name-from-path`（S162・正常系）— モジュールの名前にパッケージ名を付けないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/top-folder-clash`（S163・効かない条件）— 最上位のフォルダと依存の名前の衝突の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/import-forms`（S164・正常系）— `as` を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/import-star`（S164・効かない条件）— `*` を診断なしで受け付けると落ちた（`unknownModule` に変わった）。戻して合格
+  - わざと壊す確認: `cgolden/modules/prelude-implicit`（S165・正常系）— `std.prelude` を探さないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/ambiguous-unused-ok`（S166・境界・上限）— 2 つ目の `import` の時点で曖昧のエラーにすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/local-overrides-import`（S167・正常系）— 上書きの情報を出さないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/import-local`（S168・効かない条件）— `local` を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/cycle`（S169・効かない条件）— 循環の検出を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/recipe-names-kitchen`（S170・効かない条件）— 台所の参照を通すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/modules/forward-reference`（S171・正常系）— 後ろにある定義を見つからないことにすると落ちた（`std` の中の前方参照も `undefined` になった）。戻して合格
+  - わざと壊す確認: `cgolden/modules/entry-recipe-only`（S172・正常系）— 料理だけのとき入口が無いとすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/packages/unknown-field`（S174・効かない条件）— 知らない項目を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/packages/std-reserved`（S175・効かない条件）— `std` の検査をパッケージだけにする（モジュールの名前を見ない）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/packages/requires-newer-minor`（S176・境界・上限）— 主の版だけを比べ、副の版を比べないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/packages/two-versions`（S177・効かない条件）— 検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `G-CORE-STD-EMBED`（S179・前提の固定）— `stdlib/units/jp.ozen` を変えて再生成しないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/names/let-rebind`（S413・効かない条件）— 束縛を上書きすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/names/ingredient-type-omitted`（S416・正常系）— 型を省いた材料の型を探さない（`Unknown` にする）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/packages/requires-range-syntax`（S426・効かない条件）— `>=` を範囲の記法として扱わないと落ちた（`badVersion` に変わった）。戻して合格
+  - わざと壊す確認: `cgolden/packages/copied-dep-version`（S427・正常系）— コピーした依存の版を見ない（`std` だけ比べる）と落ちた。戻して合格
+  - わざと壊す確認: `G-STD-STATIC`（S458・効かない条件）— `std` の動作 `wash` を `Wash` にすると `1 naming` で落ちた。`sh/test-stdcheck.sh` の `static-naming` も同じ壊し方を確かめる。戻して合格
+  - わざと壊す確認: `G-STD-STATIC`（S459・境界・上限）— 米の密度の暫定の値を `0.83 g/ml` の 1 点にすると `1 provisional-point` で落ちた。戻して合格
+  - わざと壊す確認: `G-STD-STATIC`（S460・効かない条件）— 鶏肉の部位の廃棄率を `10..20 %` と数値で書くと `1 fct-inline` で落ちた。戻して合格
+  - わざと壊す確認: `G-STD-STATIC`（S461・効かない条件）— `Blender` から `Blending` を外すと `1 capability-unprovided` で落ちた。戻して合格
+  - わざと壊す確認: `G-STD-LISTS`（S462・データの完全性）— 定義から器 `Platter` を落とすと `1 missing` と関係 `vesselTrait` の不一致で落ちた。戻して合格
+  - わざと壊す確認: `G-STD-SOURCES`（S468・データの完全性）— 炊飯器の時間を書き写しと違う `42..55 min` にすると `1 quote mismatches` で落ちた。戻して合格
 
 ### 9.5 E（型検査）
 
