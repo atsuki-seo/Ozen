@@ -1,0 +1,3 @@
+error TYP005 baseUnitChanged base-unit-redefine.ozen:1:1-1:25 args=["grain", "Mass", "g"]: base unit changed
+result error errors=1 warnings=0 infos=0
+exit 1

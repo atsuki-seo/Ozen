@@ -1,0 +1,6 @@
+// args: check --strict
+recipe r() {
+  ingredients {
+    salt: 1 pinch
+  }
+}

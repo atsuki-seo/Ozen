@@ -1,0 +1,5 @@
+recipe r() {
+  ingredients {
+    salt: [any amount]
+  }
+}

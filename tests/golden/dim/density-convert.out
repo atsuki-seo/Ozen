@@ -1,0 +1,7 @@
+recipe r
+  water : Water 100 ml
+  sugar : Sugar 10 g
+  %1 = combine([water, sugar]) : Mixture 109..110 g
+  %2 = mix(%1) : Mixture 109..110 g
+result ok errors=0 warnings=0 infos=0
+exit 0

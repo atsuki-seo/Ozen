@@ -1,0 +1,3 @@
+warning TYP003 vagueAmount any-amount-warn.ozen:3:11-3:23 args=["salt"]: vague amount
+result ok errors=0 warnings=1 infos=0
+exit 0

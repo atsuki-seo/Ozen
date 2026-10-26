@@ -1,0 +1,7 @@
+recipe r
+  onion : Onion 2 pcs
+  sugar : Sugar 10 g
+  %1 = combine([onion, sugar]) : Mixture 310..510 g
+  %2 = mix(%1) : Mixture 310..510 g
+result ok errors=0 warnings=0 infos=0
+exit 0
