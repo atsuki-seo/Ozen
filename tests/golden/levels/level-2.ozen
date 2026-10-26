@@ -1,0 +1,16 @@
+// args: check --entry curry --kitchen home --options today
+recipe curry(servings: Count = 4) @vessel(DeepPlate) {
+  ingredients { pork: 200 g }
+  let f = fry(pork, 5 min)
+}
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pan: FryingPan
+  }
+}
+kitchen today : Options {
+  servings: 2
+}

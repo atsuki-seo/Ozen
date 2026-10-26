@@ -1,0 +1,4 @@
+info ASM004 unlimitedEquipment level-0.ozen:2:8-2:13: unlimited equipment
+info ASM005 defaultServings level-0.ozen:2:8-2:13 args=["4"]: default servings
+result ok errors=0 warnings=0 infos=2
+exit 0

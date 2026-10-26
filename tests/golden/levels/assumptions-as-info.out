@@ -1,0 +1,5 @@
+info ASM002 noPlating assumptions-as-info.ozen:2:8-2:12 args=["stew"]: no plating
+info ASM004 unlimitedEquipment assumptions-as-info.ozen:2:8-2:12: unlimited equipment
+warning TYP003 vagueAmount assumptions-as-info.ozen:3:23-3:35 args=["salt"]: vague amount
+result ok errors=0 warnings=1 infos=2
+exit 0

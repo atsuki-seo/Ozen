@@ -1,0 +1,3 @@
+warning TYP018 optionLevel cleanup-without-kitchen.ozen:3:12-3:21 args=["cleanup"]: option level
+result ok errors=0 warnings=1 infos=0
+exit 0

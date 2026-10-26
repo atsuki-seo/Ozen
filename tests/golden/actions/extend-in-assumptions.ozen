@@ -1,0 +1,10 @@
+// args: check --entry r
+extend action warm {
+  variant oven {
+    uses HeatSource<oven> for 5..8 min
+  }
+}
+recipe r() @vessel(FlatPlate) {
+  ingredients { naan: 1 pcs }
+  let w = warm(naan)
+}

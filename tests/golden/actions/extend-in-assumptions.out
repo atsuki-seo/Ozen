@@ -1,0 +1,4 @@
+info ASM004 unlimitedEquipment extend-in-assumptions.ozen:7:8-7:9: unlimited equipment
+info ASM006 firstVariant extend-in-assumptions.ozen:9:11-9:21 args=["warm", "microwave", "toaster, pan, oven"]: first variant
+result ok errors=0 warnings=0 infos=2
+exit 0

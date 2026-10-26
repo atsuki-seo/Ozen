@@ -1,0 +1,4 @@
+info ASM004 unlimitedEquipment first-variant-assumed.ozen:2:8-2:12: unlimited equipment
+info ASM006 firstVariant first-variant-assumed.ozen:5:11-5:22 args=["cookRice", "cooker", "pot, microwave"]: first variant
+result ok errors=0 warnings=0 infos=2
+exit 0
