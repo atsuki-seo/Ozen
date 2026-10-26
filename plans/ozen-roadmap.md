@@ -2010,7 +2010,7 @@ gh run download "$id" -n xcframework -D build/ios && unzip -l build/ios/OzenProt
 | S155 | 正常系 | `cgolden/macro/trail-nested` | 展開履歴を付けない | P8-7 |
 | S156 | 正常系 | `cgolden/syntax/recover-multiple` | 最初の誤りで止める | P7-3 |
 | S157 | データの完全性 | `G-CORE-GRAMMAR` | 文法の規則を 1 つ足して golden を足さない | P7-3 |
-| S158 | 正常系 | `cgolden/decl/*`（宣言の種類ごとに 26 個） | `rule` の宣言を読み飛ばす | P7-3 |
+| S158 | 正常系 | `cgolden/decl/*`（宣言の種類ごとに 27 個。S158 の 26 種と §4.20.1 の `source`） | `rule` の宣言を読み飛ばす | P7-3 |
 | S159 | 正常系 | `cgolden/typeargs/*`（書き分けごとに 7 個） | `has` を `:` として読む | P7-3 |
 | S160 | 正常系 | `G-CORE-PROPS`（`prop/reindent`） | インデントで文を区切る | P7-3 |
 | S161 | 効かない条件 | `cgolden/names/case-insensitive-free` | 大文字の名前を型として先に探す | P7-4 |

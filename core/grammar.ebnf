@@ -13,12 +13,14 @@
    - In a unit, '/' is written without spaces (g/ml); with spaces it is division.
    - A construct (IDENT record) is not read in the expression after 'if', 'for ... in' and 'repeat',
      where '{' starts the block.
-   - Reserved words: action alias and assemble axis branch buy bundle check choose dimension dirt else
-     enum extend false finer for if import in ingredient ingredients kind kitchen let local macro make
-     menu module not or package parallel phrases plate property quote recipe repeat requires resource
-     rule serve source steps takes tool trait true type unit uses variant vessel where.
-     The words after any amount as base before from on ordered set use are matched by their text
-     only where the rules below name them. A reserved word may be a field name (word ':').
+   - Reserved words: and assemble branch buy check choose else false finer for if import in
+     ingredients let local macro make module not or package parallel phrases plate quote repeat
+     requires serve steps takes true uses variant where. They cannot be identifiers, but a reserved
+     word may be a field name or a named argument (word ':').
+   - The declaration words (action alias axis bundle dimension dirt enum extend ingredient kind
+     kitchen menu property recipe resource rule source tool trait type unit vessel) and the words
+     after amount any as base before from on ordered set use are matched by their text only where
+     the rules below name them, so they can also be names (kitchen.floor).
 *)
 
 file          := { SEP } [ item { SEP { SEP } item } ] { SEP } ;
