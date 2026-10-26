@@ -929,6 +929,34 @@ void ozp_free_string(const ozp_options *opt, char *s);
 - **S184** 確保関数を差し替えられ、確保の失敗をどの位置で起こしても落ちず、未解放は 0（concept §8）。
 - **S185** 同じ入力からは、構成と環境によらず同じ出力になる（concept §6・§11.2）。
 
+#### 4.20.1 文法と golden の出力の書式（P7-0 で決めた。すべて（補））
+
+- 文法は `core/grammar.ebnf`（130 の規則）。concept §4 の構文のスケッチと決定事項から書き起こし、スケッチだけでは決まらない所を次のように決めた
+  - 温度の単位は `degC`（識別子は ASCII だけなので `°C` は書けない。表の `units.yaml` と同じ）
+  - 単位の中の `/` は空白を挟まずに書く（`0.6 g/ml`）。空白を挟むと割り算。分数 `1/4` も空白を挟まない
+  - `if`・`for … in`・`repeat` の直後の式では `名前 { … }`（構成の値）を読まない（`{` はブロックの始まり）
+  - 宣言の本体の項目は改行か `,` で区切る。`名前: 値`（値は `,` で並べられる。`axes: doneness, shape`）、`名前 { … }`（節。`props { … }`）、`名前` だけ（印。部位の並びなど）、`uses`・`takes`・`variant`・`steps`。台所の `floor: Floor { capacity: 2 }` や部位の `shoulderLoin: loin { fat: high }` は、`名前: 構成の値` として読む
+  - 項目の名前（`名前:`）と名前付き引数には予約語も書ける（`kind: primary`）
+  - 動作の引数の型は `型 [= 既定値]`、レシピ・献立の引数は `servings: 4` のように既定値だけでもよい（型は値から決まる）
+  - `where` は `where T: Vegetable` の形で、型の変数ごとに 1 つずつ並べる
+  - 相性ルールは `rule after 分類: 洗い方 [before 対象]`。対象の `any use` は「どれにでも」。緩められないルールは注釈 `@fixed`、情報だけを出すルールは `@info` を付ける
+  - 切り方の細かさの関係は、列挙型・軸の値の並びの中に `finer slice -> julienne, mince` と書く
+  - 一次情報などの出どころは `source 名前 { … }` で宣言し（`stdlib/sources.ozen`）、値には注釈 `@source(名前)` を付ける
+  - 束ねたファイルの `from:` は `from: パッケージ名 "版"`、言い回しは `phrases 言語 """…"""`
+  - 複数の出力を受けるのは `let (a, b, c) = …`
+  - `check` は D32 のとおり `check コード 名前: 式 else 重さ`（コードは省ける）
+- `ozen check FILE` の出力: 診断を 1 行ずつ出し、最後に結果の行を出す。終了コードは、エラーが無ければ 0、エラーがあれば 1、使い方の誤り・ファイルが読めないなら 2
+  - 診断の行: `<重さ> <コード> <名前> <道筋>:<行>:<列>-<行>:<列>[ args=["…", …]][ via <道筋>:<行>:<列>-<行>:<列>, …]: <英語の表示>`。重さは `error`・`warning`・`info`。行と列は 1 から数え、列はバイトで数える。`via` は展開履歴（内側から）。英語の表示は名前のキャメルケースを小文字の単語に分けたもの（`peelMissing` は `peel missing`、D21）。書き手のパッケージの `check` のコードは `パッケージ名:コード`（D32）
+  - 道筋は、CLI に渡した道筋のまま（golden のランナーは入力のあるフォルダに移って、ファイル名だけを渡す）。フォルダの golden（プロジェクト）は根からの道筋。`std` のファイルは `std/<stdlib/ からの道筋>`
+  - 結果の行: `result ok errors=<e> warnings=<w> infos=<i>`（エラーがあれば `result error …`）
+  - 診断の並びは、ファイルの番号 → 開始の位置 → コード → 引数の順
+- `ozen debug ast FILE`: AST を 1 ノード 1 行で出す。深さごとに 2 つの空白で字下げし、`<ノードの種類>[ <名前か値>] <行>:<列>-<行>:<列>`。`--no-spans` で位置を出さない（`prop/reindent` が使う）。`--rules` で、パースに使った文法の規則の名前を、重複を除いて名前の順に 1 行ずつ出す
+- D の診断の名前と既定の重さは次のとおり（`core/tests/diag-names.txt` にも同じ順で書く。登録簿のコードはこの順に振る）。重さを書いていないものはエラー
+  - `SYN`: `invalidUtf8`・`nonAsciiIdent`・`unexpectedToken`・`unexpectedCharacter`・`unterminatedString`・`unterminatedComment`・`badEscape`・`numberTooLarge`・`reservedWord`・`inputTooLarge`・`nestingTooDeep`・`quotePlacement`・`spliceOutsideQuote`・`macroBody`・`importStar`（`import a.*`）・`memberPlacement`（その宣言に書けない項目）・`argumentOrder`（名前付き引数の後の位置引数）
+  - `NAM`: `undefined`・`ambiguous`（2 つの `import` から来た名前を使った）・`rebind`・`duplicateDefinition`（同じモジュールに同じ名前の定義）・`importLocal`・`localOverride`（情報。ファイルの中の定義が `import` を上書きした）・`unknownModule`・`kitchenReference`（料理・献立から台所を名前で参照した）・`ambiguousEntry`・`noEntry`
+  - `PKG`: `importCycle`・`recipeImportsMenu`・`topFolderClash`・`unknownPackageField`・`stdReserved`・`requiresNewer`・`requiresIncompatible`・`requiresRange`・`twoVersions`・`badVersion`・`missingPackageField`
+  - `MAC`: `fuelExhausted`・`depthExceeded`・`nodeLimit`・`outOfMemory`
+
 ### 4.21 E: 型検査（§13-5）
 
 次元:
@@ -2903,6 +2931,13 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 試作から持ち込んだ部品と、移したテスト（P7-0・P7-2）
 - 表から `stdlib/` への変換の結果（ファイルの数、変換できなかった項目と理由）と、`scripts/retired-tests.txt` に書いた退役したテスト（P7-4）
 - わざと壊す確認の記録、欠陥の記録（`core/defects.tsv` に同じ形で）
+- P7-0（2026-10-26）: `core/grammar.ebnf` は 130 の規則。§4.20.1 に文法で決めた細目と golden の書式、D の診断の名前 42 個（`SYN` 17・`NAM` 10・`PKG` 11・`MAC` 4）を書き、`core/tests/diag-names.txt` に同じ順で置いた。新しい S は足していない（細目はどれも既存の S のテストで確かめる）
+- 試作から持ち込む部品と、一緒に移すテスト（報告書 §4 の一覧のうち D で持ち込むもの。持ち込むときに `proto/` のファイルは変えず、`core/` に写して接頭辞を `ozpi_` から `ozni_` に変える）
+  - P7-1: 診断の登録簿の X マクロ（`diag_codes.def` の形に既定の重さの列を足す）と `check-diag-registry.sh`（分類を 10 個に、`--registry`・`--names`・`--outputs`）。`check-flags.py`（`--std-gcc`・`--std-clang`・`--extra`）、`check-compilers.sh`、`build-all.sh` の構成の作り方、`run-golden.sh`・`digest.sh`（`OZP_RUN_TIMEOUT` を含む）を `scripts/` のコア向けに直す。それぞれの自己テストも移す
+  - P7-2: アリーナ（`arena.c`、ASan の毒の余白）と `c/arena_*` を `cunit/arena_*` に、128 bit の整数と有理数・区間（`u128.c`・`rational.c`）と `c/u128_*`・`c/rational_*` を `cunit/` に、UTF-8 の検査（`ozpi_check_utf8`）を `core/src/utf8.c` に移す。アリーナは S152 のとおり配列の型を `arena.c` に閉じ込める形に直す
+  - P7-3: golden の `syntax/utf8-invalid`・`syntax/ident-nonascii`・`syntax/string-utf8-passthrough`・`syntax/recover-multiple` の入力を `cgolden/syntax/` に写し、期待値は §4.20.1 の書式で書き直す
+  - P7-5: 確保の失敗の注入（`ozp_oom_test`）、純粋性・大域変数・浮動小数点の検査（`check-pure.sh`・`check-noglobal.py`）、ファズの入口と辞書（`fuzz_expand.c`・`ozen.dict`）を `parse` 向けに移す
+  - 持ち込まないもの: 試作のパーサー・評価器・出力（`parse.c`・`eval.c`・`api.c`）。報告書 §4 の「評価器の方式で直すべき点」（束縛のスタック、確保の失敗の扱い、出力のバッファー、名前のインターン）を本番の設計に入れる
 
 ### 9.5 E（型検査）
 
