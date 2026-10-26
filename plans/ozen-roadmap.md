@@ -3238,6 +3238,25 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/actions/composite-*`（S434・正常系）— 合成した動作を 1 つの作業のままにすると 3 件とも落ちた。戻して合格
   - わざと壊す確認: `cgolden/sched/heat-thickness-by-cut`（S438・正常系）— 不揃いな切り方でも切った大きさで数えると落ちた。戻して合格
   - わざと壊す確認: `cgolden/sched/heat-direct-attribute`（S439・正常系）— `direct` を使わず式を使うと落ちた。戻して合格
+- P9-5（2026-10-26）: §4.22.1 の手順で手で組んだ期待値の golden 21 件（`wash/dirt-from-leaves`・`compat-rules`・`wait-or-wash`・`reason`・`uses-sink-hands`・`hazard-not-relaxed`・`allergen-not-relaxed`・`same-food-same-state`・`no-drying`・`rule-override`・`staining-info`、`cleanup/none`・`before-meal`・`after-meal`・`wipe-places`・`store-to-fridge`、`safety/allergen-bowl`・`allergen-in-portion`（食材を通じたアレルゲン。計画の表に無いが S209 の前半を確かめるため足した）、`levels/small-tools-assumed`、`sched/store-discard-in-schedule`・`veg-before-meat`）を先にコミットし、汚れの記録・相性ルールの読み込みと固定のルールの検査・洗いと浸け置きの挿入（待つか洗うか）・同じ優先度での洗いの少ない順・片付けと拭き・`store` の片付け扱い・人ごとのアレルギー・小さな道具の仮定・盛り付けの器の個体を足した。登録簿に `SAF003 unwashedHazard`・`SAF004 allergen`・`SCH006 washInserted`・`SCH007 stainLeft`・`ASM008 smallToolsAssumed` を、`std` に `Person` の `allergies`・`avoids` と `smallTools`・`soakTime`・`tablewareWashTime` を足した。`schedcheck` は汚れごとの場合の並びと作業の食材の鍵・対象から要る洗い方を自分で求める形にし、固定の例も新しい書式に直した。詳細は §4.22.1 の（補）。期待値の golden のうち 2 件は手で組んだ時の誤り（`branch` の名前の書き忘れ、柔らかくする動作の出力の型）、1 件は同時刻の並びの数え違いで、実装の前に直して golden のコミットに含めた。`rule-override` は実装の前から通るので red-first の例外に書いた。所要 0 秒の作業の後で時刻が進まず段取りが空になる誤り（P9-3 から）を見つけて直し（`store-discard-in-schedule`）、確保の失敗の注入でリストの引数の確保の失敗を参照する誤り（以前から）を見つけて直した。最初の実行で 285 件すべてが合格し、4 構成・確保の失敗の注入（`265 files, 3474 points, 0 failures`）・`G-SCHED-CHECK`（`37 schedules, 0 violations`）・`ir_invariant`（`1008 cases, 0 differences`）も合格
+  - わざと壊す確認: `cgolden/safety/allergen-bowl`（S209・実際の経路）— 道具に付くアレルゲンの汚れを記録しないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/levels/small-tools-assumed`（S276・正常系）— 小さな道具でも `KIT:requiresUnmet` を出すと落ちた。戻して合格
+  - わざと壊す確認: `G-CORE-PROPS`（`prop/ir_invariant`、S284・副作用とコスト）— 台所があるときに IR の作業の行へ洗いを書き足すと `765 differences` になった。戻して合格
+  - わざと壊す確認: `cgolden/wash/dirt-from-leaves`（S305・正常系）— 動作の `leaves` の汚れ（`oil on FryingPan`）を付けないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/compat-rules`（S306・正常系）— 汚れのトレイトに対して 1 つ後ろのルールの場合を使う（表を 1 行ずらす）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/wait-or-wash`（S307・正常系）— 洗いの要る個体を常に選ぶと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/reason`（S308・正常系）— 洗いの行から理由（`after <汚れ>`）を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/uses-sink-hands`（S309・副作用とコスト）— 洗い場を使わずに洗うと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/hazard-not-relaxed`・`allergen-not-relaxed`（S310・効かない条件）— 固定のルールの置き換えを許すと 2 件とも落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/same-food-same-state`（S311・効かない条件）— 同じ食材・同じ状態の場合を当てはめないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/no-drying`（S312・時間と順序）— 洗った後に 60 秒の待ちを入れると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/cleanup/before-meal`（S313・正常系）— `beforeMeal` に食器を含めると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/cleanup/wipe-places`（S314・正常系）— 場所の拭きを入れないと落ちた（`before-meal` も落ちた）。戻して合格
+  - わざと壊す確認: `cgolden/cleanup/store-to-fridge`（S315・正常系）— `store` を片付けとして扱わない（食事の後に回さない）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/store-discard-in-schedule`（S437・正常系）— `store` の作業を段取りから外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/rule-override`（S440・正常系）— 利用者のルールで置き換えないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/wash/staining-info`（S441・正常系）— `Staining` の汚れで洗いを要るようにすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/veg-before-meat`（S442・正常系）— 同じ優先度の作業の並びで洗いを数えないと落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.7 G（API・JSON・CLI）
