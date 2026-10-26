@@ -61,3 +61,10 @@ NAM:arity
 NAM:unknownArgument
 NAM:duplicateArgument
 NAM:partTraitClash
+TYP:rangeViolation
+TYP:axisValue
+TYP:vesselLiquid
+KIT:noVariant
+KIT:requiresUnmet
+SCH:vesselOverflow
+SCH:tooManyCooks
