@@ -3288,6 +3288,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/sched/prefer-*`（S292・正常系）— `prefer` の並びを決まった順に並べ替えると `prefer-pace-then-tools` が、指標で比べないと 5 件が落ちた。戻して合格
   - わざと壊す確認: `cgolden/sched/improvement`（S293・正常系）— 前後の詰め直しの候補を作らないと落ちた。戻して合格
   - わざと壊す確認: `G-TYPE-SEVERITY-TABLE`（categories、S457・データの完全性）— 登録簿の `vesselOverflow` の分類を `KIT` にすると `categories: 15 examples, 1 mismatched` になった。戻して合格
+- ゲート F（P9-8、2026-10-26）: P8-10 のゴール（`G-CORE-BUILD`・`FLAGS`・`C23-SUBSET`・`DIAG-REGISTRY`（`102 codes`、unused 0）・`DIAG-APPEND`・`UNIT`・`ARENA-ACCESS`・`NOINT128`・`GOLDEN`（312 件 × 4 構成）・`GRAMMAR`・`STD-EMBED`・`G-STD-LISTS`・`STATIC`・`SOURCES`・`PROVENANCE`・`G-REPO-VERSION`・`G-CORE-OOM`（`292 files, 3865 points, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`DETERMINISM`・`G-REPO-SPDX`・`SELFTESTS`・`RED-FIRST`・`TOOLS`・`G-PLAN-COVERAGE`・`G-TYPE-SEVERITY-TABLE`（17 例すべて、`17 examples, 0 mismatched; categories: 15 examples, 0 mismatched`））と P9 のゴール（`G-SCHED-CHECK`（`60 schedules, 0 violations`）、`G-CORE-FUZZ`（`parse` `77163 execs in 601 s`・`expand` `38526 execs in 601 s`・`typecheck` `41991 execs in 601 s`・`schedule` `43180 execs in 601 s`、すべて 0 crashes, 0 leaks, 0 timeouts）、`G-CORE-PROPS` のうち `reindent`（`1304 cases`）・`split_merge`（`103 cases`）・`meta_ignored`（`5 cases`）・`monotonic`（`60 cases, 0 decreases`）・`display_only`（`36 cases`）・`ir_invariant`（`1017 cases`）がすべて差分 0）が合格。計画との食い違い: `G-CORE-PROPS` の `std_copy`（P13-1）と `bundle_roundtrip`（P15-2）、`G-STD-PHRASES`（レンダラーの道具、フェーズ K）は、その作業でテストと道具を作るのでまだ合格しない（ゲート E と同じ扱い）
 - わざと壊す確認の記録
 
 ### 9.7 G（API・JSON・CLI）
