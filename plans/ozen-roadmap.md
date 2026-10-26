@@ -1116,6 +1116,12 @@ void ozp_free_string(const ozp_options *opt, char *s);
 - concept §6.1 の「重さの基準」の 17 例と分類の表の例は `core/tests/severity-examples.txt` に置き、`scripts/check-severity-table.py` が登録簿と `std` の `check` に照らす。F の段取りで決まる例（生肉の後に洗わず使う `SAF:unwashedHazard`、硬い食材より先に柔らかい食材 `SCH:softBeforeHard`、挿入した洗い `SCH:washInserted`、代わりに使った器 `KIT:vesselSubstituted`、最短時間 `SCH:criticalPath`）はフェーズを F にし、E のゲートでは `--phase E` で数えない
 - `ozen debug steps [FILE]`: 利用者のモジュールのレシピと献立を定義の順に評価し、`recipe <名前>`（献立は `menu <名前>`）の行に続けて、材料を `  <名前> : <型> <量>`、動作の呼び出しを `  %<番号> = <動作>(<引数>) : <型> <量>`（出力の無い動作は `: …` を省く。番号はレシピごとに 1 から）で出し、最後に `ozen check` と同じ診断と結果の行を出す。引数は、材料は名前、手順の結果は `%<番号>`、量・列挙型の値はその値、名前付きの引数は `名前: 値`。型は名前に、部位と、初期の状態から変わった軸を `<…>` で付ける（集合の軸は `prep has washed`、引数つきの値は `cut(slice, 3 mm)`）。量は次元の基準単位で、有理数のまま（分母が 2 と 5 だけなら小数、ほかは `a/b`）、範囲は `lo..hi`。並び `[a, b]` を食材 1 つの引数に渡すと、先に `combine` の手順を出す（D11）
 - 量の換算（補）: 混ぜた値（`combine`）の量は、すべての量を質量に直して足す（体積は `density`、数は `unitWeight`）。直せない材料があるとき、すべての量の次元が同じならその次元で足し、違えば `TYP:densityMissing`。厳密モード（`--strict`）では `strict` のまとまり（P8-8 までは `vagueAmount` だけ）をエラーにする
+- 部位・別名・捌く動作（補、P8-4）: 部位は食材の `parts` の項目（中身なしは印、ありは節）と、食材のトレイトの `parts` の項目。部位の `extends: 親` が継承、`traits:` が性質、`discard: true` が捨てる部分、`props` が部位の属性（無ければ親の部位、次に食材の属性）。`型<名前>` の名前が部位ならその部位、トレイトならそのトレイトを持つ部位すべてを候補にし、部位を持たない食材なら `TYP:partless`（引数は型と名前）、部位を持つ食材の知らない名前は `NAM:undefined`。候補の値（`alias A = I<a | B>`・`alias A = I | J`・`I<トレイト>`）の要求は候補すべてで判定し（`Hazard` だけは 1 つでも）、属性は候補の範囲の和（一番広い範囲）。要求が候補の一部だけで成り立つときは `TYP:aliasCandidates`（引数は動作・引数の名前・式・成り立たない最初の候補）。別名の値は表示と診断で別名の名前を使い、型の名前の要求は候補すべてがその型なら通る。引数の型の名前がトレイトなら、そのトレイトを持つ値が通る
+- `contains`（補、P8-4）: `ingredient X : Mixture { contains: { A: 割合, … } }` の値は、入っているものの `Hazard` と `Allergen(…)` を持ち（`debug steps` の行末の ` with …`）、属性は割合の範囲の中で取りうる一番広い範囲（下限は割合の下限から始めて残りを値の小さいものから上限まで配り、上限は大きいものから配る）。割合の下限の和が 100 % を超えるか上限の和が 100 % に届かなければ属性は無い
+- 捌く動作（補、P8-4）: 出力が組の型 `(T<部位>, …)` の動作は、型の変数の引数の値から部位ごとの値を作る。部位の `yield`（割合）があれば量は入力 × 歩留まり、無い部位は入力から歩留まりのある部位の和を引いた残りを分ける（1 つならその残り、2 つ以上ならそれぞれ 0 から残りまで）。`debug steps` は `%n = 動作(引数) : (型 量, …)` で、各値は `%n.1`… で参照する。`discard: true` の部位は残りの情報に出さない（段取りの捨てる作業は F）
+- 引数の数（補、P8-4）: 既定値の無い引数が足りない `NAM:arity`（引数は動作と引数の名前、位置は呼び出し）、位置の引数が多すぎる `NAM:arity`（引数は動作、位置は余った引数）、知らない名前付きの引数 `NAM:unknownArgument`、同じ引数を 2 回 `NAM:duplicateArgument`（引数は動作と引数の名前、位置は名前付きの引数）。2 回目の値は使わない。`where T: トレイト` を満たさない値は `TYP:whereUnsatisfied`（引数は動作・引数の名前・式・トレイト）
+- 定義の時点の検査（補、P8-4）: 利用者のファイルの動作と `extend action` の `uses … for 時間` は、すべての候補で時間の次元を検査する（`TYP:dimension`、引数は実際の次元と `Time`）。部位の名前がトレイトとして解決できれば `NAM:partTraitClash`（位置は部位の名前）
+- `ozen debug requires [FILE]`（補、P8-4）: 利用者のモジュールの料理ごとに `recipe <名前>` の行に続けて、使った動作の `uses`（`resource` は除く）とレシピの `requires` を重複なく文字列の順に並べた `  requires A, B` の行（無ければ出さない）と、`variant` を持つ動作ごとに呼んだ順で `  variants <動作>: <候補> | …` の行（元の定義の候補、続けて `extend action` の候補をパッケージ名の順）を出し、最後に `ozen check` と同じ診断と結果の行を出す。`debug steps` には要求の行を出さない
 - 燃料（評価ステップ）の数え方: 名前の解決で名前を 1 つ引くたびに 1（D と同じ）、評価で次のノードを 1 つ評価するたびに 1。ブロック・`let`・`if`（`else if` は else 側の `if`）・`for`・`repeat`・呼び出し（動作・レシピ・組み込み。引数を左から）・マクロの呼び出し（引数は評価せず、展開したブロック）・名前・量（`1 h 30 min` も 1 つ）・数・文字列・真偽値・並び・レコード・二項演算（短絡しなければ右も）・単項演算・メンバーの参照・注釈・`make`・`buy`・`choose`・`assemble`・`ingredients`（と項目ごとに 1）・`parallel`・`branch`・`serve`・`plate`。生成ノードは D の数え方に、マクロの展開でコピーしたノードの数を足す。深さは評価の入れ子の数（D の解決の深さと同じ上限）
 
 ### 4.22 F: IR と段取り（§13-6）
@@ -2094,7 +2100,7 @@ gh run download "$id" -n xcframework -D build/ios && unzip -l build/ios/OzenProt
 | S221 | 正常系 | `cgolden/parts/aibiki-contains` | `contains` の範囲を 1 点にする | P8-4 |
 | S222 | 正常系 | `cgolden/parts/fillet-yield` | 歩留まりの量を保存しない | P8-4 |
 | S223 | 副作用とコスト | `G-CORE-PROPS`（`prop/meta_ignored`） | `meta` を属性として読む | P9-1 |
-| S224 | 正常系 | `cgolden/actions/uses-capability` | 能力でなく種類で照合する | P8-4 |
+| S224 | 正常系 | `cgolden/actions/uses-capability` | 能力でなく種類で照合する | P8-5 |
 | S225 | 境界・上限 | `cgolden/actions/capacity-from-amount`（2 L に 2.4 L はちょうど通り、2.3 L は落ちる） | 係数 1.2 を掛けない | P8-5 |
 | S226 | 効かない条件 | `cgolden/actions/error-in-unused-variant` | 最初の候補だけ検査する | P8-4 |
 | S227 | 時間と順序 | `cgolden/actions/extend-order` | 足した候補を前に置く | P8-4 |
@@ -2475,8 +2481,8 @@ sed -n '/^## 8\./,/^## 9\./p' plans/ozen-roadmap.md | grep '^- ' | grep -v '機�
 | P8-1 | 先に `cgolden/dim/*` を書く。次元・単位・換算・曖昧な量・数と分数・`cup` | `G-CORE-GOLDEN`。S186〜S189・S193〜S195 の「わざと壊す確認」 |
 | P8-2 | 先に `cgolden/state/*` を書く。状態の軸・要求と効果・逆順・書き手の軸・定義の時点の検査 | `G-CORE-GOLDEN`。S196〜S205・S474 の「わざと壊す確認」 |
 | P8-3 | 先に `cgolden/safety/*`（`allergen-bowl` を除く）・`cgolden/mix/*`・`cgolden/linear/*` を書く。安全・混ぜる・線形 | `G-CORE-GOLDEN`。S206・S207・S210〜S217 の「わざと壊す確認」 |
-| P8-4 | 先に `cgolden/parts/*`・`cgolden/actions/*`（容量・合成を除く）・`cgolden/names/arity-*` を書く。部位・別名・`Mixture` の構成・捌く・`uses`・`variant`・`extend action`・`requires`・多重定義の禁止・`where`・引数の数 | `G-CORE-GOLDEN`。S218〜S222・S224・S226〜S229・S414・S417〜S421 の「わざと壊す確認」 |
-| P8-5 | 先に `cgolden/kitchen/*`（`cleanup-without-kitchen`・`check-fuel`・`kitchen-has-branch` を除く）・`cgolden/vessels/*`（必須と容量）・`cgolden/actions/capacity-from-amount` を書く。台所と条件の型・区間・`check`・`variant` の絞り込み・`requires` と台所・場所の既定値・器の必須の制約と容量 | `G-CORE-GOLDEN`。S225・S230〜S236・S238・S241・S429・S430 の「わざと壊す確認」 |
+| P8-4 | 先に `cgolden/parts/*`・`cgolden/actions/*`（容量・合成を除く）・`cgolden/names/arity-*` を書く。部位・別名・`Mixture` の構成・捌く・`uses`・`variant`・`extend action`・`requires`・多重定義の禁止・`where`・引数の数 | `G-CORE-GOLDEN`。S218〜S222・S226〜S229・S414・S417〜S421 の「わざと壊す確認」（S224 は台所の注入が要るので P8-5） |
+| P8-5 | 先に `cgolden/kitchen/*`（`cleanup-without-kitchen`・`check-fuel`・`kitchen-has-branch` を除く）・`cgolden/vessels/*`（必須と容量）・`cgolden/actions/capacity-from-amount`・`cgolden/actions/uses-capability` を書く。台所と条件の型・区間・`check`・`variant` の絞り込み・`requires` と台所・場所の既定値・器の必須の制約と容量 | `G-CORE-GOLDEN`。S224・S225・S230〜S236・S238・S241・S429・S430 の「わざと壊す確認」 |
 | P8-6 | 先に `cgolden/menus/*`（組み立ての順と `plate-overrides-dish` を除く）を書く。献立と料理の連携、複数の出力 | `G-CORE-GOLDEN`。S242〜S245・S247〜S252・S422 の「わざと壊す確認」 |
 | P8-7 | 先に `cgolden/eval/*`・`cgolden/macro/*`・`cgolden/kitchen/check-fuel`・`cgolden/kitchen/kitchen-has-branch` を書く。コンパイル時の評価とマクロ（B の方式を本番の AST で） | `G-CORE-GOLDEN`、`G-CORE-FUZZ`（`expand`）。S155・S253〜S259・S431・S432 の「わざと壊す確認」 |
 | P8-8 | 先に `cgolden/diag/*`（P7-3 の分を除く）・`cgolden/dim/deny-strict-annotation`・`cgolden/safety/*-saf*`・`cgolden/syntax/annotation-target`・`cgolden/packages/deprecated-warning` などを書く。重さの仕組み・注釈・`@expect`・優先順位・直し方の候補・依存先の抑制・`SAF` の固定・`check` のコード（D32） | `G-CORE-GOLDEN`、`G-TYPE-SEVERITY-TABLE`（`--phase E`）。S178・S190〜S192・S208・S261〜S265・S267・S415・S428・S464 の「わざと壊す確認」 |
@@ -3058,6 +3064,22 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/linear/leftover-part`（S215・正常系）— 残りの部位を報告しないと落ちた。戻して合格
   - わざと壊す確認: `cgolden/linear/store-discard-silent`（S216・効かない条件）— 消費した部位も残りとして報告すると落ちた。戻して合格
   - わざと壊す確認: `cgolden/linear/parallel-double-use`（S217・効かない条件）— 枝をまたいだ 2 回目の消費を報告しないと落ちた。戻して合格
+- P8-4（2026-10-26）: golden 20 件を先にコミットし、部位（継承・性質・トレイトの部位・捨てる部分）、別名と候補（要求は候補すべて、`Hazard` は 1 つでも、属性は一番広い範囲、表示は別名の名前）、`Mixture` の `contains`（入っているものの安全とアレルゲン、割合の範囲からの属性）、捌く動作（組の出力・歩留まり・残りの分配）、`where`、引数の数、すべての候補の `uses … for` の検査、部位とトレイトの同名、`ozen debug requires`（要求と候補の順）を足した。登録簿に `TYP009 partless`・`TYP010 whereUnsatisfied`・`TYP011 aliasCandidates`・`NAM012 arity`・`NAM013 unknownArgument`・`NAM014 duplicateArgument`・`NAM015 partTraitClash` を足した。詳細は §4.21.1 の（補）。要求の行を `debug steps` に出すと既存の golden すべてに行が増えるので、`debug requires` に分け、`actions/requires-auto`・`extend-order` の期待値をそちらに直した（期待値だけのコミット）。S224（`uses-capability`）は台所の注入が要るので P8-5 に移した。`actions/no-overload` は P7 の重複の検査で通るので red-first の例外に書いた。あわせて、P8-2 の `cgolden/state/*` のうち 10 件と P8-3 の 3 件が実装の前から通っていた（正の golden）のに例外に書いていなかったので、それぞれがどの壊す確認で落ちるかを確かめて例外に書いた（P8-2 の 10 件は S197〜S204・S474 のどれかで落ちる）。最初の実行で 157 件すべてが合格し、4 構成・確保の失敗の注入も合格
+  - わざと壊す確認: `cgolden/parts/inherit-trait`（S218・正常系）— 部位の `extends` を辿らないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/parts/alias-*`（S219・境界・上限）— 候補の先頭だけで判定すると `alias-one-not-fatty`・`alias-widest-range`・`alias-hazard-any` が落ちた（`alias-all-fatty` は候補がすべて脂の多い部位なので合格のまま）。戻して合格
+  - わざと壊す確認: `cgolden/parts/alias-name-in-diag`（S220・正常系）— 別名の値に展開した型の名前を使うと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/parts/aibiki-contains`（S221・正常系）— 割合を下限の 1 点にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/parts/fillet-yield`（S222・正常系）— 歩留まりの無い部位に入力の量をそのまま持たせると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/actions/error-in-unused-variant`（S226・効かない条件）— 最初の候補だけ検査すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/actions/extend-order`（S227・時間と順序）— 足した候補を元の候補の前に並べると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/actions/requires-auto`（S228・正常系）— 動作の `uses` を集めない（書いた `requires` だけ）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/actions/no-overload`（S229・効かない条件）— 2 つ目の定義で 1 つ目を上書きすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/names/arity-*`（S414・境界・上限）— 知らない名前付きの引数を報告しないと `arity-unknown`、2 回目を報告しないと `arity-duplicate`、足りない引数を報告しないと `arity-missing` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/parts/part-on-partless`（S417・効かない条件）— 部位の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/actions/where-constraint`（S418・効かない条件）— `where` を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/parts/trait-defined-parts`（S419・正常系）— トレイトの部位を探さないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/parts/auto-discard`（S420・正常系）— 捨てる部分も残りとして報告すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/parts/part-trait-clash`（S421・効かない条件）— 同名の検査を外すと落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
