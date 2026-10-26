@@ -9,6 +9,7 @@ action rinseTwice(x: T) -> T {
 OZEN
 recipe recipes/a.ozen a
 file menus/m.ozen <<'OZEN'
+import recipes.a
 menu m() {
   let a = make a()
 }
