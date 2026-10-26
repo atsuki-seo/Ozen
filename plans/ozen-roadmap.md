@@ -3177,7 +3177,6 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `prop/monotonic`（S273・境界・上限）— 台所があるとき `vagueAmount` を出さないと `56 cases, 2 decreases`。戻して `0 decreases`
   - わざと壊す確認: `cgolden/levels/first-variant-assumed`（S275・正常系）— 最後の候補を使うと落ちた。戻して合格
   - わざと壊す確認: `cgolden/actions/extend-in-assumptions`（S424・正常系）— 足した候補を候補の並びに入れないと落ちた。戻して合格
-- P9-0（2026-10-26）: §4.22.1 に、IR の単位とノードの種類、作業の資源と所要時間の決め方、`ozen debug ir` と `ozen debug schedule` のテキストの書式、段取りの JSON（`schedcheck` の入力）、`tools/schedcheck/` の 8 つの検査を書き、§9.6 に期待の段取りを手で組む手順を書いた。新しい S は足していないので網羅表の行は増えない。新しい D は無い（D26・D27 の規則の上で決めた）
 - ゲート E（P8-10、2026-10-26）: P7-6 のゴール（`G-CORE-BUILD`・`FLAGS`・`C23-SUBSET`・`DIAG-REGISTRY`（`87 codes … 0 unused`）・`DIAG-APPEND`・`UNIT`・`ARENA-ACCESS`・`NOINT128`・`GOLDEN`（232 件 × 4 構成）・`GRAMMAR`（131 規則）・`STD-EMBED`・`G-STD-LISTS`・`STATIC`・`SOURCES`・`PROVENANCE`・`G-REPO-VERSION`・`G-CORE-OOM`（`212 files, 2716 points, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`DETERMINISM`、`prop/reindent`（`984 cases, 0 differences`）、`G-REPO-SPDX`・`SELFTESTS`・`RED-FIRST`・`TOOLS`・`G-PLAN-COVERAGE`）と P8 のゴール（`G-TYPE-SEVERITY-TABLE`（`--phase E`、`12 examples, 0 mismatched; categories: 13 examples, 0 mismatched`）、`prop/monotonic`（`56 cases, 0 decreases`）、`G-CORE-FUZZ`（`parse` `71283 execs in 602 s`・`expand` `41114 execs in 601 s`・`typecheck` `46557 execs in 601 s`、すべて 0 crashes, 0 leaks, 0 timeouts））がすべて合格。計画との食い違い: 分類の表の `SAF:allergen`（`safety/allergen-bowl` は P9-5）と `KIT:vesselShortage`（`vessels/count-short` は P9-6）は、計画の表で golden が F の作業にあるので、`core/tests/severity-examples.txt` の段階を F に直した（ゲート F の `G-TYPE-SEVERITY-TABLE`（17 例すべて）で確かめる）。`G-CORE-PROPS` の残りの性質（`split_merge` など）と `G-STD-PHRASES`（レンダラーの道具）は F 以降の作業で足す
 - わざと壊す確認の記録
 
@@ -3186,6 +3185,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 手で組んだ期待の段取りの作り方と、その例の一覧（P9-0）
 - 手で組む手順（P9-0、2026-10-26）: 例は作業 3〜6 個・資源 1〜3 種類の小さなものにする。(1) `debug ir` の書式で IR を紙に書き、各作業の所要時間の上限・下限と要求を書く。(2) 優先度（D26）を、作業から出す時刻（`serve` が無ければ料理の最後の作業の終わり）までの最長の経路の長さ（上限で数える）として計算し、同じなら IR の番号の順に並べる。(3) 時刻 0 から、依存が終わった作業を優先度の順に取り、空いている人と資源の個体の中で一番早く終われる割り当て（同点は候補の順 → 洗いを挟まない方 → 資源の宣言の順）を選んで開始の時刻を決める。洗いが要るなら洗いの作業（洗い場・手・道具の洗う時間）を前に置く。(4) すべての作業の開始・上限の終わり・下限の終わりを書き、`--serve-at` があれば時間の向きを逆にして同じことをする。(5) 前後の詰め直し（D26、多くとも 8 往復）で変わる場合は、変わった後の段取りを期待値にし、往復の回数を記録する。(6) 期待の段取りを段取りの JSON にして `tools/schedcheck/` で違反が 0 であることを確かめてから、golden の期待値にする。手で組んだ例は golden ごとにこの節に名前を並べる
 - 改善の往復の回数の実測（D26 の上限 8 に届いた例があるか）
+- P9-0（2026-10-26）: §4.22.1 に、IR の単位とノードの種類、作業の資源と所要時間の決め方、`ozen debug ir` と `ozen debug schedule` のテキストの書式、段取りの JSON（`schedcheck` の入力）、`tools/schedcheck/` の 8 つの検査を書き、§9.6 に期待の段取りを手で組む手順を書いた。新しい S は足していないので網羅表の行は増えない。新しい D は無い（D26・D27 の規則の上で決めた）
 - わざと壊す確認の記録
 
 ### 9.7 G（API・JSON・CLI）
