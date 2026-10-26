@@ -54,3 +54,10 @@ LIN:doubleUse
 LIN:insufficient
 LIN:leftoverPart
 LIN:parallelConsume
+TYP:partless
+TYP:whereUnsatisfied
+TYP:aliasCandidates
+NAM:arity
+NAM:unknownArgument
+NAM:duplicateArgument
+NAM:partTraitClash
