@@ -1134,6 +1134,9 @@ void ozp_free_string(const ozp_options *opt, char *s);
 - 料理の引数と器（補、P8-5）: 料理の引数は既定値（条件に同じ名前の項目があればその値）で束縛し、引数の型で検査する（`servings` は器の検査に使う）。`serve` の `plate` の項目は、液体（`Liquid` を持つか、液体を混ぜた値）を `HoldsLiquid` を持たない器に盛ると、`on` の器ごとに `TYP:vesselLiquid`（引数は項目の式と器）。台所があるとき、`on` の最初の器の台所の項目に容量があり、量を `servings` で割った 1 人分が容量を超えたら `SCH:vesselOverflow`（警告。引数は器・1 人分の量・容量、位置は項目）
 - 献立（補、P8-6）: `make レシピ(引数)` は、引数をレシピの引数に束縛し（食材の値は献立の側で消費し、写しを渡す。型は引数の型で検査する）、レシピの本体を診断と表示を出さずに評価し、最後の値を出力にする。出力の型は `-> T` があれば T（新しい名前は名前の解決で未定義にしない）、無ければレシピ名の先頭を大文字にした名前で、値は最後の値の写し（状態の軸・量・`Hazard` と `Allergen` を引き継ぐ）。組の出力は最後の組の値の写しを `%n.1`… で返し、部位として残りの検査に入る。`buy 型 [量]` は型の値を作る。`choose 名前 from { … }` の内訳は、条件の `people`（`Person { picks: [型の名前] }` の並び）があれば、各人の `picks` に出力の型の名前がある最初の候補（無ければ最初の候補）に数え、無ければ献立の引数 `people`（無ければ 1）を候補に均等に分ける（余りは前の候補から）。`std` の `Options` に `people: [Person] = []` と `type Person { picks: [Dish] = [] }`、`property whileWarm`・`piping`・`beforeMelts`・`justBeforeServe`（`serveWithin(範囲)`）を足した。`debug steps` は `%n = make r(引数) : 型 量`、`%n = buy 型 量 : 型 量`、`%n = choose 名前 { %a: 人数, … }`、`serve 名前[ after 波 + 間隔]`、`    plate 名前 on 器[ or 器] { 参照, … }` を出す
 - 単体のビルドと仮定（補、P8-6）: 仮定（`ASM`）は、`--entry 名前` で選んだ料理（単体でビルドする料理）を評価するときだけ出す。選んだレシピの材料の引数は型の値を作って束縛し `ASM:externalIngredient`（引数は引数の名前と型の式、位置は引数の名前）、`@vessel(器 or 器)` があれば `debug steps` に `serve main` と `plate perPerson on 器 { 最後の値 }` を補い、無ければ `ASM:noPlating`（引数はレシピ名、位置はレシピ名）。選んだ献立の均等な `choose` は `ASM:evenChoice`（引数は `choose` の名前と人数、位置は `choose` の式）
+- コンパイル時の評価（補、P8-7）: `if` の条件は真偽値で、範囲の量の比較で真偽が決まらないもの（`15..20 min > 18 min`）は調理時に決まる値として `TYP:type`（引数は `Bool` と `Range`）、真偽値でない値も `TYP:type`（`Quantity`・`Food`・`String`・`List`）。`repeat` の回数は 0 以上の整数（でなければ `TYP:type`、引数は `Count`）、`for` は並び。`if`・`for`・`repeat` の中の `let` は外に出ない。組み込みの `ceil`・`floor`・`min`・`max`・`len`。料理から台所の値は `kitchen.<項目>.<属性>` と `kitchen.has(種類)` で読み（台所が無いとき `has` は真、項目は不明）、`kitchen` は組み込みの名前。食材を同じ次元の量で割ると数、数で割ると 1/n の部分（表示は `pork/3`）になり、n 回取り出すと元の食材を使い切る
+- 燃料の数え方の細目（補、P8-7）: 名前の解決（D）に足して、利用者のファイルのノードを、ブロック・`let`・`if`・`for`・`repeat`・`ingredients` とその項目・`parallel`・`branch`・`serve`・`plate`・注釈・名前・量・数・文字列・真偽値・並び・レコード・二項演算・単項演算・メンバーの参照・呼び出し（呼ばれる名前は数えない）・`make`・`buy`・`choose` を評価するたびに 1 数える。差し込み `$x` は、差し込んだ引数の式を数える。条件の型の `check` の式も数える（`std` の `check` は数えない）。深さは評価の入れ子の数。マクロの展開ごとに `quote` の中のノードの数を生成ノードに足す。上限の診断は呼ばれた料理の評価の中でも出す
+- マクロ（補、P8-7）: マクロの呼び出しは、`quote` の中の文を、展開ごとの新しい範囲（呼び出し元の局所の束縛は見えない）で、マクロを定義したモジュールで評価する。`$x` は呼び出し元の範囲（呼び出し元が展開の中ならその展開）で評価し、`let $x = …` は呼び出し元から渡された名前を呼び出し元の範囲に束縛する（渡したものが名前でなければ `TYP:spliceNotName`）。名前の解決は、マクロの呼び出しで `let $x` に当たる引数の名前を呼び出し元の束縛として扱う。引数の数の違いは `NAM:arity`。展開の中の診断は、展開の中の位置と、呼び出しの位置を内側から並べた ` via …` を持ち、差し込んだ引数の中の診断は呼び出し元の位置と呼び出し元の展開履歴を持つ。定義の時点では、`quote` の中で `$` なしで書いた名前が、本体の `let`・最上位の定義・組み込み・列挙型と軸の値のどれでもなければ `NAM:undefinedInMacro`（型は展開の後で検査する）
 - 燃料（評価ステップ）の数え方: 名前の解決で名前を 1 つ引くたびに 1（D と同じ）、評価で次のノードを 1 つ評価するたびに 1。ブロック・`let`・`if`（`else if` は else 側の `if`）・`for`・`repeat`・呼び出し（動作・レシピ・組み込み。引数を左から）・マクロの呼び出し（引数は評価せず、展開したブロック）・名前・量（`1 h 30 min` も 1 つ）・数・文字列・真偽値・並び・レコード・二項演算（短絡しなければ右も）・単項演算・メンバーの参照・注釈・`make`・`buy`・`choose`・`assemble`・`ingredients`（と項目ごとに 1）・`parallel`・`branch`・`serve`・`plate`。生成ノードは D の数え方に、マクロの展開でコピーしたノードの数を足す。深さは評価の入れ子の数（D の解決の深さと同じ上限）
 
 ### 4.22 F: IR と段取り（§13-6）
@@ -3117,6 +3120,18 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/menus/serve-time-in-code`（S251・効かない条件）— 構文解析が波の名前の後の `at` と時刻を受け付けると落ちた。戻して合格
   - わざと壊す確認: `cgolden/menus/while-warm-strict-ok`（S252・効かない条件）— 名前つきの性質の注釈を曖昧な量として報告すると（厳密モードでエラー）落ちた。戻して合格
   - わざと壊す確認: `cgolden/menus/multiple-outputs`（S422・正常系）— 組の出力の 2 つ目以降を捨てると落ちた。戻して合格
+- P8-7（2026-10-26）: golden 16 件を先にコミットし（`limits/steps-exact` は評価の燃料を足して `--max-steps 9` に直した）、コンパイル時の評価（`if`・`for`・`repeat`・比較・論理・組み込み・台所の値・食材の割り算）、評価の燃料と深さ、衛生的なマクロ（展開ごとの範囲・差し込み・`let $x`・展開履歴・生成ノード）、マクロの定義の時点の検査、書き手の条件の型の `check`、展開履歴の保存と ` via` の描画、ファズの対象 `expand` を足した。登録簿に `TYP015 type`・`NAM016 undefinedInMacro`・`TYP016 spliceNotName` を足し、`spliceNotName` を使う `macro/splice-not-name` を実装の前に足した（登録簿の検査は、どの golden にも出ないコードを数える）。詳細は §4.21.1 の（補）。マクロの名前 `prep` が `std` の軸の名前を上書きして情報が出ていたので、golden 3 件のマクロの名前を変えた（期待値の修正のコミット）。`fuel-exact`（燃料を数えなくても通る）と `no-macro-defining-macro`（構文解析が既に入れ子の `quote` を拒む）は red-first の例外に書いた。最初の実行で 205 件すべてが合格し、4 構成・確保の失敗の注入も合格。`expand` の 60 秒のファズで落ちは無し（600 秒はゲート E で回す）
+  - わざと壊す確認: `cgolden/macro/trail-nested`（S155・正常系）— 展開履歴を付けないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/macro/trail-nested`（S257・正常系）— 展開履歴を外側から並べると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/eval/runtime-value-in-if`（S253・効かない条件）— 真偽の決まらない比較を真とみなすと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/macro/hygiene-*`（S254・正常系）— 展開に新しい範囲を作らない（印を付けない）と `hygiene-tmp`・`hygiene-splice` が落ちた（ほかの 3 件は範囲によらない性質なので合格のまま）。戻して合格
+  - わざと壊す確認: `cgolden/macro/definition-checks`（S255・正常系）— 定義の時点で `quote` の中を評価する（型も検査する）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/macro/typecheck-after-expand`（S256・正常系）— 差し込む前の本体で評価する（`$x` を不明のまま）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/eval/fuel-*`（S258・境界・上限）— 評価のステップを数えないと `fuel-short` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/macro/no-macro-defining-macro`・`no-capture`（S259・効かない条件）— 入れ子の `quote` を受け付けると `no-macro-defining-macro` が落ち、定義の時点の名前の検査を外すと `no-capture` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/capacity-compile-time`（S236・正常系）— 台所の値を不明（調理時の値）として扱うと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/check-fuel`（S431・境界・上限）— `check` の式で燃料を数えないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/kitchen-has-branch`（S432・正常系）— `kitchen.has` の結果を調理時に決まる値にすると落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
