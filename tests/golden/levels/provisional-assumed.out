@@ -1,8 +1,11 @@
 schedule r level=0
   0..180 (60) %2 wash
-  total 180
+  180..240 (198) %3 plate perPerson
+  serve main at 240
+  total 240
 info ASM004 unlimitedEquipment provisional-assumed.ozen:2:8-2:9: unlimited equipment
-info SCH009 criticalPath provisional-assumed.ozen:2:8-2:9 args=["180 s"]: critical path
+info SCH009 criticalPath provisional-assumed.ozen:2:8-2:9 args=["240 s"]: critical path
+info ASM007 provisionalValue provisional-assumed.ozen:2:12-2:25 args=["plate"]: provisional value
 info ASM007 provisionalValue provisional-assumed.ozen:4:11-4:21 args=["wash"]: provisional value
-result ok errors=0 warnings=0 infos=3
+result ok errors=0 warnings=0 infos=4
 exit 0
