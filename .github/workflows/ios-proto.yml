@@ -31,10 +31,11 @@ jobs:
         run: |
           for sdk in iphoneos iphonesimulator; do
             cmake -S proto -B "build/ios-$sdk" -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT="$sdk" \
-              -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0 -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_BUNDLE=OFF
             cmake --build "build/ios-$sdk" -j 4 --target ozenproto_lib
           done
           cmake --build build/ios-iphonesimulator -j 4 --target ozenproto
+          test -x build/ios-iphonesimulator/ozenproto
 
       - name: Create the XCFramework
         run: |
@@ -57,9 +58,6 @@ jobs:
           sys.exit(1)')
           xcrun simctl bootstatus "$udid" -b
           driver="$PWD/build/ios-iphonesimulator/ozenproto"
-          file "$driver"
-          codesign -dv "$driver" 2>&1 || true
-          xcrun simctl spawn "$udid" "$driver" "$PWD/proto/tests/golden/values/kinds.ozen" || echo "probe exit $?"
           runner="xcrun simctl spawn $udid $driver"
           bash proto/scripts/run-golden.sh "$runner"
           mkdir -p out
