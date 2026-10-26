@@ -3357,6 +3357,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cli/options-to-ozen`（S355・正常系）— `--prefer` を落とすと落ちた。戻して合格
   - わざと壊す確認: `cli/diag-display`（S356・正常系）— 識別子からの英語の表示を出さないと落ちた。戻して合格
   - わざと壊す確認: `cli/out-removed-entry`（S443・永続化）— 前回の出力を消さないと落ちた（`out-rebuild-identical` は同じ入力で 1 バイトも違わないことを確かめる）。戻して合格
+- P10-5（2026-10-26）: `VERSION`・`ozen --version`・`stdlib/package.ozen`・ライブラリの結果の JSON の `ozenVersion`（`VERSION` からビルドの時に埋め込む）がすべて `0.1.0` でそろっている。`G-REPO-VERSION` が合格
 
 ### 9.8 H（4 環境）
 
