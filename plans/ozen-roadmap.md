@@ -326,7 +326,7 @@
 
 - **決定:** 推奨のとおり、IR の節に `allergens`、IR の料理ごとの項目に `choices` を足し、テキストの IR は変えない。（2026-10-26、ユーザー確認）
 - 背景: S367 は献立 D の「選択の内訳が段取りに出る」、S368 は献立 E の「乳のアレルゲンが出る」、S370 は T2 の人ごとの違いを求める。サンプルの性質は結果の JSON で照合する（§4.27）が、今の JSON には IR の値のアレルゲンも、`choose perPerson` の内訳も無い（どちらも `debug steps` のテキストにだけ出る）。レンダラー（フェーズ K）の買い物リストとアレルゲンの表示も同じ情報が要る。2026-10-26 の P13-0 で分かった。
-- **推奨**: IR の節に `allergens`（その値が持つアレルゲンの名前を名前の順に並べたもの。無ければ空）を足し、IR の料理ごとの項目（`nodes`・`waves` の横）に `choices`（`[{"node": <選択の節>, "mode": "perPerson", "options": [{"node": <候補の節>, "label": <候補の名前>, "count": <人数>}]}]`）を足す。テキストの IR と `debug ir` は変えない（IR の不変条件と golden を保つ）。`schemas/result.schema.json` にも足す。
+- **推奨**: IR の節に `allergens`（その値が持つアレルゲンの名前を名前の順に並べたもの。無ければ空）を足し、IR の料理ごとの項目（`nodes`・`waves` の横）に `choices`（`[{"mode": "perPerson", "options": [{"node": <候補の出力の節。無ければ null>, "label": <make のレシピの名前か buy の品名>, "count": <人数>}]}]`。献立の選択は IR の節を持たないので、選択そのものの節は書かない）を足す。テキストの IR と `debug ir` は変えない（IR の不変条件と golden を保つ）。`schemas/result.schema.json` にも足す。
 - 代替 A: 選択を IR の節（`kind: "choose"`、`label: "perPerson"`）として足す。DAG の中で内訳が見えるが、テキストの IR と既存の golden の期待値が変わる。
 - 代替 B: JSON は変えず、サンプルの検査が `debug steps` のテキストを読む。レンダラーは別の道で同じ情報を得る必要がある。
 
