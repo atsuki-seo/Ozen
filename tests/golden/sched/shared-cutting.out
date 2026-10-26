@@ -1,0 +1,6 @@
+schedule dinner level=1 cooks=1
+  0..120 (120) %2+%4 slice2 by cook1
+  total 120
+info ASM004 unlimitedEquipment shared-cutting.ozen:17:6-17:12: unlimited equipment
+result ok errors=0 warnings=0 infos=1
+exit 0

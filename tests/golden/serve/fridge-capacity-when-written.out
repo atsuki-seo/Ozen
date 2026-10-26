@@ -1,0 +1,15 @@
+schedule dinner level=2 cooks=1
+  0..1800 (1800) %6 stewB by cook1
+  1800..1920 (1920) %2 tossIt by cook1
+  1920..2040 (2040) %4 tossIt by cook1
+  1920..2220 hold a [fridge#1]
+  2040..2100 (2058) %7 plate perPerson by cook1
+  2040..2220 hold b [fridge#1]
+  2100..2160 (2118) %8 plate perPerson by cook1
+  2160..2220 (2178) %9 plate perPerson by cook1
+  serve main at 2220
+  total 2220
+info ASM007 provisionalValue fridge-capacity-when-written.ozen:31:5-31:48 args=["plate"]: provisional value
+error SCH005 capacityShortage fridge-capacity-when-written.ozen:32:5-32:48 args=["Fridge", "2", "1"]: capacity shortage
+result error errors=1 warnings=0 infos=1
+exit 1

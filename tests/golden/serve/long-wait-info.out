@@ -1,0 +1,14 @@
+schedule dinner level=1 cooks=1
+  0..600 (600) %2 rest unattended
+  0..2400 (2400) %4 stewY by cook1
+  0..780 (780) %6 rest unattended
+  2400..2460 (2418) %7 plate perPerson by cook1
+  2460..2520 (2478) %8 plate perPerson by cook1
+  2520..2580 (2538) %9 plate perPerson by cook1
+  serve main at 2580
+  total 2580
+info ASM004 unlimitedEquipment long-wait-info.ozen:23:6-23:12: unlimited equipment
+info ASM007 provisionalValue long-wait-info.ozen:28:5-28:38 args=["plate"]: provisional value
+info SCH008 longWait long-wait-info.ozen:28:35-28:36 args=["x", "1980 s"]: long wait
+result ok errors=0 warnings=0 infos=3
+exit 0

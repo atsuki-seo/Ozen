@@ -1,0 +1,10 @@
+ir dinner
+  wave 1
+  %1 = buy Cornflakes : Cornflakes 30 g
+  %2 = buy VanillaIce : VanillaIce 100 g
+  %3 = buy Strawberry : Strawberry 2 pcs
+  %4 = op assemble %1, %2, %3 : Cornflakes, VanillaIce, Strawberry -> Assembly [hands, Vessel; 60..180 s]
+  %5 = plate perPerson %4 on Glass [hands, Vessel; 18..60 s]
+info ASM004 unlimitedEquipment assemble-order.ozen:2:6-2:12: unlimited equipment
+result ok errors=0 warnings=0 infos=1
+exit 0

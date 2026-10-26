@@ -1,0 +1,39 @@
+// args: debug schedule --entry dinner --kitchen home --options today
+action simmerIt(x: T) -> T<doneness: done> {
+  uses HeatSource<stovetop> for 10 min @unattended
+}
+action prepIt(x: T) -> T {
+  uses hands for 12 min
+}
+action boilIt(x: T) -> T<doneness: done> {
+  uses hands, HeatSource<stovetop> for 5 min
+}
+recipe curry() {
+  ingredients {
+    pork: 300 g
+  }
+  let c = simmerIt(pork)
+}
+recipe soup() {
+  ingredients {
+    dashi: 300 ml
+  }
+  let p = prepIt(dashi)
+  let b = boilIt(p)
+}
+menu dinner() {
+  let c = make curry()
+  let s = make soup()
+  serve main {
+    plate perPerson on DeepPlate { c } @keepWarm(on: Stove, max: 60 min)
+    plate perPerson on SoupBowl { s }
+  }
+}
+kitchen home {
+  places {
+    stove: IHStove { burners: 2 }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

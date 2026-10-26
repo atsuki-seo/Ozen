@@ -3,6 +3,7 @@ schedule dinner level=2 cooks=2
   60..120 (78) %3 plate perPerson by cook1 [plates#1]
   60..180 (120) wash board#1 after light by cook2 [sink#1, board#1]
   120..180 (150) wipe counter#1 after use by cook1 [counter#1]
+  serve main at 180
   total 180
 info ASM007 provisionalValue before-meal.ozen:26:5-26:39 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=1

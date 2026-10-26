@@ -1,0 +1,16 @@
+// args: debug schedule --entry dinner --kitchen home --options today
+menu dinner(people: 1) {
+  serve main {
+    plate perPerson on Glass { buy Milk 200 ml }
+    plate perPerson on Glass or SmallBowl { buy Water 200 ml }
+  }
+}
+kitchen home {
+  tableware {
+    glass: Glass
+    bowl: SmallBowl
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

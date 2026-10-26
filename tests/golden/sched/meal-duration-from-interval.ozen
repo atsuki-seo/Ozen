@@ -1,0 +1,33 @@
+// args: debug schedule --entry dinner --options today
+action chopA(x: T) -> T {
+  uses hands for 2 min
+}
+action whipC(x: T) -> T {
+  uses hands for 3 min
+}
+recipe salad() {
+  ingredients {
+    lettuce: 100 g
+  }
+  let t = chopA(lettuce)
+}
+recipe sweet() {
+  ingredients {
+    ice: VanillaIce 100 g
+  }
+  let c = rest(ice, 5 min)
+  let w = whipC(c)
+}
+menu dinner() {
+  let s = make salad()
+  let d = make sweet()
+  serve main {
+    plate perPerson on FlatPlate { s }
+  }
+  serve sweets after main + 20 min {
+    plate perPerson on Glass { d }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

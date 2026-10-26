@@ -1,0 +1,8 @@
+schedule dinner level=2 cooks=1
+  0..1800 (1800) %2 stewB by cook1
+  1800..1860 (1818) %3 plate perPerson by cook1 [don#1, don#2]
+  serve main at 1860
+  total 1860
+info ASM007 provisionalValue plate-overrides-dish.ozen:14:5-14:37 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=1
+exit 0

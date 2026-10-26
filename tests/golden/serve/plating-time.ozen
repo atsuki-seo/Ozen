@@ -1,0 +1,20 @@
+// args: debug schedule --entry dinner --options today
+action stewB(x: T) -> T<doneness: done> {
+  uses hands for 30 min
+}
+recipe stew() {
+  ingredients {
+    pork: 300 g
+  }
+  let s = stewB(pork)
+}
+menu dinner() {
+  let b = make stew()
+  serve main {
+    plate perPerson on DeepPlate { b }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+  serveAt: 60 min
+}

@@ -1,0 +1,13 @@
+schedule dinner level=1 cooks=1
+  0..120 (120) %2 chopA by cook1
+  0..300 (300) %4 rest unattended
+  120..180 (138) %6 plate perPerson by cook1
+  1380..1560 (1560) %5 whipC by cook1
+  1560..1620 (1578) %7 plate perPerson by cook1
+  serve main at 180
+  serve sweets at 1620
+  total 1620
+info ASM004 unlimitedEquipment meal-duration-from-interval.ozen:21:6-21:12: unlimited equipment
+info ASM007 provisionalValue meal-duration-from-interval.ozen:25:5-25:39 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=2
+exit 0

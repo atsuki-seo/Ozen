@@ -1,0 +1,13 @@
+schedule dinner level=1 cooks=1
+  0..120 (120) %2 chopA by cook1
+  0..1200 (1200) %4 rest unattended
+  120..180 (138) %6 plate perPerson by cook1
+  1980..2160 (2160) %5 whipC by cook1
+  2160..2220 (2178) %7 plate perPerson by cook1
+  serve main at 180
+  serve sweets at 2220
+  total 2220
+info ASM004 unlimitedEquipment meal-blocks-hands.ozen:21:6-21:12: unlimited equipment
+info ASM007 provisionalValue meal-blocks-hands.ozen:25:5-25:39 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=2
+exit 0

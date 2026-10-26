@@ -1,0 +1,11 @@
+schedule dinner level=1 cooks=1
+  0..1800 (1800) %4 stewB by cook1
+  1020..1620 (1620) %2 rest unattended
+  1800..1860 (1818) %5 plate perPerson by cook1
+  1860..1920 (1878) %6 plate perPerson by cook1
+  serve main at 1920
+  total 1920
+info ASM004 unlimitedEquipment serve-within.ozen:17:6-17:12: unlimited equipment
+info ASM007 provisionalValue serve-within.ozen:21:5-21:58 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=2
+exit 0

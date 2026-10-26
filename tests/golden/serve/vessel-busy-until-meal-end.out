@@ -1,0 +1,9 @@
+schedule dinner level=2 cooks=1
+  0..60 (18) %2 plate perPerson by cook1 [glass#1]
+  60..120 (78) %4 plate perPerson by cook1 [bowl#1]
+  serve main at 120
+  total 120
+info ASM007 provisionalValue vessel-busy-until-meal-end.ozen:4:5-4:49 args=["plate"]: provisional value
+info KIT004 vesselSubstituted vessel-busy-until-meal-end.ozen:5:5-5:63 args=["SmallBowl", "1"]: vessel substituted
+result ok errors=0 warnings=0 infos=2
+exit 0

@@ -1,0 +1,45 @@
+// args: debug schedule --entry dinner --kitchen home --options today
+action tossIt(x: T) -> T {
+  uses hands for 2 min
+}
+recipe salad() {
+  ingredients {
+    lettuce: 100 g
+  }
+  let t = tossIt(lettuce)
+}
+recipe slaw() {
+  ingredients {
+    cabbage: 100 g
+  }
+  let t = tossIt(cabbage)
+}
+action stewB(x: T) -> T<doneness: done> {
+  uses hands for 30 min
+}
+recipe stew() {
+  ingredients {
+    pork: 300 g
+  }
+  let s = stewB(pork)
+}
+menu dinner() {
+  let a = make salad()
+  let b = make slaw()
+  let c = make stew()
+  serve main {
+    plate perPerson on SmallBowl { a } @chilled
+    plate perPerson on SmallBowl { b } @chilled
+    plate perPerson on DeepPlate { c }
+    plate perPerson on Glass { buy VanillaIce 100 g } @frozen
+  }
+}
+kitchen home {
+  places {
+    fridge: Fridge
+    freezer: Freezer
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

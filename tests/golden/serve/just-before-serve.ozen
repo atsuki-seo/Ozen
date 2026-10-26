@@ -1,0 +1,31 @@
+// args: debug schedule --entry dinner --options today
+action topIt(x: T) -> T {
+  uses hands for 1 min
+}
+action stewB(x: T) -> T<doneness: done> {
+  uses hands for 30 min
+}
+recipe stew() {
+  ingredients {
+    pork: 300 g
+  }
+  let s = stewB(pork)
+}
+recipe dessert() {
+  ingredients {
+    ice: VanillaIce 100 g
+  }
+  let c = rest(ice, 10 min)
+  let d = topIt(c)
+}
+menu dinner() {
+  let b = make stew()
+  let d = make dessert()
+  serve main {
+    plate perPerson on DeepPlate { b }
+    plate perPerson on Glass { d } @justBeforeServe
+  }
+}
+kitchen today : Options {
+  cooks: 2
+}

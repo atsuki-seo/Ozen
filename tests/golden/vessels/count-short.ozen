@@ -1,0 +1,21 @@
+// args: check --kitchen home
+action stewB(x: T) -> T<doneness: done> {
+  uses hands for 30 min
+}
+recipe stew() {
+  ingredients {
+    pork: 300 g
+  }
+  let s = stewB(pork)
+}
+menu dinner(people: 4) {
+  let c = make stew()
+  serve main {
+    plate perPerson on Donburi { c }
+  }
+}
+kitchen home {
+  tableware {
+    don: Donburi { count: 3 }
+  }
+}
