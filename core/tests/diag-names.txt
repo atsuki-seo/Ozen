@@ -49,3 +49,8 @@ NAM:unknownUnit
 TYP:stateRequired
 TYP:cutCoarser
 TYP:axisDefinition
+SAF:undercooked
+LIN:doubleUse
+LIN:insufficient
+LIN:leftoverPart
+LIN:parallelConsume
