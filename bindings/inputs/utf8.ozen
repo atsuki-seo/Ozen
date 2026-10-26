@@ -1,0 +1,10 @@
+// 日本語のコメント 🍛
+property note = "カレーと🍛ごはん"
+recipe curry() {
+  ingredients {
+    pork: 200 g
+    onion: 1 pcs
+  }
+  let p = peel(onion)
+  let f = fry(pork, 5 min)
+}

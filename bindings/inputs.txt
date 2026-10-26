@@ -1,0 +1,13 @@
+# Inputs that every bridge runs; paths are relative to the repository root.
+bindings/inputs/utf8.ozen
+tests/golden/sched/forward.ozen
+tests/golden/sched/variant-earliest.ozen
+tests/golden/wash/compat-rules.ozen
+tests/golden/serve/serve-within.ozen
+tests/golden/menus/waves.ozen
+tests/golden/api/diag-json-fields.ozen
+tests/golden/syntax/unexpected-character.ozen
+tests/golden/syntax/bad-escape.ozen
+tests/golden/parts/fillet-yield.ozen
+tests/golden/safety/undercooked-pork.ozen
+tests/golden/limits/depth-over.ozen

@@ -1,0 +1,5 @@
+module COzen {
+  header "../../core/include/ozen.h"
+  link "ozen"
+  export *
+}
