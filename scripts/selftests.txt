@@ -24,3 +24,7 @@ scripts/check-c23-subset.sh scripts/test-check-c23-subset.sh
 scripts/run-golden.sh scripts/test-run-golden.sh
 scripts/digest.sh scripts/test-digest.sh
 scripts/check-grammar-coverage.py scripts/test-check-grammar-coverage.sh
+tools/stdcheck/lists.py scripts/test-stdcheck.sh
+tools/stdcheck/static.py scripts/test-stdcheck.sh
+tools/stdcheck/provenance.py scripts/test-stdcheck.sh
+tools/stdcheck/sources.py scripts/test-stdcheck.sh
