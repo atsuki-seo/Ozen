@@ -3440,6 +3440,11 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `sample/curryRice`（S363・プラットフォームの経路）— `curry.ozen` の `peel` を消すと `ir label peel`・`task peel`・`peel before cut` の 3 件が落ち、digest も変わった（修正前は `make` の先のエラーが JSON に出なかったので `errors` は 0 のままだった。修正後は `TYP:stateRequired` も出る）。戻して合格
   - 台所の照合の挙動: 炊飯器の候補は 42〜54 分、鍋の候補は 25〜35 分なので、鍋が 2 つある台所では `cookRice` は鍋の候補（一番早く終わる候補）になる。鍋が 1 つの台所では鍋の候補がカレーの `simmer` の鍋を待たせて全体が長くなる（候補の選び方は作業ごとの局所の判断のため）。サンプルの台所は鍋 2 つにした
 - P13-0（2026-10-26）: §4.27.1 に `expect.yaml` の形と性質の語彙、基準の献立と T1〜T4 の実行と性質を書いた。結果の JSON にアレルゲンと選択の内訳が無いことが分かり、D33 として確認を取った（IR の節に `allergens`、料理ごとに `choices`）。新しい S は無い
+- P13-1（2026-10-26）: `std` の一覧・関係・出どころ・prelude は P7〜P9 で入っていて `G-STD-LISTS`（`267 listed`）・`G-STD-PROVENANCE`（`97 values`）が合格。golden `std/prelude-contents`（`import` なしで `gou`・`kg`・`pcs`・`L`・`pinch`・`tbsp`・`tsp`・`min`・`h` と基本の動作が使える）と性質のテスト `tests/props/std_copy.py`（golden の料理が呼ぶ `std` の動作の定義を利用者のファイルに同じ構文で書き写し、テキストの IR を比べる）を足した。`std_copy: 105 cases, 0 differences`。どちらも変更の前から通るので red-first の例外に書いた
+  - わざと壊す確認: `G-STD-LISTS`（S358・データの完全性）— `stdlib/prelude.ozen` から `tear` を消すと `1 missing` で落ちた。戻して合格
+  - わざと壊す確認: `G-STD-PROVENANCE`（S359・データの完全性）— `Onion` の `unitWeight` から `@source(provisional)` を消すと `1 without source` で落ちた。戻して合格
+  - わざと壊す確認: `prop/std_copy`（S360・正常系）— `std` の動作の IR の行にだけ印を付けると `104 cases, 103 differences` になった。戻して合格
+  - わざと壊す確認: `cgolden/std/prelude-contents`（S361・正常系）— prelude から `unit g` を外すと落ちた。戻して合格
 
 - 各サンプルの `expect.yaml` の性質の数
 - 暫定の値で組まれた段取りの一覧（S277）
