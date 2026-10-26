@@ -1,0 +1,7 @@
+File bare-part.ozen
+  Alias PorkBelly
+    TypeRef Pork
+      TypeArgs
+        Alt
+          BareArg belly
+exit 0

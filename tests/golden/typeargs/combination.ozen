@@ -1,0 +1,2 @@
+// args: debug ast --no-spans
+alias SlicedBelly = Pork<belly, doneness: raw, shape: cut(slice, 3 mm)>

@@ -1,0 +1,28 @@
+// args: debug ast --no-spans
+recipe curryRice(servings: Count in 1..20 = 4) -> Curry requires Oven<maxTemp >= 250 degC> @warn(staining) {
+  ingredients {
+    rice: 600 g
+    roux: CurryRoux 100 g
+    salt: [any amount]
+    onion: Onion 1/4 pcs @group(onionPrep)
+  }
+  parallel {
+    branch riceLine {
+      let soaked = soak(wash(rice), 30 min) @unattended
+    }
+    branch curryLine {
+      let fried = fry(cut(peel(onion), style: slice), 1 h 30 min, heat: medium)
+      let curry = simmer([fried, roux], 20 min)
+    }
+  }
+  if servings > 4 and not small {
+    repeat ceil(servings / 4) { stir(curry) }
+  } else if servings == 4 or -servings < 0 {
+    for x in [rice, curry] { taste(x) }
+  } else {
+    rest(curry, 5 min)
+  }
+  serve main {
+    plate perPerson on DeepPlate or Donburi { soaked, curry } @serveWithin(5 min)
+  }
+}

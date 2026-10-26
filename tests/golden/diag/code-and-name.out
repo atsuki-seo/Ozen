@@ -1,0 +1,3 @@
+error SYN003 unexpectedToken code-and-name.ozen:2:12-2:13 args=[")"]: unexpected token
+result error errors=1 warnings=0 infos=0
+exit 1

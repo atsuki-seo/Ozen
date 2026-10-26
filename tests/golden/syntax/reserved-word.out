@@ -1,0 +1,3 @@
+error SYN009 reservedWord reserved-word.ozen:2:7-2:10 args=["for"]: reserved word
+result error errors=1 warnings=0 infos=0
+exit 1

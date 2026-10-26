@@ -1,0 +1,8 @@
+File dirt.ozen
+  Dirt rawMeat
+    TypeRef Hazard
+  Dirt rawFish
+    TypeRef Hazard
+    TypeRef Smelly
+  Dirt light
+exit 0

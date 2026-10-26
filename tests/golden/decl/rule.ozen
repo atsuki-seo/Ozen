@@ -1,0 +1,4 @@
+// args: debug ast --no-spans
+rule after Hazard: wash before any use @fixed
+rule after Smelly: rinse before RawEdible
+rule after Light: none

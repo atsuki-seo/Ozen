@@ -1,0 +1,13 @@
+File tool.ozen
+  Tool cuttingBoard
+    TypeRef CuttingSurface
+    Field states
+      Binary <->
+        Name clean
+        Call
+          Name dirty
+          Name kind
+    Section props
+      Field washTime
+        Quantity 2 min
+exit 0

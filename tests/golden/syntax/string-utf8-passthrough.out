@@ -1,0 +1,4 @@
+File string-utf8-passthrough.ozen
+  Property label
+    String "カレー🍛"
+exit 0

@@ -1,0 +1,4 @@
+// args: debug ast --no-spans
+dirt rawMeat : Hazard
+dirt rawFish : Hazard, Smelly
+dirt light

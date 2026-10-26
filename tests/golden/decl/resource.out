@@ -1,0 +1,5 @@
+File resource.ozen
+  Resource stove
+  Resource sink
+    TypeRef Washing
+exit 0

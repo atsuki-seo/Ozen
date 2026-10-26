@@ -1,0 +1,6 @@
+// args: debug ast --no-spans
+phrases ja """
+a = あ
+b = い
+"""
+recipe r() {}

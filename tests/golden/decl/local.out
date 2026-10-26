@@ -1,0 +1,12 @@
+File local.ozen
+  Local
+    Action marinateBase
+      Param x
+        TypeRef Meat
+      Output
+        TypeRef Meat
+  Local
+    Unit pinch
+      TypeRef Mass
+      Quantity 0.3..0.5 g
+exit 0

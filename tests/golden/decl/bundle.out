@@ -1,0 +1,10 @@
+File bundle.ozen
+  Bundle
+    Field std
+      String "1.3"
+    Field entry
+      Name katsuCurryNight
+    BundleFrom ourCookbook "0.3.0"
+    Field license
+      String "CC-BY-4.0"
+exit 0

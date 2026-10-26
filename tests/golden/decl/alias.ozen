@@ -1,0 +1,3 @@
+// args: debug ast --no-spans
+alias Karubi = Beef<belly | Fatty>
+alias Meats = Pork | Beef

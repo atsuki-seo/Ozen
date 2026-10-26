@@ -1,0 +1,13 @@
+File alias.ozen
+  Alias Karubi
+    TypeRef Beef
+      TypeArgs
+        Alt
+          BareArg belly
+        Alt
+          BareArg Fatty
+  Alias Meats
+    UnionType
+      TypeRef Pork
+      TypeRef Beef
+exit 0

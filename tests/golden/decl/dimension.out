@@ -1,0 +1,7 @@
+File dimension.ozen
+  Dimension
+    Name Mass
+    Name Volume
+  Dimension
+    Name Time
+exit 0

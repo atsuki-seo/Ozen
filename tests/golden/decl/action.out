@@ -1,0 +1,95 @@
+File action.ozen
+  Action cut
+    Param x
+      TypeRef T
+        TypeArgs
+          Alt
+            StateArg shape :
+              Name peeled
+    Param style
+      TypeRef CutStyle
+    Param size
+      TypeRef Length
+      Default
+        Quantity 3 mm
+    Output
+      TypeRef T
+        TypeArgs
+          Alt
+            StateArg shape :
+              Call
+                Name cut
+                Name style
+                Name size
+    Where T
+      TypeRef Food
+    Uses
+      TypeRef hands
+      TypeRef CuttingSurface
+      For
+        Quantity 1..3 min
+    Field leaves
+      On
+        Name x
+        TypeRef CuttingSurface
+  Action simmer
+    Param x
+      TypeRef T
+    Output
+      TypeRef T
+        TypeArgs
+          Alt
+            StateArg doneness :
+              Name done
+    Takes
+      Binary +
+        Call
+          Name heatUp
+          Member simmer
+            Name T
+          Member size
+            Name x
+        Member soften
+          Member simmer
+            Name T
+  Action cookRice
+    Param x
+      TypeRef Rice
+        TypeArgs
+          Alt
+            StateArg prep has
+              Name soaked
+    Output
+      TypeRef CookedRice
+    Variant cooker
+      Uses
+        TypeRef RiceCooking
+        For
+          Quantity 42..54 min
+        Annotation unattended
+    Variant pot
+      Uses
+        TypeRef hands
+        TypeRef HeatSource
+          TypeArgs
+            Alt
+              BareArg stovetop
+        TypeRef Pot
+      Steps
+        Block
+          Call
+            Name boil
+            Name x
+          Call
+            Name rest
+            Name x
+            Quantity 10 min
+            Annotation unattended
+  Extend cookRice
+    Variant autoCooker
+      Uses
+        TypeRef AutoCooking
+        For
+          Quantity 50 min
+        Annotation unattended
+exit 0

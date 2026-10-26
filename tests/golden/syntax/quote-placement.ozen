@@ -1,0 +1,6 @@
+recipe r() {
+  quote { stir(pot) }
+}
+macro m(x) {
+  quote { quote { stir($x) } }
+}

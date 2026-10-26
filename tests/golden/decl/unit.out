@@ -1,0 +1,16 @@
+File unit.ozen
+  Unit g
+    TypeRef Mass
+    Base
+  Unit kg
+    TypeRef Mass
+    Quantity 1000 g
+  Unit tbsp
+    Quantity 15 ml
+  Unit pinch
+    TypeRef Mass
+    Quantity 0.3..0.5 g
+  Unit gPerMl
+    Quantity 1 g/ml
+    Annotation deprecated
+exit 0

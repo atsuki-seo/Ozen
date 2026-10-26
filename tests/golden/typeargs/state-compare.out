@@ -1,0 +1,15 @@
+File state-compare.ozen
+  Action a
+    Param x
+      TypeRef T
+        TypeArgs
+          Alt
+            StateArg doneness >=
+              Name done
+    Param y
+      TypeRef T
+        TypeArgs
+          Alt
+            StateArg browning <=
+              Name light
+exit 0

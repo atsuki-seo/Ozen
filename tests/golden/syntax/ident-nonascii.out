@@ -1,0 +1,3 @@
+error SYN002 nonAsciiIdent ident-nonascii.ozen:1:8-1:13 args=["café"]: non ascii ident
+result error errors=1 warnings=0 infos=0
+exit 1

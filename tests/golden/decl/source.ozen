@@ -1,0 +1,6 @@
+// args: debug ast --no-spans
+source panasonicSrPw109 {
+  kind: primary
+  title: "SR-PW109 spec"
+  retrieved: "2026-10-26"
+}

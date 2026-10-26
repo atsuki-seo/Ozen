@@ -1,0 +1,2 @@
+// args: debug ast --no-spans
+action a(x: Onion<shape: peeled>, y: Onion<shape: cut>)

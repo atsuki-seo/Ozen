@@ -1,0 +1,47 @@
+File menu.ozen
+  Menu katsuCurryNight
+    Param people
+      Default
+        Number 4
+    Block
+      Let rice
+        Make
+          Call
+            Name cookedRice
+            NamedArg servings
+              Number 4
+      LetTuple fillet kama
+        Call
+          Name filletBuri
+          Buy
+            TypeRef Buri
+            Quantity 1 pcs
+      Let side
+        Choose perPerson
+          Make
+            Call
+              Name cookedRice
+          Buy
+            TypeRef Naan
+      Serve main
+        Plate perPerson
+          On
+            TypeRef DeepPlate
+          Name rice
+          Name kama
+          Annotation serveWithin
+            Quantity 5 min
+      Serve dessert
+        After main
+          Quantity 40 min
+        Plate perPerson
+          On
+            TypeRef Glass
+          Assemble
+            Name flakes
+            Buy
+              TypeRef VanillaIce
+              Annotation frozen
+            Name cream
+          Annotation justBeforeServe
+exit 0

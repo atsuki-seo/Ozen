@@ -1,0 +1,18 @@
+// args: debug ast --no-spans
+ingredient Pork : Meat, Hazard {
+  axes: doneness, browning, shape, prep
+  leaves: rawMeat
+  props {
+    density: 1.00..1.10 g/ml @source(provisional)
+    refuse: fct(mextFct2023, food: "11131")
+  }
+  parts {
+    shoulder
+    loin { fat: medium, tender: high }
+    shoulderLoin: loin { fat: high }
+  }
+  meta { inSeason: [winter] }
+}
+ingredient Aibiki : Mixture {
+  contains: { Beef: 0..100 %, Pork: 0..100 % }
+}

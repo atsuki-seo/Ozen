@@ -1,0 +1,5 @@
+// args: debug ast --no-spans
+tool cuttingBoard : CuttingSurface {
+  states: clean <-> dirty(kind)
+  props { washTime: 2 min }
+}

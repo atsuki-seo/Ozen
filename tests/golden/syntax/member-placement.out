@@ -1,0 +1,4 @@
+error SYN016 memberPlacement member-placement.ozen:2:3-2:13 args=["uses"]: member placement
+error SYN016 memberPlacement member-placement.ozen:6:5-6:30 args=["ingredients"]: member placement
+result error errors=2 warnings=0 infos=0
+exit 1

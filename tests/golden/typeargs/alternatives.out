@@ -1,0 +1,13 @@
+File alternatives.ozen
+  Action cut
+    Param x
+      TypeRef T
+        TypeArgs
+          Alt
+            StateArg shape :
+              Name peeled
+          Alt
+            BareArg SkinEdible
+            StateArg shape :
+              Name whole
+exit 0

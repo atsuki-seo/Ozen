@@ -1,0 +1,15 @@
+File state-exact.ozen
+  Action a
+    Param x
+      TypeRef Onion
+        TypeArgs
+          Alt
+            StateArg shape :
+              Name peeled
+    Param y
+      TypeRef Onion
+        TypeArgs
+          Alt
+            StateArg shape :
+              Name cut
+exit 0

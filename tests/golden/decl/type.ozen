@@ -1,0 +1,14 @@
+// args: debug ast --no-spans
+type Options {
+  servings: Count
+  cooks: Count in 1.. = 1
+  serveAt: Time?
+  prefer: [Preference] = []
+  places: { floor: Floor, sink: Sink }
+  pair: (Count, Time)
+  check tooManyCooks: cooks <= kitchen.floor.capacity else warn
+  check SCH101 tooFew: cooks >= 1
+}
+type FryingPan : Tool {
+  diameter: Length in 10 cm..40 cm
+}

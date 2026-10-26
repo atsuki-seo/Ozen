@@ -1,0 +1,7 @@
+File part-trait.ozen
+  Alias FattyPork
+    TypeRef Pork
+      TypeArgs
+        Alt
+          BareArg Fatty
+exit 0

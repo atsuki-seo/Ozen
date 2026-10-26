@@ -1,0 +1,23 @@
+// args: debug ast --no-spans
+action cut(x: T<shape: peeled>, style: CutStyle, size: Length = 3 mm) -> T<shape: cut(style, size)> where T: Food {
+  uses hands, CuttingSurface for 1..3 min
+  leaves: x on CuttingSurface
+}
+action simmer(x: T) -> T<doneness: done> {
+  takes heatUp(T.simmer, x.size) + T.simmer.soften
+}
+action cookRice(x: Rice<prep has soaked>) -> CookedRice {
+  variant cooker {
+    uses RiceCooking for 42..54 min @unattended
+  }
+  variant pot {
+    uses hands, HeatSource<stovetop>, Pot
+    steps {
+      boil(x)
+      rest(x, 10 min) @unattended
+    }
+  }
+}
+extend action cookRice {
+  variant autoCooker { uses AutoCooking for 50 min @unattended }
+}

@@ -1,0 +1,15 @@
+File module.ozen
+  Module ourCookbook.recipes.curry
+    Recipe curry
+      Param servings
+        Default
+          Number 4
+      Block
+        Call
+          Name stir
+          Name pot
+    Local
+      Action tasteBase
+        Param x
+          TypeRef Curry
+exit 0

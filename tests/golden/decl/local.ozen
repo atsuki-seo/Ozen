@@ -1,0 +1,3 @@
+// args: debug ast --no-spans
+local action marinateBase(x: Meat) -> Meat
+local unit pinch : Mass = 0.3..0.5 g

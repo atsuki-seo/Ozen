@@ -1,0 +1,7 @@
+// args: debug ast --no-spans
+trait Peelable
+trait Root : Vegetable
+trait Allergen(kind: AllergenKind)
+trait HeatSource {
+  mode: HeatMode
+}

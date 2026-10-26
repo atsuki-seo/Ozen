@@ -1,0 +1,14 @@
+File combination.ozen
+  Alias SlicedBelly
+    TypeRef Pork
+      TypeArgs
+        Alt
+          BareArg belly
+          StateArg doneness :
+            Name raw
+          StateArg shape :
+            Call
+              Name cut
+              Name slice
+              Quantity 3 mm
+exit 0

@@ -1,0 +1,9 @@
+// args: debug ast --no-spans
+axis doneness : ordered { raw, surface, par, done }
+axis shape : {
+  whole, peeled
+  cut(style: CutStyle, size: Length)
+  pureed
+  finer cut -> pureed
+}
+axis prep : set { washed, soaked(time: Time) }

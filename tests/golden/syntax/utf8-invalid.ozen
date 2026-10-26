@@ -1,0 +1,3 @@
+recipe a() {
+  let x = "ÿ"
+}

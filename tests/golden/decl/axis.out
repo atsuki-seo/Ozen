@@ -1,0 +1,23 @@
+File axis.ozen
+  Axis doneness ordered
+    Value raw
+    Value surface
+    Value par
+    Value done
+  Axis shape
+    Value whole
+    Value peeled
+    Value cut
+      Param style
+        TypeRef CutStyle
+      Param size
+        TypeRef Length
+    Value pureed
+    Finer cut
+      Name pureed
+  Axis prep set
+    Value washed
+    Value soaked
+      Param time
+        TypeRef Time
+exit 0

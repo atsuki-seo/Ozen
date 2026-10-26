@@ -1,0 +1,14 @@
+File rule.ozen
+  Rule
+    TypeRef Hazard
+    Name wash
+    AnyUse
+    Annotation fixed
+  Rule
+    TypeRef Smelly
+    Name rinse
+    TypeRef RawEdible
+  Rule
+    TypeRef Light
+    Name none
+exit 0

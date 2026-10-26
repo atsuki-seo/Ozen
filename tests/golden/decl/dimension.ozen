@@ -1,0 +1,3 @@
+// args: debug ast --no-spans
+dimension Mass, Volume
+dimension Time

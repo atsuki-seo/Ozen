@@ -1,0 +1,3 @@
+macro m(x) {
+  stir(x)
+}

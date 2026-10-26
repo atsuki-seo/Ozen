@@ -1,0 +1,18 @@
+File macro.ozen
+  Macro marinate
+    MacroParam x
+    MacroParam minutes
+    Block
+      Quote
+        Block
+          Let $x
+            Call
+              Name mix
+              Splice x
+              Name marinade
+          Call
+            Name rest
+            Splice x
+            Splice minutes
+            Annotation unattended
+exit 0

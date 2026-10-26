@@ -1,0 +1,7 @@
+// args: debug ast --no-spans
+module ourCookbook.recipes.curry {
+  recipe curry(servings: 4) {
+    stir(pot)
+  }
+  local action tasteBase(x: Curry)
+}

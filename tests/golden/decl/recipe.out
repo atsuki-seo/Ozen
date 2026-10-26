@@ -1,0 +1,116 @@
+File recipe.ozen
+  Recipe curryRice
+    Param servings
+      RangedType
+        TypeRef Count
+        NumberRange 1..20
+      Default
+        Number 4
+    Output
+      TypeRef Curry
+    Requires
+      TypeRef Oven
+        TypeArgs
+          Alt
+            StateArg maxTemp >=
+              Quantity 250 degC
+    Annotation warn
+      Name staining
+    Block
+      Ingredients
+        Item rice
+          Quantity 600 g
+        Item roux
+          TypeRef CurryRoux
+          Quantity 100 g
+        Item salt
+          Vague
+        Item onion
+          TypeRef Onion
+          Quantity 1/4 pcs
+          Annotation group
+            Name onionPrep
+      Parallel
+        Branch riceLine
+          Block
+            Let soaked
+              Call
+                Name soak
+                Call
+                  Name wash
+                  Name rice
+                Quantity 30 min
+              Annotation unattended
+        Branch curryLine
+          Block
+            Let fried
+              Call
+                Name fry
+                Call
+                  Name cut
+                  Call
+                    Name peel
+                    Name onion
+                  NamedArg style
+                    Name slice
+                Quantity 1 h 30 min
+                NamedArg heat
+                  Name medium
+            Let curry
+              Call
+                Name simmer
+                List
+                  Name fried
+                  Name roux
+                Quantity 20 min
+      If
+        Binary and
+          Binary >
+            Name servings
+            Number 4
+          Not
+            Name small
+        Block
+          Repeat
+            Call
+              Name ceil
+              Binary /
+                Name servings
+                Number 4
+            Block
+              Call
+                Name stir
+                Name curry
+        If
+          Binary or
+            Binary ==
+              Name servings
+              Number 4
+            Binary <
+              Unary -
+                Name servings
+              Number 0
+          Block
+            For x
+              List
+                Name rice
+                Name curry
+              Block
+                Call
+                  Name taste
+                  Name x
+          Block
+            Call
+              Name rest
+              Name curry
+              Quantity 5 min
+      Serve main
+        Plate perPerson
+          On
+            TypeRef DeepPlate
+            TypeRef Donburi
+          Name soaked
+          Name curry
+          Annotation serveWithin
+            Quantity 5 min
+exit 0

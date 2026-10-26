@@ -1,0 +1,46 @@
+File ingredient.ozen
+  Ingredient Pork
+    TypeRef Meat
+    TypeRef Hazard
+    Field axes
+      Name doneness
+      Name browning
+      Name shape
+      Name prep
+    Field leaves
+      Name rawMeat
+    Section props
+      Field density
+        Quantity 1.00..1.10 g/ml
+        Annotation source
+          Name provisional
+      Field refuse
+        Call
+          Name fct
+          Name mextFct2023
+          NamedArg food
+            String "11131"
+    Section parts
+      Marker shoulder
+      Section loin
+        Field fat
+          Name medium
+        Field tender
+          Name high
+      Field shoulderLoin
+        Construct loin
+          Entry fat
+            Name high
+    Section meta
+      Field inSeason
+        List
+          Name winter
+  Ingredient Aibiki
+    TypeRef Mixture
+    Field contains
+      Record
+        Entry Beef
+          Quantity 0..100 %
+        Entry Pork
+          Quantity 0..100 %
+exit 0

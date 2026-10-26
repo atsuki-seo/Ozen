@@ -1,0 +1,9 @@
+// args: debug ast --no-spans
+package ourCookbook {
+  version: "0.3.0"
+  license: "CC-BY-4.0"
+  requires: {
+    std: "1.3"
+    dashi: "1.2.0"
+  }
+}

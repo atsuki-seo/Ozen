@@ -1,0 +1,4 @@
+error SYN012 quotePlacement quote-placement.ozen:2:3-2:8: quote placement
+error SYN012 quotePlacement quote-placement.ozen:5:11-5:16: quote placement
+result error errors=2 warnings=0 infos=0
+exit 1

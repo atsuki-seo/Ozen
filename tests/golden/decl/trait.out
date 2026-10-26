@@ -1,0 +1,11 @@
+File trait.ozen
+  Trait Peelable
+  Trait Root
+    TypeRef Vegetable
+  Trait Allergen
+    Param kind
+      TypeRef AllergenKind
+  Trait HeatSource
+    Field mode
+      Name HeatMode
+exit 0

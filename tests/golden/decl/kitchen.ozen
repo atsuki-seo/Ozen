@@ -1,0 +1,11 @@
+// args: debug ast --no-spans
+kitchen myHome {
+  places {
+    floor: Floor { capacity: 2 }
+    sink: Sink
+  }
+  tableware {
+    deepPlate: DeepPlate { count: 4, capacity: 500 ml }
+  }
+  calibration { oven: 1.1 }
+}

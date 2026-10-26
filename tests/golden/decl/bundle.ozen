@@ -1,0 +1,7 @@
+// args: debug ast --no-spans
+bundle {
+  std: "1.3"
+  entry: katsuCurryNight
+  from: ourCookbook "0.3.0"
+  license: "CC-BY-4.0"
+}

@@ -1,0 +1,19 @@
+File kind.ozen
+  Kind IHStove
+    TypeRef Stove
+    TypeRef HeatSource
+      TypeArgs
+        Alt
+          BareArg stovetop
+  Kind OvenRange
+    TypeRef HeatSource
+      TypeArgs
+        Alt
+          BareArg oven
+    TypeRef HeatSource
+      TypeArgs
+        Alt
+          BareArg microwave
+    Field maxTemp
+      Quantity 250 degC
+exit 0

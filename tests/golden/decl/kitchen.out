@@ -1,0 +1,20 @@
+File kitchen.ozen
+  Kitchen myHome
+    Section places
+      Field floor
+        Construct Floor
+          Entry capacity
+            Number 2
+      Field sink
+        Name Sink
+    Section tableware
+      Field deepPlate
+        Construct DeepPlate
+          Entry count
+            Number 4
+          Entry capacity
+            Quantity 500 ml
+    Section calibration
+      Field oven
+        Number 1.1
+exit 0

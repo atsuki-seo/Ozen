@@ -1,0 +1,3 @@
+recipe r() {
+  fry(x, heat: medium, 10 min)
+}

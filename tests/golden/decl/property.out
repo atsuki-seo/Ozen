@@ -1,0 +1,11 @@
+File property.ozen
+  Property whileWarm
+    Call
+      Name serveWithin
+      Quantity 5..15 min
+  Property piping
+    Call
+      Name serveWithin
+      Quantity 0..3 min
+    Annotation deprecated
+exit 0

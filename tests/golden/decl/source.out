@@ -1,0 +1,9 @@
+File source.ozen
+  Source panasonicSrPw109
+    Field kind
+      Name primary
+    Field title
+      String "SR-PW109 spec"
+    Field retrieved
+      String "2026-10-26"
+exit 0

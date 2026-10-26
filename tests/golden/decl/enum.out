@@ -1,0 +1,20 @@
+File enum.ozen
+  Enum Cleanup
+    Value none
+    Value beforeMeal
+    Value afterMeal
+  Enum Hardness ordered
+    Value soft
+    Value medium
+    Value hard
+  Enum CutStyle
+    Value slice
+    Value dice
+    Value julienne
+    Value mince
+    Finer slice
+      Name julienne
+      Name mince
+    Finer julienne
+      Name mince
+exit 0

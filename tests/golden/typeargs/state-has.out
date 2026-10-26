@@ -1,0 +1,9 @@
+File state-has.ozen
+  Action a
+    Param x
+      TypeRef Rice
+        TypeArgs
+          Alt
+            StateArg prep has
+              Name washed
+exit 0

@@ -1,0 +1,7 @@
+// args: debug ast --no-spans
+macro marinate(x, minutes) {
+  quote {
+    let $x = mix($x, marinade)
+    rest($x, $minutes) @unattended
+  }
+}

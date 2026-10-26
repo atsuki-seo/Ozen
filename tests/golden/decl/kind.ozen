@@ -1,0 +1,5 @@
+// args: debug ast --no-spans
+kind IHStove : Stove, HeatSource<stovetop>
+kind OvenRange : HeatSource<oven>, HeatSource<microwave> {
+  maxTemp: 250 degC
+}

@@ -1,0 +1,6 @@
+File multiline-string.ozen
+  Phrases ja
+    MlString "\na = あ\nb = い\n"
+  Recipe r
+    Block
+exit 0

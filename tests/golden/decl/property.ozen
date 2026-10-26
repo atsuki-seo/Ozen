@@ -1,0 +1,3 @@
+// args: debug ast --no-spans
+property whileWarm = serveWithin(5..15 min)
+property piping = serveWithin(0..3 min) @deprecated

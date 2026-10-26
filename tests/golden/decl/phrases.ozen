@@ -1,0 +1,5 @@
+// args: debug ast --no-spans
+phrases ja """
+ingredient-buri = ブリ
+"""
+phrases en "ingredient-buri = Yellowtail"

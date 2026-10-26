@@ -1,0 +1,8 @@
+// args: debug ast --no-spans
+enum Cleanup { none, beforeMeal, afterMeal }
+enum Hardness : ordered { soft, medium, hard }
+enum CutStyle {
+  slice, dice, julienne, mince
+  finer slice -> julienne, mince
+  finer julienne -> mince
+}

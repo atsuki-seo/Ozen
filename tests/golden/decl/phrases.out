@@ -1,0 +1,6 @@
+File phrases.ozen
+  Phrases ja
+    MlString "\ningredient-buri = ブリ\n"
+  Phrases en
+    String "ingredient-buri = Yellowtail"
+exit 0

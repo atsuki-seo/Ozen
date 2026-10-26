@@ -1,0 +1,48 @@
+File type.ozen
+  Type Options
+    TypeField servings
+      TypeRef Count
+    TypeField cooks
+      RangedType
+        TypeRef Count
+        RangeFrom
+          Number 1
+      Default
+        Number 1
+    TypeField serveAt
+      OptionalType
+        TypeRef Time
+    TypeField prefer
+      ListType
+        TypeRef Preference
+      Default
+        List
+    TypeField places
+      RecordType
+        TypeField floor
+          TypeRef Floor
+        TypeField sink
+          TypeRef Sink
+    TypeField pair
+      TupleType
+        TypeRef Count
+        TypeRef Time
+    Check tooManyCooks else warn
+      Binary <=
+        Name cooks
+        Member capacity
+          Member floor
+            Name kitchen
+    Check SCH101 tooFew
+      Binary >=
+        Name cooks
+        Number 1
+  Type FryingPan
+    TypeRef Tool
+    TypeField diameter
+      RangedType
+        TypeRef Length
+        Range
+          Quantity 10 cm
+          Quantity 40 cm
+exit 0

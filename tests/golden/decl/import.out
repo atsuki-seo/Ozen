@@ -1,0 +1,8 @@
+File import.ozen
+  Import std.units
+  Import std.units
+    ImportName cup
+    ImportName tbsp
+  Import dashi.pantry.fish
+    ImportAlias fish
+exit 0

@@ -1,0 +1,3 @@
+// args: debug ast --no-spans
+resource stove
+resource sink : Washing

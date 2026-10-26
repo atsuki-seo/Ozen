@@ -1,0 +1,6 @@
+// args: debug ast --no-spans
+unit g : Mass = base
+unit kg : Mass = 1000 g
+unit tbsp = 15 ml
+unit pinch : Mass = 0.3..0.5 g
+unit gPerMl = 1 g/ml @deprecated

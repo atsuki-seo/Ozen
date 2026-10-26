@@ -1,0 +1,3 @@
+// args: debug ast --no-spans
+vessel DeepPlate : HoldsLiquid
+vessel LongPlate : FlatPlate { capacity: 400 ml }

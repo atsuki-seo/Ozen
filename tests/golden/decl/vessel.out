@@ -1,0 +1,8 @@
+File vessel.ozen
+  Vessel DeepPlate
+    TypeRef HoldsLiquid
+  Vessel LongPlate
+    TypeRef FlatPlate
+    Field capacity
+      Quantity 400 ml
+exit 0
