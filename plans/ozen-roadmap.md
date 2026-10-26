@@ -3047,6 +3047,17 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/state/unwritten-axis-inherit`（S204・正常系）— 出力で書かなかった集合の軸を空に戻すと落ちた。戻して合格
   - わざと壊す確認: `cgolden/state/axis-unreachable`・`axis-contradiction`（S205・効かない条件）— 定義の時点の検査を外すと落ちた。戻して合格
   - わざと壊す確認: `cgolden/state/blend-*`（S474・正常系）— `blend` を `cut` と同じに扱うと `blend-after-pureed` が落ちた。戻して合格
+- P8-3（2026-10-26）: golden 11 件を先にコミットし、安全・混ぜる・線形を足した。混ぜた値はトレイトとして `Hazard` と `Allergen(...)` を入っているものから受け継ぎ（`debug steps` の行末に ` with ...`）、火の通りは最も低いもの。消費は値ごとに記録し、2 回目は `LIN001 doubleUse`、同じ `parallel` の別の枝での 2 回目は `LIN004 parallelConsume`。組み込みの `split(食材, 量)` は量を食材の次元（違えば質量）で比べ、足りなければ `LIN002 insufficient`（引数は食材の式・必要量・手持ち）、足りれば 2 つの部位（`%n.1`・`%n.2`）を返す。料理の最後に、使い切らず出す値でもない部位を `LIN003 leftoverPart`（位置は束縛した名前）で報告し、出す値が `Hazard` で `RawEdible` でなく `doneness` が `done` より前なら `SAF001 undercooked`（位置は最後の文の式）。登録簿に `SAF001`・`LIN001`〜`LIN004` を足した。`split` を組み込みの名前に足した。混ぜた値がアレルゲンを受け継ぐので、既存の `cgolden/state/blend-list` の期待値に ` with Allergen(milk)` を足した（期待値だけのコミット）。最初の実行で 137 件すべてが合格し、4 構成・確保の失敗の注入（`G-CORE-OOM`）も合格
+  - わざと壊す確認: `cgolden/safety/undercooked-pork`（S206・効かない条件）— `SAF` の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/safety/raw-edible-exception`（S207・効かない条件）— `RawEdible` の例外を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/mix/new-value`（S210・正常系）— 混ぜた値を最初の食材の写し（状態を引き継ぐ）にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/mix/amount-sum`（S211・正常系）— 質量の和を足さない（最初の量のまま）にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/mix/mixture-hazard-allergen`（S212・正常系）— トレイトの受け継ぎを外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/linear/double-use`（S213・効かない条件）— 消費の記録を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/linear/shortage`・`exact-amount`（S214・境界・上限）— 手持ちが必要量より多いときだけ足りるとみなす（比較を `>=` にする）と `exact-amount` が落ちた（`shortage` は合格のまま）。戻して合格
+  - わざと壊す確認: `cgolden/linear/leftover-part`（S215・正常系）— 残りの部位を報告しないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/linear/store-discard-silent`（S216・効かない条件）— 消費した部位も残りとして報告すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/linear/parallel-double-use`（S217・効かない条件）— 枝をまたいだ 2 回目の消費を報告しないと落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
