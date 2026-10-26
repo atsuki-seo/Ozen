@@ -17,6 +17,6 @@ typedef struct ozni_qty {
   bool known;
 } ozni_qty;
 
-[[nodiscard]] bool ozni_sema_run(ozni_project *pr, bool steps, ozni_buf *out);
+[[nodiscard]] bool ozni_sema_run(ozni_project *pr, bool steps, bool requires, ozni_buf *out);
 
 #endif

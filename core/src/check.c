@@ -47,9 +47,9 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
   }
   ozni_project pr;
   bool loaded = ozni_project_load(&c, srcs, n, &pr);
-  bool steps = mode == OZNI_MODE_STEPS;
+  bool steps = mode == OZNI_MODE_STEPS || mode == OZNI_MODE_REQUIRES;
   if (loaded && !c.oom && !pr.syntax_errors && !c.limit_hit && (mode == OZNI_MODE_CHECK || steps)) {
-    loaded = ozni_sema_run(&pr, steps, steps ? &b : nullptr);
+    loaded = ozni_sema_run(&pr, mode == OZNI_MODE_STEPS, mode == OZNI_MODE_REQUIRES, steps ? &b : nullptr);
   }
   if (!loaded || c.oom || ozni_arena_failures(c.arena) > 0) {
     c.oom = true;
