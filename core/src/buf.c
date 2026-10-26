@@ -60,6 +60,29 @@ void ozni_buf_quoted(ozni_buf *b, const char *s, size_t n) {
   ozni_buf_put(b, "\"", 1);
 }
 
+void ozni_buf_json(ozni_buf *b, const char *s, size_t n) {
+  static const char hex[] = "0123456789abcdef";
+  ozni_buf_put(b, "\"", 1);
+  size_t start = 0;
+  for (size_t i = 0; i < n; i++) {
+    unsigned char ch = (unsigned char)s[i];
+    if (ch != '"' && ch != '\\' && ch >= 0x20) {
+      continue;
+    }
+    ozni_buf_put(b, s + start, i - start);
+    if (ch == '"' || ch == '\\') {
+      char esc[2] = {'\\', (char)ch};
+      ozni_buf_put(b, esc, 2);
+    } else {
+      char esc[6] = {'\\', 'u', '0', '0', hex[ch >> 4], hex[ch & 15]};
+      ozni_buf_put(b, esc, 6);
+    }
+    start = i + 1;
+  }
+  ozni_buf_put(b, s + start, n - start);
+  ozni_buf_put(b, "\"", 1);
+}
+
 char *ozni_buf_finish(ozni_buf *b) {
   if (b->failed) {
     ozni_buf_discard(b);

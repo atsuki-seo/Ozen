@@ -96,6 +96,51 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
   return out;
 }
 
+char *ozni_run_json(const ozni_allocator *a, const ozni_limits *lim, const ozni_settings *set,
+                    const ozni_source *srcs, size_t n, unsigned emit, int *has_errors) {
+  *has_errors = 0;
+  ozni_ctx c;
+  if (!ozni_ctx_init(&c, a, lim, srcs, n)) {
+    return nullptr;
+  }
+  if (set != nullptr) {
+    c.set = *set;
+  }
+  c.set.json = true;
+  c.set.api = true;
+  ozni_project pr;
+  ozni_buf sched = {.a = a};
+  bool loaded = ozni_project_load(&c, srcs, n, &pr);
+  if (loaded && !c.oom && !pr.syntax_errors && !c.limit_hit) {
+    loaded = ozni_sema_run(&pr, (emit & 2u) != 0 ? OZNI_OUT_SCHEDULE : OZNI_OUT_NONE, &sched, nullptr);
+  }
+  if (loaded && !c.oom && !ozni_apply_levels(&pr)) {
+    c.oom = true;
+  }
+  if (!loaded || c.oom || ozni_arena_failures(c.arena) > 0) {
+    c.oom = true;
+    ozni_diag_add(&c, OZNI_D_MAC_outOfMemory, (ozni_span){0, 0, 0}, 0, nullptr, 0);
+  }
+  ozni_buf b = {.a = a};
+  bool errors = false;
+  char *out = nullptr;
+  if (ozni_render_result_head(&c, &b, &errors)) {
+    if ((emit & 2u) != 0) {
+      ozni_buf_puts(&b, ",\"schedules\":[");
+      ozni_buf_put(&b, sched.p != nullptr ? sched.p : "", c.oom ? 0 : sched.len);
+      ozni_buf_puts(&b, "]");
+    }
+    ozni_buf_puts(&b, "}\n");
+    out = ozni_buf_finish(&b);
+  } else {
+    ozni_buf_discard(&b);
+  }
+  ozni_buf_discard(&sched);
+  *has_errors = errors;
+  ozni_ctx_free(&c);
+  return out;
+}
+
 char *ozni_debug_ast_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *src,
                           unsigned flags, int *has_errors) {
   ozni_ctx c;

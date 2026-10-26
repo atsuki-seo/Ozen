@@ -20,6 +20,7 @@ void ozni_buf_put(ozni_buf *b, const char *s, size_t n);
 void ozni_buf_puts(ozni_buf *b, const char *s);
 void ozni_buf_putu(ozni_buf *b, uint64_t v);
 void ozni_buf_quoted(ozni_buf *b, const char *s, size_t n);
+void ozni_buf_json(ozni_buf *b, const char *s, size_t n);
 char *ozni_buf_finish(ozni_buf *b);
 void ozni_buf_discard(ozni_buf *b);
 

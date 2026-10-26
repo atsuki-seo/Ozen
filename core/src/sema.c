@@ -2658,12 +2658,19 @@ static void load_kitchen(sema *s) {
 }
 
 static ozni_index options_value(const sema *s, ozni_index id) {
-  for (ozni_index c = s->onode != 0 ? nd(s, s->ofile, s->onode)->first : 0; c != 0; c = nd(s, s->ofile, c)->next) {
-    if (nd(s, s->ofile, c)->kind == OZNI_N_Field && nd(s, s->ofile, c)->text == id) {
-      return nd(s, s->ofile, c)->first;
+  ozni_index found = 0;
+  bool merge = s->c->set.options != nullptr && s->c->set.options[0] == '<';
+  for (ozni_index d = merge ? nd(s, s->ofile, ozni_project_module(s->pr, mod_of_file(s, s->ofile))->root)->first
+                            : s->onode;
+       s->onode != 0 && d != 0; d = merge ? nd(s, s->ofile, d)->next : 0) {
+    for (ozni_index c = nd(s, s->ofile, d)->kind == OZNI_N_Kitchen ? nd(s, s->ofile, d)->first : 0; c != 0;
+         c = nd(s, s->ofile, c)->next) {
+      if (nd(s, s->ofile, c)->kind == OZNI_N_Field && nd(s, s->ofile, c)->text == id) {
+        found = nd(s, s->ofile, c)->first;
+      }
     }
   }
-  return 0;
+  return found;
 }
 
 static bool check_operand(sema *s, ozni_index tfile, ozni_index node, ozni_qty *out) {
@@ -2803,6 +2810,26 @@ static ozni_index find_config(sema *s, const char *name) {
   if (name == nullptr) {
     return 0;
   }
+  if (name[0] == '<') {
+    ozni_index found = 0;
+    for (ozni_index mi = 0; mi < ozni_table_count(s->pr->modules); mi++) {
+      const ozni_module *m = mod_at(s, mi);
+      if (m->is_std || ozni_strcmp(s->c->srcs[m->file].path, name) != 0) {
+        continue;
+      }
+      for (ozni_index c = nd(s, m->file, m->root)->first; c != 0; c = nd(s, m->file, c)->next) {
+        if (nd(s, m->file, c)->kind == OZNI_N_Kitchen && (found == 0 || name[1] == 'o')) {
+          s->mod = mi;
+          found = c;
+        }
+      }
+    }
+    if (found == 0) {
+      ozni_str arg = {name, (uint32_t)strlen(name)};
+      diag(s, OZNI_D_NAM_undefined, 0, 0, 0, &arg, 1);
+    }
+    return found;
+  }
   ozni_index id = intern(s, name, strlen(name));
   for (ozni_index mi = 0; mi < ozni_table_count(s->pr->modules); mi++) {
     const ozni_module *m = mod_at(s, mi);
@@ -2816,6 +2843,54 @@ static ozni_index find_config(sema *s, const char *name) {
   ozni_str arg = S(s, id);
   diag(s, OZNI_D_NAM_undefined, 0, 0, 0, &arg, 1);
   return 0;
+}
+
+static void options_levels(sema *s) {
+  ozni_index strict = options_value(s, intern(s, "strict", 6));
+  if (strict != 0 && nd(s, s->ofile, strict)->kind == OZNI_N_Name) {
+    s->c->set.strict = str_is(S(s, nd(s, s->ofile, strict)->text), "on");
+  }
+  static const char *const fields[] = {"allow", "warn", "deny"};
+  static const uint8_t kinds[] = {OZNI_LEVEL_ALLOW, OZNI_LEVEL_WARN, OZNI_LEVEL_DENY};
+  uint32_t total = 0;
+  ozni_index lists[3];
+  for (uint32_t k = 0; k < 3; k++) {
+    lists[k] = options_value(s, intern(s, fields[k], strlen(fields[k])));
+    for (ozni_index v = lists[k] != 0 ? nd(s, s->ofile, lists[k])->first : 0; v != 0; v = nd(s, s->ofile, v)->next) {
+      total++;
+    }
+  }
+  if (total == 0) {
+    return;
+  }
+  const char **names = ozni_arena_alloc(s->c->arena, (total + s->c->set.nlevels) * sizeof *names);
+  uint8_t *levels = ozni_arena_alloc(s->c->arena, total + s->c->set.nlevels);
+  if (names == nullptr || levels == nullptr) {
+    s->c->oom = true;
+    return;
+  }
+  size_t n = 0;
+  for (size_t k = 0; k < s->c->set.nlevels; k++, n++) {
+    names[n] = s->c->set.level_names[k];
+    levels[n] = s->c->set.level_kinds[k];
+  }
+  for (uint32_t k = 0; k < 3; k++) {
+    for (ozni_index v = lists[k] != 0 ? nd(s, s->ofile, lists[k])->first : 0; v != 0; v = nd(s, s->ofile, v)->next) {
+      ozni_str text = nd(s, s->ofile, v)->kind == OZNI_N_String ? S(s, nd(s, s->ofile, v)->text) : S(s, 0);
+      char *copy = ozni_arena_alloc(s->c->arena, text.len + 1);
+      if (copy == nullptr) {
+        s->c->oom = true;
+        return;
+      }
+      ozni_copy(copy, text.p, text.len);
+      copy[text.len] = '\0';
+      names[n] = copy;
+      levels[n++] = kinds[k];
+    }
+  }
+  s->c->set.level_names = names;
+  s->c->set.level_kinds = levels;
+  s->c->set.nlevels = n;
 }
 
 static void setup_configs(sema *s) {
@@ -2841,7 +2916,12 @@ static void setup_configs(sema *s) {
   }
   s->otfile = tf;
   s->otnode = tn;
-  for (ozni_index c = nd(s, s->ofile, s->onode)->first; c != 0; c = nd(s, s->ofile, c)->next) {
+  options_levels(s);
+  bool merge = s->c->set.options != nullptr && s->c->set.options[0] == '<';
+  ozni_index first_decl = merge ? nd(s, s->ofile, mod_at(s, mod_of_file(s, s->ofile))->root)->first : s->onode;
+  for (ozni_index d = first_decl; d != 0; d = merge ? nd(s, s->ofile, d)->next : 0) {
+  for (ozni_index c = nd(s, s->ofile, d)->kind == OZNI_N_Kitchen ? nd(s, s->ofile, d)->first : 0; c != 0;
+       c = nd(s, s->ofile, c)->next) {
     const ozni_node *cn = nd(s, s->ofile, c);
     ozni_index ff, fn;
     if (cn->kind == OZNI_N_Field && cn->first != 0 && type_field(s, tf, tn, cn->text, &ff, &fn, 0) &&
@@ -2862,6 +2942,7 @@ static void setup_configs(sema *s) {
     }
   }
   run_checks(s, tf, tn, 0);
+  }
 }
 
 static value eval_in(sema *s, ozni_index file, ozni_index node, const value *params, const ozni_index *pnames,
@@ -7692,7 +7773,16 @@ static void schedule_dish(sema *s, ozni_index name) {
     ozni_buf_discard(&b);
   }
   if (s->c->set.json) {
+    if (s->c->set.api) {
+      ozni_str nm = S(s, name);
+      ozni_buf_puts(s->out, s->out->len > 0 ? ",{\"name\":" : "{\"name\":");
+      ozni_buf_json(s->out, nm.p, nm.len);
+      ozni_buf_puts(s->out, ",\"schedule\":");
+    }
     schedule_json(s, &o);
+    if (s->c->set.api) {
+      ozni_buf_puts(s->out, "}");
+    }
     return;
   }
   schedule_text(s, &o, name);
@@ -8188,5 +8278,6 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
   if (s.ir_keep != nullptr) {
     *s.ir_keep = s.ir;
   }
+  pr->c->level = s.level;
   return !pr->c->oom;
 }

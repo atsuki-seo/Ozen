@@ -28,6 +28,7 @@ typedef struct ozni_settings {
   size_t nlevels;
   bool fixes;
   bool json;
+  bool api;
 } ozni_settings;
 
 enum { OZNI_LEVEL_ALLOW, OZNI_LEVEL_WARN, OZNI_LEVEL_DENY, OZNI_LEVEL_EXPECT };
@@ -77,5 +78,7 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
 char *ozni_debug_ast_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *src,
                           unsigned flags, int *has_errors);
 void ozni_free_text(const ozni_allocator *a, char *text);
+char *ozni_run_json(const ozni_allocator *a, const ozni_limits *lim, const ozni_settings *set,
+                    const ozni_source *srcs, size_t n, unsigned emit, int *has_errors);
 
 #endif

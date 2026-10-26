@@ -207,6 +207,124 @@ static void put_text(ozni_buf *b, const ozni_ctx *c, ozni_index text) {
   ozni_buf_put(b, s.p, s.len);
 }
 
+#ifndef OZEN_VERSION
+#define OZEN_VERSION "0.0.0"
+#endif
+
+static void put_json_pos(ozni_buf *b, pos p) {
+  ozni_buf_puts(b, "{\"line\":");
+  ozni_buf_putu(b, p.line);
+  ozni_buf_puts(b, ",\"column\":");
+  ozni_buf_putu(b, p.col);
+  ozni_buf_puts(b, "}");
+}
+
+static void put_json_span(ozni_buf *b, const ozni_ctx *c, ozni_span sp) {
+  ozni_buf_puts(b, "{\"file\":");
+  ozni_buf_putu(b, sp.file);
+  ozni_buf_puts(b, ",\"start\":");
+  put_json_pos(b, pos_of(c, sp.file, sp.start));
+  ozni_buf_puts(b, ",\"end\":");
+  put_json_pos(b, pos_of(c, sp.file, sp.end));
+  ozni_buf_puts(b, "}");
+}
+
+bool ozni_render_result_head(ozni_ctx *c, ozni_buf *b, bool *has_errors) {
+  ozni_index n = ozni_table_count(c->diags);
+  const ozni_diag **v = ozni_arena_alloc(c->arena, (n + 1) * sizeof *v * 2);
+  if (v == nullptr) {
+    return false;
+  }
+  for (ozni_index i = 0; i < n; i++) {
+    v[i] = ozni_table_get(c->diags, i);
+  }
+  sort_diags(c, v, v + n, n);
+  uint64_t counts[3] = {0, 0, 0};
+  for (ozni_index i = 0; i < n; i++) {
+    counts[v[i]->severity] += v[i]->hidden ? 0 : 1;
+  }
+  *has_errors = counts[OZNI_SEV_ERROR] > 0;
+  ozni_buf_puts(b, "{\"schemaVersion\":1,\"ozenVersion\":\"" OZEN_VERSION "\",\"level\":");
+  ozni_buf_putu(b, (uint64_t)(c->level < 0 ? 0 : c->level));
+  ozni_buf_puts(b, ",\"entry\":");
+  if (c->set.entry != nullptr) {
+    ozni_buf_json(b, c->set.entry, strlen(c->set.entry));
+  } else {
+    ozni_buf_puts(b, "null");
+  }
+  ozni_buf_puts(b, ",\"files\":[");
+  for (size_t f = 0; f < c->nuser; f++) {
+    ozni_buf_puts(b, f == 0 ? "" : ",");
+    ozni_buf_json(b, c->srcs[f].path, strlen(c->srcs[f].path));
+  }
+  ozni_buf_puts(b, *has_errors ? "],\"outcome\":{\"status\":\"error\",\"errors\":" : "],\"outcome\":{\"status\":\"ok\",\"errors\":");
+  ozni_buf_putu(b, counts[OZNI_SEV_ERROR]);
+  ozni_buf_puts(b, ",\"warnings\":");
+  ozni_buf_putu(b, counts[OZNI_SEV_WARNING]);
+  ozni_buf_puts(b, ",\"infos\":");
+  ozni_buf_putu(b, counts[OZNI_SEV_INFO]);
+  ozni_buf_puts(b, "},\"diagnostics\":[");
+  bool first = true;
+  for (ozni_index i = 0; i < n; i++) {
+    const ozni_diag *d = v[i];
+    if (d->hidden) {
+      continue;
+    }
+    ozni_buf_puts(b, first ? "{\"code\":\"" : ",{\"code\":\"");
+    first = false;
+    if (d->code_text != 0) {
+      put_text(b, c, d->code_text - 1);
+    } else {
+      ozni_buf_puts(b, ozni_diag_code(d->id));
+    }
+    ozni_buf_puts(b, "\",\"name\":\"");
+    if (d->name_text != 0) {
+      put_text(b, c, d->name_text - 1);
+    } else {
+      ozni_buf_puts(b, ozni_diag_name(d->id));
+    }
+    ozni_buf_puts(b, "\",\"category\":\"");
+    const char *code = d->code_text != 0 ? nullptr : ozni_diag_code(d->id);
+    if (code != nullptr) {
+      ozni_buf_put(b, code, 3);
+    } else {
+      ozni_str ct = ozni_intern_get(c->names, d->code_text - 1);
+      ozni_buf_put(b, ct.p, ct.len < 3 ? ct.len : 3);
+    }
+    ozni_buf_puts(b, "\",\"severity\":\"");
+    ozni_buf_puts(b, severity_word(d->severity));
+    ozni_buf_puts(b, "\",\"defaultSeverity\":\"");
+    ozni_buf_puts(b, severity_word(d->code_text != 0 ? d->severity : ozni_diag_default_severity(d->id)));
+    ozni_buf_puts(b, "\",\"span\":");
+    put_json_span(b, c, d->span);
+    ozni_buf_puts(b, ",\"args\":[");
+    for (uint16_t k = 0; k < d->nargs; k++) {
+      ozni_str s = ozni_diag_arg(c, d, k);
+      ozni_buf_puts(b, k == 0 ? "" : ",");
+      ozni_buf_json(b, s.p, s.len);
+    }
+    ozni_buf_puts(b, "],\"related\":[");
+    for (ozni_index t = d->trail; t != 0;) {
+      const ozni_trail *e = ozni_table_get(c->trails, t - 1);
+      if (e == nullptr) {
+        break;
+      }
+      ozni_buf_puts(b, t == d->trail ? "{\"kind\":\"via\",\"span\":" : ",{\"kind\":\"via\",\"span\":");
+      put_json_span(b, c, e->span);
+      ozni_buf_puts(b, "}");
+      t = e->prev;
+    }
+    ozni_buf_puts(b, "],\"fixes\":[");
+    if (d->fix != 0) {
+      ozni_str fx = ozni_intern_get(c->names, d->fix - 1);
+      ozni_buf_json(b, fx.p, fx.len);
+    }
+    ozni_buf_puts(b, "]}");
+  }
+  ozni_buf_puts(b, "]");
+  return !b->failed;
+}
+
 static void dump(const ozni_ctx *c, const ozni_ast *ast, ozni_index i, unsigned depth, unsigned flags, ozni_buf *b) {
   const ozni_node *n = ozni_node_get(ast, i);
   if (n == nullptr || b->failed) {

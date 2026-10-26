@@ -34,6 +34,8 @@ add_custom_command(OUTPUT ${OZN_STD_C}
 add_library(ozen_lib STATIC ${OZN_SOURCES} ${OZN_STD_C})
 set_target_properties(ozen_lib PROPERTIES OUTPUT_NAME ozen)
 target_include_directories(ozen_lib PUBLIC src)
+file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/../VERSION OZN_LIB_VERSION LIMIT_COUNT 1)
+target_compile_definitions(ozen_lib PRIVATE OZEN_VERSION="${OZN_LIB_VERSION}")
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cli ${CMAKE_CURRENT_BINARY_DIR}/cli)
 
