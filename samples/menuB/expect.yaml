@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: CC-BY-4.0
+entry: curryRice
+runs:
+  - name: no-kitchen
+    expect:
+      errors: 0
+      level: 0
+      ir:
+        reaches:
+          - {to: plate, from: [rice, onion, water, roux]}
+  - name: kitchen
+    kitchen: home
+    expect:
+      errors: 0
+      level: 2
+      schedule:
+        tasks: [cookRice, simmer, plate]
+        order: [[cookRice, plate], [simmer, plate]]
+  - name: kitchen-cooks-2
+    kitchen: home
+    cooks: 2
+    expect:
+      errors: 0
+      level: 2
+      schedule:
+        cooksUsed: 2

@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: CC-BY-4.0
+entry: yakisoba
+runs:
+  - name: no-kitchen
+    expect:
+      errors: 0
+      level: 0
+      diagnostics:
+        exclude: [noPlating]
+      ir:
+        kinds: {plate: 1}
+      schedule:
+        tasks: [cut, loosen, fry, season, plate]
+        waves: 1
+  - name: kitchen
+    kitchen: home
+    expect:
+      errors: 0
+      level: 2
+      diagnostics:
+        exclude: [noPlating, vesselShortage]
+      schedule:
+        waves: 1
+        usesKind: [[plate, FlatPlate]]
+        order: [[cut, season], [loosen, season], [season, plate]]

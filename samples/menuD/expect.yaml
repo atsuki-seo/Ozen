@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: CC-BY-4.0
+entry: dinner
+runs:
+  - name: picks
+    kitchen: home
+    options: family
+    expect:
+      errors: 0
+      level: 2
+      diagnostics:
+        exclude: [evenChoice]
+      ir:
+        labels: [Naan]
+        kinds: {buy: 1}
+        choices: {cookedRice: 2, Naan: 2}
+        inputs: {assemble: [Cornflakes, VanillaIce, season, Strawberry]}
+      schedule:
+        waves: 2
+        wave: {plate: 2}
+        holds: [[greens, Fridge], [VanillaIce, Freezer]]
+  - name: even
+    kitchen: home
+    expect:
+      errors: 0
+      level: 2
+      diagnostics:
+        include: [evenChoice]
+      ir:
+        choices: {cookedRice: 2, Naan: 2}

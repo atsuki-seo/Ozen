@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: CC-BY-4.0
+entry: juiceTime
+runs:
+  - name: kitchen
+    kitchen: home
+    expect:
+      errors: 0
+      level: 2
+      diagnostics:
+        include:
+          - {name: washInserted, args: [blender#1, starch]}
+      ir:
+        allergens: {blend: [milk]}
+      schedule:
+        taskCount: {blend: 2}
+        usesKind: [[blend, Blender]]
+        tasks: [soak]
+        serveWithin: 1
+        holds: [[Ice, Freezer]]
+  - name: kitchen-cooks-2
+    kitchen: home
+    cooks: 2
+    expect:
+      errors: 0
+      level: 2
+      schedule:
+        taskCount: {blend: 2}
