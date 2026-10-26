@@ -65,6 +65,9 @@ expect bindings "$r" "spdx: 3 files checked, 1 missing, 0 wrong" 1
 r=$(new_repo); put "$r" samples/a/main.ozen "// SPDX-License-Identifier: CC-BY-4.0"; put "$r" samples/a/expect.yaml "# $code"
 expect samples "$r" "spdx: 2 files checked, 0 missing, 1 wrong" 1
 
+r=$(new_repo); put "$r" phrases/ja.ftl "# SPDX-License-Identifier: CC-BY-4.0"; put "$r" renderers/tools/x.mjs "no header"
+expect phrases-and-renderers "$r" "spdx: 2 files checked, 1 missing, 0 wrong" 1
+
 r=$(new_repo); put "$r" proto/README.md "no header"; put "$r" docs/x.c "no header"; put "$r" tools/vendor/lib.py "no header"
 expect not-targets "$r" "spdx: 0 files checked, 0 missing, 0 wrong" 0
 
