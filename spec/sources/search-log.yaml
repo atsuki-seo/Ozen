@@ -162,3 +162,12 @@ searches:
       - ingredients.Cabbage.props.heating.fry.direct
       - ingredients.Cabbage.props.heating.simmer.direct
       - ingredients.BeanSprouts.props.heating.fry.direct
+  - date: "2026-10-26"
+    queries:
+      - "食器洗い乾燥機 標準コース 洗浄時間 約 分 仕様 パナソニック"
+    consulted:
+      - "家電 Watch のパナソニック NP-TS1 のレビュー（給水 20℃ の標準コースが除菌ミスト 6 分・洗い 14〜19 分・すすぎ 29 分・乾燥 30 分。二次情報）"
+      - "パナソニック NP-45BD1W の掲載情報（最短コースの約 15 分だけで、標準コースの時間は無い）"
+    reason: "機種をまたいで標準の運転時間を示す一次情報は見つからなかった。レビューの約 80 分を囲む範囲を暫定の値にした"
+    covers:
+      - kinds.Dishwasher.props.runTime

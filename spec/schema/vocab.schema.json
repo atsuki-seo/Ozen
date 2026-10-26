@@ -532,6 +532,9 @@
             },
             "wipeTime": {
               "$ref": "#/$defs/prop"
+            },
+            "runTime": {
+              "$ref": "#/$defs/prop"
             }
           },
           "additionalProperties": false

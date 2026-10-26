@@ -384,6 +384,12 @@ type RiceCookingSpec : EquipmentSpec {
 type VesselSpec : EquipmentSpec {
   capacity: Volume?
 }
+type FridgeSpec : EquipmentSpec {
+  capacity: Count?
+}
+type FreezerSpec : EquipmentSpec {
+  capacity: Count?
+}
 type Kitchen {
   places: {
     floor: Floor = Floor
@@ -416,6 +422,7 @@ property nominalCutSize = { roughChop: 30 mm, rollCut: 25 mm, biteSize: 25 mm } 
 property smallTools = [Peeler, MixingBowl, Colander, CookingChopsticks, Ladle, Whisk, MeasuringSpoon]
 property soakTime = 10..30 min @source(provisional)
 property tablewareWashTime = 0.3..0.5 min @source(provisional)
+property longWait = 30 min
 unit cc : Volume = 1 ml @deprecated""".split("\n")
 
 

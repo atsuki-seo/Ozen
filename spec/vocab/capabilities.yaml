@@ -41,7 +41,10 @@ kinds:
     props: {wipeTime: {value: "1..3 min", source: provisional}}
   Fridge: {category: place, provides: [Chilling]}
   Freezer: {category: place, provides: [Freezing]}
-  Dishwasher: {category: place, provides: [Washing]}
+  Dishwasher:
+    category: place
+    provides: [Washing]
+    props: {runTime: {value: "60..90 min", source: provisional}}
   CuttingBoard:
     category: tool
     provides: [CuttingSurface]
