@@ -778,7 +778,7 @@ typedef struct found {
 } found;
 
 static bool is_builtin(ozni_str s) {
-  static const char *const names[] = {"ceil", "floor", "min", "max", "len", "split", "volume"};
+  static const char *const names[] = {"ceil", "floor", "min", "max", "len", "split", "volume", "kitchen"};
   for (size_t k = 0; k < sizeof names / sizeof names[0]; k++) {
     if (str_eq(s, names[k])) {
       return true;
@@ -1037,6 +1037,61 @@ static void resolve_expr(walker *w, ozni_index file, ozni_index i) {
   }
 }
 
+static bool binds_param(const ozni_project *pr, ozni_index file, ozni_index node, ozni_str param) {
+  const ozni_node *n = ozni_project_node(pr, file, node);
+  if (n->kind == OZNI_N_Let) {
+    ozni_str t = str_of(pr->c, n->text);
+    if (t.len == param.len + 1 && t.p[0] == '$' && ozni_strncmp(t.p + 1, param.p, param.len) == 0) {
+      return true;
+    }
+  }
+  for (ozni_index c = n->first; c != 0; c = ozni_project_node(pr, file, c)->next) {
+    if (binds_param(pr, file, c, param)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool resolve_macro_call(walker *w, ozni_index file, const ozni_node *call) {
+  const ozni_node *callee = node(w->pr, file, call->first);
+  if (callee->kind != OZNI_N_Name || scope_has(w, callee->text)) {
+    return false;
+  }
+  found f = resolve_name(w, callee->text, file, callee);
+  if (f.kind != F_DEF) {
+    for (ozni_index a = callee->next; a != 0; a = node(w->pr, file, a)->next) {
+      resolve_expr(w, file, a);
+    }
+    return true;
+  }
+  const ozni_module *m = M(w->pr, f.module);
+  const ozni_node *macro = node(w->pr, m->file, def_at(m, f.def)->node);
+  if (macro->kind != OZNI_N_Macro) {
+    for (ozni_index a = callee->next; a != 0; a = node(w->pr, file, a)->next) {
+      resolve_expr(w, file, a);
+    }
+    return true;
+  }
+  ozni_index param = macro->first;
+  for (ozni_index a = callee->next; a != 0; a = node(w->pr, file, a)->next) {
+    while (param != 0 && node(w->pr, m->file, param)->kind != OZNI_N_MacroParam) {
+      param = node(w->pr, m->file, param)->next;
+    }
+    const ozni_node *an = node(w->pr, file, a);
+    if (param != 0 && an->kind == OZNI_N_Name &&
+        binds_param(w->pr, m->file, def_at(m, f.def)->node, str_of(w->pr->c, node(w->pr, m->file, param)->text))) {
+      bind(w, an->text, file, an, false);
+    } else {
+      resolve_expr(w, file, a);
+    }
+    if (param != 0) {
+      param = node(w->pr, m->file, param)->next;
+    }
+  }
+  return true;
+}
+
 static void resolve_expr_inner(walker *w, ozni_index file, ozni_index i) {
   const ozni_node *n = node(w->pr, file, i);
   ozni_node_kind k = n->kind;
@@ -1049,6 +1104,8 @@ static void resolve_expr_inner(walker *w, ozni_index file, ozni_index i) {
   } else if (k == OZNI_N_Construct) {
     resolve_name(w, n->text, file, n);
     resolve_children(w, file, i);
+  } else if (k == OZNI_N_Call && n->first != 0 && resolve_macro_call(w, file, n)) {
+    return;
   } else if (k == OZNI_N_Annotation || k == OZNI_N_Quote || k == OZNI_N_Splice || k == OZNI_N_Quantity ||
              k == OZNI_N_Number || k == OZNI_N_NumberRange || k == OZNI_N_String || k == OZNI_N_MlString ||
              k == OZNI_N_Bool || k == OZNI_N_Vague) {
