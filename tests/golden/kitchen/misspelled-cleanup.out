@@ -1,3 +1,4 @@
 error TYP013 axisValue misspelled-cleanup.ozen:3:12-3:23 args=["Cleanup", "afterDinner"]: axis value
-result error errors=1 warnings=0 infos=0
+warning TYP018 optionLevel misspelled-cleanup.ozen:3:12-3:23 args=["cleanup"]: option level
+result error errors=1 warnings=1 infos=0
 exit 1

@@ -5,5 +5,6 @@ recipe curry
   %2 = simmer(%1, 1200 s) : Mixture<doneness: done> 250 g with Allergen(milk), Allergen(wheat), Hazard
   serve main
     plate perPerson on DeepPlate or Donburi { %2 }
-result ok errors=0 warnings=0 infos=0
+info ASM004 unlimitedEquipment single-recipe-wrap.ozen:2:8-2:13: unlimited equipment
+result ok errors=0 warnings=0 infos=1
 exit 0

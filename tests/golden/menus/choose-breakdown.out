@@ -6,5 +6,6 @@ menu dinner
   %1 = make steamedRice() : SteamedRice 300 g
   %2 = buy Naan 2 pcs : Naan 2 pcs
   %3 = choose perPerson { %1: 1, %2: 3 }
-result ok errors=0 warnings=0 infos=0
+info ASM004 unlimitedEquipment choose-breakdown.ozen:7:6-7:12: unlimited equipment
+result ok errors=0 warnings=0 infos=1
 exit 0

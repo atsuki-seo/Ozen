@@ -1,3 +1,4 @@
 info ASM002 noPlating asm-strict-info.ozen:2:8-2:15 args=["stirFry"]: no plating
-result ok errors=0 warnings=0 infos=1
+info ASM004 unlimitedEquipment asm-strict-info.ozen:2:8-2:15: unlimited equipment
+result ok errors=0 warnings=0 infos=2
 exit 0
