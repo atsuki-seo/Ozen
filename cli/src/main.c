@@ -36,10 +36,11 @@ static int usage(void) {
         "       ozen debug ast [--no-spans] [--rules] FILE\n"
         "       ozen debug modules\n"
         "       ozen debug definitions [FILE]\n"
+        "       ozen debug steps [FILE]\n"
         "       ozen debug entry [--entry NAME] [FILE]\n"
         "       ozen debug embedded-std\n"
         "       ozen --version\n"
-        "options: --max-input-bytes N --max-depth N --max-nodes N --max-steps N --fail-alloc-at N\n",
+        "options: --strict --max-input-bytes N --max-depth N --max-nodes N --max-steps N --fail-alloc-at N\n",
         stderr);
   return 2;
 }
@@ -155,6 +156,7 @@ static int emit(const ozni_allocator *a, char *text, int has_errors) {
 }
 
 static ozni_limits limits;
+static ozni_settings settings;
 
 static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const char *entry) {
   ozni_limits lim = limits;
@@ -168,7 +170,7 @@ static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const 
       fputs("ozen: cannot read the project folder\n", stderr);
       return 2;
     }
-  } else if (mode == OZNI_MODE_CHECK || mode == OZNI_MODE_MODULES) {
+  } else if (mode == OZNI_MODE_CHECK || mode == OZNI_MODE_MODULES || mode == OZNI_MODE_STEPS) {
     fputs("ozen: no FILE given and no package.ozen in this folder\n", stderr);
     return 2;
   }
@@ -187,7 +189,7 @@ static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const 
   }
   if (status == -1) {
     int has_errors = 0;
-    char *out = ozni_run_text(a, &lim, srcs, l.n, mode, entry, &has_errors);
+    char *out = ozni_run_text(a, &lim, &settings, srcs, l.n, mode, entry, &has_errors);
     status = emit(a, out, has_errors);
   }
   for (size_t i = 0; i < l.n; i++) {
@@ -259,6 +261,10 @@ static int take_options(int argc, char **argv, heap *h) {
       }
     }
     unsigned long long v = 0;
+    if (strcmp(argv[i], "--strict") == 0) {
+      settings.strict = true;
+      continue;
+    }
     if (which < 0) {
       argv[out++] = argv[i];
       continue;
@@ -309,13 +315,17 @@ int main(int argc, char **argv) {
   if (strcmp(argv[2], "definitions") == 0 && argc <= 4) {
     return run(&a, OZNI_MODE_DEFINITIONS, argc == 4 ? argv[3] : nullptr, nullptr);
   }
+  if (strcmp(argv[2], "steps") == 0 && argc <= 4) {
+    return run(&a, OZNI_MODE_STEPS, argc == 4 ? argv[3] : nullptr, nullptr);
+  }
   if (strcmp(argv[2], "modules") == 0 && argc == 3) {
     return run(&a, OZNI_MODE_MODULES, nullptr, nullptr);
   }
   if (strcmp(argv[2], "embedded-std") == 0 && argc == 3) {
     ozni_limits lim = ozni_default_limits();
     int has_errors = 0;
-    return emit(&a, ozni_run_text(&a, &lim, nullptr, 0, OZNI_MODE_EMBEDDED_STD, nullptr, &has_errors), has_errors);
+    return emit(&a, ozni_run_text(&a, &lim, &settings, nullptr, 0, OZNI_MODE_EMBEDDED_STD, nullptr, &has_errors),
+                has_errors);
   }
   if (strcmp(argv[2], "entry") == 0) {
     const char *entry = nullptr, *file = nullptr;
