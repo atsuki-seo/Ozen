@@ -200,7 +200,11 @@ jobs:
         env:
           OZP_RUN_TIMEOUT: 120
         run: |
-          runner="xcrun simctl spawn $SIM_UDID $PWD/build/ios-iphonesimulator/ozen"
+          xcrun --sdk iphonesimulator clang -target arm64-apple-ios16.0-simulator -O2 bindings/apple/sim-chdir.c \
+            -o build/ios-iphonesimulator/sim-chdir
+          export OZEN_SIM_UDID="$SIM_UDID" OZEN_SIM_LAUNCHER="$PWD/build/ios-iphonesimulator/sim-chdir" \
+            OZEN_SIM_CLI="$PWD/build/ios-iphonesimulator/ozen"
+          runner="$PWD/bindings/apple/sim-run.sh"
           mkdir -p out/digest
           bash scripts/run-golden.sh "$runner" tests/golden > out/digest/golden.txt || { cat out/digest/golden.txt; exit 1; }
           tail -n 1 out/digest/golden.txt
