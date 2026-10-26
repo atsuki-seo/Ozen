@@ -46,6 +46,8 @@ jobs:
           (cd build && ditto -c -k --keepParent OzenProto.xcframework OzenProto.xcframework.zip)
 
       - name: Run the golden tests and the digest on the simulator
+        env:
+          OZP_RUN_TIMEOUT: 120
         run: |
           udid=$(xcrun simctl list devices available -j | python3 -c '
           import json, sys
