@@ -782,7 +782,7 @@ typedef struct found {
 } found;
 
 static bool is_builtin(ozni_str s) {
-  static const char *const names[] = {"ceil", "floor", "min", "max", "len", "split", "volume", "kitchen"};
+  static const char *const names[] = {"ceil", "floor", "min", "max", "len", "split", "volume", "kitchen", "heating"};
   for (size_t k = 0; k < sizeof names / sizeof names[0]; k++) {
     if (str_eq(s, names[k])) {
       return true;
