@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include "../../core/include/ozen.h"
 #include "ozni.h"
 
 #ifndef OZEN_VERSION
@@ -161,6 +162,183 @@ static int emit(const ozni_allocator *a, char *text, int has_errors) {
 
 static ozni_limits limits;
 static ozni_settings settings;
+static unsigned emit_bits;
+
+static size_t skip_space(const char *t, size_t n, size_t i) {
+  while (i < n) {
+    if (t[i] == ' ' || t[i] == '\t' || t[i] == '\r' || t[i] == '\n') {
+      i++;
+    } else if (i + 1 < n && t[i] == '/' && t[i + 1] == '/') {
+      while (i < n && t[i] != '\n') {
+        i++;
+      }
+    } else {
+      break;
+    }
+  }
+  return i;
+}
+
+static bool word_at(const char *t, size_t n, size_t i, const char *w) {
+  size_t k = strlen(w);
+  return i + k <= n && memcmp(t + i, w, k) == 0 &&
+         (i + k == n || !((t[i + k] >= 'a' && t[i + k] <= 'z') || (t[i + k] >= 'A' && t[i + k] <= 'Z') ||
+                          (t[i + k] >= '0' && t[i + k] <= '9') || t[i + k] == '_'));
+}
+
+typedef struct decl_slice {
+  size_t file;
+  size_t start;
+  size_t end;
+  int found;
+} decl_slice;
+
+static void find_kitchen(const ozni_source *srcs, size_t n, const char *name, bool options, decl_slice *out) {
+  for (size_t f = 0; f < n; f++) {
+    const char *t = srcs[f].text;
+    size_t len = srcs[f].len, i = 0, depth = 0;
+    while (i < len) {
+      if (t[i] == '"') {
+        for (i++; i < len && t[i] != '"'; i++) {
+          i += t[i] == '\\' ? 1 : 0;
+        }
+        i++;
+        continue;
+      }
+      if (i + 1 < len && t[i] == '/' && t[i + 1] == '/') {
+        while (i < len && t[i] != '\n') {
+          i++;
+        }
+        continue;
+      }
+      if (t[i] == '{') {
+        depth++;
+      } else if (t[i] == '}' && depth > 0) {
+        depth--;
+      }
+      bool line_start = i == 0 || t[i - 1] == '\n';
+      if (depth != 0 || !line_start || !word_at(t, len, i, "kitchen")) {
+        i++;
+        continue;
+      }
+      size_t start = i, j = skip_space(t, len, i + 7);
+      if (!word_at(t, len, j, name)) {
+        i++;
+        continue;
+      }
+      j = skip_space(t, len, j + strlen(name));
+      bool typed = j < len && t[j] == ':';
+      if (typed) {
+        j = skip_space(t, len, j + 1);
+      }
+      bool is_options = typed && word_at(t, len, j, "Options");
+      while (j < len && t[j] != '{') {
+        j++;
+      }
+      size_t d = 0, k = j;
+      for (; k < len; k++) {
+        d += t[k] == '{' ? 1 : 0;
+        if (t[k] == '}' && --d == 0) {
+          break;
+        }
+      }
+      if (is_options == options && k < len) {
+        out->found++;
+        if (out->found == 1) {
+          out->file = f;
+          out->start = start;
+          out->end = k + 1;
+        }
+      }
+      i = k < len ? k + 1 : len;
+    }
+  }
+}
+
+static char *padded_slice(const ozni_source *src, const decl_slice *s, size_t *len) {
+  size_t pad = 0;
+  for (size_t i = 0; i < s->start; i++) {
+    pad += src->text[i] == '\n' ? 1 : 0;
+  }
+  size_t col = 0;
+  for (size_t i = s->start; i > 0 && src->text[i - 1] != '\n'; i--) {
+    col++;
+  }
+  *len = pad + col + (s->end - s->start);
+  char *out = malloc(*len + 1);
+  if (out == nullptr) {
+    return nullptr;
+  }
+  memset(out, '\n', pad);
+  memset(out + pad, ' ', col);
+  memcpy(out + pad + col, src->text + s->start, s->end - s->start);
+  out[*len] = '\0';
+  return out;
+}
+
+static void *api_alloc(void *ctx, size_t size) {
+  (void)ctx;
+  return malloc(size);
+}
+
+static void api_release(void *ctx, void *ptr, size_t size) {
+  (void)ctx;
+  (void)size;
+  free(ptr);
+}
+
+static int run_api(const ozni_source *srcs, size_t n) {
+  char *texts[2] = {nullptr, nullptr};
+  size_t lens[2] = {0, 0};
+  const char *names[2] = {settings.kitchen, settings.options};
+  for (int k = 0; k < 2; k++) {
+    if (names[k] == nullptr) {
+      continue;
+    }
+    decl_slice s = {0};
+    find_kitchen(srcs, n, names[k], k == 1, &s);
+    if (s.found != 1) {
+      fprintf(stderr, s.found == 0 ? "cli: kitchen not found: %s\n" : "cli: kitchen is ambiguous: %s\n", names[k]);
+      free(texts[0]);
+      return 2;
+    }
+    texts[k] = padded_slice(&srcs[s.file], &s, &lens[k]);
+    if (texts[k] == nullptr) {
+      free(texts[0]);
+      return 2;
+    }
+  }
+  recipe_source *rs = calloc(n + 1, sizeof *rs);
+  if (rs == nullptr) {
+    free(texts[0]);
+    free(texts[1]);
+    return 2;
+  }
+  for (size_t i = 0; i < n; i++) {
+    rs[i] = (recipe_source){srcs[i].path, srcs[i].text, srcs[i].len};
+  }
+  recipe_config cfg = recipe_default_config();
+  cfg.alloc = api_alloc;
+  cfg.release = api_release;
+  cfg.entry = settings.entry;
+  cfg.emit = emit_bits;
+  cfg.max_steps = (unsigned long)limits.steps;
+  cfg.max_depth = limits.depth;
+  cfg.max_nodes = limits.nodes;
+  cfg.max_input_bytes = (unsigned long)limits.input_bytes;
+  char *out = recipe_build(&cfg, rs, n, texts[0], lens[0], texts[1], lens[1]);
+  free(rs);
+  free(texts[0]);
+  free(texts[1]);
+  if (out == nullptr) {
+    fputs("ozen: out of memory\n", stderr);
+    return 2;
+  }
+  fputs(out, stdout);
+  int status = strstr(out, "\"status\":\"error\"") != nullptr ? 1 : 0;
+  recipe_free_string(&cfg, out);
+  return status;
+}
 
 static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const char *entry) {
   ozni_limits lim = limits;
@@ -192,7 +370,9 @@ static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const 
     }
     srcs[i] = (ozni_source){l.paths[i], text, len};
   }
-  if (status == -1) {
+  if (status == -1 && mode == OZNI_MODE_CHECK && settings.json) {
+    status = run_api(srcs, l.n);
+  } else if (status == -1) {
     int has_errors = 0;
     char *out = ozni_run_text(a, &lim, &settings, srcs, l.n, mode, entry, &has_errors);
     status = emit(a, out, has_errors);
@@ -281,6 +461,24 @@ static int take_options(int argc, char **argv, heap *h) {
     if (strcmp(argv[i], "--format") == 0 && i + 1 < argc && strcmp(argv[i + 1], "json") == 0) {
       settings.json = true;
       i++;
+      continue;
+    }
+    if (strcmp(argv[i], "--emit") == 0 && i + 1 < argc) {
+      static const char *const kinds[] = {"ir", "schedule", "steps", "signatures", "definitions", "types"};
+      char list[256];
+      snprintf(list, sizeof list, "%s", argv[++i]);
+      for (char *tok = strtok(list, ","); tok != nullptr; tok = strtok(nullptr, ",")) {
+        bool known = false;
+        for (unsigned k = 0; k < 6; k++) {
+          if (strcmp(tok, kinds[k]) == 0) {
+            emit_bits |= 1u << k;
+            known = true;
+          }
+        }
+        if (!known) {
+          return -1;
+        }
+      }
       continue;
     }
     int level = strcmp(argv[i], "--allow") == 0  ? OZNI_LEVEL_ALLOW
