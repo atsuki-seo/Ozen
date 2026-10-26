@@ -7,7 +7,7 @@ schedule dinner level=2 cooks=1
   2040..2100 (2058) %9 plate perPerson by cook1
   serve main at 2100
   total 2100
-info ASM007 provisionalValue item-frozen.ozen:9:11-9:22 args=["assemble"]: provisional value
 info ASM007 provisionalValue item-frozen.ozen:14:5-14:62 args=["plate"]: provisional value
+info ASM007 provisionalValue item-frozen.ozen:16:7-16:91 args=["assemble"]: provisional value
 result ok errors=0 warnings=0 infos=2
 exit 0
