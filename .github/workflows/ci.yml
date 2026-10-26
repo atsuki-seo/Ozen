@@ -296,10 +296,18 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n ozen \
             -k "system-images;android-34;default;x86_64" --force
+          ls -l /dev/kvm
           nohup "$ANDROID_HOME/emulator/emulator" -avd ozen -no-window -no-audio -no-boot-anim -no-snapshot \
-            -gpu swiftshader_indirect > emulator.log 2>&1 &
-          adb wait-for-device
-          timeout 600 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 5; done'
+            -gpu swiftshader_indirect -accel on > emulator.log 2>&1 &
+          pid=$!
+          booted=""
+          for _ in $(seq 120); do
+            kill -0 "$pid" 2>/dev/null || { echo "the emulator exited" >&2; cat emulator.log; exit 1; }
+            booted=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            [ "$booted" = 1 ] && break
+            sleep 5
+          done
+          [ "$booted" = 1 ] || { echo "the emulator did not boot in 600 s" >&2; tail -n 100 emulator.log; exit 1; }
           adb shell getprop ro.build.version.sdk
 
       - name: Call the library through JNI on the emulator
@@ -324,6 +332,11 @@ jobs:
           bash scripts/digest.sh "$runner" tests/golden samples > out/digest/digest.txt
           cat out/digest/digest.txt
 
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: emulator-log
+          path: emulator.log
       - uses: actions/upload-artifact@v4
         with:
           name: digest-android
