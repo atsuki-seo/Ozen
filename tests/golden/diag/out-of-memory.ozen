@@ -1,0 +1,3 @@
+// args: check --fail-alloc-at 3
+recipe r() {
+}
