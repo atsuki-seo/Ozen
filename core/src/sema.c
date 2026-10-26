@@ -7493,7 +7493,7 @@ static sched_score score_schedule(sema *s, const sched_out *o, const ozni_table 
       ozni_index src = ((const ozni_ir_input *)ozni_table_get(s->ir.inputs, node->first_input + j))->node;
       uint32_t r = src > s->ir_base ? o->task_of[src - 1 - s->ir_base] : UINT32_MAX;
       ozni_rat wait;
-      if (r != UINT32_MAX && ozni_rat_sub(serves[node->wave - 1], p->tasks[r].end_lo, &wait) == OZNI_OK &&
+      if (r != UINT32_MAX && ozni_rat_sub(serves[node->wave - 1], p->tasks[r].end_hi, &wait) == OZNI_OK &&
           ozni_rat_cmp(wait, pi->limit) > 0) {
         sc.feasible = false;
       }
@@ -8174,7 +8174,7 @@ static void schedule_dish(sema *s, ozni_index name) {
           ozni_rat wait, excess, rel;
           bool limited = pi->timing == TIMING_WITHIN ||
                          (pi->timing == TIMING_WARM && ozni_rat_cmp(pi->limit, ozni_rat_int(0)) > 0);
-          if (enforce && limited && ozni_rat_sub(at, tasks[r].end_lo, &wait) == OZNI_OK && ozni_rat_cmp(wait, pi->limit) > 0 &&
+          if (enforce && limited && ozni_rat_sub(at, tasks[r].end_hi, &wait) == OZNI_OK && ozni_rat_cmp(wait, pi->limit) > 0 &&
               ozni_rat_sub(wait, pi->limit, &excess) == OZNI_OK &&
               ozni_rat_add(tasks[r].start, excess, &rel) == OZNI_OK &&
               (!tasks[r].has_release || ozni_rat_cmp(rel, tasks[r].release) > 0)) {
@@ -8282,6 +8282,24 @@ static void schedule_dish(sema *s, ozni_index name) {
       uint8_t timing = item_timing == TIMING_CHILLED || item_timing == TIMING_FROZEN ? item_timing
                        : ai != nullptr                                              ? TIMING_NONE
                                                                                     : pi->timing;
+      ozni_rat late;
+      if (r != UINT32_MAX && ai == nullptr &&
+          (timing == TIMING_WITHIN || (timing == TIMING_WARM && ozni_rat_cmp(pi->limit, ozni_rat_int(0)) > 0)) &&
+          ozni_rat_sub(at, tasks[r].end_hi, &late) == OZNI_OK && ozni_rat_cmp(late, pi->limit) > 0) {
+        ozni_buf wb = {.a = s->c->allocator}, lb = {.a = s->c->allocator};
+        put_rat(&wb, late);
+        ozni_buf_puts(&wb, " s");
+        put_rat(&lb, pi->limit);
+        ozni_buf_puts(&lb, " s");
+        ozni_str args[3] = {src_text(s, pi->file, nd(s, pi->file, pi->items[j])),
+                            {wb.p != nullptr ? wb.p : "", (uint32_t)wb.len},
+                            {lb.p != nullptr ? lb.p : "", (uint32_t)lb.len}};
+        if (!wb.failed && !lb.failed) {
+          diag_node(s, OZNI_D_SCH_serveWithinMissed, pi->file, nd(s, pi->file, pi->items[j]), args, 3);
+        }
+        ozni_buf_discard(&wb);
+        ozni_buf_discard(&lb);
+      }
       if (timing == TIMING_WARM && r != UINT32_MAX) {
         const ozni_sched_alt *alt = &alt_array[tasks[r].first_alt + tasks[r].chosen];
         for (uint32_t g = 0; g < alt->ngroups && g < 64; g++) {
