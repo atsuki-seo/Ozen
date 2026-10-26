@@ -575,6 +575,7 @@ goal_G_API_SCHEMA() {
 }
 
 goal_G_API_SARIF() {
+  scripts/run-golden.sh build/core-gcc-release/ozen tests/golden --sarif build/results/sarif >/dev/null 2>&1
   want_re "sarif" '^sarif: [1-9][0-9]* files, 0 invalid$' \
     "$(python3 -B tools/jsoncheck/validate.py --schema schemas/vendor/sarif-2.1.0.json build/results/sarif 2>&1 | tail -n 1)"
 }

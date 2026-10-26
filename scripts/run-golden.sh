@@ -4,7 +4,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: $0 COMMAND DIR [--only NAME] [--save ENV] [--std-version V] [--json OUT]" >&2
+  echo "usage: $0 COMMAND DIR [--only NAME] [--save ENV] [--std-version V] [--json OUT] [--sarif OUT]" >&2
   exit 2
 }
 
@@ -18,6 +18,7 @@ only=""
 save=""
 version=""
 json=""
+sarif=""
 [ -f "$root/VERSION" ] && version=$(tr -d '\n' < "$root/VERSION")
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -25,6 +26,7 @@ while [ $# -gt 0 ]; do
     --save) save="$2"; shift 2 ;;
     --std-version) version="$2"; shift 2 ;;
     --json) json="$2"; shift 2 ;;
+    --sarif) sarif="$2"; shift 2 ;;
     *) usage ;;
   esac
 done
@@ -35,6 +37,8 @@ for i in "${!runner[@]}"; do
 done
 [ -n "$json" ] && mkdir -p "$json" && rm -f "$json"/*.result.json
 [ -n "$json" ] && json=$(cd "$json" && pwd)
+[ -n "$sarif" ] && mkdir -p "$sarif" && rm -f "$sarif"/*.json
+[ -n "$sarif" ] && sarif=$(cd "$sarif" && pwd)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 passed=0
@@ -62,7 +66,7 @@ while IFS= read -r entry; do
   if [ -n "$only" ] && [ "$rel" != "$only" ]; then
     continue
   fi
-  if [ -n "$json" ]; then
+  if [ -n "$json" ] || [ -n "$sarif" ]; then
     flags=()
     for ((k = 0; k < ${#args[@]}; k++)); do
       case "${args[$k]}" in
@@ -70,10 +74,19 @@ while IFS= read -r entry; do
       esac
     done
     name=$(printf '%s' "$rel" | sed 's#/#-#g')
-    (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" check --format json \
-      --emit ir,schedule,steps,signatures,definitions,types "${flags[@]}" "${target[@]}") > "$work/json" 2>/dev/null
-    if head -c 1 "$work/json" | grep -q '{'; then
-      cp "$work/json" "$json/$name.result.json"
+    if [ -n "$json" ]; then
+      (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" check --format json \
+        --emit ir,schedule,steps,signatures,definitions,types "${flags[@]}" "${target[@]}") > "$work/json" 2>/dev/null
+      if head -c 1 "$work/json" | grep -q '{'; then
+        cp "$work/json" "$json/$name.result.json"
+      fi
+    fi
+    if [ -n "$sarif" ]; then
+      (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" check --format sarif "${flags[@]}" \
+        "${target[@]}") > "$work/sarif" 2>/dev/null
+      if grep -q '"results":\[{' "$work/sarif"; then
+        cp "$work/sarif" "$sarif/$name.json"
+      fi
     fi
   fi
   (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" "${args[@]}" "${target[@]}") > "$work/out" 2>/dev/null
