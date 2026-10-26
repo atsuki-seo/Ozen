@@ -138,7 +138,7 @@ char *ozni_run_json(const ozni_allocator *a, const ozni_limits *lim, const ozni_
         ozni_buf_puts(&b, "]");
       }
     }
-    if (loaded && !c.oom && (emit & 56u) != 0 && !ozni_render_public(&pr, &b, emit)) {
+    if (loaded && !c.oom && !pr.syntax_errors && (emit & 56u) != 0 && !ozni_render_public(&pr, &b, emit)) {
       b.failed = true;
     }
     ozni_buf_puts(&b, "}\n");
