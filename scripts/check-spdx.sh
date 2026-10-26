@@ -41,6 +41,10 @@ expected_id() {
       echo "$code_id" ;;
     spec/samples/*)
       echo "$docs_id" ;;
+    samples/*)
+      case "$base" in
+        *.ozen|*.yaml) echo "$docs_id" ;;
+      esac ;;
   esac
 }
 
