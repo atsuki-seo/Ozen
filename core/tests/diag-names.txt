@@ -86,3 +86,4 @@ ASM:defaultServings
 ASM:firstVariant
 TYP:optionLevel
 SCH:kitchenDependent
+ASM:provisionalValue
