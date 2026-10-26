@@ -1,0 +1,19 @@
+// args: check --format json --emit schedule --entry dinner --options today
+action topIt(x: T) -> T {
+  uses hands for 1 min
+}
+recipe dessert() {
+  ingredients {
+    ice: VanillaIce 100 g
+  }
+  let d = topIt(ice)
+}
+menu dinner() {
+  let d = make dessert()
+  serve main {
+    plate perPerson on Glass { d } @serveWithin(30 s)
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}
