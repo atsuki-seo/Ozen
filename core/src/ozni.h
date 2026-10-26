@@ -45,8 +45,15 @@ ozni_limits ozni_default_limits(void);
 
 enum { OZNI_AST_SPANS = 1, OZNI_AST_RULES = 2 };
 
-char *ozni_check_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *srcs, size_t n,
-                      int *has_errors);
+typedef enum ozni_mode : uint8_t {
+  OZNI_MODE_CHECK,
+  OZNI_MODE_MODULES,
+  OZNI_MODE_ENTRY,
+  OZNI_MODE_EMBEDDED_STD,
+} ozni_mode;
+
+char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *srcs, size_t n,
+                    ozni_mode mode, const char *entry, int *has_errors);
 char *ozni_debug_ast_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *src,
                           unsigned flags, int *has_errors);
 void ozni_free_text(const ozni_allocator *a, char *text);

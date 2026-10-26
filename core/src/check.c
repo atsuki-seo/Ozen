@@ -2,64 +2,68 @@
 #include <string.h>
 
 #include "render.h"
+#include "resolve.h"
+#include "stdembed.h"
 #include "text.h"
 
 ozni_limits ozni_default_limits(void) {
   return (ozni_limits){.steps = 1000000, .depth = 256, .nodes = 100000, .input_bytes = 1048576};
 }
 
-static void put_size(char *out, size_t *n, uint64_t v) {
-  char rev[24];
-  size_t k = 0;
-  do {
-    rev[k++] = (char)('0' + v % 10);
-    v /= 10;
-  } while (v != 0);
-  for (size_t i = 0; i < k; i++) {
-    out[i] = rev[k - 1 - i];
+static bool any_error(const ozni_ctx *c) {
+  for (ozni_index i = 0; i < ozni_table_count(c->diags); i++) {
+    const ozni_diag *d = ozni_table_get(c->diags, i);
+    if (d->severity == OZNI_SEV_ERROR) {
+      return true;
+    }
   }
-  *n = k;
+  return false;
 }
 
-static bool admit(ozni_ctx *c, ozni_index file) {
-  const ozni_source *s = &c->srcs[file];
-  if (s->len > c->lim.input_bytes) {
-    char a[24], b[24];
-    size_t na, nb;
-    put_size(a, &na, s->len);
-    put_size(b, &nb, c->lim.input_bytes);
-    ozni_str args[2] = {{a, (uint32_t)na}, {b, (uint32_t)nb}};
-    ozni_diag_add(c, OZNI_D_SYN_inputTooLarge, (ozni_span){file, 0, 0}, 0, args, 2);
-    return false;
+static void embedded_std(ozni_buf *b) {
+  for (size_t k = 0; k < ozni_std_file_count; k++) {
+    ozni_buf_puts(b, "// file: ");
+    ozni_buf_puts(b, ozni_std_files[k].path);
+    ozni_buf_puts(b, "\n");
+    ozni_buf_put(b, ozni_std_files[k].text, ozni_std_files[k].len);
   }
-  size_t bad = 0;
-  if (!ozni_check_utf8(s->text, s->len, &bad)) {
-    ozni_diag_add(c, OZNI_D_SYN_invalidUtf8, (ozni_span){file, (uint32_t)bad, (uint32_t)bad + 1}, 0, nullptr, 0);
-    return false;
-  }
-  return true;
 }
 
-char *ozni_check_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *srcs, size_t n,
-                      int *has_errors) {
-  ozni_ctx c;
+char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *srcs, size_t n,
+                    ozni_mode mode, const char *entry, int *has_errors) {
   *has_errors = 0;
+  ozni_buf b = {.a = a};
+  if (mode == OZNI_MODE_EMBEDDED_STD) {
+    embedded_std(&b);
+    return ozni_buf_finish(&b);
+  }
+  ozni_ctx c;
   if (!ozni_ctx_init(&c, a, lim, srcs, n)) {
     return nullptr;
   }
-  for (ozni_index f = 0; f < n && !c.oom; f++) {
-    if (admit(&c, f)) {
-      ozni_ast ast;
-      if (!ozni_parse(&c, f, &ast)) {
-        c.oom = true;
+  ozni_project pr;
+  bool loaded = ozni_project_load(&c, srcs, n, &pr);
+  char *out = nullptr;
+  bool errors = false;
+  if (loaded && !c.oom) {
+    bool done = false;
+    if (mode == OZNI_MODE_MODULES && !any_error(&c)) {
+      done = ozni_render_modules(&pr, &b);
+    } else if (mode == OZNI_MODE_ENTRY && !any_error(&c)) {
+      bool ok = false;
+      done = ozni_render_entry(&pr, entry, &b, &ok) && ok;
+      if (!done) {
+        ozni_buf_discard(&b);
       }
     }
-  }
-  ozni_buf b = {.a = a};
-  bool errors = false;
-  char *out = nullptr;
-  if (!c.oom && ozni_render_check(&c, &b, &errors)) {
-    out = ozni_buf_finish(&b);
+    if (done) {
+      errors = any_error(&c);
+      out = ozni_buf_finish(&b);
+    } else if (ozni_render_check(&c, &b, &errors)) {
+      out = ozni_buf_finish(&b);
+    } else {
+      ozni_buf_discard(&b);
+    }
   } else {
     ozni_buf_discard(&b);
   }
@@ -76,7 +80,14 @@ char *ozni_debug_ast_text(const ozni_allocator *a, const ozni_limits *lim, const
     return nullptr;
   }
   ozni_ast ast = {0};
-  bool ok = admit(&c, 0) && ozni_parse(&c, 0, &ast);
+  size_t bad = 0;
+  bool admitted = src->len <= lim->input_bytes && ozni_check_utf8(src->text, src->len, &bad);
+  if (src->len > lim->input_bytes) {
+    ozni_diag_add(&c, OZNI_D_SYN_inputTooLarge, (ozni_span){0, 0, 0}, 0, nullptr, 0);
+  } else if (!admitted) {
+    ozni_diag_add(&c, OZNI_D_SYN_invalidUtf8, (ozni_span){0, (uint32_t)bad, (uint32_t)bad + 1}, 0, nullptr, 0);
+  }
+  bool ok = admitted && ozni_parse(&c, 0, &ast);
   ozni_buf b = {.a = a};
   char *out = nullptr;
   if (ok && ozni_render_ast(&c, &ast, flags, &b)) {
@@ -93,12 +104,7 @@ char *ozni_debug_ast_text(const ozni_allocator *a, const ozni_limits *lim, const
   } else {
     ozni_buf_discard(&b);
   }
-  for (ozni_index i = 0; i < ozni_table_count(c.diags); i++) {
-    const ozni_diag *d = ozni_table_get(c.diags, i);
-    if (d->severity == OZNI_SEV_ERROR) {
-      *has_errors = 1;
-    }
-  }
+  *has_errors = any_error(&c);
   ozni_ctx_free(&c);
   return out;
 }
