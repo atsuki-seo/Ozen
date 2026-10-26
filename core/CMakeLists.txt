@@ -24,7 +24,14 @@ if(OZN_SANITIZE)
 endif()
 
 file(GLOB OZN_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
-add_library(ozen_lib STATIC ${OZN_SOURCES})
+set(OZN_STDLIB ${CMAKE_CURRENT_SOURCE_DIR}/../stdlib)
+file(GLOB_RECURSE OZN_STD_FILES CONFIGURE_DEPENDS ${OZN_STDLIB}/*.ozen)
+set(OZN_STD_C ${CMAKE_CURRENT_BINARY_DIR}/gen/std_embedded.c)
+add_custom_command(OUTPUT ${OZN_STD_C}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/gen
+  COMMAND ${CMAKE_COMMAND} -DSTDLIB=${OZN_STDLIB} -DOUT=${OZN_STD_C} -P ${CMAKE_CURRENT_SOURCE_DIR}/gen/embed-std.cmake
+  DEPENDS ${OZN_STD_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/gen/embed-std.cmake)
+add_library(ozen_lib STATIC ${OZN_SOURCES} ${OZN_STD_C})
 set_target_properties(ozen_lib PROPERTIES OUTPUT_NAME ozen)
 target_include_directories(ozen_lib PUBLIC src)
 

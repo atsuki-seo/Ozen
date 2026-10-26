@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+# Usage: cmake -DSTDLIB=<dir> -DOUT=<file.c> -P embed-std.cmake
+file(GLOB_RECURSE files RELATIVE ${STDLIB} ${STDLIB}/*.ozen)
+list(SORT files)
+set(body "")
+set(table "")
+set(i 0)
+foreach(f IN LISTS files)
+  file(READ ${STDLIB}/${f} hex HEX)
+  string(LENGTH "${hex}" hexlen)
+  math(EXPR len "${hexlen} / 2")
+  string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," bytes "${hex}")
+  string(APPEND body "static const unsigned char file${i}[] = {${bytes}0x00};\n")
+  string(APPEND table "  {\"${f}\", (const char *)file${i}, ${len}},\n")
+  math(EXPR i "${i} + 1")
+endforeach()
+file(WRITE ${OUT}.tmp "/* Generated from stdlib/ by core/gen/embed-std.cmake. */\n#include \"stdembed.h\"\n\n${body}\nconst ozni_std_file ozni_std_files[] = {\n${table}};\nconst size_t ozni_std_file_count = ${i};\n")
+file(COPY_FILE ${OUT}.tmp ${OUT} ONLY_IF_DIFFERENT)
