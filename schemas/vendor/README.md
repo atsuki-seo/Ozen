@@ -1,0 +1,5 @@
+# Vendored schemas
+
+| File | Version | Source | Retrieved | SHA-256 | License |
+| --- | --- | --- | --- | --- | --- |
+| sarif-2.1.0.json | SARIF 2.1.0 Errata 01 | https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json | 2026-10-26 | c3b4bb2d6093897483348925aaa73af03b3e3f4bd4ca38cef26dcb4212a2682e | LICENSE-OASIS.txt |
