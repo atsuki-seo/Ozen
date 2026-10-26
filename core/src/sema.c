@@ -7197,9 +7197,8 @@ static void put_count(char *buf, size_t *len, uint32_t x) {
   }
 }
 
-static void schedule_text(sema *s, const sched_out *o, ozni_index name) {
+static void schedule_text(sema *s, const sched_out *o, ozni_index name, ozni_buf *b) {
   const ozni_sched *p = &o->plan;
-  ozni_buf *b = s->out;
   ozni_str nm = S(s, name);
   ozni_buf_puts(b, "schedule ");
   ozni_buf_put(b, nm.p, nm.len);
@@ -8367,6 +8366,9 @@ static void schedule_dish(sema *s, ozni_index name) {
     steps_json(s, &o, name);
   }
   if (s->c->set.json) {
+    ozni_buf scratch = {.a = s->c->allocator};
+    schedule_text(s, &o, name, &scratch);
+    ozni_buf_discard(&scratch);
     if (s->c->set.api) {
       ozni_str nm = S(s, name);
       ozni_buf_puts(s->out, s->out->len > 0 ? ",{\"name\":" : "{\"name\":");
@@ -8379,7 +8381,7 @@ static void schedule_dish(sema *s, ozni_index name) {
     }
     return;
   }
-  schedule_text(s, &o, name);
+  schedule_text(s, &o, name, s->out);
 }
 
 static void level_assumptions(sema *s, ozni_index file, const ozni_node *dish) {
