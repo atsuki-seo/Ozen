@@ -99,3 +99,4 @@ ASM:smallToolsAssumed
 KIT:vesselShortage
 KIT:vesselSubstituted
 SCH:longWait
+SCH:criticalPath
