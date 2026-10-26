@@ -56,7 +56,7 @@ extend        := 'extend' 'action' qual_name decl_body ;
 where         := 'where' where_item { ',' where_item } ;
 where_item    := IDENT ':' type_ref ;
 params        := param { ',' param } ;
-param         := IDENT ':' ( literal | type [ '=' expr ] ) ;
+param         := IDENT ':' ( quantity | literal | type [ '=' expr ] ) ;
 
 recipe        := 'recipe' IDENT [ '(' [ params ] ')' ] [ '->' type ] [ requires ] annotations block ;
 requires      := 'requires' type_list ;
