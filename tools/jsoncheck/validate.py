@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 import json
 import os
+import re
 import sys
 
 SUFFIXES = {".result.json": "result.schema.json"}
@@ -33,8 +34,9 @@ def type_ok(value, name):
     raise ValueError(f"unsupported type {name}")
 
 
-SUPPORTED = {"$schema", "$id", "$defs", "$ref", "title", "description", "type", "properties", "required",
-             "additionalProperties", "items", "enum", "const", "oneOf", "minimum"}
+SUPPORTED = {"$schema", "$id", "id", "$defs", "definitions", "$ref", "title", "description", "default", "format", "type",
+             "properties", "required", "additionalProperties", "items", "enum", "const", "oneOf", "anyOf", "minimum",
+             "maximum", "minItems", "uniqueItems", "pattern"}
 
 
 def check(root, schema, value, path, errors):
@@ -43,6 +45,10 @@ def check(root, schema, value, path, errors):
         raise ValueError(f"unsupported keywords {sorted(unknown)}")
     if "$ref" in schema:
         check(root, resolve(root, schema["$ref"]), value, path, errors)
+        return
+    if "anyOf" in schema:
+        if not any(not validate_sub(root, alt, value, path) for alt in schema["anyOf"]):
+            errors.append(f"{path}: matches none of anyOf")
         return
     if "oneOf" in schema:
         matches = 0
@@ -57,12 +63,23 @@ def check(root, schema, value, path, errors):
         errors.append(f"{path}: not {schema['const']!r}")
     if "enum" in schema and value not in schema["enum"]:
         errors.append(f"{path}: {value!r} not in enum")
-    if "type" in schema and not type_ok(value, schema["type"]):
-        errors.append(f"{path}: not {schema['type']}")
+    types = schema.get("type")
+    if types is not None and not any(type_ok(value, n) for n in (types if isinstance(types, list) else [types])):
+        errors.append(f"{path}: not {types}")
         return
     if "minimum" in schema and type_ok(value, "number") and value < schema["minimum"]:
         errors.append(f"{path}: below {schema['minimum']}")
-    if isinstance(value, dict):
+    if "maximum" in schema and type_ok(value, "number") and value > schema["maximum"]:
+        errors.append(f"{path}: above {schema['maximum']}")
+    if "pattern" in schema and isinstance(value, str) and re.search(schema["pattern"], value) is None:
+        errors.append(f"{path}: does not match {schema['pattern']}")
+    if isinstance(value, list) and len(value) < schema.get("minItems", 0):
+        errors.append(f"{path}: fewer than {schema['minItems']} items")
+    if isinstance(value, list) and schema.get("uniqueItems"):
+        seen = [json.dumps(v, sort_keys=True) for v in value]
+        if len(seen) != len(set(seen)):
+            errors.append(f"{path}: items are not unique")
+    if isinstance(value, dict) and schema.get("type", "object") in ("object", ["object"]):
         props = schema.get("properties", {})
         for key in schema.get("required", []):
             if key not in value:
@@ -75,6 +92,12 @@ def check(root, schema, value, path, errors):
     if isinstance(value, list) and "items" in schema:
         for i, item in enumerate(value):
             check(root, schema["items"], item, f"{path}[{i}]", errors)
+
+
+def validate_sub(root, schema, value, path):
+    sub = []
+    check(root, schema, value, path, sub)
+    return sub
 
 
 def validate(schema, value):
