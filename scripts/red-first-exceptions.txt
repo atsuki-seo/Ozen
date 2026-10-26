@@ -5,3 +5,4 @@ f8ba286 nodes-short rewritten so that the limit is crossed by a step; the first 
 1bb4213 goldens for names that resolve without errors are already green with the parser alone; the S161, S164, S165 and S171 mutations show that they detect broken resolution
 c83c9e3 out-of-memory golden added after the implementation so that MAC:outOfMemory appears in a golden output; the allocation number depends on the implementation
 fce74b8 the import-star golden in this commit was already green because the parser reported star imports since P7-3; the S164 mutation shows that it detects accepting star imports
+f34f36d the std package golden passes with the existing resolver by design; the S357 mutation (renaming the std package) shows that it detects the change
