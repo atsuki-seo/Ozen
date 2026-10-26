@@ -1666,7 +1666,7 @@ static value eval_split(sema *s, const ozni_node *call);
 static void eval_serve(sema *s, const ozni_node *serve);
 static value eval_make(sema *s, const ozni_node *mk);
 static value eval_buy(sema *s, const ozni_node *n);
-static value eval_assemble(sema *s, const ozni_node *n);
+static value eval_assemble(sema *s, const ozni_node *n, ozni_index at);
 static value eval_choose(sema *s, const ozni_node *n);
 static value make_tuple(sema *s, ozni_index ref, food *const *outs, uint32_t n);
 static void eval_block(sema *s, ozni_index block, bool top);
@@ -4749,7 +4749,7 @@ static value eval_inner(sema *s, ozni_index node) {
     return eval_choose(s, n);
   }
   if (n->kind == OZNI_N_Assemble) {
-    return eval_assemble(s, n);
+    return eval_assemble(s, n, node);
   }
   if (n->kind == OZNI_N_List) {
     value v = {.kind = V_LIST};
@@ -6075,7 +6075,7 @@ static value eval_make(sema *s, const ozni_node *mk) {
   return out;
 }
 
-static value eval_assemble(sema *s, const ozni_node *n) {
+static value eval_assemble(sema *s, const ozni_node *n, ozni_index at) {
   value items[16];
   food *ins[16];
   ozni_index item_nodes[16];
@@ -6113,7 +6113,7 @@ static value eval_assemble(sema *s, const ozni_node *n) {
   if (ir_on(s)) {
     ozni_ir_node node = {.kind = OZNI_IR_OP, .label = intern(s, "assemble", 8), .ninputs = nin,
                          .first_input = ozni_table_count(s->ir.inputs), .first_req = ozni_table_count(s->ir.reqs),
-                         .file = s->ir_call_file, .src = s->ir_call_node};
+                         .file = s->file, .src = at};
     ozni_buf b = {.a = s->c->allocator};
     for (uint32_t i = 0; i < nin; i++) {
       ozni_buf_puts(&b, i == 0 ? " " : ", ");
