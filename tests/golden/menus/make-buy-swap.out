@@ -1,0 +1,13 @@
+recipe warmNaan
+  naan : Naan 2 pcs
+  %1 = warm(naan) : Naan 2 pcs
+recipe naanPlate
+  %1 = warm(bread) : Naan
+menu madeAtHome
+  %1 = make warmNaan() : Naan 2 pcs
+  %2 = make naanPlate(bread: %1) : NaanPlate 2 pcs
+menu bought
+  %1 = buy Naan 2 pcs : Naan 2 pcs
+  %2 = make naanPlate(bread: %1) : NaanPlate 2 pcs
+result ok errors=0 warnings=0 infos=0
+exit 0

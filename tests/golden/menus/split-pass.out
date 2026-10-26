@@ -1,0 +1,16 @@
+recipe chashu
+  pork : Pork 400 g
+  %1 = simmer(pork, 3600 s) : Pork<doneness: done> 400 g
+recipe ramen
+  %1 = cut(topping, style: slice) : Pork<doneness: done, shape: cut(slice, 3 mm)>
+recipe friedRice
+  %1 = cut(topping, style: dice) : Pork<doneness: done, shape: cut(dice, 3 mm)>
+menu lunch
+  %1 = make chashu() : Pork<doneness: done> 400 g
+  %2 = split(%1, 150 g) : (Pork<doneness: done> 150 g, Pork<doneness: done> 250 g)
+  %3 = make ramen(topping: %2.1) : Ramen<doneness: done, shape: cut(slice, 3 mm)> 150 g
+  %4 = make friedRice(topping: %2.2) : FriedRice<doneness: done, shape: cut(dice, 3 mm)> 250 g
+  %5 = make ramen(topping: %1) : Ramen<doneness: done, shape: cut(slice, 3 mm)> 400 g
+error LIN001 doubleUse split-pass.ozen:17:35-17:37 args=["ch"]: double use
+result error errors=1 warnings=0 infos=0
+exit 1

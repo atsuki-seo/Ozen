@@ -1,0 +1,5 @@
+// args: check --entry stirFry
+recipe stirFry() {
+  ingredients { cabbage: 200 g }
+  let f = fry(cabbage, 3 min)
+}

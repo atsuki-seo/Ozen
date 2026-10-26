@@ -1,0 +1,9 @@
+recipe curry
+  pork : Pork 200 g
+  roux : CurryRoux 50 g
+  %1 = combine([pork, roux]) : Mixture 250 g with Allergen(milk), Allergen(wheat), Hazard
+  %2 = simmer(%1, 1200 s) : Mixture<doneness: done> 250 g with Allergen(milk), Allergen(wheat), Hazard
+  serve main
+    plate perPerson on DeepPlate or Donburi { %2 }
+result ok errors=0 warnings=0 infos=0
+exit 0

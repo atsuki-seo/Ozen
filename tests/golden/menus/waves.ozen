@@ -1,0 +1,19 @@
+// args: debug steps
+recipe salad() {
+  ingredients { lettuce: 100 g }
+  let t = tear(lettuce)
+}
+recipe dessert() {
+  ingredients { ice: VanillaIce 100 g }
+  let s = layer(ice)
+}
+menu dinner() {
+  let s = make salad()
+  let d = make dessert()
+  serve main {
+    plate perPerson on FlatPlate { s }
+  }
+  serve sweets after main + 40 min {
+    plate perPerson on Glass { d }
+  }
+}

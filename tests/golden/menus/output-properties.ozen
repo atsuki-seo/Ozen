@@ -1,0 +1,12 @@
+// args: debug steps
+recipe creamSoup() {
+  ingredients {
+    milk: 200 ml
+    onion: 1 pcs
+  }
+  let p = peel(onion)
+  let s = simmer([p, milk], 10 min)
+}
+menu lunch() {
+  let soup = make creamSoup()
+}

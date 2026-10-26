@@ -1,0 +1,4 @@
+info ASM002 noPlating recipe-arg-external.ozen:2:8-2:20 args=["ramenTopping"]: no plating
+info ASM003 externalIngredient recipe-arg-external.ozen:2:21-2:25 args=["pork", "Pork<shape: cut>"]: external ingredient
+result ok errors=0 warnings=0 infos=2
+exit 0

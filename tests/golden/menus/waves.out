@@ -1,0 +1,15 @@
+recipe salad
+  lettuce : Lettuce 100 g
+  %1 = tear(lettuce) : Lettuce<shape: cut(biteSize)> 100 g
+recipe dessert
+  ice : VanillaIce 100 g
+  %1 = layer(ice) : VanillaIce 100 g
+menu dinner
+  %1 = make salad() : Salad<shape: cut(biteSize)> 100 g
+  %2 = make dessert() : Dessert 100 g
+  serve main
+    plate perPerson on FlatPlate { %1 }
+  serve sweets after main + 2400 s
+    plate perPerson on Glass { %2 }
+result ok errors=0 warnings=0 infos=0
+exit 0

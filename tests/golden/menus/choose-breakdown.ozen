@@ -1,0 +1,12 @@
+// args: debug steps --entry dinner --options today
+recipe steamedRice() {
+  ingredients { rice: 300 g }
+  let s = soak(rice)
+  let c = cookRice(s)
+}
+menu dinner(people: 4) {
+  let staple = choose perPerson from { make steamedRice(), buy Naan 2 pcs }
+}
+kitchen today : Options {
+  people: [Person { picks: [Naan] }, Person { picks: [Naan] }, Person { picks: [Naan] }, Person { picks: [SteamedRice] }]
+}

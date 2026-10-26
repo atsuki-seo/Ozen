@@ -1,0 +1,10 @@
+recipe filletBuri
+  %1 = fillet3(fish) : (Buri<back>, Buri<collar>, Buri<frame>)
+menu dinner
+  buri : Buri 3000 g
+  %1 = make filletBuri(fish: buri) : (Buri<back> 0..3000 g, Buri<collar> 0..3000 g, Buri<frame> 0..3000 g)
+  %2 = cut(%1.1, style: slice) : Buri<back, shape: cut(slice, 3 mm)> 0..3000 g
+  %3 = store(%1.2)
+  %4 = discard(%1.3)
+result ok errors=0 warnings=0 infos=0
+exit 0

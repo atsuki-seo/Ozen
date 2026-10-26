@@ -1,0 +1,18 @@
+// args: debug steps
+recipe chashu() -> Pork {
+  ingredients { pork: 400 g }
+  let c = simmer(pork, 60 min)
+}
+recipe ramen(topping: Pork<doneness: done>) {
+  let c = cut(topping, style: slice)
+}
+recipe friedRice(topping: Pork<doneness: done>) {
+  let c = cut(topping, style: dice)
+}
+menu lunch() {
+  let ch = make chashu()
+  let (a, b) = split(ch, 150 g)
+  let r = make ramen(topping: a)
+  let f = make friedRice(topping: b)
+  let again = make ramen(topping: ch)
+}

@@ -1,0 +1,10 @@
+recipe steamedRice
+  rice : Rice 300 g
+  %1 = soak(rice) : Rice<prep has soaked(1800 s)> 300 g
+  %2 = cookRice(%1) : CookedRice 300 g
+menu dinner
+  %1 = make steamedRice() : SteamedRice 300 g
+  %2 = buy Naan 2 pcs : Naan 2 pcs
+  %3 = choose perPerson { %1: 1, %2: 3 }
+result ok errors=0 warnings=0 infos=0
+exit 0

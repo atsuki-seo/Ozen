@@ -1,0 +1,3 @@
+info ASM002 noPlating no-vessel-until-done.ozen:2:8-2:15 args=["stirFry"]: no plating
+result ok errors=0 warnings=0 infos=1
+exit 0
