@@ -1272,6 +1272,25 @@ IR:
 - **S462** コアは、`std` と書き手の全定義（次元・単位・軸・トレイト・食材・部位・別名・動作・能力・設備の種類・器・汚れ・相性ルール・代替順・性質・診断の登録）の一覧の JSON を出す（`ozen debug definitions`、P10-2 からは公開の出力）（D28）。
 - **S336** 公開ヘッダー `core/include/ozen.h` は、C17 と C23 のどちらでもコンパイルでき（`-std=c17 -pedantic-errors`）、C23 の機能を使わない（Swift・NDK・Emscripten から読むため。補）。
 - **S337** 診断の文面はコアの出力に含まれない（コードと引数だけ）（concept §6）。
+- **S476** `options` のテキストに `Options` の宣言が複数あれば、項目ごとに後の宣言の値が前の宣言の値を上書きする（CLI の `--options FILE` とオプションを合わせるため。補）。
+
+#### 4.23.1 API・JSON の形（P10-0 で決めた。すべて（補））
+
+- 公開ヘッダー `core/include/ozen.h`（C17 でも読める。`bool`・`nullptr`・`[[…]]` を使わない）:
+  - `typedef struct recipe_source { const char *path; const char *text; size_t len; } recipe_source;`
+  - `enum { RECIPE_EMIT_IR = 1, RECIPE_EMIT_SCHEDULE = 2, RECIPE_EMIT_STEPS = 4, RECIPE_EMIT_SIGNATURES = 8, RECIPE_EMIT_DEFINITIONS = 16, RECIPE_EMIT_TYPES = 32 };`
+  - `typedef struct recipe_config { const char *entry; unsigned emit; unsigned long max_steps, max_depth, max_nodes, max_input_bytes; void *(*alloc)(void *ctx, size_t size); void (*release)(void *ctx, void *ptr, size_t size); void *alloc_ctx; } recipe_config;`（`alloc` が NULL なら標準の `malloc`/`free`。上限は 0 なら既定）
+  - `recipe_config recipe_default_config(void);`・`char *recipe_build(const recipe_config *cfg, const recipe_source *sources, size_t n_sources, const char *kitchen, size_t kitchen_len, const char *options, size_t options_len);`・`void recipe_free_string(const recipe_config *cfg, char *s);`（返り値は `cfg` の確保の関数で確保し、同じ `cfg` で解放する。確保に失敗したら NULL）
+- `kitchen` のテキストは `kitchen <名前> { … }` の宣言を 1 つ、`options` のテキストは `kitchen <名前> : Options { … }` の宣言を 1 つ以上持つ Ozen のテキスト。コアはそれぞれをファイルの表の `<kitchen>`・`<options>` として読み、その中の宣言を台所・条件に使う（宣言が無ければエラー `NAM:unknownKitchen`）。重さの設定は `Options` の `strict: Bool = false`・`allow`・`warn`・`deny: [Text] = []`（診断やまとまりの名前の文字列）で渡す
+- 結果の JSON（`schemas/result.schema.json`）: `{"schemaVersion": 1, "ozenVersion", "level": 0|1|2, "entry": 名前|null, "files": [道筋…], "outcome": {"status": "ok"|"error", "errors", "warnings", "infos"}, "diagnostics": [診断…]}` に、`emit` で選んだ `ir`・`schedules`・`steps`・`signatures`・`definitions`・`types` を足す。有理数は `{"num","den"}`（整数、`den` は正）、範囲は `{"lo","hi"}`、数量は `{"value": 有理数|範囲, "unit": 単位の名前}`
+  - 診断: `{"code", "name", "category", "severity", "defaultSeverity", "span": {"file": 添字, "start": {"line","column"}, "end": {"line","column"}}, "args": [文字列…], "related": [{"kind": "via", "span"}…], "fixes": [文字列…]}`（文面の項目は持たない、S337）
+  - `ir`: 料理ごとに `{"name", "nodes": [{"id", "kind": "in"|"buy"|"op"|"choose"|"plate", "label", "inputs": [{"node", "part": 整数|null}…], "after": [id…], "requires": [文字列…], "time": 範囲, "unattended", "wave": 整数|null, "variants": [{"name","requires","time","unattended"}…], "outputs": [数量|null…]}…], "waves": [{"id", "name", "after": 整数|null, "gap": 有理数}…]}`（数量の無い出力は null）
+  - `schedules`: 料理ごとに `{"name", "schedule": 段取りの JSON}`（§4.22.1 の段取りの JSON。`tasks` などの項目を足したもの）
+  - `steps`（文章の材料、S334）: 料理ごとに `{"name", "steps": [{"start", "end", "kind": "op"|"plate"|"wash"|"rinse"|"soak"|"wipe"|"run"|"hold", "action", "args": [{"name","value"}…], "foods": [文字列…], "resources": [文字列…], "reason": 汚れ|null, "cook": 整数|null}…]}`（段取りの時刻の順。時刻は有理数）
+  - `signatures`: `local` でない動作ごとに `{"name", "module", "params": [{"name","type","default": 文字列|null}…], "output": 文字列|null, "requires": [文字列…], "variants": [名前…], "provisional"}`
+  - `definitions`: `ozen debug definitions` と同じ形（`schemas/definitions.schema.json`）。`local` は出さない（S425）
+  - `types`（S335）: `{"kitchen": [{"name","type","default"}…], "options": [項目…], "equipment": [{"kind","category": "place"|"tool","fields": [{"name","type","min","max","default"}…]}…], "vessels": [{"kind","fields": […]}…]}`
+- `schemas/` の JSON Schema は draft 2020-12 の部分集合（`type`・`properties`・`required`・`additionalProperties: false`・`items`・`enum`・`const`・`$ref`/`$defs`・`oneOf`・`minimum`）で書き、すべての object を閉じる。`tools/jsoncheck/validate.py` はこの部分集合を外部のライブラリなしで検査する（ファイル名の末尾 `.result.json`・`.definitions.json`・`.types.json` でスキーマを選ぶ）
 
 ### 4.24 H: 4 環境・橋渡し・CI（§13-8）
 
@@ -1299,6 +1318,16 @@ IR:
 - **S355** `--servings`・`--cooks`・`--serve-at`・`--cleanup`・`--prefer`・`--strict`・`--allow`・`--warn`・`--deny` を `options` の Ozen のテキストに変換し、`--options FILE`（人ごとの属性を含む条件を Ozen の構文で書いたファイル）はそこに合わせる。`--kitchen` は `kitchen` の引数に、`--entry`・`--emit`・`--format` は `cfg` に渡す（D25、concept §4.2・§5.2・§6.1）。
 - **S356** CLI が出す診断は、コード・名前・位置・引数と、識別子から機械的に作った英語の表示（D21）。
 - **S443** 同じ入力でもう一度ビルドすると `out/` の中身は 1 バイトも違わず、入口を消してビルドすると、その入口の出力は `out/` と `index.json` から消える。（補）
+
+#### 4.25.1 CLI の細目（P10-0 で決めた。すべて（補））
+
+- CLI はコアの公開 API（`recipe_build`）だけを使う（`debug` を除く）。`check` と `build` は、プロジェクト（`package.ozen` のあるフォルダ。無ければ指定したファイル 1 つ）のすべての `.ozen` を並べて渡す
+- 診断の表示（S356）は 1 行に `<重さ> <コード> <名前> <道筋>:<行>:<列>-<行>:<列>[ args=[…]][ via …][ fixes=[…]]: <英語の言葉>`（英語の言葉は名前のキャメルケースを区切って小文字にしたもの、D21）。最後に `result <ok|error> errors=<n> warnings=<n> infos=<n>`
+- 条件の変換（S355）: `--servings N`・`--cooks N`（`-c`）・`--serve-at T`（`-t`）・`--cleanup X`・`--prefer A,B`・`--strict`・`--allow NAME`・`--warn NAME`・`--deny NAME` を `kitchen cli : Options { … }` に書き、`--options FILE` の中身の後ろに付けて `options` に渡す（S476 で後ろが優先）。`-s` は `--servings`、`-k` は `--kitchen`
+- `-k NAME|PATH`（S349）: `PATH` が既存のファイルなら、その中の台所の宣言（1 つ）を使う。そうでなければ、プロジェクトの `.ozen` から `kitchen NAME { … }`（`Options` でないもの）を探す。0 個なら `cli: kitchen not found: NAME`、2 個以上なら `cli: kitchen is ambiguous: NAME (<道筋>, <道筋>)`（終了コード 2）
+- 入口（S346〜S348）: 位置の引数は、既存のファイルならそのファイルのモジュール、そうでなければ `.` 区切りの先頭から順にモジュールとして解決し、残りを入口の名前とする。`--entry` はさらに名前を指す。`:` を含む引数は `cli: use a module path, not file:name`（終了コード 2）。入口が複数あって指定が無ければ `cli: several entries; choose one of: <名前>, …`（終了コード 2）
+- `build`（S352〜S354）: 指定の範囲（無ければプロジェクト全体）の献立と料理を、モジュール名と入口の名前の順に 1 つずつビルドし、`out/<モジュールの道筋>/<入口>/` に `schedule.json`・`ir.txt`・`diagnostics.json`（`--format sarif` で `diagnostics.sarif`）を書く。`out/index.json` は `{"schemaVersion": 1, "entries": [{"module", "entry", "status", "errors", "warnings", "infos", "dir"}…]}`。最後に `build: <n> entries, <m> passed`。前回の `out/` のうち今回の入口に無いものは消す（S443）
+- `render`・`bundle`・`unbundle` は K・L で中身を作る。G では `cli: <名前> is not available yet` を出して終了コード 2
 
 ### 4.26 J: 標準ライブラリと言い回し（§13-10）
 
@@ -1967,6 +1996,7 @@ gh run download "$id" -n xcframework -D build/ios && unzip -l build/ios/OzenProt
 | S471 | 文書との一致 | §8（機械で決められない理由: `pureed` を足す規則は本計画が補ったもので、料理として妥当かは人が判断する） | — | — |
 | S474 | 正常系 | `cgolden/state/blend-*`（3 個。1 つ・並び・`pureed` の後の `cut`） | コアで `blend` を `cut` と同じに扱う | P8-2 |
 | S475 | 効かない条件 | `G-REPO-NOREPLY` | 使い捨ての複製で、作者を個人のメールにしたコミットを足す | P0-3 |
+| S476 | 正常系 | `cunit/api_options_merge` | 最初の宣言だけを使う | P10-1 |
 | S62 | 効かない条件 | `golden/syntax/utf8-invalid` | UTF-8 の検査を外す | P4-3 |
 | S63 | 効かない条件 | `golden/syntax/ident-nonascii` | 識別子に UTF-8 を許す | P4-3 |
 | S64 | 正常系 | `golden/syntax/string-utf8-passthrough` | ASCII でないバイトを書き換える | P4-3 |
