@@ -1303,6 +1303,20 @@ IR:
 - **S343** Swift（Linux・macOS・iOS シミュレーター）、Java（Linux の JVM と Android のエミュレーター）、JS（node と Chrome の Web Worker）から `recipe_build` を呼んで返った JSON の文字列が、ネイティブで同じ入力を渡した結果と 1 バイトも違わない。
 - **S344** CI が、4 環境と WASM のビルドとテスト、ASan・UBSan、ファズを、push ごとに回す（concept §10、D19）。
 
+#### 4.24.1 成果物・橋渡し・CI の細目（P11-0 で決めた。すべて（補））
+
+- 成果物の名前:
+  - Linux: `build/core-<構成>/libozen.so`（動的な記号は `recipe_build`・`recipe_default_config`・`recipe_free_string` の 3 つだけ。リンカーの版の台本 `core/ozen.map` で隠す）と CLI `build/core-<構成>/ozen`
+  - iOS・macOS: `Ozen.xcframework`（スライスは `ios-arm64`・`ios-arm64-simulator`・`macos-arm64_x86_64`。中身は静的ライブラリ `libozen.a` と `core/include/ozen.h`・module map）。CI の成果物 `xcframework`（`Ozen.xcframework.zip`）
+  - Android: ABI ごとの `libozen.so` と JNI の `libozen_jni.so`（`arm64-v8a`・`armeabi-v7a`・`x86_64`・`x86`）。CI の成果物 `android-libs`
+  - WASM: `build/core-wasm/ozen.js`・`ozen.wasm`（node で動く CLI。golden を回す）と `build/core-wasm/ozen_bridge.js`・`ozen_bridge.wasm`（`recipe_build` などを出すモジュール。Web Worker と node から使う）
+- 橋渡しの API（どれも `recipe_build` を 1 回呼び、返った文字列をそのまま返す）:
+  - Swift: module map のモジュール `COzen`（`bindings/swift/module.modulemap`）と `bindings/swift/Ozen.swift` の `public enum Ozen { public static func build(sources: [(path: String, text: String)], kitchen: String?, options: String?, entry: String?, emit: UInt32) -> String? }`
+  - Java: `bindings/android/java/ozen/Ozen.java` の `public static native byte[] buildUtf8(byte[][] paths, byte[][] texts, byte[] kitchen, byte[] options, byte[] entry, int emit)` と、UTF-8 で変換する `public static String build(String[] paths, String[] texts, String kitchen, String options, String entry, int emit)`。JNI のラッパーは `bindings/android/jni/ozen_jni.c`。`javac --release 17`（D29。Android の d8 が受け付けるクラスファイルの版）
+  - JS: `bindings/wasm/ozen.mjs` の `build(module, {sources: [{path, text}], kitchen, options, entry, emit})`。文字列は `TextEncoder`・`TextDecoder` の UTF-8
+- 橋渡しの一致（S343）: 入力の一覧 `bindings/inputs.txt`（golden の一部と、日本語と絵文字の文字列を持つ `bindings/inputs/utf8.ozen`）のファイルごとに、道筋をファイル名だけ、台所と条件は無し、入口は無し、`emit` は `ir|schedule|steps|definitions` で呼んだ結果の文字列を、ネイティブの `ozen check --format json --emit ir,schedule,steps,definitions <ファイル名>`（ファイルのフォルダで実行）の出力と 1 バイトずつ比べる。出力は `<道具>: <入力の数> inputs, <違いの数> mismatches`
+- CI（`.github/workflows/ci.yml`、ジョブの名前の一覧は `ci/jobs.txt`）: `linux`（4 構成のビルド、golden、単体のテスト、確保の失敗の注入、CLI のテスト、Swift と JNI の橋渡し）・`fuzz`（対象ごとに 60 秒）・`wasm`（node の golden、Web Worker、digest）・`ios`（xcframework、iOS シミュレーターと macOS の Swift、シミュレーターでの golden と digest）・`android`（NDK r30 の 4 つの ABI、エミュレーターでの golden と digest、JNI）。どのジョブも道具の版を `tools.txt` に書いて成果物 `tools-<ジョブ>` にする
+
 ### 4.25 G: CLI `ozen`（concept §5.2）
 
 - **S345** サブコマンドは `check`・`build`・`render`・`bundle`・`unbundle` の 5 つと、開発用の `debug`（AST・使った文法の規則・定義の一覧・埋め込んだ `std` を出す）。
@@ -3363,7 +3377,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 ### 9.8 H（4 環境）
 
 - NDK の版（r30 の clang-r574158c の予定）と、手元で取得したか（P11-4）
-- `javac --release` の版（D29、P11-0）
+- `javac --release` の版（D29、P11-0）: 17（Android Gradle Plugin 8 系の d8 が受け付けるクラスファイルの版。手元の JDK 25 の `javac --release 17` で作る）
 - Xcode の版と、12 のプローブの結果（P11-3）
 - エミュレーターのシステムイメージと API レベル（P11-4）
 - CI の実行時間（R4）
