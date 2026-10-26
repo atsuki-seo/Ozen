@@ -1,0 +1,164 @@
+(* SPDX-License-Identifier: MIT OR Apache-2.0 *)
+
+(* Ozen grammar.
+   Notation: name := ... ;   'x' is a token, { } repeats zero or more times, [ ] is optional,
+   ( ) groups, | separates alternatives. Every rule name below is reported by `ozen debug ast --rules`.
+
+   Lexical rules:
+   - Source text is UTF-8. Identifiers are ASCII: a letter or '_' followed by letters, digits or '_'.
+   - NUMBER is an integer or a decimal (12, 0.6). FRACTION is INT '/' INT written without spaces (1/4).
+   - STRING is "..." with the escapes \" \\ \n. MLSTRING is """...""" and keeps its content as written.
+   - Comments are // to the end of the line and /* ... */.
+   - SEP is a newline or ';'. Newlines inside ( ) and [ ] are not separators.
+   - In a unit, '/' is written without spaces (g/ml); with spaces it is division.
+   - A construct (IDENT record) is not read in the expression after 'if', 'for ... in' and 'repeat',
+     where '{' starts the block.
+   - Reserved words: action alias and assemble axis branch buy bundle check choose dimension dirt else
+     enum extend false finer for if import in ingredient ingredients kind kitchen let local macro make
+     menu module not or package parallel phrases plate property quote recipe repeat requires resource
+     rule serve source steps takes tool trait true type unit uses variant vessel where.
+     The words after any amount as base before from on ordered set use are matched by their text
+     only where the rules below name them. A reserved word may be a field name (word ':').
+*)
+
+file          := { SEP } [ item { SEP { SEP } item } ] { SEP } ;
+item          := local_decl | decl | import | module | bundle | phrases | package ;
+local_decl    := 'local' decl ;
+decl          := dimension | unit | axis | trait | ingredient | alias | kind | vessel | dirt | rule
+               | resource | tool | action | extend | recipe | menu | kitchen | enum | type_decl
+               | property | macro | source ;
+
+dimension     := 'dimension' IDENT { ',' IDENT } annotations ;
+unit          := 'unit' IDENT [ ':' type_ref ] '=' ( 'base' | expr ) annotations ;
+axis          := 'axis' IDENT ':' [ 'ordered' | 'set' ] value_set annotations ;
+enum          := 'enum' IDENT [ ':' 'ordered' ] value_set annotations ;
+value_set     := '{' { SEP } [ value_item { list_sep value_item } ] { SEP } '}' ;
+value_item    := finer | enum_value ;
+enum_value    := IDENT [ '(' params ')' ] ;
+finer         := 'finer' IDENT '->' IDENT { ',' IDENT } ;
+trait         := 'trait' IDENT [ '(' params ')' ] [ ':' type_list ] annotations [ decl_body ] ;
+ingredient    := 'ingredient' IDENT [ ':' type_list ] annotations [ decl_body ] ;
+kind          := 'kind' IDENT [ ':' type_list ] annotations [ decl_body ] ;
+vessel        := 'vessel' IDENT [ ':' type_list ] annotations [ decl_body ] ;
+dirt          := 'dirt' IDENT [ ':' type_list ] annotations [ decl_body ] ;
+resource      := 'resource' IDENT [ ':' type_list ] annotations [ decl_body ] ;
+tool          := 'tool' IDENT [ ':' type_list ] annotations [ decl_body ] ;
+alias         := 'alias' IDENT '=' type annotations ;
+rule          := 'rule' 'after' type_ref ':' IDENT [ 'before' rule_target ] annotations ;
+rule_target   := 'any' 'use' | type_ref ;
+property      := 'property' IDENT '=' expr annotations ;
+source        := 'source' IDENT decl_body ;
+
+action        := 'action' IDENT '(' [ params ] ')' [ '->' type ] [ where ] annotations [ decl_body ] ;
+extend        := 'extend' 'action' qual_name decl_body ;
+where         := 'where' where_item { ',' where_item } ;
+where_item    := IDENT ':' type_ref ;
+params        := param { ',' param } ;
+param         := IDENT ':' ( literal | type [ '=' expr ] ) ;
+
+recipe        := 'recipe' IDENT [ '(' [ params ] ')' ] [ '->' type ] [ requires ] annotations block ;
+requires      := 'requires' type_list ;
+menu          := 'menu' IDENT [ '(' [ params ] ')' ] annotations block ;
+kitchen       := 'kitchen' IDENT [ ':' type_ref ] annotations decl_body ;
+type_decl     := 'type' IDENT [ ':' type_list ] annotations type_body ;
+type_body     := '{' { SEP } [ type_member { list_sep type_member } ] { SEP } '}' ;
+type_member   := check | type_field ;
+type_field    := word ':' type [ '=' expr ] annotations ;
+check         := 'check' [ IDENT ] IDENT ':' expr [ 'else' IDENT ] annotations ;
+macro         := 'macro' IDENT '(' [ IDENT { ',' IDENT } ] ')' block ;
+
+package       := 'package' IDENT decl_body ;
+module        := 'module' qual_name '{' { SEP } [ item { SEP { SEP } item } ] { SEP } '}' ;
+bundle        := 'bundle' '{' { SEP } [ bundle_member { list_sep bundle_member } ] { SEP } '}' ;
+bundle_member := bundle_from | field ;
+bundle_from   := 'from' ':' qual_name STRING ;
+phrases       := 'phrases' IDENT ( MLSTRING | STRING ) ;
+import        := 'import' qual_name [ import_names | import_alias ] ;
+import_names  := '.' '{' IDENT { ',' IDENT } '}' ;
+import_alias  := 'as' IDENT ;
+qual_name     := IDENT { '.' IDENT } ;
+
+decl_body     := '{' { SEP } [ member { list_sep member } ] { SEP } '}' ;
+member        := uses | takes | variant | steps | field | section | marker ;
+uses          := 'uses' type_list [ 'for' expr ] annotations ;
+takes         := 'takes' expr annotations ;
+variant       := 'variant' IDENT decl_body annotations ;
+steps         := 'steps' block ;
+field         := word ':' field_item { ',' field_item } annotations ;
+field_item    := expr [ 'on' type_ref ] ;
+section       := IDENT decl_body ;
+marker        := IDENT ;
+word          := IDENT | RESERVED_WORD ;
+list_sep      := ( ',' | SEP ) { SEP } ;
+
+type_list     := type_ref { ',' type_ref } ;
+type          := type_union [ 'in' range ] ;
+type_union    := type_postfix { '|' type_postfix } ;
+type_postfix  := type_atom [ '?' ] ;
+type_atom     := type_ref | list_type | record_type | tuple_type ;
+list_type     := '[' type ']' ;
+record_type   := '{' { SEP } [ type_field { list_sep type_field } ] { SEP } '}' ;
+tuple_type    := '(' type ',' type { ',' type } ')' ;
+type_ref      := qual_name [ '(' args ')' ] [ '<' type_args '>' ] ;
+type_args     := type_alt { '|' type_alt } ;
+type_alt      := type_arg { ',' type_arg } ;
+type_arg      := state_arg | bare_arg ;
+state_arg     := IDENT ( ':' | '>=' | '<=' | 'has' ) sum ;
+bare_arg      := IDENT ;
+
+block         := '{' { SEP } [ stmt { SEP { SEP } stmt } ] { SEP } '}' ;
+stmt          := let | parallel | if | for | repeat | serve | ingredients | expr_stmt ;
+let           := 'let' binding '=' expr annotations ;
+binding       := IDENT | splice | tuple_binding ;
+tuple_binding := '(' IDENT ',' IDENT { ',' IDENT } ')' ;
+parallel      := 'parallel' '{' { SEP } { branch { SEP } } '}' ;
+branch        := 'branch' IDENT block ;
+if            := 'if' expr block [ 'else' ( if | block ) ] ;
+for           := 'for' IDENT 'in' expr block ;
+repeat        := 'repeat' expr block ;
+serve         := 'serve' IDENT [ serve_after ] '{' { SEP } { plate { SEP } } '}' annotations ;
+serve_after   := 'after' IDENT [ '+' sum ] ;
+plate         := 'plate' IDENT [ 'on' type_ref { 'or' type_ref } ] '{' items '}' annotations ;
+ingredients   := 'ingredients' '{' { SEP } [ ingredient_item { list_sep ingredient_item } ] { SEP } '}' ;
+ingredient_item := IDENT ':' [ type_ref ] expr annotations ;
+expr_stmt     := expr annotations ;
+items         := { SEP } [ item_expr { list_sep item_expr } ] { SEP } ;
+item_expr     := expr annotations ;
+annotations   := { annotation } ;
+annotation    := '@' IDENT [ '(' args ')' ] ;
+
+expr          := link ;
+link          := or_expr { '<->' or_expr } ;
+or_expr       := and_expr { 'or' and_expr } ;
+and_expr      := not_expr { 'and' not_expr } ;
+not_expr      := 'not' not_expr | compare ;
+compare       := range [ ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) range ] ;
+range         := sum [ '..' [ sum ] ] | '..' sum ;
+sum           := product { ( '+' | '-' ) product } ;
+product       := unary { ( '*' | '/' ) unary } ;
+unary         := '-' unary | postfix ;
+postfix       := primary { call | member_access } ;
+call          := '(' args ')' ;
+member_access := '.' IDENT ;
+args          := [ expr { ',' expr } ] [ named_arg { ',' named_arg } ] ;
+named_arg     := word ':' expr ;
+primary       := quantity | literal | splice | vague_amount | list | record | construct | name
+               | paren | quote | make | buy | choose | assemble ;
+quantity      := amount unit_expr { amount unit_expr } ;
+amount        := number [ '..' number ] ;
+number        := NUMBER | FRACTION ;
+unit_expr     := '%' | IDENT { '/' IDENT } ;
+literal       := amount | STRING | MLSTRING | 'true' | 'false' ;
+splice        := '$' IDENT ;
+vague_amount  := '[' 'any' 'amount' ']' ;
+list          := '[' [ item_expr { ',' item_expr } ] ']' ;
+record        := '{' { SEP } [ record_entry { list_sep record_entry } ] { SEP } '}' ;
+record_entry  := word ':' expr ;
+construct     := IDENT record ;
+name          := IDENT ;
+paren         := '(' expr ')' ;
+quote         := 'quote' block ;
+make          := 'make' postfix ;
+buy           := 'buy' type_ref [ quantity ] ;
+choose        := 'choose' IDENT 'from' '{' items '}' ;
+assemble      := 'assemble' '{' items '}' ;
