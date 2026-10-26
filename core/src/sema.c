@@ -6994,7 +6994,11 @@ static void schedule_json(sema *s, const sched_out *o) {
       ozni_buf_putu(b, node->wave);
       ozni_buf_puts(b, ",\"ready\":");
       ozni_buf_putu(b, task_node(s, o, r)->number);
-      ozni_buf_puts(b, "}");
+      ozni_rat late;
+      bool missed = node->wave >= 1 && node->wave <= o->nwaves &&
+                    ozni_rat_sub(o->serves[node->wave - 1], p->tasks[r].end_hi, &late) == OZNI_OK &&
+                    ozni_rat_cmp(late, pi->limit) > 0;
+      ozni_buf_puts(b, missed ? ",\"missed\":true}" : ",\"missed\":false}");
     }
   }
   ozni_buf_puts(b, "],\"resources\":[");

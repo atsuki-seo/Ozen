@@ -916,6 +916,9 @@
                 "minimum": 0,
                 "type": "integer"
               },
+              "missed": {
+                "type": "boolean"
+              },
               "ready": {
                 "minimum": 0,
                 "type": "integer"
@@ -930,6 +933,7 @@
             },
             "required": [
               "id",
+              "missed",
               "ready",
               "serveWithin",
               "wave"
