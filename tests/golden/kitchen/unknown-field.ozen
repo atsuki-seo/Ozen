@@ -1,0 +1,10 @@
+// args: check --kitchen home --options today
+kitchen home {
+  places {
+    stove: IHStove { capacity: 2 }
+  }
+}
+kitchen today : Options {
+  cookz: 2
+  people: [Person { pickz: [Naan] }]
+}

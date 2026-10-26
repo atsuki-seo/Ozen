@@ -1,0 +1,5 @@
+error NAM013 unknownArgument unknown-field.ozen:4:22-4:33 args=["IHStove", "capacity"]: unknown argument
+error NAM013 unknownArgument unknown-field.ozen:8:3-8:11 args=["Options", "cookz"]: unknown argument
+error NAM013 unknownArgument unknown-field.ozen:9:21-9:34 args=["Person", "pickz"]: unknown argument
+result error errors=3 warnings=0 infos=0
+exit 1
