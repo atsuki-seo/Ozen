@@ -1,0 +1,12 @@
+// args: check --format json --entry dinner
+recipe broken() {
+  ingredients { onion: 1 pcs }
+  let c = cut(onion, slice)
+}
+recipe unrelated() {
+  ingredients { onion: 1 pcs }
+  let c = cut(onion, slice)
+}
+menu dinner(people: 2) {
+  let b = make broken()
+}
