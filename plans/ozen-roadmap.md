@@ -132,6 +132,13 @@
 - 代替 A: 機械にかけると、1 つの食材でも常に新しい値になる（形状の軸を足さない）。書き方は簡単だが、「玉ねぎのペーストを炒める」のように元の食材の状態の検査を続けられない。
 - 代替 B: フードプロセッサーでのみじん切りを、`cut(style: mince)` の `variant`（包丁とまな板／フードプロセッサー）として表し、台所にあれば段取りで速い方を選ぶ。concept の `variant` の仕組みに乗るが、`variant` を引数（切り方）によって使い分ける仕組みが要る。
 
+### D34. 台所とビルド時の条件の注入の形（P8-5 で前倒し） 【要確認】
+
+- 背景: P8-5 の golden（台所の型検査・`variant` の絞り込み・`check`・器の容量）は台所とビルド時の条件の注入を要るが、条件の Ozen のテキストの形は P10-0 で決める予定で、CLI の `--kitchen`・`--options` は P10-4 の作業になっている。concept §4.6 は「台所も書けるが、自動では注入しない。`--kitchen myHome` のように名前で選んだときだけ使う」とし、文法の `kitchen` の宣言は型の注釈（`: Kitchen` は省ける）を取れる。
+- **推奨（P8-5 で実装した形）**: 台所も条件もプロジェクトのソースの `kitchen` の宣言として書き、`--kitchen 名前`・`--options 名前` で名前を選んだときだけ注入する。条件は `kitchen today : Options { cooks: 2, cleanup: afterMeal }` と型の注釈で書く（文法を変えない）。コアの入力（`ozni_settings`）は名前を持つ。P10 で D25 の `recipe_build` の `kitchen`・`options` のテキストを受けるときは、そのテキストを同じ形の宣言として読む。S355 の `--options FILE` は、P10-4 でファイルを読み、同じ形の宣言として渡す。
+- 代替 A: 条件の専用の宣言 `options { … }` を文法に足す。読みやすいが、文法の規則（`G-CORE-GRAMMAR`）と構文解析を変える。
+- 代替 B: 条件はファイルだけで渡し（`--options FILE`）、名前で選ばない。S355 と揃うが、P8-5 の golden ごとに別のファイルが要る（フォルダの golden になる）。
+
 ### D10. 状態の要求の「または」 【決定済み】
 
 - **決定:** 推奨のとおり、要求を選択肢の並びで書けるようにする（表では `anyOf`、言語では型の `< >` の中の `|` で区切る。例: `T<shape: peeled | SkinEdible, shape: whole>`）。（2026-10-25、ユーザー確認）
@@ -1122,6 +1129,9 @@ void ozp_free_string(const ozp_options *opt, char *s);
 - 引数の数（補、P8-4）: 既定値の無い引数が足りない `NAM:arity`（引数は動作と引数の名前、位置は呼び出し）、位置の引数が多すぎる `NAM:arity`（引数は動作、位置は余った引数）、知らない名前付きの引数 `NAM:unknownArgument`、同じ引数を 2 回 `NAM:duplicateArgument`（引数は動作と引数の名前、位置は名前付きの引数）。2 回目の値は使わない。`where T: トレイト` を満たさない値は `TYP:whereUnsatisfied`（引数は動作・引数の名前・式・トレイト）
 - 定義の時点の検査（補、P8-4）: 利用者のファイルの動作と `extend action` の `uses … for 時間` は、すべての候補で時間の次元を検査する（`TYP:dimension`、引数は実際の次元と `Time`）。部位の名前がトレイトとして解決できれば `NAM:partTraitClash`（位置は部位の名前）
 - `ozen debug requires [FILE]`（補、P8-4）: 利用者のモジュールの料理ごとに `recipe <名前>` の行に続けて、使った動作の `uses`（`resource` は除く）とレシピの `requires` を重複なく文字列の順に並べた `  requires A, B` の行（無ければ出さない）と、`variant` を持つ動作ごとに呼んだ順で `  variants <動作>: <候補> | …` の行（元の定義の候補、続けて `extend action` の候補をパッケージ名の順）を出し、最後に `ozen check` と同じ診断と結果の行を出す。`debug steps` には要求の行を出さない
+- 台所と条件の型（補、P8-5）: `std` の前置きに `enum Cleanup`・`enum Preference`・`type Kitchen`（`places` の既定の `floor`・`counter`・`sink`、`tools`・`tableware`）・`type Options`（`servings`・`cooks: Count in 1.. = 1`・`cleanup`・`serveAt`・`prefer` と `check SCH101 tooManyCooks: cooks <= kitchen.floor.capacity else warn`）と設備の項目の型（`EquipmentSpec` の `count: Count in 0.. = 1` と、`FloorSpec`・`CounterSpec`・`StoveSpec`・`OvenSpec`・`ContainerSpec`・`FryingPanSpec`・`RiceCookingSpec`・`VesselSpec`）を置く（変換のスクリプトが語彙の後ろに足す）。台所の項目 `名前: 種類 { 属性 }` の属性の型は、種類とその上の種類・トレイトの名前に `Spec` を付けた型（最初に見つかったもの。無ければ器は `VesselSpec`、ほかは `EquipmentSpec`）。`places` の既定は名前で足す。単位の無い数は `Count` の項目だけ受け付ける。次元の違いは `TYP:dimension`、区間の外は `TYP:rangeViolation`（引数は項目の名前・値の式・区間の式。区間は端を含む）、列挙型に無い値は `TYP:axisValue`（引数は列挙型と値）。台所と条件は選んだものだけを検査する。名前の無い台所・条件は `NAM:undefined`（位置はファイルの先頭）
+- 台所の照合（補、P8-5）: 要求（`uses` の型と `requires`）は、数が 0 でない台所の項目のうち、種類の名前が要求の名前と同じか、種類・その上の種類とトレイトの型の並びに要求の名前があり（要求の裸の引数 `HeatSource<stovetop>` はその並びの引数にすべてある）、要求の状態の引数（`Container<capacity >= volume(x) * 1.2>`）を満たす項目があれば満たす。状態の引数の式は動作の引数を束縛して評価し（組み込みの `volume(x)` は量を体積に直す）、項目の値が無ければ満たすとみなす。`resource`（`hands`）は照合しない。台所があるとき、`variant` の無い動作の満たせない要求とレシピの満たせない `requires` は `KIT:requiresUnmet`（引数は要求の式、位置は呼び出しか `requires` の型）、`variant` がすべて外れたら `KIT:noVariant`（引数は動作と候補の名前を `, ` で並べたもの、位置は呼び出し）。`debug requires` の `variants` の行は台所で使える候補だけを出す。型の `check` は、台所を参照するものは台所があるときだけ評価し、成り立たなければ `check` のコードの診断（重さは `else` の `warn`・`info`・`error`。無ければエラー）を条件の宣言の名前の位置に出す
+- 料理の引数と器（補、P8-5）: 料理の引数は既定値（条件に同じ名前の項目があればその値）で束縛し、引数の型で検査する（`servings` は器の検査に使う）。`serve` の `plate` の項目は、液体（`Liquid` を持つか、液体を混ぜた値）を `HoldsLiquid` を持たない器に盛ると、`on` の器ごとに `TYP:vesselLiquid`（引数は項目の式と器）。台所があるとき、`on` の最初の器の台所の項目に容量があり、量を `servings` で割った 1 人分が容量を超えたら `SCH:vesselOverflow`（警告。引数は器・1 人分の量・容量、位置は項目）
 - 燃料（評価ステップ）の数え方: 名前の解決で名前を 1 つ引くたびに 1（D と同じ）、評価で次のノードを 1 つ評価するたびに 1。ブロック・`let`・`if`（`else if` は else 側の `if`）・`for`・`repeat`・呼び出し（動作・レシピ・組み込み。引数を左から）・マクロの呼び出し（引数は評価せず、展開したブロック）・名前・量（`1 h 30 min` も 1 つ）・数・文字列・真偽値・並び・レコード・二項演算（短絡しなければ右も）・単項演算・メンバーの参照・注釈・`make`・`buy`・`choose`・`assemble`・`ingredients`（と項目ごとに 1）・`parallel`・`branch`・`serve`・`plate`。生成ノードは D の数え方に、マクロの展開でコピーしたノードの数を足す。深さは評価の入れ子の数（D の解決の深さと同じ上限）
 
 ### 4.22 F: IR と段取り（§13-6）
@@ -2112,7 +2122,7 @@ gh run download "$id" -n xcframework -D build/ios && unzip -l build/ios/OzenProt
 | S233 | 効かない条件 | `cgolden/kitchen/check-without-kitchen` | 台所なしでも評価する | P8-5 |
 | S234 | 正常系 | `cgolden/kitchen/variant-filtered`、`cgolden/kitchen/no-variant-left` | 使えない候補を残す | P8-5 |
 | S235 | 正常系 | `cgolden/kitchen/notation-defaults` | `count` の既定を 0 にする | P8-5 |
-| S236 | 正常系 | `cgolden/kitchen/capacity-compile-time` | 台所の値を調理時の値として扱う | P8-5 |
+| S236 | 正常系 | `cgolden/kitchen/capacity-compile-time` | 台所の値を調理時の値として扱う | P8-7 |
 | S237 | 効かない条件 | `cgolden/kitchen/cleanup-without-kitchen` | 警告せずに使う | P8-9 |
 | S238 | 効かない条件 | `cgolden/vessels/soup-flat-plate` | 必須の制約を外す | P8-5 |
 | S239 | 正常系 | `cgolden/vessels/fallback-order` | 代替順を逆にする | P9-6 |
@@ -2482,9 +2492,9 @@ sed -n '/^## 8\./,/^## 9\./p' plans/ozen-roadmap.md | grep '^- ' | grep -v '機�
 | P8-2 | 先に `cgolden/state/*` を書く。状態の軸・要求と効果・逆順・書き手の軸・定義の時点の検査 | `G-CORE-GOLDEN`。S196〜S205・S474 の「わざと壊す確認」 |
 | P8-3 | 先に `cgolden/safety/*`（`allergen-bowl` を除く）・`cgolden/mix/*`・`cgolden/linear/*` を書く。安全・混ぜる・線形 | `G-CORE-GOLDEN`。S206・S207・S210〜S217 の「わざと壊す確認」 |
 | P8-4 | 先に `cgolden/parts/*`・`cgolden/actions/*`（容量・合成を除く）・`cgolden/names/arity-*` を書く。部位・別名・`Mixture` の構成・捌く・`uses`・`variant`・`extend action`・`requires`・多重定義の禁止・`where`・引数の数 | `G-CORE-GOLDEN`。S218〜S222・S226〜S229・S414・S417〜S421 の「わざと壊す確認」（S224 は台所の注入が要るので P8-5） |
-| P8-5 | 先に `cgolden/kitchen/*`（`cleanup-without-kitchen`・`check-fuel`・`kitchen-has-branch` を除く）・`cgolden/vessels/*`（必須と容量）・`cgolden/actions/capacity-from-amount`・`cgolden/actions/uses-capability` を書く。台所と条件の型・区間・`check`・`variant` の絞り込み・`requires` と台所・場所の既定値・器の必須の制約と容量 | `G-CORE-GOLDEN`。S224・S225・S230〜S236・S238・S241・S429・S430 の「わざと壊す確認」 |
+| P8-5 | 先に `cgolden/kitchen/*`（`cleanup-without-kitchen`・`check-fuel`・`kitchen-has-branch` を除く）・`cgolden/vessels/*`（必須と容量）・`cgolden/actions/capacity-from-amount`・`cgolden/actions/uses-capability` を書く。台所と条件の型・区間・`check`・`variant` の絞り込み・`requires` と台所・場所の既定値・器の必須の制約と容量 | `G-CORE-GOLDEN`。S224・S225・S230〜S235・S238・S241・S429・S430 の「わざと壊す確認」（S236 はコンパイル時の評価が要るので P8-7） |
 | P8-6 | 先に `cgolden/menus/*`（組み立ての順と `plate-overrides-dish` を除く）を書く。献立と料理の連携、複数の出力 | `G-CORE-GOLDEN`。S242〜S245・S247〜S252・S422 の「わざと壊す確認」 |
-| P8-7 | 先に `cgolden/eval/*`・`cgolden/macro/*`・`cgolden/kitchen/check-fuel`・`cgolden/kitchen/kitchen-has-branch` を書く。コンパイル時の評価とマクロ（B の方式を本番の AST で） | `G-CORE-GOLDEN`、`G-CORE-FUZZ`（`expand`）。S155・S253〜S259・S431・S432 の「わざと壊す確認」 |
+| P8-7 | 先に `cgolden/eval/*`・`cgolden/macro/*`・`cgolden/kitchen/check-fuel`・`cgolden/kitchen/kitchen-has-branch`・`cgolden/kitchen/capacity-compile-time` を書く。コンパイル時の評価とマクロ（B の方式を本番の AST で） | `G-CORE-GOLDEN`、`G-CORE-FUZZ`（`expand`）。S155・S236・S253〜S259・S431・S432 の「わざと壊す確認」 |
 | P8-8 | 先に `cgolden/diag/*`（P7-3 の分を除く）・`cgolden/dim/deny-strict-annotation`・`cgolden/safety/*-saf*`・`cgolden/syntax/annotation-target`・`cgolden/packages/deprecated-warning` などを書く。重さの仕組み・注釈・`@expect`・優先順位・直し方の候補・依存先の抑制・`SAF` の固定・`check` のコード（D32） | `G-CORE-GOLDEN`、`G-TYPE-SEVERITY-TABLE`（`--phase E`）。S178・S190〜S192・S208・S261〜S265・S267・S415・S428・S464 の「わざと壊す確認」 |
 | P8-9 | 先に `cgolden/levels/*`（P9 の分を除く）・`cgolden/actions/extend-in-assumptions` を書く。検証レベル・`check`・仮定・単調性、`prop/monotonic` | `G-CORE-GOLDEN`、`G-CORE-PROPS`（`monotonic`）、`G-CORE-FUZZ`（`typecheck`）。S237・S270〜S273・S275・S424 の「わざと壊す確認」 |
 | P8-10 | ゲート E | P7-6 のゴールと P8 のゴール |
@@ -3080,6 +3090,19 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/parts/trait-defined-parts`（S419・正常系）— トレイトの部位を探さないと落ちた。戻して合格
   - わざと壊す確認: `cgolden/parts/auto-discard`（S420・正常系）— 捨てる部分も残りとして報告すると落ちた。戻して合格
   - わざと壊す確認: `cgolden/parts/part-trait-clash`（S421・効かない条件）— 同名の検査を外すと落ちた。戻して合格
+- P8-5（2026-10-26）: golden 17 件を先にコミットし、台所と条件の注入（`--kitchen 名前`・`--options 名前`。D34 で確認を待つ）、`std` の `Kitchen`・`Options` と設備の項目の型、値の型検査（次元・区間・列挙型）、場所の既定値、要求と台所の照合（能力・裸の引数・量からの容量）、`variant` の絞り込みと `KIT:noVariant`、`KIT:requiresUnmet`、型の `check`（`SCH101 tooManyCooks`。台所を参照するものは台所があるときだけ）、料理の引数の束縛、器の液体と容量の検査を足した。登録簿に `TYP012 rangeViolation`・`TYP013 axisValue`・`TYP014 vesselLiquid`・`KIT001 noVariant`・`KIT002 requiresUnmet`・`SCH001 vesselOverflow`・`SCH101 tooManyCooks` を足した（`SCH101` は `std` の `check` が使うコード）。詳細は §4.21.1 の（補）。`capacity-from-amount` は、台所を 1 つしか選べないので「2 L に 2.4 L の鍋はちょうど通り、2.3 L は落ちる」を「2.4 L の鍋に 2 L はちょうど通り、2.1 L は落ちる」の 2 つのレシピで確かめる（同じ境界と係数）。S236（`capacity-compile-time`）はコンパイル時の評価が要るので P8-7 に移した。確保の失敗の注入で、食材の写しの軸の確保に失敗したとき軸の数が残る誤りが見つかり直した。最初の実行で 174 件すべてが合格し、4 構成・確保の失敗の注入も合格。`--phase E` の重さの表は `12 examples, 2 mismatched`
+  - わざと壊す確認: `cgolden/actions/uses-capability`（S224・正常系）— 種類の名前だけで照合すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/actions/capacity-from-amount`（S225・境界・上限）— 係数 1.2 を掛けない（掛け算の左だけを評価する）と落ち、容量の比較を「より大きい」にしても落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/unitless-capacity`・`negative-count`・`misspelled-cleanup`（S230・効かない条件）— 値の型検査を外すと 3 件とも落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/range-*`・`recipe-arg-range`（S231・境界・上限）— 区間の端を含めないと `range-bounds` が落ち、開いた区間を無視すると `range-open-ended` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/check-severity`（S232・正常系）— `check` の重さを `else` によらずエラーに固定すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/check-without-kitchen`（S233・効かない条件）— 台所が無くても既定の場所で `check` を評価すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/variant-filtered`・`no-variant-left`（S234・正常系）— 使えない候補を残すと 2 件とも落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/notation-defaults`（S235・正常系）— `std` の `count` の既定を 0 にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/vessels/soup-flat-plate`（S238・効かない条件）— 液体と器の必須の制約を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/vessels/capacity-over-warn`（S241・境界・上限）— 容量の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/requires-unmet`（S429・効かない条件）— レシピの `requires` を型検査の段階で照合しないと落ちた（段取りは F なので、E では照合を外す形で確かめた）。戻して合格
+  - わざと壊す確認: `cgolden/kitchen/default-places`（S430・正常系）— 省いた場所を足さないと落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
