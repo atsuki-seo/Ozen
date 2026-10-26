@@ -751,4 +751,5 @@ property piping = serveWithin(0..3 min)
 property beforeMelts = serveWithin(0..5 min)
 property justBeforeServe = serveWithin(2 min)
 property strict = diagnostics(vagueAmount)
+property nominalCutSize = { roughChop: 30 mm, rollCut: 25 mm, biteSize: 25 mm } @source(provisional)
 unit cc : Volume = 1 ml @deprecated
