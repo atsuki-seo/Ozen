@@ -1366,6 +1366,50 @@ bool ozni_project_load(ozni_ctx *c, const ozni_source *user, size_t nuser, ozni_
   return !c->oom;
 }
 
+/* Lookups for later phases */
+
+bool ozni_project_find(const ozni_project *pr, ozni_index mod, ozni_index name, ozni_index *out_mod,
+                       ozni_index *out_def) {
+  const ozni_module *m = ozni_table_get(pr->modules, mod);
+  ozni_index d = defs_find(m, name);
+  if (d != NONE) {
+    *out_mod = mod;
+    *out_def = d;
+    return true;
+  }
+  ozni_index hit_mod = NONE, hit_def = NONE;
+  for (ozni_index b = 0; b < ozni_table_count(m->bindings); b++) {
+    const binding *bd = ozni_table_get(m->bindings, b);
+    if (bd->name == name && bd->def != NONE) {
+      if (hit_mod != NONE && (hit_mod != bd->module || hit_def != bd->def)) {
+        return false;
+      }
+      hit_mod = bd->module;
+      hit_def = bd->def;
+    }
+  }
+  if (hit_mod != NONE) {
+    *out_mod = hit_mod;
+    *out_def = hit_def;
+    return true;
+  }
+  if (pr->prelude != NONE && mod != pr->prelude) {
+    d = defs_find(ozni_table_get(pr->modules, pr->prelude), name);
+    if (d != NONE) {
+      *out_mod = pr->prelude;
+      *out_def = d;
+      return true;
+    }
+  }
+  return false;
+}
+
+ozni_index ozni_project_find_module(const ozni_project *pr, ozni_index name) { return find_module(pr, name); }
+
+const ozni_node *ozni_project_node(const ozni_project *pr, ozni_index file, ozni_index i) {
+  return ozni_node_get(&pr->asts[file], i);
+}
+
 /* Debug output */
 
 bool ozni_render_modules(const ozni_project *pr, ozni_buf *b) {
