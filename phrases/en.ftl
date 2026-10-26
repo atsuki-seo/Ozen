@@ -85,6 +85,13 @@ part-wing-tip = wing tip
 part-wing-stick = drumette
 part-rib-loin = rib loin
 part-sirloin = sirloin
+part-head = head
+part-collar = collar
+part-back = back
+part-frame = frame
+part-skin = skin
+part-guts = guts
+part-scales = scales
 
 ## Aliases
 alias-komagire = pork scraps

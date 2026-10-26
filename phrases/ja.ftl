@@ -85,6 +85,13 @@ part-wing-tip = 手羽先
 part-wing-stick = 手羽元
 part-rib-loin = リブロース
 part-sirloin = サーロイン
+part-head = 頭
+part-collar = カマ
+part-back = 背身
+part-frame = アラ
+part-skin = 皮
+part-guts = 内臓
+part-scales = うろこ
 
 ## 別名
 alias-komagire = 豚こま
