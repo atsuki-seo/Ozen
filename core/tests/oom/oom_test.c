@@ -54,7 +54,7 @@ static char *run(counting *c, const ozni_source *src) {
   ozni_allocator a = {count_alloc, count_release, c};
   ozni_limits lim = ozni_default_limits();
   int has_errors = 0;
-  char *out = ozni_run_text(&a, &lim, src, 1, OZNI_MODE_CHECK, nullptr, &has_errors);
+  char *out = ozni_run_text(&a, &lim, nullptr, src, 1, OZNI_MODE_CHECK, nullptr, &has_errors);
   char *copy = nullptr;
   if (out != nullptr) {
     size_t n = strlen(out);

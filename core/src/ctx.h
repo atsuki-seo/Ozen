@@ -22,6 +22,7 @@ typedef struct ozni_diag {
 typedef struct ozni_ctx {
   const ozni_allocator *allocator;
   ozni_limits lim;
+  ozni_settings set;
   ozni_arena *arena;
   ozni_intern *names;
   ozni_table *diags;

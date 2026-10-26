@@ -18,6 +18,10 @@ typedef struct ozni_limits {
   size_t input_bytes;
 } ozni_limits;
 
+typedef struct ozni_settings {
+  bool strict;
+} ozni_settings;
+
 typedef struct ozni_source {
   const char *path;
   const char *text;
@@ -51,10 +55,11 @@ typedef enum ozni_mode : uint8_t {
   OZNI_MODE_ENTRY,
   OZNI_MODE_EMBEDDED_STD,
   OZNI_MODE_DEFINITIONS,
+  OZNI_MODE_STEPS,
 } ozni_mode;
 
-char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *srcs, size_t n,
-                    ozni_mode mode, const char *entry, int *has_errors);
+char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_settings *set,
+                    const ozni_source *srcs, size_t n, ozni_mode mode, const char *entry, int *has_errors);
 char *ozni_debug_ast_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *src,
                           unsigned flags, int *has_errors);
 void ozni_free_text(const ozni_allocator *a, char *text);

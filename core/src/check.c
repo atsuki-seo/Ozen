@@ -3,6 +3,7 @@
 
 #include "render.h"
 #include "resolve.h"
+#include "sema.h"
 #include "stdembed.h"
 #include "text.h"
 
@@ -29,8 +30,8 @@ static void embedded_std(ozni_buf *b) {
   }
 }
 
-char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *srcs, size_t n,
-                    ozni_mode mode, const char *entry, int *has_errors) {
+char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_settings *set,
+                    const ozni_source *srcs, size_t n, ozni_mode mode, const char *entry, int *has_errors) {
   *has_errors = 0;
   ozni_buf b = {.a = a};
   if (mode == OZNI_MODE_EMBEDDED_STD) {
@@ -41,9 +42,16 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
   if (!ozni_ctx_init(&c, a, lim, srcs, n)) {
     return nullptr;
   }
+  if (set != nullptr) {
+    c.set = *set;
+  }
   ozni_project pr;
   bool loaded = ozni_project_load(&c, srcs, n, &pr);
-  if (!loaded || c.oom) {
+  bool steps = mode == OZNI_MODE_STEPS;
+  if (loaded && !c.oom && !pr.syntax_errors && !c.limit_hit && (mode == OZNI_MODE_CHECK || steps)) {
+    loaded = ozni_sema_run(&pr, steps, steps ? &b : nullptr);
+  }
+  if (!loaded || c.oom || ozni_arena_failures(c.arena) > 0) {
     c.oom = true;
     ozni_diag_add(&c, OZNI_D_MAC_outOfMemory, (ozni_span){0, 0, 0}, 0, nullptr, 0);
   }
@@ -65,7 +73,9 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
     errors = any_error(&c);
     out = ozni_buf_finish(&b);
   } else {
-    ozni_buf_discard(&b);
+    if (!steps || c.oom) {
+      ozni_buf_discard(&b);
+    }
     if (ozni_render_check(&c, &b, &errors)) {
       out = ozni_buf_finish(&b);
     } else {
