@@ -1,0 +1,116 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+import json
+import sys
+from fractions import Fraction
+
+LEVELS = ["none", "rinse", "wash", "soakThenWash"]
+
+
+def num(value):
+    return Fraction(value["num"], value["den"])
+
+
+def overlap(a, b):
+    return a["start"] < b["endHi"] and b["start"] < a["endHi"]
+
+
+def check(doc):
+    """Return a list of (check, detail) violations of one schedule."""
+    out = []
+    tasks = {t["id"]: dict(t, start=num(t["start"]), endHi=num(t["endHi"]), endLo=num(t["endLo"]))
+             for t in doc["tasks"]}
+    resources = {r["id"]: r for r in doc["resources"]}
+    waves = {w["id"]: dict(w, serveAt=num(w["serveAt"]), gap=num(w["gap"])) for w in doc.get("waves", [])}
+
+    for t in tasks.values():
+        if not t["start"] <= t["endLo"] <= t["endHi"]:
+            out.append(("times", f"task {t['id']} ends before it starts"))
+        for d in t.get("deps", []):
+            if d not in tasks:
+                out.append(("deps", f"task {t['id']} depends on unknown task {d}"))
+            elif t["start"] < tasks[d]["endHi"]:
+                out.append(("deps", f"task {t['id']} starts before task {d} ends"))
+
+    for rid, r in resources.items():
+        users = [t for t in tasks.values() if rid in t.get("uses", [])]
+        for t in users:
+            busy = sum(1 for u in users if u["start"] <= t["start"] < u["endHi"])
+            if busy > r["capacity"]:
+                out.append(("resources", f"resource {rid} holds {busy} tasks at {t['start']}"))
+                break
+        if len(r.get("capabilities", [])) > 1:
+            for a in users:
+                if any(b["id"] > a["id"] and overlap(a, b) for b in users):
+                    out.append(("devices", f"device {rid} serves two tasks at once"))
+                    break
+
+    cooks = doc["cooks"]
+    for t in tasks.values():
+        cook = t.get("cook")
+        if t.get("unattended") and cook is not None:
+            out.append(("people", f"unattended task {t['id']} uses cook {cook}"))
+        if cook is not None and not 1 <= cook <= cooks:
+            out.append(("people", f"task {t['id']} uses cook {cook} of {cooks}"))
+    for a in tasks.values():
+        for b in tasks.values():
+            if a["id"] < b["id"] and a.get("cook") is not None and a.get("cook") == b.get("cook") and overlap(a, b):
+                out.append(("people", f"cook {a['cook']} works on tasks {a['id']} and {b['id']} at once"))
+
+    for w in waves.values():
+        for t in tasks.values():
+            if t.get("wave") == w["id"] and t["endHi"] > w["serveAt"]:
+                out.append(("waves", f"task {t['id']} of wave {w['id']} ends after serving"))
+        prev = waves.get(w.get("after"))
+        if prev is not None and w["serveAt"] < prev["serveAt"] + w["gap"]:
+            out.append(("waves", f"wave {w['id']} is served before wave {prev['id']} plus its gap"))
+
+    for dish in doc.get("dishes", []):
+        limit = dish.get("serveWithin")
+        wave = waves.get(dish.get("wave"))
+        ready = tasks.get(dish.get("ready"))
+        if limit is not None and wave is not None and ready is not None:
+            if wave["serveAt"] - ready["endLo"] > num(limit):
+                out.append(("serving", f"dish {dish['id']} waits longer than allowed"))
+
+    rules = {r["dirt"]: r["level"] for r in doc.get("rules", [])}
+    order = sorted(tasks.values(), key=lambda t: (t["start"], t["id"]))
+    dirty = {}
+    for t in order:
+        clean = t.get("cleans")
+        for rid in t.get("uses", []):
+            cleaning = clean is not None and clean["resource"] == rid
+            if rid in dirty and t["id"] not in dirty[rid][1] and not cleaning:
+                out.append(("washing", f"task {t['id']} uses {rid} still dirty after task {dirty[rid][0]}"))
+                del dirty[rid]
+        if clean is not None and clean["resource"] in dirty:
+            need = dirty[clean["resource"]][2]
+            if LEVELS.index(clean["level"]) >= LEVELS.index(need):
+                del dirty[clean["resource"]]
+        for mark in t.get("leaves", []):
+            level = rules.get(mark["dirt"], "none")
+            if level != "none":
+                dirty[mark["resource"]] = (t["id"], set(mark.get("sameFoodAs", [])), level)
+
+    cleanup = doc.get("cleanup", "none")
+    if cleanup != "none":
+        for rid, (tid, _, _) in sorted(dirty.items()):
+            kind = resources.get(rid, {}).get("category")
+            if cleanup == "afterMeal" or kind in ("tool", "place"):
+                out.append(("cleanup", f"resource {rid} is still dirty after task {tid}"))
+    return out
+
+
+def main(paths):
+    total = 0
+    for path in paths:
+        with open(path, encoding="utf-8") as f:
+            doc = json.load(f)
+        for name, detail in check(doc):
+            print(f"violation: {path}: {name}: {detail}", file=sys.stderr)
+            total += 1
+    print(f"schedcheck: {len(paths)} schedules, {total} violations")
+    return 0 if total == 0 and paths else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

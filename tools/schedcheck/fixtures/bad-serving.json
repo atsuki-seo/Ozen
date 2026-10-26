@@ -1,0 +1,262 @@
+{
+ "schemaVersion": 1,
+ "cooks": 2,
+ "cleanup": "beforeMeal",
+ "resources": [
+  {
+   "id": "sink",
+   "kind": "Sink",
+   "capacity": 1,
+   "category": "place"
+  },
+  {
+   "id": "board",
+   "kind": "CuttingBoard",
+   "capacity": 1,
+   "category": "tool"
+  },
+  {
+   "id": "stove",
+   "kind": "IHStove",
+   "capacity": 2,
+   "category": "place"
+  },
+  {
+   "id": "range",
+   "kind": "OvenRange",
+   "capacity": 1,
+   "category": "place",
+   "capabilities": [
+    "oven",
+    "microwave"
+   ]
+  },
+  {
+   "id": "deepPlate",
+   "kind": "DeepPlate",
+   "capacity": 4,
+   "category": "vessel"
+  }
+ ],
+ "tasks": [
+  {
+   "id": 1,
+   "op": "wash",
+   "deps": [],
+   "start": {
+    "num": 0,
+    "den": 1
+   },
+   "endHi": {
+    "num": 60,
+    "den": 1
+   },
+   "endLo": {
+    "num": 60,
+    "den": 1
+   },
+   "cook": 1,
+   "uses": [
+    "sink"
+   ],
+   "unattended": false,
+   "wave": null
+  },
+  {
+   "id": 2,
+   "op": "cut",
+   "deps": [],
+   "start": {
+    "num": 0,
+    "den": 1
+   },
+   "endHi": {
+    "num": 120,
+    "den": 1
+   },
+   "endLo": {
+    "num": 120,
+    "den": 1
+   },
+   "cook": 2,
+   "uses": [
+    "board"
+   ],
+   "unattended": false,
+   "wave": null,
+   "leaves": [
+    {
+     "resource": "board",
+     "dirt": "rawMeat"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "op": "wash board",
+   "deps": [],
+   "start": {
+    "num": 120,
+    "den": 1
+   },
+   "endHi": {
+    "num": 180,
+    "den": 1
+   },
+   "endLo": {
+    "num": 180,
+    "den": 1
+   },
+   "cook": 2,
+   "uses": [
+    "sink",
+    "board"
+   ],
+   "unattended": false,
+   "wave": null,
+   "cleans": {
+    "resource": "board",
+    "level": "wash"
+   }
+  },
+  {
+   "id": 4,
+   "op": "cut",
+   "deps": [],
+   "start": {
+    "num": 180,
+    "den": 1
+   },
+   "endHi": {
+    "num": 240,
+    "den": 1
+   },
+   "endLo": {
+    "num": 240,
+    "den": 1
+   },
+   "cook": 2,
+   "uses": [
+    "board"
+   ],
+   "unattended": false,
+   "wave": null
+  },
+  {
+   "id": 5,
+   "op": "simmer",
+   "deps": [
+    1
+   ],
+   "start": {
+    "num": 60,
+    "den": 1
+   },
+   "endHi": {
+    "num": 660,
+    "den": 1
+   },
+   "endLo": {
+    "num": 600,
+    "den": 1
+   },
+   "cook": null,
+   "uses": [
+    "stove"
+   ],
+   "unattended": true,
+   "wave": null
+  },
+  {
+   "id": 6,
+   "op": "warm",
+   "deps": [],
+   "start": {
+    "num": 0,
+    "den": 1
+   },
+   "endHi": {
+    "num": 120,
+    "den": 1
+   },
+   "endLo": {
+    "num": 120,
+    "den": 1
+   },
+   "cook": null,
+   "uses": [
+    "range"
+   ],
+   "unattended": true,
+   "wave": null
+  },
+  {
+   "id": 7,
+   "op": "plate",
+   "deps": [
+    5
+   ],
+   "start": {
+    "num": 660,
+    "den": 1
+   },
+   "endHi": {
+    "num": 700,
+    "den": 1
+   },
+   "endLo": {
+    "num": 700,
+    "den": 1
+   },
+   "cook": 1,
+   "uses": [
+    "deepPlate"
+   ],
+   "unattended": false,
+   "wave": 1
+  }
+ ],
+ "waves": [
+  {
+   "id": 1,
+   "serveAt": {
+    "num": 700,
+    "den": 1
+   },
+   "after": null,
+   "gap": {
+    "num": 0,
+    "den": 1
+   }
+  },
+  {
+   "id": 2,
+   "serveAt": {
+    "num": 3100,
+    "den": 1
+   },
+   "after": 1,
+   "gap": {
+    "num": 2400,
+    "den": 1
+   }
+  }
+ ],
+ "dishes": [
+  {
+   "id": 1,
+   "serveWithin": {
+    "num": 60,
+    "den": 1
+   },
+   "wave": 1,
+   "ready": 5
+  }
+ ],
+ "rules": [
+  {
+   "dirt": "rawMeat",
+   "level": "wash"
+  }
+ ]
+}
