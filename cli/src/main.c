@@ -8,6 +8,7 @@
 
 #include "../../core/include/ozen.h"
 #include "ozni.h"
+#include "sarif.h"
 
 #ifndef OZEN_VERSION
 #define OZEN_VERSION "0.0.0"
@@ -163,6 +164,7 @@ static int emit(const ozni_allocator *a, char *text, int has_errors) {
 static ozni_limits limits;
 static ozni_settings settings;
 static unsigned emit_bits;
+static bool sarif_format;
 
 static size_t skip_space(const char *t, size_t n, size_t i) {
   while (i < n) {
@@ -334,7 +336,13 @@ static int run_api(const ozni_source *srcs, size_t n) {
     fputs("ozen: out of memory\n", stderr);
     return 2;
   }
-  fputs(out, stdout);
+  if (sarif_format) {
+    if (!ozen_write_sarif(stdout, out, strlen(out))) {
+      fputs("ozen: cannot convert the result to SARIF\n", stderr);
+    }
+  } else {
+    fputs(out, stdout);
+  }
   int status = strstr(out, "\"status\":\"error\"") != nullptr ? 1 : 0;
   recipe_free_string(&cfg, out);
   return status;
@@ -370,7 +378,7 @@ static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const 
     }
     srcs[i] = (ozni_source){l.paths[i], text, len};
   }
-  if (status == -1 && mode == OZNI_MODE_CHECK && settings.json) {
+  if (status == -1 && mode == OZNI_MODE_CHECK && (settings.json || sarif_format)) {
     status = run_api(srcs, l.n);
   } else if (status == -1) {
     int has_errors = 0;
@@ -460,6 +468,11 @@ static int take_options(int argc, char **argv, heap *h) {
     }
     if (strcmp(argv[i], "--format") == 0 && i + 1 < argc && strcmp(argv[i + 1], "json") == 0) {
       settings.json = true;
+      i++;
+      continue;
+    }
+    if (strcmp(argv[i], "--format") == 0 && i + 1 < argc && strcmp(argv[i + 1], "sarif") == 0) {
+      sarif_format = true;
       i++;
       continue;
     }
