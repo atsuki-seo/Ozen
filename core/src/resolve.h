@@ -57,5 +57,6 @@ ozni_index ozni_project_find_module(const ozni_project *pr, ozni_index name);
 const ozni_node *ozni_project_node(const ozni_project *pr, ozni_index file, ozni_index i);
 bool ozni_render_definitions(const ozni_project *pr, ozni_buf *b);
 bool ozni_render_entry(ozni_project *pr, const char *entry, ozni_buf *b, bool *ok);
+[[nodiscard]] bool ozni_apply_levels(ozni_project *pr);
 
 #endif

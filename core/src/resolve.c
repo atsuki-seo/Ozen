@@ -501,7 +501,11 @@ static void check_overrides(ozni_project *pr, ozni_index mi) {
     if (from == NONE && prelude != nullptr && defs_find(prelude, e->name) != NONE) {
       from = pr->prelude;
     }
-    if (from != NONE) {
+    const ozni_node *dn = node(pr, m->file, e->node);
+    const ozni_node *value = dn->kind == OZNI_N_Property && dn->first != 0 ? node(pr, m->file, dn->first) : nullptr;
+    bool group = value != nullptr && value->kind == OZNI_N_Call && value->first != 0 &&
+                 str_eq(str_of(pr->c, node(pr, m->file, value->first)->text), "diagnostics");
+    if (from != NONE && !group) {
       ozni_str args[2] = {str_of(pr->c, e->name), str_of(pr->c, M(pr, from)->name)};
       diag_node(pr, OZNI_D_NAM_localOverride, m->file, node(pr, m->file, e->node), args, 2);
     }

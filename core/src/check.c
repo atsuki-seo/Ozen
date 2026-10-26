@@ -51,6 +51,9 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
   if (loaded && !c.oom && !pr.syntax_errors && !c.limit_hit && (mode == OZNI_MODE_CHECK || steps)) {
     loaded = ozni_sema_run(&pr, mode == OZNI_MODE_STEPS, mode == OZNI_MODE_REQUIRES, steps ? &b : nullptr);
   }
+  if (loaded && !c.oom && (mode == OZNI_MODE_CHECK || steps) && !ozni_apply_levels(&pr)) {
+    c.oom = true;
+  }
   if (!loaded || c.oom || ozni_arena_failures(c.arena) > 0) {
     c.oom = true;
     ozni_diag_add(&c, OZNI_D_MAC_outOfMemory, (ozni_span){0, 0, 0}, 0, nullptr, 0);
