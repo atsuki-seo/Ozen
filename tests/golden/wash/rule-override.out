@@ -1,0 +1,6 @@
+schedule r level=2 cooks=1
+  0..60 (60) %2 mark by cook1 [board#1]
+  60..120 (120) %4 touch by cook1 [board#1]
+  total 120
+result ok errors=0 warnings=0 infos=0
+exit 0

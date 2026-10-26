@@ -1,0 +1,28 @@
+// args: debug schedule --kitchen home --options today
+action trim(x: T) -> T {
+  uses hands, WorkSurface, CuttingSurface for 1 min
+  leaves: x on CuttingSurface
+}
+action sear(x: T) -> T<doneness: done> {
+  uses hands, HeatSource<stovetop>, FryingPan for 2 min
+  leaves: oil on FryingPan
+}
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    board: CuttingBoard
+    pan: FryingPan
+  }
+}
+recipe r() {
+  ingredients {
+    pork: 200 g
+  }
+  let a = trim(pork)
+  let b = sear(a)
+}
+kitchen today : Options {
+  cleanup: beforeMeal
+}

@@ -1,0 +1,70 @@
+// args: debug schedule --kitchen home --options today
+action mark(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+  leaves: x on CuttingSurface
+}
+action scorchIt(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+  leaves: scorch on CuttingSurface
+}
+action touch(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+}
+kitchen home {
+  tools {
+    board: CuttingBoard
+  }
+}
+recipe r() {
+  ingredients {
+    pork: 200 g
+    naan: 1 pcs
+    k1: Carrot 1 pcs
+    k2: Carrot 1 pcs
+    onion: 1 pcs
+    dressing: 30 ml
+    sugar: 10 g
+    tomato: 1 pcs
+    c1: Cabbage 50 g
+    c2: Cabbage 50 g
+    c3: Cabbage 50 g
+    c4: Cabbage 50 g
+    c5: Cabbage 50 g
+    c6: Cabbage 50 g
+    c7: Cabbage 50 g
+    c8: Cabbage 50 g
+    c9: Cabbage 50 g
+    c10: Cabbage 50 g
+    p1: Potato 1 pcs
+    p2: Potato 1 pcs
+    p3: Potato 1 pcs
+  }
+  parallel {
+    branch a {
+      let a1 = mark(pork)
+      let b1 = touch(c1)
+      let a2 = mark(naan)
+      let b2 = touch(c2)
+      let a3 = mark(k1)
+      let b3 = touch(c3)
+      let a4 = mark(k2)
+      let b4 = touch(p1)
+      let a5 = mark(onion)
+      let b5 = touch(p2)
+      let b6 = touch(c4)
+      let a7 = mark(dressing)
+      let b7 = touch(c5)
+      let a8 = mark(sugar)
+      let b8 = touch(c6)
+      let a9 = scorchIt(c7)
+      let b9 = touch(c8)
+      let a10 = mark(tomato)
+      let b10 = touch(c9)
+      let a11 = mark(c10)
+      let b11 = touch(p3)
+    }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

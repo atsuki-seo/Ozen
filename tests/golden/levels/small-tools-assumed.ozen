@@ -1,0 +1,15 @@
+// args: check --entry r --kitchen home --options today
+recipe r() {
+  ingredients {
+    lettuce: 100 g
+  }
+  let t = toss(lettuce)
+}
+kitchen home {
+  places {
+    stove: IHStove
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

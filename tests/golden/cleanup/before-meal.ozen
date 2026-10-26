@@ -1,0 +1,32 @@
+// args: debug schedule --entry dinner --kitchen home --options today
+action trim(x: T) -> T {
+  uses hands, WorkSurface, CuttingSurface for 1 min
+  leaves: x on CuttingSurface
+}
+kitchen home {
+  places {
+    floor: Floor { capacity: 2 }
+  }
+  tools {
+    board: CuttingBoard
+  }
+  tableware {
+    plates: FlatPlate { count: 2 }
+  }
+}
+recipe salad() {
+  ingredients {
+    lettuce: 100 g
+  }
+  let p = trim(lettuce)
+}
+menu dinner() {
+  let s = make salad()
+  serve main {
+    plate perPerson on FlatPlate { s }
+  }
+}
+kitchen today : Options {
+  cooks: 2
+  cleanup: beforeMeal
+}

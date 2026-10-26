@@ -1,0 +1,7 @@
+schedule r level=2 cooks=1
+  0..0 (0) %2 split unattended
+  0..600 (600) %4 steep unattended [sink#1]
+  600..660 (618) %3 store by cook1 [fridge#1]
+  total 660
+result ok errors=0 warnings=0 infos=0
+exit 0

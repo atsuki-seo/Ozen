@@ -1,0 +1,31 @@
+// args: debug schedule --kitchen home --options today
+action chop(x: T) -> T {
+  uses hands, CuttingSurface for 2 min
+  leaves: x on CuttingSurface
+}
+action sear(x: T) -> T {
+  uses hands, FryingPan for 3 min
+  leaves: oil on FryingPan
+}
+action warmUp(x: T) -> T {
+  uses hands, FryingPan for 1 min
+}
+kitchen home {
+  tools {
+    board: CuttingBoard
+    pan: FryingPan
+  }
+}
+recipe r() {
+  ingredients {
+    pork: 200 g
+    cabbage: 100 g
+  }
+  let a = chop(pork)
+  let b = sear(a)
+  let c = chop(cabbage)
+  let d = warmUp(c)
+}
+kitchen today : Options {
+  cooks: 1
+}

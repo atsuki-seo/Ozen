@@ -1,0 +1,20 @@
+// args: debug schedule --kitchen home --options today
+action steep(x: T) -> T {
+  uses Washing for 10 min @unattended
+}
+kitchen home {
+  places {
+    fridge: Fridge
+  }
+}
+recipe r() {
+  ingredients {
+    rice: 300 g
+  }
+  let (a, b) = split(rice, 200 g)
+  store(b)
+  let w = steep(a)
+}
+kitchen today : Options {
+  cleanup: afterMeal
+}

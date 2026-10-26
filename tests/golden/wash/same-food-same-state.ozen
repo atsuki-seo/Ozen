@@ -1,0 +1,30 @@
+// args: debug schedule --kitchen home --options today
+action mark(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+  leaves: x on CuttingSurface
+}
+action touch(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+}
+kitchen home {
+  tools {
+    board: CuttingBoard
+  }
+}
+recipe r() {
+  ingredients {
+    p1: Pork 200 g
+    p2: Pork 200 g
+    ch: Chicken 200 g
+  }
+  parallel {
+    branch a {
+      let a = mark(p1)
+      let b = mark(p2)
+      let c = mark(ch)
+    }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

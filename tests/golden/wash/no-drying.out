@@ -1,0 +1,8 @@
+schedule r level=2 cooks=1
+  0..60 (60) %2 mark by cook1 [board#1]
+  60..180 (120) wash board#1 after rawMeat by cook1 [sink#1, board#1]
+  180..240 (240) %4 touch by cook1 [board#1]
+  total 240
+info SCH006 washInserted no-drying.ozen:22:15-22:24 args=["board#1", "rawMeat"]: wash inserted
+result ok errors=0 warnings=0 infos=1
+exit 0

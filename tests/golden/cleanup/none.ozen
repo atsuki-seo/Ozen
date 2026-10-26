@@ -1,0 +1,25 @@
+// args: debug schedule --kitchen home --options today
+action trim(x: T) -> T {
+  uses hands, WorkSurface, CuttingSurface for 1 min
+  leaves: x on CuttingSurface
+}
+kitchen home {
+  tools {
+    board: CuttingBoard
+  }
+}
+recipe r() {
+  ingredients {
+    pork: 200 g
+    lettuce: 100 g
+  }
+  parallel {
+    branch a {
+      let a = trim(pork)
+      let b = trim(lettuce)
+    }
+  }
+}
+kitchen today : Options {
+  cleanup: none
+}

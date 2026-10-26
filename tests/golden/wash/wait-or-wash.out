@@ -1,0 +1,14 @@
+schedule waits level=2 cooks=2
+  0..60 (60) %2 mark by cook2 [board#2]
+  0..150 (150) %6 slow by cook1 [board#1]
+  150..210 (210) %4 touch by cook1 [board#1]
+  total 210
+schedule washes level=2 cooks=2
+  0..60 (60) %2 mark by cook2 [board#2]
+  0..300 (300) %6 slower by cook1 [board#1]
+  60..180 (120) wash board#2 after rawMeat by cook2 [sink#1, board#2]
+  180..240 (240) %4 touch by cook2 [board#2]
+  total 300
+info SCH006 washInserted wait-or-wash.ozen:48:15-48:24 args=["board#2", "rawMeat"]: wash inserted
+result ok errors=0 warnings=0 infos=1
+exit 0

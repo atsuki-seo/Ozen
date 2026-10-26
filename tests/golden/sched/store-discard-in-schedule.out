@@ -1,0 +1,9 @@
+schedule r level=1 cooks=1
+  0..0 (0) %2 split unattended
+  0..180 (60) %4 wash by cook1
+  0..0 (0) %6 split unattended
+  180..240 (198) %3 store by cook1
+  240..270 (246) %7 discard by cook1
+  total 270
+result ok errors=0 warnings=0 infos=0
+exit 0

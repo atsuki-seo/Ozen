@@ -1,0 +1,57 @@
+// args: debug schedule --kitchen home --options today
+action mark(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+  leaves: x on CuttingSurface
+}
+action touch(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+}
+action slow(x: T) -> T {
+  uses hands, CuttingSurface for 2.5 min
+}
+action slower(x: T) -> T {
+  uses hands, CuttingSurface for 5 min
+}
+kitchen home {
+  places {
+    floor: Floor { capacity: 2 }
+  }
+  tools {
+    board: CuttingBoard { count: 2 }
+  }
+}
+recipe waits() {
+  ingredients {
+    pork: 200 g
+    c1: Cabbage 50 g
+    c2: Cabbage 50 g
+  }
+  parallel {
+    branch a {
+      let a = mark(pork)
+      let b = touch(c1)
+    }
+    branch b {
+      let c = slow(c2)
+    }
+  }
+}
+recipe washes() {
+  ingredients {
+    pork: 200 g
+    c1: Cabbage 50 g
+    c2: Cabbage 50 g
+  }
+  parallel {
+    branch a {
+      let a = mark(pork)
+      let b = touch(c1)
+    }
+    branch b {
+      let c = slower(c2)
+    }
+  }
+}
+kitchen today : Options {
+  cooks: 2
+}

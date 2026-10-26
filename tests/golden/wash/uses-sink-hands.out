@@ -1,0 +1,14 @@
+schedule r level=2 cooks=1
+  0..60 (60) %2 mark by cook1 [board#1]
+  0..300 (300) %10 fill unattended [sink#1]
+  300..420 (360) wash board#1 after rawMeat by cook1 [sink#1, board#1]
+  420..480 (480) %4 touch by cook1 [board#1]
+  480..540 (540) %6 mark by cook1 [board#1]
+  540..2340 (1140) soak board#1 after starch unattended [board#1]
+  2340..2460 (2400) wash board#1 after starch by cook1 [sink#1, board#1]
+  2460..2520 (2520) %8 touch by cook1 [board#1]
+  total 2520
+info SCH006 washInserted uses-sink-hands.ozen:28:15-28:24 args=["board#1", "rawMeat"]: wash inserted
+info SCH006 washInserted uses-sink-hands.ozen:30:15-30:24 args=["board#1", "starch"]: wash inserted
+result ok errors=0 warnings=0 infos=2
+exit 0

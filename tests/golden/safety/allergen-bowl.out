@@ -1,0 +1,10 @@
+schedule lunch level=2 cooks=1
+  0..120 (30) %2 mix by cook1 [bowl#1]
+  120..180 (150) wash bowl#1 after allergen(egg) by cook1 [sink#1, bowl#1]
+  180..240 (210) %4 toss by cook1 [bowl#1]
+  total 240
+info ASM007 provisionalValue allergen-bowl.ozen:9:11-9:19 args=["mix"]: provisional value
+info ASM007 provisionalValue allergen-bowl.ozen:15:11-15:24 args=["toss"]: provisional value
+info SCH006 washInserted allergen-bowl.ozen:15:11-15:24 args=["bowl#1", "allergen(egg)"]: wash inserted
+result ok errors=0 warnings=0 infos=3
+exit 0

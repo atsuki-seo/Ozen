@@ -1,0 +1,12 @@
+schedule r level=2 cooks=1
+  0..120 (120) %2 chop by cook1 [board#1]
+  120..300 (300) %3 sear by cook1 [pan#1]
+  300..420 (360) wash board#1 after rawMeat by cook1 [sink#1, board#1]
+  420..540 (540) %5 chop by cook1 [board#1]
+  540..720 (600) wash pan#1 after oil by cook1 [sink#1, pan#1]
+  720..780 (780) %6 warmUp by cook1 [pan#1]
+  total 780
+info SCH006 washInserted dirt-from-leaves.ozen:26:11-26:24 args=["board#1", "rawMeat"]: wash inserted
+info SCH006 washInserted dirt-from-leaves.ozen:27:11-27:20 args=["pan#1", "oil"]: wash inserted
+result ok errors=0 warnings=0 infos=2
+exit 0

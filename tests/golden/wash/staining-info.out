@@ -1,0 +1,7 @@
+schedule r level=2 cooks=1
+  0..60 (60) %2 mark by cook1 [board#1]
+  60..120 (120) %4 touch by cook1 [board#1]
+  total 120
+info SCH007 stainLeft staining-info.ozen:21:15-21:27 args=["board#1", "stain"]: stain left
+result ok errors=0 warnings=0 infos=1
+exit 0

@@ -1,0 +1,22 @@
+// args: check --entry lunch --options today
+ingredient Egg : Allergen(egg) {
+  leaves: allergen
+}
+recipe eggSalad() {
+  ingredients {
+    egg: 2 pcs
+  }
+  let m = mix(egg)
+}
+recipe greenSalad() {
+  ingredients {
+    lettuce: 100 g
+  }
+  let t = toss(lettuce)
+}
+menu lunch(people: 2) {
+  let s = choose perPerson from { make eggSalad(), make greenSalad() }
+}
+kitchen today : Options {
+  people: [Person { picks: [EggSalad] }, Person { picks: [EggSalad], allergies: [egg] }]
+}
