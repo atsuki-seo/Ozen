@@ -3283,6 +3283,11 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/sched/meal-duration-from-interval`（S326・時間と順序）— 食事の長さを 0 にすると落ちた。戻して合格
   - わざと壊す確認: `cgolden/menus/plate-overrides-dish`（S423・時間と順序）— レシピの `@vessel` を献立の `plate` より優先すると落ちた。戻して合格
   - わざと壊す確認: `cgolden/vessels/shared-platter`・`shared-leftover`（S435・境界・上限）— 盛り付けで料理を消費しないと `shared-leftover` が、`shared` でも人数分の器を数えると `shared-platter` が落ちた。戻して合格
+- P9-7（2026-10-26）: golden 8 件（`sched/objective-order`・`improvement`・`prefer-fewer-washes`・`prefer-less-waiting`・`prefer-fewer-tools`・`prefer-steady-pace`・`prefer-tools-then-pace`・`prefer-pace-then-tools`）と、レベル 0 の最短時間の情報を足した `levels/critical-path`・`provisional-assumed` の期待値を先にコミットし、候補の段取りを組んで目指すものの順に選ぶ仕組み・前後の詰め直し・`prefer` の 4 つの指標・`SCH:criticalPath`・段取りの fuzz（`fuzz_schedule`、`scripts/fuzz-core.sh` の既定の対象に追加）を足した。登録簿に `SCH009 criticalPath` を足した。詳細は §4.22.1 の（補）。`prefer-*`・`improvement`・`objective-order` の入力は、無作為に作った小さなレシピから、比べる仕組みで結果が変わるものを道具で探して選び、段取りの正しさ（依存・資源・洗い・指標の値）を手で確かめてから期待値にした。`objective-order` と `prefer-tools-then-pace` は実装の前の段取りと同じになるので red-first の例外に書いた。既存の golden の段取りは、候補を比べても 1 件も変わらなかった。最初の実行で 312 件すべてが合格し、4 構成・確保の失敗の注入（`292 files, 3865 points, 0 failures`）・`G-SCHED-CHECK`（`60 schedules, 0 violations`）・性質のテスト（差分 0）・`G-TYPE-SEVERITY-TABLE`（17 例すべて、`17 examples, 0 mismatched; categories: 15 examples, 0 mismatched`）も合格
+  - わざと壊す確認: `cgolden/sched/objective-order`（S291・時間と順序）— 全体の時間を出すタイミングより先に比べると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/prefer-*`（S292・正常系）— `prefer` の並びを決まった順に並べ替えると `prefer-pace-then-tools` が、指標で比べないと 5 件が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/improvement`（S293・正常系）— 前後の詰め直しの候補を作らないと落ちた。戻して合格
+  - わざと壊す確認: `G-TYPE-SEVERITY-TABLE`（categories、S457・データの完全性）— 登録簿の `vesselOverflow` の分類を `KIT` にすると `categories: 15 examples, 1 mismatched` になった。戻して合格
 - わざと壊す確認の記録
 
 ### 9.7 G（API・JSON・CLI）
