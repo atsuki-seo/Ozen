@@ -393,14 +393,22 @@ type Kitchen {
   tools: [Tool] = []
   tableware: [Vessel] = []
 }
+type Person {
+  picks: [Dish] = []
+}
 type Options {
   servings: Count?
   cooks: Count in 1.. = 1
   cleanup: Cleanup = none
   serveAt: Time?
   prefer: [Preference] = []
+  people: [Person] = []
   check SCH101 tooManyCooks: cooks <= kitchen.floor.capacity else warn
-}""".split("\n")
+}
+property whileWarm = serveWithin(5..15 min)
+property piping = serveWithin(0..3 min)
+property beforeMelts = serveWithin(0..5 min)
+property justBeforeServe = serveWithin(2 min)""".split("\n")
 
 
 def write(path, lines):
