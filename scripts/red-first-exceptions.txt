@@ -7,3 +7,5 @@ c83c9e3 out-of-memory golden added after the implementation so that MAC:outOfMem
 fce74b8 the import-star golden in this commit was already green because the parser reported star imports since P7-3; the S164 mutation shows that it detects accepting star imports
 f34f36d the std package golden passes with the existing resolver by design; the S357 mutation (renaming the std package) shows that it detects the change
 9e3c407 the no-overload golden passes with the existing duplicate definition check from P7; the S229 mutation (letting the second definition replace the first) shows that it detects overloading
+1082dd0 ten positive state goldens were already green with the P8-1 effect evaluation; each fails under at least one of the S197 to S204 and S474 mutations (output as a fresh value, ordered assignment, reversed finer relation, set replacement, unused axis required, browning advancing doneness, set not copied, blend treated as cut)
+0a11bbe the amount-sum, new-value and raw-edible-exception goldens were already green because P8-2 summed mixture amounts and had no safety check yet; the S211, S210 and S207 mutations show that they detect the change
