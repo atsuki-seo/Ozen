@@ -1,0 +1,8 @@
+File paren-newline.ozen
+  Property p
+    Binary *
+      Binary +
+        Number 1
+        Number 2
+      Number 3
+exit 0
