@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: CC-BY-4.0
+entry: curryRice
+runs:
+  - name: no-kitchen
+    expect:
+      errors: 0
+      level: 0
+      ir:
+        labels: [rice, wash, soak, cookRice, onion, peel, cut, fry, water, roux, combine, simmer]
+        reaches:
+          - {to: plate, from: [rice, onion, water, roux]}
+      schedule:
+        tasks: [wash, soak, cookRice, peel, cut, fry, simmer, plate]
+        waves: 1
+  - name: kitchen
+    kitchen: home
+    expect:
+      errors: 0
+      level: 2
+      diagnostics:
+        exclude: [requiresUnmet, noVariant, vesselShortage]
+      schedule:
+        cooks: 1
+        order: [[wash, soak], [soak, cookRice], [peel, cut], [cut, fry], [fry, simmer], [cookRice, plate], [simmer, plate]]
+  - name: cooks-1
+    cooks: 1
+    expect:
+      errors: 0
+      level: 1
+      schedule:
+        cooks: 1
+        cooksUsed: 1
+  - name: cooks-2
+    cooks: 2
+    expect:
+      errors: 0
+      level: 1
+      schedule:
+        cooks: 2
+        cooksUsed: 2
+  - name: kitchen-cooks-2
+    kitchen: home
+    cooks: 2
+    expect:
+      errors: 0
+      level: 2
+      schedule:
+        cooks: 2
+        cooksUsed: 2
