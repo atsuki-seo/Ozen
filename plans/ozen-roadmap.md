@@ -2952,6 +2952,18 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - P7-2（2026-10-26）: アリーナ（`arena.c`。ASan の構成で割り当てごとに毒の余白。確保の失敗は回数を数えるだけで、後の要求は確保関数に任せる）と、添字で引く表（`ozni_table`。型 `struct ozni_arena_table` は `arena.c` の中だけで定義し、ほかからは不完全型。64 要素から倍々のブロックを足すので、要素のアドレスは動かない。範囲の外は `nullptr`）、インターン（`intern.c`。FNV-1a の開番地法。ID は 1 から）、UTF-8 の検査（`utf8.c`。誤りの位置はバイトの位置で返す）、span（ファイルの番号と開始・終わりのバイト位置）と診断の配列（`ctx.c`。引数はインターンした文字列）。試作から `u128.c`・`rational.c`・`num.h` を接頭辞だけ変えて移し、単体テスト 8 件も移した。`cunit/*` 18 件（と `symbols_prefixed`）が 4 つの構成で合格、`G-CORE-ARENA-ACCESS`・`G-CORE-NOINT128`・`G-CORE-UNIT` が合格。`symbols_prefixed` は clang の ASan が足す `___asan_globals_registered` を除くようにした
   - わざと壊す確認: `G-CORE-ARENA-ACCESS`（S152・効かない条件）— `ctx.c` に `struct ozni_arena_table` の定義を写すと落ちた（`arena structs outside arena.c: got '2'`）。戻して合格
   - わざと壊す確認: `cunit/intern_same_id`（S153・正常系）— 同じ綴りでも毎回新しい ID を振るようにすると落ちた。戻して合格
+- P7-3（2026-10-26）: golden の期待値 53 件（宣言 27・型引数 7・構文 18・診断 1）を実装より先にコミットし、字句解析（`lex.c`。予約語は文と式のキーワードだけで、宣言の語は項目の位置で綴りを見る。`(`・`[` の中の改行は区切りにしない）、全構文の再帰下降のパーサー（`parse.c`。誤りは文・項目・本体の項目の単位で次の区切りまで読み飛ばす。深さは括弧・ブロック・型引数・単項の `-`・`not`・`else if` ごとに数える）、AST のダンプと診断の出力（`render.c`。出力は確保の失敗を覚えるバッファー `buf.c` に書く）を書いた。最初の実行で 51 件すべてが合格し、`paren` の規則を使う golden が無かったので `syntax/paren-newline`・`syntax/spans` を足した。`G-CORE-GOLDEN`（53 件 × 4 構成）・`G-CORE-GRAMMAR`（`grammar: 130 rules, 0 not covered`）・`G-CORE-UNIT`（`cunit/span_nesting` を含む 20 件）・`prop/reindent`（`reindent: 152 cases, 0 differences`）が合格
+  - 文法の細目を足した: `param` は既定値に量も書ける（`t: 3 mm`）。`goals.sh` の `golden_entries` は golden のランナーと同じ `golden-entries.sh` で数えるようにした（最初の版は `tests/golden/<分類>/<名前>.ozen` を数えていなかった）
+  - わざと壊す確認: `cunit/span_nesting`（S154・データの完全性）— 二項演算の span を左の子の終わりまでにすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/syntax/recover-multiple`（S156・正常系）— 最初の誤りの後を入力の終わりまで読み飛ばすと落ちた（`errors=2`）。戻して合格
+  - わざと壊す確認: `G-CORE-GRAMMAR`（S157・データの完全性）— 文法に規則 `extra` を足して golden を足さないと `grammar: 131 rules, 1 not covered` で落ちた。戻して合格
+  - わざと壊す確認: `cgolden/decl/rule`（S158・正常系）— `rule` の宣言を読み飛ばすと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/typeargs/state-has`（S159・正常系）— `has` を `:` として読むと落ちた。戻して合格
+  - わざと壊す確認: `G-CORE-PROPS`（S160・正常系）— 行の先頭のタブを文の区切りにすると `reindent: 152 cases, 2 differences` で落ちた。戻して合格
+  - わざと壊す確認: `cgolden/diag/code-and-name`（S260・正常系）— 診断の行から名前を消すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/syntax/utf8-invalid`（S410・効かない条件）— UTF-8 の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/syntax/ident-nonascii`（S411・効かない条件）— 識別子の ASCII 以外の検査を外す（UTF-8 を許す）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/syntax/multiline-string`（S412・正常系）— 複数行の文字列を改行で終えると落ちた。戻して合格
 
 ### 9.5 E（型検査）
 
