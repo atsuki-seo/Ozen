@@ -162,3 +162,9 @@ void *ozni_table_at(ozni_table *t, ozni_index i) { return i < t->count ? slot(t,
 const void *ozni_table_get(const ozni_table *t, ozni_index i) { return i < t->count ? slot(t, i) : nullptr; }
 
 ozni_index ozni_table_count(const ozni_table *t) { return t->count; }
+
+void ozni_table_truncate(ozni_table *t, ozni_index n) {
+  if (n < t->count) {
+    t->count = n;
+  }
+}

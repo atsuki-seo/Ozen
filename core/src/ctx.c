@@ -11,7 +11,8 @@ bool ozni_ctx_init(ozni_ctx *c, const ozni_allocator *a, const ozni_limits *lim,
   c->names = ozni_intern_new(c->arena);
   c->diags = ozni_table_new(c->arena, sizeof(ozni_diag));
   c->diag_args = ozni_table_new(c->arena, sizeof(ozni_index));
-  if (c->names == nullptr || c->diags == nullptr || c->diag_args == nullptr) {
+  c->trails = ozni_table_new(c->arena, sizeof(ozni_trail));
+  if (c->names == nullptr || c->diags == nullptr || c->diag_args == nullptr || c->trails == nullptr) {
     ozni_ctx_free(c);
     return false;
   }

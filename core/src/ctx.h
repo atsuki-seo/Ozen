@@ -10,6 +10,11 @@ typedef struct ozni_span {
   uint32_t end;
 } ozni_span;
 
+typedef struct ozni_trail {
+  ozni_span span;
+  ozni_index prev;
+} ozni_trail;
+
 typedef struct ozni_diag {
   ozni_diag_id id;
   ozni_severity severity;
@@ -27,6 +32,7 @@ typedef struct ozni_ctx {
   ozni_intern *names;
   ozni_table *diags;
   ozni_table *diag_args;
+  ozni_table *trails;
   const ozni_source *srcs;
   size_t nsrcs;
   size_t nuser;

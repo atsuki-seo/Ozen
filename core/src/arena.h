@@ -24,5 +24,6 @@ uint32_t ozni_arena_failures(const ozni_arena *ar);
 void *ozni_table_at(ozni_table *t, ozni_index i);
 const void *ozni_table_get(const ozni_table *t, ozni_index i);
 ozni_index ozni_table_count(const ozni_table *t);
+void ozni_table_truncate(ozni_table *t, ozni_index n);
 
 #endif

@@ -150,6 +150,17 @@ bool ozni_render_check(ozni_ctx *c, ozni_buf *b, bool *has_errors) {
       }
       ozni_buf_puts(b, "]");
     }
+    for (ozni_index t = d->trail; t != 0;) {
+      const ozni_trail *e = ozni_table_get(c->trails, t - 1);
+      if (e == nullptr) {
+        break;
+      }
+      ozni_buf_puts(b, t == d->trail ? " via " : ", ");
+      put_path(b, c, e->span.file);
+      ozni_buf_puts(b, ":");
+      put_span(b, c, e->span);
+      t = e->prev;
+    }
     ozni_buf_puts(b, ": ");
     put_english(b, ozni_diag_name(d->id));
     ozni_buf_puts(b, "\n");
