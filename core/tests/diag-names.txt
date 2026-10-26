@@ -91,3 +91,8 @@ SCH:variantChosen
 SCH:softBeforeHard
 SCH:capacityShortage
 TYP:outputMismatch
+SAF:unwashedHazard
+SAF:allergen
+SCH:washInserted
+SCH:stainLeft
+ASM:smallToolsAssumed
