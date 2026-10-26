@@ -3035,6 +3035,18 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/dim/rational-quarter`（S193・正常系）— 割り切れない有理数を小数 2 桁に丸めて出すと落ちた。戻して合格
   - わざと壊す確認: `cgolden/dim/unit-cycle`（S194・効かない条件）— 循環の検出を外すと落ちた。戻して合格
   - わざと壊す確認: `cgolden/dim/cup-us`（S195・正常系）— `cup` を `import` によらず最初の定義（`std.units.jp`）に決めると落ちた。戻して合格
+- P8-2（2026-10-26）: golden 17 件を先にコミットし、動作の引数の型の要求（型引数の選択肢のどれかを満たすか。裸の引数はトレイトか部位、`:` は値、`>=`・`<=` は順序、`has` は集合）、出力の型の効果（順序つきの軸は戻さない、集合は項目の引数を更新、引数つきの値は引数の値を表示）、切り方の細かさ（列挙型の `finer` の関係を辿る。軸の並びで後ろの値（`pureed`）から `cut` に戻るのも粗くする）、書き手の軸の定義の検査（到達できない値、要求より前の値に戻す出力）を足した。登録簿に `TYP006 stateRequired`・`TYP007 cutCoarser`・`TYP008 axisDefinition` を足した。`stateRequired` の位置と引数は、その引数の式（引数の 3 つ目はその式の文字列）。要求を満たさなくても効果は適用するので、`pureed` の後の `cut` は `cutCoarser` と `stateRequired` の 2 件になる（表の段階の `cut-after-pureed` と同じ）。最初の実行で 126 件すべてが合格
+  - わざと壊す確認: `cgolden/state/peel-missing`（S196・正常系）— 状態の要求の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/grill-then-cut`（S197・正常系）— 動作の出力を入力の状態を引き継がない新しい値（1 本の遷移）にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/ordered-no-regress`（S198・時間と順序）— 順序つきの軸の効果を代入にすると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/cut-coarser`（S199・効かない条件）— 細かさの関係を逆に辿ると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/prep-set-args`（S200・正常系）— 集合の効果で集合を置き換えると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/user-axis`（S201・効かない条件）— 書き手のファイルの軸を読まない（検査しない）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/omit-axis`（S202・正常系）— 食材が使わない軸への効果をエラーにする（使わない軸を必須にする）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/doneness-browning-independent`（S203・正常系）— 焼き色の効果で火の通りも `done` に進めると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/unwritten-axis-inherit`（S204・正常系）— 出力で書かなかった集合の軸を空に戻すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/axis-unreachable`・`axis-contradiction`（S205・効かない条件）— 定義の時点の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/state/blend-*`（S474・正常系）— `blend` を `cut` と同じに扱うと `blend-after-pureed` が落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
