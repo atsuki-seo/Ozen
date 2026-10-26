@@ -395,6 +395,8 @@ type Kitchen {
 }
 type Person {
   picks: [Dish] = []
+  allergies: [AllergenKind] = []
+  avoids: [Tool] = []
 }
 type Options {
   servings: Count?
@@ -411,6 +413,9 @@ property beforeMelts = serveWithin(0..5 min)
 property justBeforeServe = serveWithin(2 min)
 property strict = diagnostics(vagueAmount)
 property nominalCutSize = { roughChop: 30 mm, rollCut: 25 mm, biteSize: 25 mm } @source(provisional)
+property smallTools = [Peeler, MixingBowl, Colander, CookingChopsticks, Ladle, Whisk, MeasuringSpoon]
+property soakTime = 10..30 min @source(provisional)
+property tablewareWashTime = 0.3..0.5 min @source(provisional)
 unit cc : Volume = 1 ml @deprecated""".split("\n")
 
 
