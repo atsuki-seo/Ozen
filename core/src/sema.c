@@ -5459,6 +5459,20 @@ static void allocate_vessels(sema *s, const ozni_node *pn, ozni_index on, const 
   }
 }
 
+static void ir_main_wave(sema *s) {
+  ozni_index pair[2] = {intern(s, "main", 4), ++s->wave_no};
+  if (!ozni_table_push(s->wave_names, pair, nullptr) || !ozni_table_push(s->wave_names, pair + 1, nullptr)) {
+    s->c->oom = true;
+  }
+  ozni_buf b = {.a = s->c->allocator};
+  ozni_buf_putu(&b, s->wave_no);
+  ozni_ir_node node = {.kind = OZNI_IR_WAVE, .label = pair[0], .wave = s->wave_no, .text = ir_text(s, &b)};
+  wave_info w = {ir_add(s, node), ozni_rat_int(0)};
+  if (s->wave_infos != nullptr && !ozni_table_push(s->wave_infos, &w, nullptr)) {
+    s->c->oom = true;
+  }
+}
+
 static void ir_wave(sema *s, const ozni_node *serve) {
   ozni_index pair[2] = {serve->text, ++s->wave_no};
   if (!ozni_table_push(s->wave_names, pair, nullptr) || !ozni_table_push(s->wave_names, pair + 1, nullptr)) {
@@ -5499,9 +5513,11 @@ static void ir_wave(sema *s, const ozni_node *serve) {
   }
 }
 
-static ozni_index ir_plate(sema *s, ozni_index pidx, ozni_index on, food *const *items, uint32_t n) {
-  const ozni_node *pn = nd(s, s->file, pidx);
-  ozni_ir_node node = {.kind = OZNI_IR_PLATE, .label = pn->text, .wave = s->wave_no, .ninputs = n,
+static void put_vessels(sema *s, ozni_buf *b, ozni_index file, ozni_index node);
+
+static ozni_index ir_plate(sema *s, ozni_index label, ozni_index pidx, ozni_index on, ozni_index vessel,
+                           food *const *items, uint32_t n) {
+  ozni_ir_node node = {.kind = OZNI_IR_PLATE, .label = label, .wave = s->wave_no, .ninputs = n,
                        .first_input = ozni_table_count(s->ir.inputs), .first_req = ozni_table_count(s->ir.reqs),
                        .file = s->file, .src = pidx};
   ozni_buf b = {.a = s->c->allocator};
@@ -5516,6 +5532,10 @@ static ozni_index ir_plate(sema *s, ozni_index pidx, ozni_index on, food *const 
     ozni_buf_puts(&b, first ? " on " : " or ");
     ozni_buf_put(&b, vname.p, vname.len);
     first = false;
+  }
+  if (on == 0 && vessel != 0) {
+    ozni_buf_puts(&b, " on ");
+    put_vessels(s, &b, s->file, vessel);
   }
   ozni_index pf, pd;
   ozni_buf_puts(&b, " [");
@@ -5617,7 +5637,7 @@ static void eval_serve(sema *s, const ozni_node *serve) {
     }
     allocate_vessels(s, pn, on, nplated > 0 ? plated[0] : nullptr, &info);
     if (ir_on(s)) {
-      info.irn = ir_plate(s, p, on, plated, nplated);
+      info.irn = ir_plate(s, pn->text, p, on, 0, plated, nplated);
       if (s->plate_infos != nullptr && !ozni_table_push(s->plate_infos, &info, nullptr)) {
         s->c->oom = true;
       }
@@ -5699,6 +5719,35 @@ static void put_vessels(sema *s, ozni_buf *b, ozni_index file, ozni_index node) 
   } else {
     ozni_str v = S(s, n->text);
     ozni_buf_put(b, v.p, v.len);
+  }
+}
+
+static void wrap_plate(sema *s, ozni_index file, ozni_index dish) {
+  ozni_index ann = 0;
+  for (ozni_index c = nd(s, file, dish)->first; c != 0; c = nd(s, file, c)->next) {
+    if (nd(s, file, c)->kind == OZNI_N_Annotation && str_is(S(s, nd(s, file, c)->text), "vessel") &&
+        nd(s, file, c)->first != 0) {
+      ann = c;
+    }
+  }
+  if (ann == 0 || !ir_on(s) || s->last.kind != V_FOOD || s->last.f == nullptr) {
+    return;
+  }
+  if (s->vessel_used != nullptr) {
+    ozni_table_truncate(s->vessel_used, 0);
+  }
+  ir_main_wave(s);
+  food *plated[1] = {s->last.f};
+  food carrier = *s->last.f;
+  carrier.made_file = file;
+  carrier.made_node = dish;
+  plate_info info = {.file = file, .nitems = 1};
+  info.items[0] = ann;
+  info.timing = timing_of(s, file, dish, &info.limit, &info.on);
+  allocate_vessels(s, nd(s, file, ann), 0, &carrier, &info);
+  info.irn = ir_plate(s, intern(s, "perPerson", 9), ann, 0, nd(s, file, ann)->first, plated, 1);
+  if (s->plate_infos != nullptr && !ozni_table_push(s->plate_infos, &info, nullptr)) {
+    s->c->oom = true;
   }
 }
 
@@ -8379,6 +8428,9 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
     if (nd(s, m->file, c)->kind == OZNI_N_Block) {
       eval_block(s, c, true);
     }
+  }
+  if (s->entry_dish && n->kind == OZNI_N_Recipe) {
+    wrap_plate(s, m->file, d->node);
   }
   if (s->requires && s->out != nullptr) {
     put_requirements(s);
