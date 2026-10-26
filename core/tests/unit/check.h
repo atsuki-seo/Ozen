@@ -8,6 +8,8 @@
 #include "ozni.h"
 
 extern int ozn_test_failures;
+extern int ozn_test_argc;
+extern char **ozn_test_argv;
 
 #define CHECK(cond)                                                            \
   do {                                                                         \
