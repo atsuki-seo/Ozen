@@ -31,7 +31,11 @@ add_custom_command(OUTPUT ${OZN_STD_C}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/gen
   COMMAND ${CMAKE_COMMAND} -DSTDLIB=${OZN_STDLIB} -DOUT=${OZN_STD_C} -P ${CMAKE_CURRENT_SOURCE_DIR}/gen/embed-std.cmake
   DEPENDS ${OZN_STD_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/gen/embed-std.cmake)
+# Makefile generators run a custom command once per target that lists its output, so two libraries
+# sharing std_embedded.c race on writing it under -j; one generator target serialises it.
+add_custom_target(ozen_std_gen DEPENDS ${OZN_STD_C})
 add_library(ozen_lib STATIC ${OZN_SOURCES} ${OZN_STD_C})
+add_dependencies(ozen_lib ozen_std_gen)
 set_target_properties(ozen_lib PROPERTIES OUTPUT_NAME ozen)
 target_include_directories(ozen_lib PUBLIC src)
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/../VERSION OZN_LIB_VERSION LIMIT_COUNT 1)
@@ -41,6 +45,7 @@ if(NOT EMSCRIPTEN AND NOT APPLE)
   add_library(ozen_shared SHARED ${OZN_SOURCES} ${OZN_STD_C})
   set_target_properties(ozen_shared PROPERTIES OUTPUT_NAME ozen LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   target_include_directories(ozen_shared PRIVATE src)
+  add_dependencies(ozen_shared ozen_std_gen)
   target_compile_definitions(ozen_shared PRIVATE OZEN_VERSION="${OZN_LIB_VERSION}")
   target_link_options(ozen_shared PRIVATE -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/ozen.map)
 endif()
