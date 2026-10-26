@@ -1,0 +1,30 @@
+// args: check --format json --emit schedule --kitchen home --options today
+action mark(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+  leaves: x on CuttingSurface
+}
+action touch(x: T) -> T {
+  uses hands, CuttingSurface for 1 min
+}
+kitchen home {
+  tools {
+    board: CuttingBoard
+  }
+}
+recipe r() {
+  ingredients {
+    onion: 1 pcs
+    pork: 200 g
+    c1: Cabbage 50 g
+  }
+  parallel {
+    branch a {
+      let a = mark(onion)
+      let b = mark(pork)
+      let c = touch(c1)
+    }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}
