@@ -2878,6 +2878,24 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-PROTO-DETERMINISM`（S122・プラットフォームの経路）— 局所の変数のアドレスで候補の名前の順を変える（digest が 2 種類になった）。戻して合格
   - わざと壊す確認: `sh/test-driver.sh`（S123・実際の経路）— `result error` でも 0 を返すと落ちた。戻して合格
   - わざと壊す確認: `G-PROTO-UNIT`（S125・副作用とコスト）— アリーナの配列の範囲の検査を 1 ずらす（ASan の構成の golden で報告された）。戻して合格
+- P5-1（2026-10-26）: `proto/fuzz/fuzz_expand.c`・辞書 `ozen.dict`・`fuzz.sh`。clang 17 の libFuzzer で 600 秒回し `fuzz: 653862 execs in 601 s, 0 crashes, 0 leaks, 0 timeouts`（1,087 exec/s、カバレッジ 1,177）。ライブラリを `-fsanitize=fuzzer-no-link` で作り直すまではカバレッジが 3 で止まっていた。コーパスは 1,170 件を `-merge=1` で 300 件（小さい順）に絞って `proto/tests/corpus/` にコミットし、digest の入力に含めた。digest は 4 つの構成 × 2 回と WASM で一致（`9a6479fb…`）
+  - わざと壊す確認: `G-PROTO-FUZZ`（S126・境界・上限）— 文字列の終わりの検査を外すと最初の入力でクラッシュした（`fuzz: 0 execs in 0 s, 1 crashes`）。戻して合格
+- P5-2（2026-10-26）: Emscripten の版は P0-4 と同じ 6.0.13。node 用（`NODERAWFS`、`build/wasm/`）とブラウザ用（`-sENVIRONMENT=web,worker`・`MODULARIZE`、`build/wasm-web/`）を作り、スタックは 8 MiB（`-sSTACK_SIZE=8388608`。既定の 64 KiB では深い入れ子の golden が溢れる）。`G-PROTO-WASM`（golden 109 件・オラクル 2,000 件・digest の一致）、`G-PROTO-WASM-BRIDGE`（`bridge: 4 inputs, 0 mismatches`）、`G-PROTO-WASM-WORKER`（`worker: 4 inputs, 0 mismatches`）、`test-worker-test: 3 cases, 0 failed` が合格
+  - ヘッドレスの Chrome は 154.0.8037.97。`--dump-dom` は Worker の結果を待たずに DOM を出すので、§5 の注記と違い、ページが結果を `127.0.0.1` の検査用のサーバーに POST し、`worker-test.sh` がそれを読む形にした（配るのは `ThreadingHTTPServer`）。プロフィールは `mktemp -d` の一時のフォルダに置き、Chrome を `setsid` で起動して終わりにプロセスグループごと止めてから消す（子プロセスが残るとフォルダを消せなかった）
+  - わざと壊す確認: `G-PROTO-WASM`（S127・プラットフォームの経路）— WASM の構成だけ量の書き方の分岐を変える（`__EMSCRIPTEN__` のときだけ次元の判定を変えた）と `golden: 76 passed, 33 failed` になり、digest も一致しなかった。戻して合格
+  - わざと壊す確認: `G-PROTO-WASM`（S127・境界・上限）— 128 bit の乗算の部分積を `unsigned long` に置く（wasm32 では 32 bit）と、WASM のオラクルが `2000 cases, 2000 mismatches` で落ちた（ネイティブは 64 bit なので不一致 0）。戻して合格
+  - わざと壊す確認: `G-PROTO-WASM-BRIDGE`（S64・プラットフォームの経路）— 橋渡しで UTF-16 の長さ（`text.length`）を渡すと日本語・絵文字を含む入力が `bridge: 4 inputs, 4 mismatches` で落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-WASM-BRIDGE`（S128・プラットフォームの経路）— 橋渡しで長さに `str.length` を渡すと `bridge: 4 inputs, 4 mismatches` で落ちた（S64 と同じ壊し方）。戻して合格
+  - わざと壊す確認: `G-PROTO-WASM-WORKER`（S150・プラットフォームの経路）— Worker の中で長さに `str.length` を渡すと `worker: 4 inputs, 4 mismatches` で落ちた。戻して合格
+- P6-1（2026-10-26）: README に試作の節（ビルド・実行・診断の例）を足し、`check-readme-example.sh` が README の例を実行して比べる。`readme: 1 examples, 0 mismatches`
+  - わざと壊す確認: `G-PROTO-README-EXAMPLE`（S136・文書との一致）— README の例の出力を 1 行変えると落ちた。戻して合格
+- P6-2（2026-10-26）: 報告書 `docs/prototype-report.md`（§4.16 の 4 節）、`check-report.py`（見出し・行数の表・環境ごとの結果の表・ファズの行・検出した手段ごとの欠陥の数・`defects.tsv` のコミットが祖先か・件名が `fix` で始まり `proto/src/` を変えたコミットがすべて `defects.tsv` にあるか）と自己テスト（`test-check-report: 10 cases, 0 failed`）。`G-PROTO-REPORT` は結果のファイルの数 + 4 以上の検査の数も確かめる。`plan-start..HEAD` には件名が `fix` で始まるコミットが無い（直したコミットの件名は「Avoid …」「Reuse …」などで書いた）ので、最後の検査は自己テストの `fix-row-removed` で確かめた
+  - わざと壊す確認: `G-PROTO-REPORT`（S132・文書との一致）— 見出し「3. ファズ」を消すと見出しの検査とファズの検査が落ちた（`2 failed`）。戻して合格
+  - わざと壊す確認: `G-PROTO-REPORT`（S133・文書との一致）— 行数の表のドライバーを 176 にすると落ちた（`wc -l gives 175`）。戻して合格
+  - わざと壊す確認: `G-PROTO-REPORT`（S134・文書との一致）— `native` の digest を 1 文字変えると落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-REPORT`（S135・文書との一致）— golden で見つけた欠陥の数を 4 にすると落ちた。戻して合格
+  - わざと壊す確認: `G-PROTO-REPORT`（S135・データの完全性）— `defects.tsv` から最後の行を消すと、欠陥の数の検査が落ちた（`goal` の行が無くなり合計 5）。戻して合格
+- P6-3（2026-10-26）: `G-PROTO-VERSION` が合格
 
 ### 9.4 D（コアの土台）
 
