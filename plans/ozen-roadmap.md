@@ -1365,6 +1365,12 @@ IR:
 - **S460** `std` は成分表由来の値を数値で書かず、食品番号で参照する（S24 と同じ規則、concept §3）。
 - **S461** `std` のどの能力にも、それを持つ設備の種類がある（S25 と同じ規則）。
 
+#### 4.26.1 言い回しのキーの細目（P13-2 で決めた。すべて（補））
+
+- キーは種類の接頭辞と名前のケバブケース（大文字の前で区切って小文字にする。`cookRice` → `cook-rice`）: 動作 `action-`、食材 `ingredient-`、部位 `part-`（食材をまたいで部位の名前ごとに 1 つ）、器 `vessel-`、性質 `property-`、別名 `alias-`、診断 `diag-`
+- 使ってよい変数: 動作は引数の名前（`action-cut` は `$x`・`$style`・`$size`）、診断は引数の順の `$arg1`〜`$arg9`、食材・部位・器・性質・別名は呼び名を選ぶ `$stage`・`$dialect`・`$context`・`$count`
+- ずれの検査 `renderers/tools/phrases-check.mjs DEFINITIONS PHRASES_DIR` は、`ozen debug definitions` の JSON から期待のキーを作り、`ja.ftl`・`en.ftl` の無いキーと、使ってよい変数の外の変数（S389）を数える。`.ftl` は行頭の `キー =` と字下げした続きの行だけを読む（Fluent の本体の読み込みはフェーズ K）
+
 ### 4.27 I・J: サンプル（§13-9・§13-10）
 
 サンプルは `samples/` に置く（CC-BY-4.0）。期待は、出力の JSON に対する性質の一覧（`samples/<名前>/expect.yaml`）で書き、`tests/samples/check.py` が照合する。
@@ -3440,6 +3446,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `sample/curryRice`（S363・プラットフォームの経路）— `curry.ozen` の `peel` を消すと `ir label peel`・`task peel`・`peel before cut` の 3 件が落ち、digest も変わった（修正前は `make` の先のエラーが JSON に出なかったので `errors` は 0 のままだった。修正後は `TYP:stateRequired` も出る）。戻して合格
   - 台所の照合の挙動: 炊飯器の候補は 42〜54 分、鍋の候補は 25〜35 分なので、鍋が 2 つある台所では `cookRice` は鍋の候補（一番早く終わる候補）になる。鍋が 1 つの台所では鍋の候補がカレーの `simmer` の鍋を待たせて全体が長くなる（候補の選び方は作業ごとの局所の判断のため）。サンプルの台所は鍋 2 つにした
 - P13-0（2026-10-26）: §4.27.1 に `expect.yaml` の形と性質の語彙、基準の献立と T1〜T4 の実行と性質を書いた。結果の JSON にアレルゲンと選択の内訳が無いことが分かり、D33 として確認を取った（IR の節に `allergens`、料理ごとに `choices`）。新しい S は無い
+- P13-2（2026-10-26）: `phrases/ja.ftl`・`phrases/en.ftl`（`std` の動作 29・食材 38・部位 13・別名 2・器 11・性質 14・診断 102 の 209 キー。CC-BY-4.0）と、ずれの検査 `renderers/tools/phrases-check.mjs`（自己テスト `renderers/tools/test-phrases-check.sh`）を足した。キーの付け方は §4.26.1。SPDX の検査に `renderers/` と `phrases/` を足した。`G-STD-PHRASES`（`phrases: 209 keys, 0 missing in ja, 0 missing in en, 0 unknown args`）が合格
+  - わざと壊す確認: `G-STD-PHRASES`（S362・データの完全性）— `en.ftl` から `action-tear` を消すと `1 missing in en` で落ちた。戻して合格
 - P13-1（2026-10-26）: `std` の一覧・関係・出どころ・prelude は P7〜P9 で入っていて `G-STD-LISTS`（`267 listed`）・`G-STD-PROVENANCE`（`97 values`）が合格。golden `std/prelude-contents`（`import` なしで `gou`・`kg`・`pcs`・`L`・`pinch`・`tbsp`・`tsp`・`min`・`h` と基本の動作が使える）と性質のテスト `tests/props/std_copy.py`（golden の料理が呼ぶ `std` の動作の定義を利用者のファイルに同じ構文で書き写し、テキストの IR を比べる）を足した。`std_copy: 105 cases, 0 differences`。どちらも変更の前から通るので red-first の例外に書いた
   - わざと壊す確認: `G-STD-LISTS`（S358・データの完全性）— `stdlib/prelude.ozen` から `tear` を消すと `1 missing` で落ちた。戻して合格
   - わざと壊す確認: `G-STD-PROVENANCE`（S359・データの完全性）— `Onion` の `unitWeight` から `@source(provisional)` を消すと `1 without source` で落ちた。戻して合格
