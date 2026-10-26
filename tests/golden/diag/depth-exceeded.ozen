@@ -1,0 +1,5 @@
+// args: check --max-depth 3
+recipe r() {
+  ingredients { rice: 300 g }
+  let x = rice + rice + rice + rice
+}
