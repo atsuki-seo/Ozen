@@ -41,5 +41,13 @@ expect unlisted "diag: 1 codes, 0 duplicate codes, 0 duplicate names, 0 bad code
 setup; sed -i '/TYP001/d' "$work/out/a.out"
 expect unused "diag: 2 codes, 0 duplicate codes, 0 duplicate names, 0 bad codes, 0 unlisted, 1 unused" 1
 
+setup; echo 'OZNI_DIAG(PKG001, PKG, importCycle, ERROR)' >> "$work/reg.def"; echo 'PKG:importCycle' >> "$work/names.txt"
+printf 'error PKG001 importCycle a.ozen:1:1-1:2\n' > "$work/out/expected.out"
+expect core-entry-with-severity "diag: 3 codes, 0 duplicate codes, 0 duplicate names, 0 bad codes, 0 unlisted, 0 unused" 0
+rm -f "$work/out/expected.out"
+setup; echo 'OZNI_DIAG(XYZ001, XYZ, other, ERROR)' >> "$work/reg.def"; echo 'XYZ:other' >> "$work/names.txt"
+printf 'error XYZ001 other a.ozen:1:1-1:2\n' >> "$work/out/a.out"
+expect unknown-category "diag: 3 codes, 0 duplicate codes, 0 duplicate names, 1 bad codes, 0 unlisted, 0 unused" 1
+
 echo "test-check-diag-registry: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]

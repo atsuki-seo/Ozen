@@ -7,7 +7,7 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 registry="$root/proto/src/diag_codes.def"
 names="$root/proto/tests/diag-names.txt"
 outputs="$root/proto/tests/golden"
-categories="SYN NAM TYP MAC"
+categories="SYN NAM TYP LIN SAF KIT SCH MAC PKG ASM"
 while [ $# -gt 0 ]; do
   case "$1" in
     --registry) registry="$2"; shift 2 ;;
@@ -27,7 +27,7 @@ registry, names_path, outputs, categories = sys.argv[1:5]
 cats = set(categories.split())
 entries = []
 for line in open(registry, encoding="utf-8"):
-    m = re.match(r"^\s*OZPI_DIAG\(\s*([^,\s]+)\s*,\s*([^,\s]+)\s*,\s*([^)\s]+)\s*\)", line)
+    m = re.match(r"^\s*OZ[PN]I_DIAG\(\s*([^,\s]+)\s*,\s*([^,\s]+)\s*,\s*([^,)\s]+)\s*(?:,\s*[A-Z]+\s*)?\)", line)
     if m:
         entries.append(m.groups())
 listed = [l.strip() for l in open(names_path, encoding="utf-8") if l.strip() and not l.startswith("#")] \
