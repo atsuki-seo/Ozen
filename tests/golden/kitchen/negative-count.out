@@ -1,0 +1,3 @@
+error TYP012 rangeViolation negative-count.ozen:4:23-4:25 args=["count", "-1", "0.."]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1

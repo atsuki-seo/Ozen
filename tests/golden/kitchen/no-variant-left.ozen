@@ -1,0 +1,10 @@
+// args: check --kitchen bare
+kitchen bare {
+  places {
+    sink: Sink
+  }
+}
+recipe r() {
+  ingredients { naan: 1 pcs }
+  let w = warm(naan)
+}

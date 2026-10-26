@@ -1,0 +1,8 @@
+// args: check --options today
+recipe curry(servings: Count in 1..20 = 4) {
+  ingredients { onion: 1 pcs }
+  let p = peel(onion)
+}
+kitchen today : Options {
+  servings: 30
+}

@@ -1,0 +1,6 @@
+// args: check --kitchen home
+kitchen home {
+  tableware {
+    deepPlate: DeepPlate { count: 4, capacity: 500 }
+  }
+}

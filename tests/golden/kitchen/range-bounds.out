@@ -1,0 +1,3 @@
+error TYP012 rangeViolation range-bounds.ozen:6:33-6:38 args=["diameter", "41 cm", "10 cm..40 cm"]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1

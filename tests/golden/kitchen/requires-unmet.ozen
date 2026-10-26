@@ -1,0 +1,10 @@
+// args: check --kitchen home
+kitchen home {
+  places {
+    stove: IHStove
+  }
+}
+recipe r() requires Oven {
+  ingredients { onion: 1 pcs }
+  let p = peel(onion)
+}

@@ -1,0 +1,3 @@
+error KIT002 requiresUnmet capacity-from-amount.ozen:19:11-19:22 args=["Container<capacity >= volume(x) * 1.2>"]: requires unmet
+result error errors=1 warnings=0 infos=0
+exit 1

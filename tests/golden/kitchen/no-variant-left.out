@@ -1,0 +1,3 @@
+error KIT001 noVariant no-variant-left.ozen:9:11-9:21 args=["warm", "microwave, toaster, pan"]: no variant
+result error errors=1 warnings=0 infos=0
+exit 1

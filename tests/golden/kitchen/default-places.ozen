@@ -1,0 +1,12 @@
+// args: check --kitchen tiny
+kitchen tiny {
+  tools {
+    board: CuttingBoard
+    knife: Knife
+  }
+}
+recipe r() {
+  ingredients { carrot: 1 pcs }
+  let w = wash(carrot)
+  let c = cut(w, style: slice)
+}

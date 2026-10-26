@@ -1,0 +1,20 @@
+// args: check --kitchen home
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pot: Pot { capacity: 2.4 L }
+  }
+}
+action stew(x: T) -> T<doneness: done> {
+  uses HeatSource<stovetop>, Container<capacity >= volume(x) * 1.2>
+}
+recipe fits() {
+  ingredients { water: 2 L }
+  let s = stew(water)
+}
+recipe overflows() {
+  ingredients { water: 2.1 L }
+  let s = stew(water)
+}

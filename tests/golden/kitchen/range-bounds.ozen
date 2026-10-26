@@ -1,0 +1,8 @@
+// args: check --kitchen home
+kitchen home {
+  tools {
+    small: FryingPan { diameter: 10 cm }
+    large: FryingPan { diameter: 40 cm }
+    huge: FryingPan { diameter: 41 cm }
+  }
+}

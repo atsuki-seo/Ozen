@@ -1,0 +1,3 @@
+warning SCH001 vesselOverflow capacity-over-warn.ozen:17:35-17:36 args=["SoupBowl", "300 ml", "200 ml"]: vessel overflow
+result ok errors=0 warnings=1 infos=0
+exit 0

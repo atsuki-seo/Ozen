@@ -1,0 +1,4 @@
+// args: check --options today
+kitchen today : Options {
+  cleanup: afterDinner
+}

@@ -1,0 +1,13 @@
+// args: check --kitchen home
+kitchen home {
+  places {
+    stove: GasStove
+  }
+  tools {
+    pan: FryingPan
+  }
+}
+recipe r() {
+  ingredients { pork: 200 g }
+  let f = fry(pork, 5 min)
+}

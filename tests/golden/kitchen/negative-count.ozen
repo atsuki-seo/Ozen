@@ -1,0 +1,6 @@
+// args: check --kitchen home
+kitchen home {
+  tools {
+    pot: Pot { count: -1 }
+  }
+}

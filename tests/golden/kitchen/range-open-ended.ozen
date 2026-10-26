@@ -1,0 +1,13 @@
+// args: check --kitchen home --options today
+kind Steamer : Tool
+type SteamerSpec : EquipmentSpec {
+  tiers: Count in ..3
+}
+kitchen home {
+  tools {
+    steamer: Steamer { tiers: 4 }
+  }
+}
+kitchen today : Options {
+  cooks: 0
+}
