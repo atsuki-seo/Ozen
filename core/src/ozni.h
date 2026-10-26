@@ -50,6 +50,7 @@ typedef enum ozni_mode : uint8_t {
   OZNI_MODE_MODULES,
   OZNI_MODE_ENTRY,
   OZNI_MODE_EMBEDDED_STD,
+  OZNI_MODE_DEFINITIONS,
 } ozni_mode;
 
 char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *srcs, size_t n,

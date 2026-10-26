@@ -49,6 +49,8 @@ char *ozni_run_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_
     bool done = false;
     if (mode == OZNI_MODE_MODULES && !any_error(&c)) {
       done = ozni_render_modules(&pr, &b);
+    } else if (mode == OZNI_MODE_DEFINITIONS && !any_error(&c)) {
+      done = ozni_render_definitions(&pr, &b);
     } else if (mode == OZNI_MODE_ENTRY && !any_error(&c)) {
       bool ok = false;
       done = ozni_render_entry(&pr, entry, &b, &ok) && ok;

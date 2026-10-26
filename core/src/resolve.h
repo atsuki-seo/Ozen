@@ -51,6 +51,7 @@ typedef struct ozni_project {
 [[nodiscard]] bool ozni_project_load(ozni_ctx *c, const ozni_source *user, size_t nuser, ozni_project *pr);
 const ozni_module *ozni_project_module(const ozni_project *pr, ozni_index i);
 bool ozni_render_modules(const ozni_project *pr, ozni_buf *b);
+bool ozni_render_definitions(const ozni_project *pr, ozni_buf *b);
 bool ozni_render_entry(ozni_project *pr, const char *entry, ozni_buf *b, bool *ok);
 
 #endif
