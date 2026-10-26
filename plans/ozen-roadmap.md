@@ -1101,6 +1101,21 @@ void ozp_free_string(const ozp_options *opt, char *s);
 - **S276** 小さな道具（菜箸・ボウルなど）を台所で省くと「足りる数がある」と仮定に出す（concept §12.3）。
 - **S277** 暫定の値（D7）を使った段取りは、仮定の一覧に出る（concept §12.3）。
 
+#### 4.21.1 E の診断・重さの表・燃料（P8-0 で決めた。すべて（補））
+
+- E の診断の名前と既定の重さ（登録簿のコードは、golden を書く P8 の各タスクで、この順に追記する。重さを書いていないものはエラー）
+  - `NAM`: `arity`（既定値の無い引数が足りない）・`unknownArgument`・`duplicateArgument`・`partTraitClash`・`undefinedInMacro`・`unknownUnit`・`unknownDiagnostic`（`@allow` などに知らない診断の名前）・`expectUnfulfilled`（警告。`@expect` の診断が出なかった）
+  - `TYP`: `dimension`・`densityMissing`・`vagueAmount`（警告。`strict` のまとまり）・`unitCycle`・`baseUnitChanged`・`type`・`stateRequired`・`stateRegress`（順序つきの軸を戻す）・`cutCoarser`・`axisValue`（軸・列挙型に無い値）・`axisDefinition`（到達できない値・遷移の矛盾）・`partless`（部位を持たない食材に部位）・`whereUnsatisfied`・`aliasCandidates`（和集合の候補の一部だけが要求を満たす）・`rangeViolation`・`count`・`annotationTarget`・`spliceNotName`・`vesselLiquid`（液体を保てない器）・`outputMismatch`（レシピの出力の型と結果の型が違う）・`optionLevel`（警告。レベルに合わないオプション）
+  - `LIN`: `doubleUse`・`insufficient`・`leftoverPart`（情報）・`parallelConsume`
+  - `SAF`: `undercooked`・`allergen`・`fixedSeverity`（情報。`SAF` は下げられない）
+  - `KIT`: `noVariant`・`requiresUnmet`・`vesselShortage`
+  - `SCH`: `vesselOverflow`（警告）
+  - `ASM`（どれも情報）: `unlimitedEquipment`・`defaultServings`・`firstVariant`・`smallTools`・`provisionalValue`・`evenChoice`・`noPlating`・`externalIngredient`
+  - `MAC`: `overflow`・`divisionByZero`
+  - `std` の `check` の診断（D32）: `SCH101 tooManyCooks`（警告。`Options` の型）
+- concept §6.1 の「重さの基準」の 17 例と分類の表の例は `core/tests/severity-examples.txt` に置き、`scripts/check-severity-table.py` が登録簿と `std` の `check` に照らす。F の段取りで決まる例（生肉の後に洗わず使う `SAF:unwashedHazard`、硬い食材より先に柔らかい食材 `SCH:softBeforeHard`、挿入した洗い `SCH:washInserted`、代わりに使った器 `KIT:vesselSubstituted`、最短時間 `SCH:criticalPath`）はフェーズを F にし、E のゲートでは `--phase E` で数えない
+- 燃料（評価ステップ）の数え方: 名前の解決で名前を 1 つ引くたびに 1（D と同じ）、評価で次のノードを 1 つ評価するたびに 1。ブロック・`let`・`if`（`else if` は else 側の `if`）・`for`・`repeat`・呼び出し（動作・レシピ・組み込み。引数を左から）・マクロの呼び出し（引数は評価せず、展開したブロック）・名前・量（`1 h 30 min` も 1 つ）・数・文字列・真偽値・並び・レコード・二項演算（短絡しなければ右も）・単項演算・メンバーの参照・注釈・`make`・`buy`・`choose`・`assemble`・`ingredients`（と項目ごとに 1）・`parallel`・`branch`・`serve`・`plate`。生成ノードは D の数え方に、マクロの展開でコピーしたノードの数を足す。深さは評価の入れ子の数（D の解決の深さと同じ上限）
+
 ### 4.22 F: IR と段取り（§13-6）
 
 IR:
@@ -3007,6 +3022,9 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 ### 9.5 E（型検査）
 
 - concept §6.1 の重さの表の 17 例と診断の名前の対応（P8-0）
+- P8-0（2026-10-26）: §4.21.1 に E の診断の名前（`NAM` 8・`TYP` 21・`LIN` 4・`SAF` 3・`KIT` 3・`SCH` 1・`ASM` 8・`MAC` 2 と `std` の `check` の `SCH101 tooManyCooks`）、17 例と分類の例の対応、燃料の数え方を書いた。17 例と分類の表の 15 例は `core/tests/severity-examples.txt`（フェーズの列つき。F で決まる 5 例はフェーズ F）に置き、`scripts/check-severity-table.py` と自己テスト（`4 cases, 0 failed`）を書いた。登録簿への追記は golden を書く P8 の各タスクで行うので、P8-0 の時点の `--phase E` は `12 examples, 12 mismatched` で、ゲート E で 0 を確かめる。新しい S は足していない。`cgolden/std/package`（`std` の名前と版に頼る golden。今の解決で通るので red-first の例外に書いた）が合格。燃料は、D の名前の引き当てに評価のノードを足すので、P8-7 で `limits/steps-*` の期待値を直す見込み
+  - わざと壊す確認: `cgolden/std/package`（S357・正常系）— `stdlib/package.ozen` の名前を `stdx` にすると落ちた。戻して合格
+  - わざと壊す確認: P8-0 の完了条件（D28・否定）— 変換のスクリプトが食材の並びを実行ごとに変えると、もう一度走らせたときに `stdlib/prelude.ozen` に差分が出た（`184 insertions(+), 184 deletions(-)`）。戻して差分なし
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
