@@ -938,6 +938,45 @@
           },
           "type": "array"
         },
+        "holds": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "end": {
+                "$ref": "#/$defs/rational"
+              },
+              "item": {
+                "type": "string"
+              },
+              "node": {
+                "oneOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "resource": {
+                "type": "string"
+              },
+              "start": {
+                "$ref": "#/$defs/rational"
+              }
+            },
+            "required": [
+              "end",
+              "item",
+              "node",
+              "resource",
+              "start"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
         "resources": {
           "items": {
             "additionalProperties": false,
@@ -1253,6 +1292,7 @@
         "cleanup",
         "cooks",
         "dishes",
+        "holds",
         "resources",
         "rules",
         "schemaVersion",

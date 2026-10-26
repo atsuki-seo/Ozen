@@ -6501,6 +6501,7 @@ typedef struct sched_hold {
   ozni_index item;
   uint32_t unit;
   ozni_index plate;
+  ozni_index irn;
 } sched_hold;
 
 typedef struct sched_out {
@@ -7045,6 +7046,26 @@ static void schedule_json(sema *s, const sched_out *o) {
       ozni_buf_puts(b, "\"}");
     }
     ozni_buf_puts(b, e->cook != 0 ? ",\"unattended\":false,\"wave\":null}" : ",\"unattended\":true,\"wave\":null}");
+  }
+  ozni_buf_puts(b, "],\"holds\":[");
+  for (uint32_t h = 0; h < o->nholds; h++) {
+    const sched_hold *hd = &o->holds[h];
+    ozni_buf_puts(b, h == 0 ? "{\"start\":" : ",{\"start\":");
+    put_json_rat(b, hd->start);
+    ozni_buf_puts(b, ",\"end\":");
+    put_json_rat(b, hd->end);
+    ozni_buf_puts(b, ",\"item\":");
+    ozni_str item = src_text(s, hd->file, nd(s, hd->file, hd->item));
+    ozni_buf_json(b, item.p, item.len);
+    ozni_buf_puts(b, ",\"node\":");
+    if (hd->irn != 0) {
+      ozni_buf_putu(b, ((const ozni_ir_node *)ozni_table_get(s->ir.nodes, hd->irn - 1))->number);
+    } else {
+      ozni_buf_puts(b, "null");
+    }
+    ozni_buf_puts(b, ",\"resource\":");
+    put_json_str(b, S(s, unit_at(o, hd->unit)->label));
+    ozni_buf_puts(b, "}");
   }
   ozni_buf_puts(b, "]}\n");
 }
@@ -8175,7 +8196,7 @@ static void schedule_dish(sema *s, ozni_index name) {
       ozni_index src = ((const ozni_ir_input *)ozni_table_get(s->ir.inputs, node->first_input + j))->node;
       uint32_t r = src > s->ir_base ? task_of[src - 1 - s->ir_base] : UINT32_MAX;
       ozni_rat from = r != UINT32_MAX ? tasks[r].end_hi : ozni_rat_int(0);
-      sched_hold h = {from, at, pi->file, pi->items[j], UINT32_MAX, node->src};
+      sched_hold h = {from, at, pi->file, pi->items[j], UINT32_MAX, node->src, src};
       ozni_rat item_limit;
       ozni_index item_on = 0;
       uint8_t item_timing = timing_of(s, pi->file, pi->items[j], &item_limit, &item_on);
