@@ -196,11 +196,10 @@ def vessels(d):
 
 def dirt(d):
     out = [f"dirt {name} : {', '.join(x['traits'])}" for name, x in d["dirt"].items()]
-    for _, r in d["rules"].items():
+    for name, r in d["rules"].items():
         notes = (" @fixed" if r.get("fixed") else "") + (" @info" if r.get("info") else "")
-        out.append(f"rule after {r['after']}: {r['level']}{notes}")
-        for case in r.get("cases", []):
-            out.append(f"rule after {r['after']}: {case['level']} before {case['when']}{notes}")
+        cases = [r["level"]] + [f"{c['level']} before {c['when']}" for c in r.get("cases", [])]
+        out.append(f"rule {name} after {r['after']}: {', '.join(cases)}{notes}")
     return out
 
 

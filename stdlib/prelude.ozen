@@ -226,21 +226,15 @@ dirt stain : Staining
 dirt scorch : Burnt
 dirt light : Light
 dirt allergen : Allergen
-rule after Hazard: wash @fixed
-rule after Hazard: none before sameFoodSameState @fixed
-rule after Allergen: none @fixed
-rule after Allergen: wash before allergicPerson @fixed
-rule after Soiled: rinse
-rule after Soiled: wash before RawEdible
-rule after Smelly: none
-rule after Smelly: rinse before RawEdible
-rule after Smelly: rinse before dessert
-rule after Greasy: wash
-rule after Greasy: none before sameTool
-rule after Sticky: soakThenWash
-rule after Burnt: soakThenWash
-rule after Staining: none @info
-rule after Light: none
+rule afterHazard after Hazard: wash, none before sameFoodSameState @fixed
+rule afterAllergen after Allergen: none, wash before allergicPerson @fixed
+rule afterSoiled after Soiled: rinse, wash before RawEdible
+rule afterSmelly after Smelly: none, rinse before RawEdible, rinse before dessert
+rule afterGreasy after Greasy: wash, none before sameTool
+rule afterSticky after Sticky: soakThenWash
+rule afterBurnt after Burnt: soakThenWash
+rule afterStaining after Staining: none @info
+rule afterLight after Light: none
 ingredient Rice : Grain {
   axes: doneness, prep
   leaves: starch
