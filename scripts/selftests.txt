@@ -38,3 +38,4 @@ bindings/linux/swift-test.sh scripts/test-bridge-tests.sh
 bindings/android/jvm-test.sh scripts/test-bridge-tests.sh
 bindings/wasm/worker-test.sh scripts/test-worker-test.sh
 bindings/android/emulator-test.sh scripts/test-emulator-test.sh
+scripts/check-ci-tools.py scripts/test-check-ci-tools.sh
