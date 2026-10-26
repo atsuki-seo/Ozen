@@ -1,14 +1,16 @@
 File rule.ozen
-  Rule
+  Rule afterHazard
     TypeRef Hazard
-    Name wash
-    AnyUse
+    RuleCase wash
+      AnyUse
+    RuleCase none
+      TypeRef sameFoodSameState
     Annotation fixed
   Rule
     TypeRef Smelly
-    Name rinse
-    TypeRef RawEdible
+    RuleCase rinse
+      TypeRef RawEdible
   Rule
     TypeRef Light
-    Name none
+    RuleCase none
 exit 0
