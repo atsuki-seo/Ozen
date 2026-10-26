@@ -8598,6 +8598,70 @@ static void check_definitions(sema *s) {
   }
 }
 
+typedef struct {
+  ozni_index file, node;
+} dish_ref;
+
+static bool dish_listed(ozni_table *refs, ozni_index file, ozni_index node) {
+  for (ozni_index i = 0; i < ozni_table_count(refs); i++) {
+    const dish_ref *r = ozni_table_get(refs, i);
+    if (r->file == file && r->node == node) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static void dish_makes(sema *s, ozni_table *refs, ozni_index file, ozni_index node, uint32_t depth) {
+  if (depth > 256) {
+    return;
+  }
+  for (ozni_index c = nd(s, file, node)->first; c != 0; c = nd(s, file, c)->next) {
+    const ozni_node *cn = nd(s, file, c);
+    ozni_index call = cn->kind == OZNI_N_Make ? cn->first : 0;
+    ozni_index callee = call != 0 && nd(s, file, call)->kind == OZNI_N_Call ? nd(s, file, call)->first : call;
+    ozni_index df, dn;
+    if (callee != 0 && nd(s, file, callee)->kind == OZNI_N_Name &&
+        find_from(s, file, nd(s, file, callee)->text, &df, &dn) &&
+        (nd(s, df, dn)->kind == OZNI_N_Recipe || nd(s, df, dn)->kind == OZNI_N_Menu) &&
+        !dish_listed(refs, df, dn)) {
+      dish_ref r = {df, dn};
+      if (!ozni_table_push(refs, &r, nullptr)) {
+        s->c->oom = true;
+        return;
+      }
+    }
+    dish_makes(s, refs, file, c, depth + 1);
+  }
+}
+
+static ozni_table *entry_dishes(sema *s) {
+  ozni_table *refs = ozni_table_new(s->c->arena, sizeof(dish_ref));
+  if (refs == nullptr) {
+    s->c->oom = true;
+    return nullptr;
+  }
+  for (ozni_index mi = 0; mi < ozni_table_count(s->pr->modules); mi++) {
+    const ozni_module *m = mod_at(s, mi);
+    for (ozni_index d = 0; !m->is_std && d < ozni_table_count(m->defs); d++) {
+      const ozni_def *e = ozni_table_get(m->defs, d);
+      ozni_node_kind k = nd(s, m->file, e->node)->kind;
+      if ((k == OZNI_N_Recipe || k == OZNI_N_Menu) && str_is(ozni_intern_get(s->c->names, e->name), s->c->set.entry)) {
+        dish_ref r = {m->file, e->node};
+        if (!ozni_table_push(refs, &r, nullptr)) {
+          s->c->oom = true;
+          return nullptr;
+        }
+      }
+    }
+  }
+  for (ozni_index i = 0; i < ozni_table_count(refs) && !s->c->oom; i++) {
+    const dish_ref *r = ozni_table_get(refs, i);
+    dish_makes(s, refs, r->file, r->node, 0);
+  }
+  return refs;
+}
+
 bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir *ir) {
   sema s = {.pr = pr,
             .c = pr->c,
@@ -8649,6 +8713,7 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
       return false;
     }
   }
+  ozni_table *reached = pr->c->set.api && pr->c->set.entry != nullptr ? entry_dishes(&s) : nullptr;
   for (ozni_index mi = 0; mi < ozni_table_count(pr->modules) && !pr->c->oom; mi++) {
     const ozni_module *m = mod_at(&s, mi);
     if (m->is_std) {
@@ -8657,8 +8722,7 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
     for (ozni_index d = 0; d < ozni_table_count(m->defs); d++) {
       const ozni_def *e = ozni_table_get(m->defs, d);
       ozni_node_kind k = nd(&s, m->file, e->node)->kind;
-      bool other = pr->c->set.api && pr->c->set.entry != nullptr &&
-                   !str_is(ozni_intern_get(pr->c->names, e->name), pr->c->set.entry);
+      bool other = reached != nullptr && !dish_listed(reached, m->file, e->node);
       if ((k == OZNI_N_Recipe || k == OZNI_N_Menu) && !other) {
         eval_dish(&s, mi, e);
       }
