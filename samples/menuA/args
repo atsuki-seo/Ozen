@@ -1,0 +1,1 @@
+check --format json --emit ir,schedule,steps --kitchen home --entry yakisoba

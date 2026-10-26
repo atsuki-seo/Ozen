@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: CC-BY-4.0
+import cookedRice.{cookedRice}
+import curry.{curry}
+import salad.{salad}
+import whippedCream.{whippedCream}
+
+menu dinner(people: 4) {
+  let curryPot = make curry(servings: 4)
+  let staple = choose perPerson from { make cookedRice(servings: 4), buy Naan 2 pcs }
+  let greens = make salad(servings: 4)
+  let cream = make whippedCream(servings: 4)
+  serve main {
+    plate perPerson on deepPlate { staple, curryPot }
+    plate perPerson on SmallBowl { greens } @chilled
+  }
+  serve dessert after main + 40 min {
+    plate perPerson on Glass {
+      assemble { buy Cornflakes 30 g, buy VanillaIce 100 g @frozen, cream, buy Strawberry 4 pcs }
+    } @justBeforeServe
+  }
+}

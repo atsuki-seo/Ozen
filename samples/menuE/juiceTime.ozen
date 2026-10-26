@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: CC-BY-4.0
+import mixJuice.{mixJuice}
+
+menu juiceTime(people: 4) {
+  let juice = make mixJuice(servings: 4)
+  serve main {
+    plate perPerson on Glass { juice, buy Ice 200 g @frozen } @serveWithin(5 min)
+  }
+}

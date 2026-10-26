@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: CC-BY-4.0
+kitchen home {
+  places {
+    counter: Counter
+    sink: Sink
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    board: CuttingBoard
+    knife: Knife
+    pan: FryingPan
+    bowl: MixingBowl
+    pot: Pot { count: 2 }
+    cooker: RiceCooker
+  }
+}

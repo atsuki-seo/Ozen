@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe salad(servings: 4) {
+  ingredients {
+    lettuce: 150 g
+    tomato: 1 pcs
+    cucumber: 1 pcs
+    dressing: Dressing 3 tbsp
+  }
+  let torn = tear(lettuce)
+  let tomatoCut = cut(tomato, biteSize, 20 mm)
+  let cucumberCut = cut(cucumber, slice, 3 mm)
+  let tossed = toss([torn, tomatoCut, cucumberCut, dressing])
+}

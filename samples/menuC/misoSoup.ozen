@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe misoSoup(servings: 4) {
+  ingredients {
+    cabbage: 100 g
+    water: 600 ml
+    dashi: Dashi 1 tsp
+    miso: Miso 50 g
+  }
+  let cabbageCut = cut(cabbage, roughChop, 30 mm)
+  let boiled = boilWater(water)
+  let simmered = simmer([boiled, dashi, cabbageCut], 5 min)
+  let soup = dissolve([simmered, miso])
+}

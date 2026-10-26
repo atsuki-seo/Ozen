@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe mixJuice(servings: 4) {
+  ingredients {
+    banana1: Banana 1 pcs
+    strawberry1: Strawberry 100 g
+    milk1: Milk 300 ml
+    banana2: Banana 1 pcs
+    strawberry2: Strawberry 100 g
+    milk2: Milk 300 ml
+  }
+  let first = blend([peel(banana1), strawberry1, milk1])
+  let second = blend([peel(banana2), strawberry2, milk2])
+  let juice = combine([first, second])
+}

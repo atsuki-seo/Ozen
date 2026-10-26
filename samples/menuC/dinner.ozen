@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: CC-BY-4.0
+import cookedRice.{cookedRice}
+import misoSoup.{misoSoup}
+import stirFry.{stirFry}
+
+menu dinner(people: 4) {
+  let rice = make cookedRice(servings: 4)
+  let soup = make misoSoup(servings: 4)
+  let main = make stirFry(servings: 4)
+  serve main {
+    plate perPerson on FlatPlate { main }
+    plate perPerson on SoupBowl { soup }
+    plate perPerson on RiceBowl { rice }
+  }
+}

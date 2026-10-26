@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe whippedCream(servings: 4) -> WhippedCream {
+  ingredients {
+    cream: 200 ml
+    sugar: Sugar 1 tbsp
+  }
+  let whipped = season(whip(cream), sugar)
+}

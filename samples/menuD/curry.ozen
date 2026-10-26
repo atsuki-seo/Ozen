@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe curry(servings: 4) {
+  ingredients {
+    pork: Komagire 200 g
+    onion: 2 pcs
+    carrot: 1 pcs
+    roux: CurryRoux 100 g
+    water: 800 ml
+  }
+  let onionCut = cut(peel(onion), slice, 3 mm)
+  let carrotCut = cut(peel(carrot), rollCut, 20 mm)
+  let fried = fry([pork, onionCut, carrotCut], 5 min)
+  let simmered = simmer([fried, water], 15 min)
+  let curry = dissolve([simmered, roux])
+}
