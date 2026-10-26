@@ -4,7 +4,7 @@
 set -uo pipefail
 
 seconds=${1:-600}
-targets=${OZN_FUZZ_TARGETS:-parse expand typecheck}
+targets=${OZN_FUZZ_TARGETS:-parse expand typecheck schedule}
 root=$(cd "$(dirname "$0")/.." && pwd)
 dir="$root/build/fuzz-core"
 mkdir -p "$dir/artifacts"
