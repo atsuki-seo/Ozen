@@ -47,9 +47,15 @@ typedef struct food {
   ozni_qty amount;
   bool vague;
   bool consumed;
+  bool portion;
+  uint32_t consumed_group;
+  uint32_t consumed_branch;
+  ozni_index label;
+  ozni_span label_span;
+  ozni_table *derived;
 } food;
 
-typedef enum vkind : uint8_t { V_UNKNOWN, V_NONE, V_QTY, V_FOOD, V_ENUM, V_STR, V_BOOL, V_LIST } vkind;
+typedef enum vkind : uint8_t { V_UNKNOWN, V_NONE, V_QTY, V_FOOD, V_ENUM, V_STR, V_BOOL, V_LIST, V_TUPLE } vkind;
 
 typedef struct value {
   vkind kind;
@@ -80,6 +86,12 @@ typedef struct sema {
   ozni_table *scope;
   uint32_t step_no;
   bool failed;
+  uint32_t group;
+  uint32_t branch;
+  uint32_t next_id;
+  ozni_table *portions;
+  value last;
+  ozni_index last_node;
 } sema;
 
 static ozni_str S(const sema *s, ozni_index id) { return ozni_intern_get(s->c->names, id); }
@@ -705,6 +717,8 @@ static food *food_copy(sema *s, const food *src) {
   }
   *f = *src;
   f->consumed = false;
+  f->portion = false;
+  f->label = 0;
   f->axes = ozni_arena_alloc(s->c->arena, (src->naxes + 1) * sizeof *f->axes);
   if (f->axes == nullptr) {
     s->c->oom = true;
@@ -828,6 +842,29 @@ static void put_food_line(sema *s, ozni_buf *b, const food *f) {
     ozni_buf_puts(b, " ");
     put_qty(s, b, f->amount);
   }
+  ozni_index n = f->derived != nullptr ? ozni_table_count(f->derived) : 0;
+  ozni_index order[32];
+  for (ozni_index k = 0; k < n && k < 32; k++) {
+    order[k] = *(const ozni_index *)ozni_table_get(f->derived, k);
+    ozni_index j = k;
+    while (j > 0) {
+      ozni_str x = S(s, order[j - 1]), y = S(s, order[j]);
+      size_t m = x.len < y.len ? x.len : y.len;
+      int r = memcmp(x.p, y.p, m);
+      if (r < 0 || (r == 0 && x.len <= y.len)) {
+        break;
+      }
+      ozni_index tmp = order[j - 1];
+      order[j - 1] = order[j];
+      order[j] = tmp;
+      j--;
+    }
+  }
+  for (ozni_index k = 0; k < n && k < 32; k++) {
+    ozni_buf_puts(b, k == 0 ? " with " : ", ");
+    ozni_str tr = S(s, order[k]);
+    ozni_buf_put(b, tr.p, tr.len);
+  }
 }
 
 /* Amounts */
@@ -937,6 +974,9 @@ static ozni_index record_step(sema *s, ozni_index action, const value *args, uin
 /* Evaluation */
 
 static value eval(sema *s, ozni_index node);
+static int axis_value_index(const sema *s, const axis_state *st, ozni_index name);
+static bool food_has(sema *s, const food *f, ozni_index name);
+static value eval_split(sema *s, const ozni_node *call);
 
 static value unknown(void) { return (value){.kind = V_UNKNOWN}; }
 
@@ -955,6 +995,73 @@ static void bind(sema *s, ozni_index name, value v) {
   binding b = {name, v};
   if (!ozni_table_push(s->scope, &b, nullptr)) {
     s->c->oom = true;
+  }
+}
+
+static ozni_str src_text(const sema *s, ozni_index file, const ozni_node *n) {
+  const ozni_source *src = &s->c->srcs[file];
+  return (ozni_str){src->text + n->span.start, n->span.end - n->span.start};
+}
+
+static void consume(sema *s, const value *v, ozni_index file, ozni_index argnode) {
+  if (v->kind != V_FOOD || v->f == nullptr) {
+    return;
+  }
+  food *f = v->f;
+  if (f->consumed) {
+    if (argnode == 0) {
+      return;
+    }
+    const ozni_node *n = nd(s, file, argnode);
+    ozni_str arg = src_text(s, file, n);
+    bool parallel = s->group != 0 && f->consumed_group == s->group && f->consumed_branch != s->branch;
+    diag_node(s, parallel ? OZNI_D_LIN_parallelConsume : OZNI_D_LIN_doubleUse, file, n, &arg, 1);
+    return;
+  }
+  f->consumed = true;
+  f->consumed_group = s->group;
+  f->consumed_branch = s->branch;
+}
+
+static void add_derived(sema *s, food *f, ozni_index trait) {
+  if (f->derived == nullptr) {
+    f->derived = ozni_table_new(s->c->arena, sizeof(ozni_index));
+    if (f->derived == nullptr) {
+      s->c->oom = true;
+      return;
+    }
+  }
+  for (ozni_index k = 0; k < ozni_table_count(f->derived); k++) {
+    if (*(const ozni_index *)ozni_table_get(f->derived, k) == trait) {
+      return;
+    }
+  }
+  if (!ozni_table_push(f->derived, &trait, nullptr)) {
+    s->c->oom = true;
+  }
+}
+
+static void inherit_traits(sema *s, food *into, const food *from) {
+  ozni_index hazard = intern(s, "Hazard", 6);
+  if (food_has(s, from, hazard)) {
+    add_derived(s, into, hazard);
+  }
+  for (ozni_index k = 0; from->derived != nullptr && k < ozni_table_count(from->derived); k++) {
+    ozni_index tr = *(const ozni_index *)ozni_table_get(from->derived, k);
+    ozni_str ts = S(s, tr);
+    if (ts.len >= 9 && memcmp(ts.p, "Allergen(", 9) == 0) {
+      add_derived(s, into, tr);
+    }
+  }
+  if (from->file == NONE) {
+    return;
+  }
+  for (ozni_index c = nd(s, from->file, from->node)->first; c != 0; c = nd(s, from->file, c)->next) {
+    const ozni_node *cn = nd(s, from->file, c);
+    if (cn->kind == OZNI_N_TypeRef && str_is(S(s, cn->text), "Allergen")) {
+      ozni_str text = src_text(s, from->file, cn);
+      add_derived(s, into, intern(s, text.p, text.len));
+    }
   }
 }
 
@@ -1015,6 +1122,39 @@ static value combine(sema *s, const value *items, uint32_t n, ozni_index file, c
   }
   if (ok && n > 0) {
     mix->amount = total;
+  }
+  int min_done = -1;
+  axis_state *mix_done = nullptr;
+  for (uint32_t k = 0; k < mix->naxes; k++) {
+    if (str_is(S(s, mix->axes[k].axis), "doneness")) {
+      mix_done = &mix->axes[k];
+    }
+  }
+  for (uint32_t k = 0; k < n; k++) {
+    const food *f = items[k].kind == V_FOOD ? items[k].f : nullptr;
+    if (f == nullptr) {
+      continue;
+    }
+    inherit_traits(s, mix, f);
+    for (uint32_t a = 0; mix_done != nullptr && a < f->naxes; a++) {
+      if (f->axes[a].axis == mix_done->axis) {
+        int idx = axis_value_index(s, mix_done, f->axes[a].value);
+        if (idx >= 0 && (min_done < 0 || idx < min_done)) {
+          min_done = idx;
+          mix_done->value = f->axes[a].value;
+        }
+      }
+    }
+  }
+  ozni_index item_node = at->kind == OZNI_N_List ? at->first : 0;
+  for (uint32_t k = 0; k < n; k++) {
+    while (item_node != 0 && nd(s, file, item_node)->kind == OZNI_N_Annotation) {
+      item_node = nd(s, file, item_node)->next;
+    }
+    consume(s, &items[k], file, item_node != 0 ? item_node : 0);
+    if (item_node != 0) {
+      item_node = nd(s, file, item_node)->next;
+    }
   }
   value out = {.kind = V_FOOD, .f = mix};
   value list = {.kind = V_LIST};
@@ -1154,6 +1294,11 @@ static bool decl_has_trait(sema *s, ozni_index file, ozni_index decl, ozni_index
 static bool food_has(sema *s, const food *f, ozni_index name) {
   if (f->part == name || f->type == name) {
     return true;
+  }
+  for (ozni_index k = 0; f->derived != nullptr && k < ozni_table_count(f->derived); k++) {
+    if (*(const ozni_index *)ozni_table_get(f->derived, k) == name) {
+      return true;
+    }
   }
   return f->file != NONE && decl_has_trait(s, f->file, f->node, name, 0);
 }
@@ -1462,6 +1607,11 @@ static value call_action(sema *s, ozni_index file, const ozni_node *call, ozni_i
       diag_node(s, OZNI_D_TYP_stateRequired, file, argn, args, 3);
     }
   }
+  for (uint32_t k = 0; k < np; k++) {
+    if (params[k].kind == V_FOOD && argnodes[k] != 0 && nd(s, file, argnodes[k])->kind != OZNI_N_List) {
+      consume(s, &params[k], file, argnodes[k]);
+    }
+  }
   food *out = nullptr;
   ozni_index output = 0;
   for (ozni_index c = act->first; c != 0; c = nd(s, afile, c)->next) {
@@ -1541,6 +1691,100 @@ static value eval_binary(sema *s, const ozni_node *n) {
   return unknown();
 }
 
+static ozni_index sub_ref(sema *s, ozni_index ref, int k) {
+  ozni_str r = S(s, ref);
+  char buf[32];
+  if (r.len + 2 >= sizeof buf) {
+    return ref;
+  }
+  ozni_copy(buf, r.p, r.len);
+  buf[r.len] = '.';
+  buf[r.len + 1] = (char)('0' + k);
+  return intern(s, buf, r.len + 2);
+}
+
+static bool amount_in(sema *s, const food *f, ozni_qty q, ozni_qty *have, ozni_qty *need) {
+  if (dims_equal(f->amount.d, q.d)) {
+    *have = f->amount;
+    *need = q;
+    return true;
+  }
+  food tmp = *f;
+  tmp.amount = q;
+  return to_mass(s, f, have) && to_mass(s, &tmp, need);
+}
+
+static value eval_split(sema *s, const ozni_node *call) {
+  ozni_index fnode = nd(s, s->file, call->first)->next;
+  ozni_index qnode = nd(s, s->file, fnode)->next;
+  value fv = eval(s, fnode), qv = eval(s, qnode);
+  if (fv.kind != V_FOOD || qv.kind != V_QTY || !fv.f->amount.known || !qv.q.known) {
+    return unknown();
+  }
+  ozni_qty have, need;
+  if (!amount_in(s, fv.f, qv.q, &have, &need)) {
+    return unknown();
+  }
+  if (ozni_rat_cmp(need.v.hi, have.v.lo) > 0) {
+    ozni_buf nb = {.a = s->c->allocator}, hb = {.a = s->c->allocator};
+    put_qty(s, &nb, need);
+    put_qty(s, &hb, have);
+    if (nb.failed || hb.failed) {
+      s->c->oom = true;
+    } else {
+      ozni_str args[3] = {src_text(s, s->file, nd(s, s->file, fnode)), {nb.p, (uint32_t)nb.len},
+                          {hb.p, (uint32_t)hb.len}};
+      diag_node(s, OZNI_D_LIN_insufficient, s->file, call, args, 3);
+    }
+    ozni_buf_discard(&nb);
+    ozni_buf_discard(&hb);
+    consume(s, &fv, s->file, fnode);
+    return unknown();
+  }
+  consume(s, &fv, s->file, fnode);
+  food *portion = food_copy(s, fv.f), *rest = food_copy(s, fv.f);
+  if (portion == nullptr || rest == nullptr) {
+    return unknown();
+  }
+  portion->amount = need;
+  rest->amount = have;
+  if (ozni_ival_sub(have.v, need.v, &rest->amount.v) != OZNI_OK) {
+    return unknown();
+  }
+  if (ozni_rat_cmp(rest->amount.v.lo, ozni_rat_int(0)) < 0) {
+    rest->amount.v.lo = ozni_rat_int(0);
+  }
+  portion->portion = rest->portion = true;
+  if (!ozni_table_push(s->portions, &portion, nullptr) || !ozni_table_push(s->portions, &rest, nullptr)) {
+    s->c->oom = true;
+  }
+  s->step_no++;
+  ozni_index ref = step_ref(s);
+  if (s->steps && s->out != nullptr) {
+    ozni_buf *b = s->out;
+    ozni_buf_puts(b, "  ");
+    ozni_str r = S(s, ref);
+    ozni_buf_put(b, r.p, r.len);
+    ozni_buf_puts(b, " = split(");
+    put_value(s, b, &fv);
+    ozni_buf_puts(b, ", ");
+    put_value(s, b, &qv);
+    ozni_buf_puts(b, ") : (");
+    put_food_line(s, b, portion);
+    ozni_buf_puts(b, ", ");
+    put_food_line(s, b, rest);
+    ozni_buf_puts(b, ")\n");
+  }
+  value out = {.kind = V_TUPLE};
+  out.items = ozni_table_new(s->c->arena, sizeof(value));
+  value a = {.kind = V_FOOD, .f = portion, .ref = sub_ref(s, ref, 1)};
+  value b2 = {.kind = V_FOOD, .f = rest, .ref = sub_ref(s, ref, 2)};
+  if (out.items == nullptr || !ozni_table_push(out.items, &a, nullptr) || !ozni_table_push(out.items, &b2, nullptr)) {
+    s->c->oom = true;
+  }
+  return out;
+}
+
 static value eval(sema *s, ozni_index node) {
   const ozni_node *n = nd(s, s->file, node);
   if (s->c->oom) {
@@ -1599,6 +1843,10 @@ static value eval(sema *s, ozni_index node) {
     if (callee->kind == OZNI_N_Name && find_def(s, callee->text, &afile, &anode) &&
         nd(s, afile, anode)->kind == OZNI_N_Action) {
       return call_action(s, s->file, n, afile, anode);
+    }
+    if (callee->kind == OZNI_N_Name && str_is(S(s, callee->text), "split") && callee->next != 0 &&
+        nd(s, s->file, callee->next)->next != 0) {
+      return eval_split(s, n);
     }
     for (ozni_index c = callee->next; c != 0; c = nd(s, s->file, c)->next) {
       eval(s, c);
@@ -1659,26 +1907,112 @@ static void eval_ingredients(sema *s, const ozni_node *n) {
   }
 }
 
-static void eval_block(sema *s, ozni_index block) {
+static void label(food *f, ozni_index name, ozni_span span) {
+  if (f != nullptr && f->label == 0) {
+    f->label = name;
+    f->label_span = span;
+  }
+}
+
+static void eval_block(sema *s, ozni_index block, bool top) {
   for (ozni_index st = nd(s, s->file, block)->first; st != 0 && !s->c->oom; st = nd(s, s->file, st)->next) {
     const ozni_node *n = nd(s, s->file, st);
     if (n->kind == OZNI_N_Ingredients) {
       eval_ingredients(s, n);
     } else if (n->kind == OZNI_N_Let) {
       value v = n->first != 0 ? eval(s, n->first) : unknown();
-      bind(s, n->text, v);
-    } else if (n->kind == OZNI_N_Parallel) {
-      for (ozni_index b = n->first; b != 0; b = nd(s, s->file, b)->next) {
-        if (nd(s, s->file, b)->first != 0) {
-          eval_block(s, nd(s, s->file, b)->first);
+      if (v.kind == V_FOOD) {
+        label(v.f, n->text, (ozni_span){s->file, n->name_start, n->name_end});
+        if (top) {
+          s->last = v;
+          s->last_node = n->first;
         }
       }
-    } else if (n->kind == OZNI_N_LetTuple || n->kind == OZNI_N_If || n->kind == OZNI_N_ForIn ||
-               n->kind == OZNI_N_Repeat || n->kind == OZNI_N_Serve) {
+      bind(s, n->text, v);
+    } else if (n->kind == OZNI_N_LetTuple) {
+      value v = unknown();
+      ozni_index expr = 0;
+      for (ozni_index c = n->first; c != 0; c = nd(s, s->file, c)->next) {
+        if (nd(s, s->file, c)->kind != OZNI_N_BindName) {
+          expr = c;
+        }
+      }
+      if (expr != 0) {
+        v = eval(s, expr);
+      }
+      ozni_index k = 0;
+      for (ozni_index c = n->first; c != 0; c = nd(s, s->file, c)->next) {
+        const ozni_node *bn = nd(s, s->file, c);
+        if (bn->kind != OZNI_N_BindName) {
+          continue;
+        }
+        value item = unknown();
+        if (v.kind == V_TUPLE && v.items != nullptr && k < ozni_table_count(v.items)) {
+          item = *(const value *)ozni_table_get(v.items, k);
+        }
+        if (item.kind == V_FOOD) {
+          label(item.f, bn->text, bn->span);
+        }
+        bind(s, bn->text, item);
+        k++;
+      }
+    } else if (n->kind == OZNI_N_Parallel) {
+      uint32_t saved_group = s->group, saved_branch = s->branch;
+      s->group = ++s->next_id;
+      for (ozni_index b = n->first; b != 0; b = nd(s, s->file, b)->next) {
+        s->branch = ++s->next_id;
+        if (nd(s, s->file, b)->first != 0) {
+          eval_block(s, nd(s, s->file, b)->first, false);
+        }
+      }
+      s->group = saved_group;
+      s->branch = saved_branch;
+    } else if (n->kind == OZNI_N_If || n->kind == OZNI_N_ForIn || n->kind == OZNI_N_Repeat ||
+               n->kind == OZNI_N_Serve) {
       continue;
     } else {
-      eval(s, st);
+      value v = eval(s, st);
+      if (top && v.kind == V_FOOD) {
+        s->last = v;
+        s->last_node = st;
+      }
     }
+  }
+}
+
+static void finish_dish(sema *s) {
+  if (s->last.kind == V_FOOD && s->last.f != nullptr && !s->last.f->consumed) {
+    food *f = s->last.f;
+    if (food_has(s, f, intern(s, "Hazard", 6)) && !food_has(s, f, intern(s, "RawEdible", 9))) {
+      for (uint32_t k = 0; k < f->naxes; k++) {
+        if (!str_is(S(s, f->axes[k].axis), "doneness")) {
+          continue;
+        }
+        int cur = axis_value_index(s, &f->axes[k], f->axes[k].value);
+        int done = axis_value_index(s, &f->axes[k], intern(s, "done", 4));
+        if (cur >= 0 && done >= 0 && cur < done) {
+          ozni_str args[2] = {S(s, f->type), S(s, f->axes[k].value)};
+          diag_node(s, OZNI_D_SAF_undercooked, s->file, nd(s, s->file, s->last_node), args, 2);
+        }
+      }
+    }
+  }
+  for (ozni_index k = 0; k < ozni_table_count(s->portions); k++) {
+    food *f = *(food *const *)ozni_table_get(s->portions, k);
+    if (f->consumed || (s->last.kind == V_FOOD && s->last.f == f) || f->label == 0) {
+      continue;
+    }
+    ozni_buf ab = {.a = s->c->allocator};
+    if (f->amount.known) {
+      put_qty(s, &ab, f->amount);
+    }
+    if (ab.failed) {
+      s->c->oom = true;
+    } else {
+      ozni_str args[2] = {S(s, f->label), {ab.p != nullptr ? ab.p : "", (uint32_t)ab.len}};
+      diag(s, OZNI_D_LIN_leftoverPart, f->label_span.file, f->label_span.start, f->label_span.end, args, 2);
+    }
+    ozni_buf_discard(&ab);
   }
 }
 
@@ -1699,11 +2033,19 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
     ozni_buf_put(s->out, name.p, name.len);
     ozni_buf_puts(s->out, "\n");
   }
+  s->portions = ozni_table_new(s->c->arena, sizeof(food *));
+  s->last = unknown();
+  s->last_node = 0;
+  if (s->portions == nullptr) {
+    s->c->oom = true;
+    return;
+  }
   for (ozni_index c = n->first; c != 0; c = nd(s, m->file, c)->next) {
     if (nd(s, m->file, c)->kind == OZNI_N_Block) {
-      eval_block(s, c);
+      eval_block(s, c, true);
     }
   }
+  finish_dish(s);
 }
 
 static bool effect_reaches(sema *s, ozni_index file, ozni_index type, ozni_index axis, ozni_index wanted) {
