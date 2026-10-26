@@ -179,6 +179,7 @@ typedef struct sema {
   ozni_table *ir_args;
   ozni_table *choices;
   ozni_table *choice_opts;
+  ozni_table *assemble_infos;
 } sema;
 
 typedef struct mframe {
@@ -5997,6 +5998,7 @@ static value eval_make(sema *s, const ozni_node *mk) {
 static value eval_assemble(sema *s, const ozni_node *n) {
   value items[16];
   food *ins[16];
+  ozni_index item_nodes[16];
   uint32_t k = 0, nin = 0;
   bool known = true;
   for (ozni_index c = n->first; c != 0 && k < 16; c = nd(s, s->file, c)->next) {
@@ -6009,6 +6011,7 @@ static value eval_assemble(sema *s, const ozni_node *n) {
       ir_source(s, items[k].f);
       known = known && items[k].f->amount.known &&
               (nin == 0 || dims_equal(ins[0]->amount.d, items[k].f->amount.d));
+      item_nodes[nin] = c;
       ins[nin++] = items[k].f;
     }
     k++;
@@ -6054,6 +6057,13 @@ static value eval_assemble(sema *s, const ozni_node *n) {
     node.text = ir_text(s, &b);
     out->irn = ir_add(s, node);
     meta_push(s, out->irn, out, nullptr, nullptr, 0);
+    plate_info info = {.irn = out->irn, .file = s->file, .nitems = nin};
+    for (uint32_t i = 0; i < nin; i++) {
+      info.items[i] = item_nodes[i];
+    }
+    if (s->assemble_infos != nullptr && out->irn != 0 && !ozni_table_push(s->assemble_infos, &info, nullptr)) {
+      s->c->oom = true;
+    }
   }
   value v = {.kind = V_FOOD, .f = out};
   v.ref = record_step(s, intern(s, "assemble", 8), items, k, nullptr, out, nullptr, 0);
@@ -8148,27 +8158,42 @@ static void schedule_dish(sema *s, ozni_index name) {
   for (uint32_t i = 0; i < ntasks; i++) {
     const ozni_ir_node *node = task_node(s, &o, i);
     const plate_info *pi = node->kind == OZNI_IR_PLATE ? plate_info_for(s, s->ir_base + node_of[i] + 1) : nullptr;
-    if (pi == nullptr || node->wave == 0 || node->wave > nwaves) {
+    const plate_info *ai = nullptr;
+    for (ozni_index a = 0; node->kind == OZNI_IR_OP && s->assemble_infos != nullptr &&
+                           a < ozni_table_count(s->assemble_infos);
+         a++) {
+      const plate_info *info = ozni_table_get(s->assemble_infos, a);
+      ai = info->irn == s->ir_base + node_of[i] + 1 ? info : ai;
+    }
+    if (ai != nullptr) {
+      pi = ai;
+    } else if (pi == nullptr || node->wave == 0 || node->wave > nwaves) {
       continue;
     }
-    ozni_rat at = serves[node->wave - 1];
+    ozni_rat at = ai != nullptr ? tasks[i].start : serves[node->wave - 1];
     for (uint32_t j = 0; j < node->ninputs && j < pi->nitems; j++) {
       ozni_index src = ((const ozni_ir_input *)ozni_table_get(s->ir.inputs, node->first_input + j))->node;
       uint32_t r = src > s->ir_base ? task_of[src - 1 - s->ir_base] : UINT32_MAX;
       ozni_rat from = r != UINT32_MAX ? tasks[r].end_hi : ozni_rat_int(0);
       sched_hold h = {from, at, pi->file, pi->items[j], UINT32_MAX, node->src};
-      if (pi->timing == TIMING_WARM && r != UINT32_MAX) {
+      ozni_rat item_limit;
+      ozni_index item_on = 0;
+      uint8_t item_timing = timing_of(s, pi->file, pi->items[j], &item_limit, &item_on);
+      uint8_t timing = item_timing == TIMING_CHILLED || item_timing == TIMING_FROZEN ? item_timing
+                       : ai != nullptr                                              ? TIMING_NONE
+                                                                                    : pi->timing;
+      if (timing == TIMING_WARM && r != UINT32_MAX) {
         const ozni_sched_alt *alt = &alt_array[tasks[r].first_alt + tasks[r].chosen];
         for (uint32_t g = 0; g < alt->ngroups && g < 64; g++) {
           h.unit = (alt->hold_mask >> g & 1) != 0 ? group_array[alt->first_group + g].pick : h.unit;
         }
-      } else if (pi->timing == TIMING_CHILLED || pi->timing == TIMING_FROZEN) {
-        ozni_index cap = intern(s, pi->timing == TIMING_CHILLED ? "Chilling" : "Freezing", 8);
+      } else if (timing == TIMING_CHILLED || timing == TIMING_FROZEN) {
+        ozni_index cap = intern(s, timing == TIMING_CHILLED ? "Chilling" : "Freezing", 8);
         for (uint32_t u = nunit; s->level == 2 && u > 0; u--) {
           const sched_unit *su = ozni_table_get(units, u - 1);
           h.unit = kind_is(s, su->kfile, su->knode, cap, 0) ? u - 1 : h.unit;
         }
-      } else if (pi->timing == TIMING_NONE && r != UINT32_MAX && has_long) {
+      } else if (timing == TIMING_NONE && ai == nullptr && r != UINT32_MAX && has_long) {
         ozni_rat wait;
         if (ozni_rat_sub(at, tasks[r].end_lo, &wait) == OZNI_OK && ozni_rat_cmp(wait, long_wait.v.hi) > 0) {
           ozni_buf b = {.a = s->c->allocator};
@@ -8793,10 +8818,12 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
     }
   }
   s.plate_infos = ozni_table_new(pr->c->arena, sizeof(plate_info));
+  s.assemble_infos = ozni_table_new(pr->c->arena, sizeof(plate_info));
   s.plate_units = ozni_table_new(pr->c->arena, sizeof(plate_unit));
   s.wave_infos = ozni_table_new(pr->c->arena, sizeof(wave_info));
   s.vessel_used = ozni_table_new(pr->c->arena, sizeof(uint32_t));
-  if (s.plate_infos == nullptr || s.plate_units == nullptr || s.wave_infos == nullptr || s.vessel_used == nullptr) {
+  if (s.plate_infos == nullptr || s.plate_units == nullptr || s.wave_infos == nullptr || s.vessel_used == nullptr ||
+      s.assemble_infos == nullptr) {
     return false;
   }
   if (s.schedule) {
