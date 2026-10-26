@@ -5548,6 +5548,33 @@ static ozni_index ir_plate(sema *s, ozni_index label, ozni_index pidx, ozni_inde
   return ir_add(s, node);
 }
 
+static void liquid_order(sema *s, const ozni_node *item, ozni_index pf, ozni_index pn, ozni_index name,
+                         ozni_index hold) {
+  const ozni_node *body = nd(s, pf, pn)->first != 0 ? nd(s, pf, nd(s, pf, pn)->first) : nullptr;
+  if (body == nullptr || body->kind != OZNI_N_Call || body->first == 0 ||
+      !str_is(S(s, nd(s, pf, body->first)->text), "vesselOrder")) {
+    return;
+  }
+  for (ozni_index a = nd(s, pf, body->first)->next; a != 0; a = nd(s, pf, a)->next) {
+    const ozni_node *an = nd(s, pf, a);
+    if (an->kind == OZNI_N_NamedArg && str_is(S(s, an->text), "dryOnly") && an->first != 0 &&
+        str_is(S(s, nd(s, pf, an->first)->text), "true")) {
+      ozni_str args[2] = {src_text(s, s->file, item), S(s, name)};
+      diag_node(s, OZNI_D_TYP_vesselLiquid, s->file, item, args, 2);
+      return;
+    }
+  }
+  for (ozni_index a = nd(s, pf, body->first)->next; a != 0; a = nd(s, pf, a)->next) {
+    const ozni_node *an = nd(s, pf, a);
+    ozni_index vf, vd;
+    if ((an->kind == OZNI_N_Name || an->kind == OZNI_N_TypeRef) && find_from(s, pf, an->text, &vf, &vd) &&
+        !decl_has_trait(s, vf, vd, hold, 0)) {
+      ozni_str args[2] = {src_text(s, s->file, item), S(s, an->text)};
+      diag_node(s, OZNI_D_TYP_vesselLiquid, s->file, item, args, 2);
+    }
+  }
+}
+
 static void eval_serve(sema *s, const ozni_node *serve) {
   ozni_index hold = intern(s, "HoldsLiquid", 11);
   if (s->vessel_used != nullptr) {
@@ -5620,7 +5647,9 @@ static void eval_serve(sema *s, const ozni_node *serve) {
         if (vn->kind != OZNI_N_TypeRef || !find_def(s, vn->text, &df, &dn)) {
           continue;
         }
-        if (liquid && vn->text != hold && !decl_has_trait(s, df, dn, hold, 0)) {
+        if (liquid && vn->text != hold && nd(s, df, dn)->kind == OZNI_N_Property) {
+          liquid_order(s, item, df, dn, vn->text, hold);
+        } else if (liquid && vn->text != hold && !decl_has_trait(s, df, dn, hold, 0)) {
           ozni_str args[2] = {src_text(s, s->file, item), S(s, vn->text)};
           diag_node(s, OZNI_D_TYP_vesselLiquid, s->file, item, args, 2);
         }
