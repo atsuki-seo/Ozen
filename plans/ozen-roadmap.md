@@ -2938,6 +2938,11 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - P7-3: golden の `syntax/utf8-invalid`・`syntax/ident-nonascii`・`syntax/string-utf8-passthrough`・`syntax/recover-multiple` の入力を `cgolden/syntax/` に写し、期待値は §4.20.1 の書式で書き直す
   - P7-5: 確保の失敗の注入（`ozp_oom_test`）、純粋性・大域変数・浮動小数点の検査（`check-pure.sh`・`check-noglobal.py`）、ファズの入口と辞書（`fuzz_expand.c`・`ozen.dict`）を `parse` 向けに移す
   - 持ち込まないもの: 試作のパーサー・評価器・出力（`parse.c`・`eval.c`・`api.c`）。報告書 §4 の「評価器の方式で直すべき点」（束縛のスタック、確保の失敗の扱い、出力のバッファー、名前のインターン）を本番の設計に入れる
+- P7-1（2026-10-26）: `core/CMakeLists.txt`（`-Wswitch-enum` を足した 8 つのフラグ、ライブラリ `libozen.a`、CLI は `cli/` から `build/<構成>/ozen` に出す。`ozni_` の規則は ctest の `symbols_prefixed` が `nm` で確かめる）、`scripts/build-core.sh`、`scripts/check-c23-subset.sh`（`scripts/c23-probes/` の 12 のプローブと、禁止の機能・C23 で増えた関数の grep）、登録簿 `core/src/diag_codes.def`（42 件。既定の重さの列つき）、CLI の骨組み（`ozen check FILE`・`ozen debug ast [--no-spans] [--rules] FILE`。中身は P7-3 から）、`scripts/run-golden.sh`・`scripts/digest.sh`（入口の一覧は `scripts/golden-entries.sh`。フォルダの golden は `expected.out` を持つフォルダで、引数はフォルダの `args`、`--std-version` で `{{STD_VERSION}}` の値を変えられる）、`scripts/check-grammar-coverage.py`。`check-diag-registry.sh` は分類を 10 個にし、`OZNI_DIAG` の 4 つ目の列（重さ）を読む。`check-spdx.sh` は `core/`・`cli/`・`tests/` と `.ebnf` も見る。自己テストはそれぞれ `0 failed`。`G-CORE-BUILD`・`G-CORE-FLAGS`（4 つとも `flags: 3 files, 0 missing`）・`G-CORE-C23-SUBSET`（`12 allowed probes ok on 2 toolchains, 0 banned uses`）・`G-CORE-DIAG-APPEND`・`G-REPO-SELFTESTS` が合格
+  - 計画との食い違い: `G-CORE-DIAG-REGISTRY` は P7-1 の完了条件だが、P7-0 で D の診断の名前 42 個をすべて `diag-names.txt` に書いたので、登録簿も 42 件にした。`unused` は golden の期待値に出た診断を数えるので、golden を書く P7-3〜P7-5 までは 0 にならない（P7-1 の時点で `42 unused`、ほかは 0）。ゲート D（P7-6）で 0 を確かめる
+  - わざと壊す確認: `G-CORE-C23-SUBSET`（S151・効かない条件）— `core/src/check.c` に `#include <stdckdint.h>` を足すと `1 banned uses` で落ちた。戻して合格
+  - わざと壊す確認: `G-CORE-DIAG-APPEND`（S266・時間と順序）— 使い捨ての複製で登録簿の `SYN004` の行の名前を書き換えてコミットすると落ちた（削除の行 1）。複製は消した
+  - わざと壊す確認: `G-CORE-DIAG-REGISTRY`（S268・データの完全性）— 分類 `XYZ` の診断を登録すると `1 bad codes` で落ちた。戻して合格
 
 ### 9.5 E（型検査）
 
