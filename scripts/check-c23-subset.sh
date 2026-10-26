@@ -6,16 +6,20 @@ set -uo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 probes="$here/c23-probes"
 toolchains="gcc:-std=c2x clang:-std=c23"
+command -v emcc >/dev/null 2>&1 || source "${EMSDK:-$HOME/.local/share/emsdk}/emsdk_env.sh" >/dev/null 2>&1
+command -v emcc >/dev/null 2>&1 && toolchains="$toolchains emcc:-std=c23"
+ci="$here/../build/ci"
 dirs=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --probes) probes="$2"; shift 2 ;;
     --toolchains) toolchains="$2"; shift 2 ;;
-    -*) echo "usage: $0 [--probes DIR] [--toolchains 'CC:STD ...'] DIR..." >&2; exit 2 ;;
+    --ci) ci="$2"; shift 2 ;;
+    -*) echo "usage: $0 [--probes DIR] [--toolchains 'CC:STD ...'] [--ci DIR] DIR..." >&2; exit 2 ;;
     *) dirs+=("$1"); shift ;;
   esac
 done
-[ ${#dirs[@]} -gt 0 ] || { echo "usage: $0 [--probes DIR] [--toolchains 'CC:STD ...'] DIR..." >&2; exit 2; }
+[ ${#dirs[@]} -gt 0 ] || { echo "usage: $0 [--probes DIR] [--toolchains 'CC:STD ...'] [--ci DIR] DIR..." >&2; exit 2; }
 
 nprobes=0
 ok=0
@@ -36,6 +40,17 @@ for p in "$probes"/*.c; do
     fi
   done
   ok=$((ok + pass))
+done
+for f in "$ci"/c23-*/c23.txt; do
+  [ -f "$f" ] || continue
+  line=$(tail -n 1 "$f")
+  if [[ $line =~ ^c23:\ ([0-9]+)\ allowed\ probes\ ok\ on\ ([0-9]+)\ toolchains, ]]; then
+    ntool=$((ntool + BASH_REMATCH[2]))
+    [ "${BASH_REMATCH[1]}" -lt "$ok" ] && ok=${BASH_REMATCH[1]}
+  else
+    echo "unreadable CI result: $f" >&2
+    ok=0
+  fi
 done
 
 banned='#[[:space:]]*embed|_BitInt|<stdckdint\.h>|<stdbit\.h>|\bckd_(add|sub|mul)\b|\bstdc_[a-z_]+\b|\b(memset_explicit|memalignment|strdup|strndup|strfrom[dfl]|free_sized|free_aligned_sized|timegm|gmtime_r|localtime_r)\b|"[^"]*%[-+ #0-9.]*b[^"]*"'
