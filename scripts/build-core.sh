@@ -36,6 +36,7 @@ for cfg in $configs; do
     :
   else
     echo "build failed: $cfg (see build/$cfg/build.log)" >&2
+    grep -m 20 -E 'error|Error' "$dir/build.log" >&2 2>/dev/null
     tail -n 20 "$dir/build.log" "$dir/configure.log" >&2 2>/dev/null
     failed=$((failed + 1))
   fi
