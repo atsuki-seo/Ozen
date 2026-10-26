@@ -570,6 +570,7 @@ goal_G_API_HEADER() {
 }
 
 goal_G_API_SCHEMA() {
+  scripts/run-golden.sh build/core-gcc-release/ozen tests/golden --json build/results/json >/dev/null 2>&1
   want_re "json" '^json: [1-9][0-9]* files, 0 invalid$' "$(python3 -B tools/jsoncheck/validate.py schemas build/results/json 2>&1 | tail -n 1)"
 }
 

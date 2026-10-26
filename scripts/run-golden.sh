@@ -4,7 +4,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: $0 COMMAND DIR [--only NAME] [--save ENV] [--std-version V]" >&2
+  echo "usage: $0 COMMAND DIR [--only NAME] [--save ENV] [--std-version V] [--json OUT]" >&2
   exit 2
 }
 
@@ -17,12 +17,14 @@ root=$(cd "$here/.." && pwd)
 only=""
 save=""
 version=""
+json=""
 [ -f "$root/VERSION" ] && version=$(tr -d '\n' < "$root/VERSION")
 while [ $# -gt 0 ]; do
   case "$1" in
     --only) only="$2"; shift 2 ;;
     --save) save="$2"; shift 2 ;;
     --std-version) version="$2"; shift 2 ;;
+    --json) json="$2"; shift 2 ;;
     *) usage ;;
   esac
 done
@@ -31,6 +33,8 @@ read -r -a runner <<< "$cmd"
 for i in "${!runner[@]}"; do
   [ -e "${runner[$i]}" ] && runner[$i]=$(cd "$(dirname "${runner[$i]}")" && pwd)/$(basename "${runner[$i]}")
 done
+[ -n "$json" ] && mkdir -p "$json" && rm -f "$json"/*.result.json
+[ -n "$json" ] && json=$(cd "$json" && pwd)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 passed=0
@@ -57,6 +61,20 @@ while IFS= read -r entry; do
   fi
   if [ -n "$only" ] && [ "$rel" != "$only" ]; then
     continue
+  fi
+  if [ -n "$json" ]; then
+    flags=()
+    for ((k = 0; k < ${#args[@]}; k++)); do
+      case "${args[$k]}" in
+        --kitchen|--options|--entry) flags+=("${args[$k]}" "${args[$((k + 1))]}"); k=$((k + 1)) ;;
+      esac
+    done
+    name=$(printf '%s' "$rel" | sed 's#/#-#g')
+    (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" check --format json \
+      --emit ir,schedule,steps,signatures,definitions,types "${flags[@]}" "${target[@]}") > "$work/json" 2>/dev/null
+    if head -c 1 "$work/json" | grep -q '{'; then
+      cp "$work/json" "$json/$name.result.json"
+    fi
   fi
   (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" "${args[@]}" "${target[@]}") > "$work/out" 2>/dev/null
   status=$?
