@@ -208,6 +208,7 @@ jobs:
           mkdir -p out/digest
           bash scripts/run-golden.sh "$runner" tests/golden > out/digest/golden.txt || { cat out/digest/golden.txt; exit 1; }
           tail -n 1 out/digest/golden.txt
+          grep -qx "golden: $(bash scripts/golden-entries.sh tests/golden | wc -l | tr -d " ") passed, 0 failed, 0 timed out" out/digest/golden.txt
           bash scripts/digest.sh "$runner" tests/golden samples > out/digest/digest.txt
           cat out/digest/digest.txt
 
@@ -331,6 +332,7 @@ jobs:
           mkdir -p out/digest
           bash scripts/run-golden.sh "$runner" tests/golden > out/digest/golden.txt || { cat out/digest/golden.txt; exit 1; }
           tail -n 1 out/digest/golden.txt
+          grep -qx "golden: $(bash scripts/golden-entries.sh tests/golden | wc -l | tr -d " ") passed, 0 failed, 0 timed out" out/digest/golden.txt
           bash scripts/digest.sh "$runner" tests/golden samples > out/digest/digest.txt
           cat out/digest/digest.txt
 
