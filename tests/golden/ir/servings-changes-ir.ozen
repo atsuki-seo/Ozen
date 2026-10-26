@@ -1,0 +1,10 @@
+// args: debug ir --options today
+recipe r(servings: Count = 2) {
+  ingredients { rice: 300 g }
+  repeat servings {
+    let w = wash(rice / servings)
+  }
+}
+kitchen today : Options {
+  servings: 3
+}

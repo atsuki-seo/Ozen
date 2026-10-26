@@ -1,0 +1,16 @@
+// args: debug ir --kitchen home
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pan: FryingPan { capacity: 250 g }
+  }
+}
+recipe r() {
+  ingredients { pork: 500 g }
+  let batches = ceil(pork / kitchen.pan.capacity)
+  repeat batches {
+    let f = fry(pork / batches, 8 min)
+  }
+}

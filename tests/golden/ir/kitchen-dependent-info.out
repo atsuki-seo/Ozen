@@ -1,0 +1,7 @@
+ir r
+  %1 = in pork : Pork 500 g
+  %2 = op fry %1/2 time=480 s heat=medium : Pork -> Pork<doneness: done, browning: light> 250 g [hands, HeatSource<stovetop>, FryingPan; 480 s]
+  %3 = op fry %1/2 time=480 s heat=medium : Pork -> Pork<doneness: done, browning: light> 250 g [hands, HeatSource<stovetop>, FryingPan; 480 s]
+info SCH002 kitchenDependent kitchen-dependent-info.ozen:12:29-12:49 args=["kitchen.pan.capacity"]: kitchen dependent
+result ok errors=0 warnings=0 infos=1
+exit 0

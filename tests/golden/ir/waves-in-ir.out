@@ -1,0 +1,17 @@
+ir salad
+  %1 = in lettuce : Lettuce 100 g
+  %2 = op tear %1 : Lettuce -> Lettuce<shape: cut(biteSize)> 100 g [hands; 30..120 s]
+ir dessert
+  %1 = in ice : VanillaIce 100 g
+  %2 = op layer %1 : VanillaIce -> VanillaIce 100 g [hands, Vessel; 60..180 s]
+ir dinner
+  %1 = in lettuce : Lettuce 100 g
+  %2 = op tear %1 : Lettuce -> Lettuce<shape: cut(biteSize)> 100 g [hands; 30..120 s]
+  %3 = in ice : VanillaIce 100 g
+  %4 = op layer %3 : VanillaIce -> VanillaIce 100 g [hands, Vessel; 60..180 s]
+  wave 1
+  %5 = plate perPerson %2 on FlatPlate [hands, Vessel; 18..60 s]
+  wave 2 after 1 + 2400 s
+  %6 = plate perPerson %4 on Glass [hands, Vessel; 18..60 s]
+result ok errors=0 warnings=0 infos=0
+exit 0

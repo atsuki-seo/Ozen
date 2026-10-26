@@ -1,0 +1,5 @@
+// args: debug ir
+recipe r() {
+  ingredients { onion: 1/3 pcs }
+  let p = peel(onion)
+}

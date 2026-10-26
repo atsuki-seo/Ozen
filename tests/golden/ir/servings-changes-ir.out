@@ -1,0 +1,7 @@
+ir r
+  %1 = in rice : Rice 300 g
+  %2 = op wash %1/3 : Rice -> Rice<prep has washed> 100 g [hands, Washing; 60..180 s]
+  %3 = op wash %1/3 : Rice -> Rice<prep has washed> 100 g [hands, Washing; 60..180 s]
+  %4 = op wash %1/3 : Rice -> Rice<prep has washed> 100 g [hands, Washing; 60..180 s]
+result ok errors=0 warnings=0 infos=0
+exit 0

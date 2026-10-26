@@ -1,0 +1,14 @@
+// args: debug ir --kitchen home
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pot: Pot
+  }
+}
+recipe r() {
+  ingredients { rice: 300 g }
+  let s = soak(rice)
+  let c = cookRice(s)
+}
