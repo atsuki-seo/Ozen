@@ -1247,7 +1247,7 @@ static ozni_index serve_stmt(parser *p) {
   }
   if (expect(p, OZNI_T_LBRACE) && enter(p)) {
     skip_seps(p);
-    while (at_kw(p, "plate") && !p->failed) {
+    while (at_word(p, "plate") && kind_at(p, 1) == OZNI_T_IDENT && !p->failed) {
       add(p, n, plate_stmt(p));
       skip_seps(p);
     }

@@ -6,7 +6,7 @@
 static const char *const reserved[] = {
     "and",    "assemble", "branch",  "buy",   "check",   "choose", "else",  "false",   "finer",
     "for",    "if",       "import",  "in",    "ingredients", "let", "local", "macro", "make",
-    "module", "not",      "or",      "package", "parallel", "phrases", "plate", "quote", "repeat",
+    "module", "not",      "or",      "package", "parallel", "phrases", "quote", "repeat",
     "requires", "serve",  "steps",   "takes", "true",    "uses",   "variant", "where",
 };
 
