@@ -1,0 +1,25 @@
+// args: check --format json --emit steps --kitchen home --options today
+action trim(x: T, style: CutStyle = slice) -> T {
+  uses hands, WorkSurface, CuttingSurface for 1 min
+  leaves: x on CuttingSurface
+}
+kitchen home {
+  tools {
+    board: CuttingBoard
+  }
+}
+recipe r() {
+  ingredients {
+    pork: 200 g
+    c1: Cabbage 50 g
+  }
+  parallel {
+    branch a {
+      let a = trim(pork, style: dice)
+      let b = trim(c1)
+    }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

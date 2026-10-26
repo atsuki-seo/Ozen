@@ -1,0 +1,7 @@
+// args: check --format json --emit types
+recipe r() {
+  ingredients {
+    rice: 300 g
+  }
+  let w = wash(rice)
+}

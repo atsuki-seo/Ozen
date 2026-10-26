@@ -1,0 +1,18 @@
+// args: check --format json
+macro inner(v) {
+  quote {
+    let y = $v + 1 min
+  }
+}
+macro outer(v) {
+  quote {
+    inner($v)
+  }
+}
+recipe r() {
+  ingredients {
+    onion: 1 pcs
+  }
+  outer(1 g)
+  let s = cut(onion, style: slice)
+}

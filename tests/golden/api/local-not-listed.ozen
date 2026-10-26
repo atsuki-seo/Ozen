@@ -1,0 +1,14 @@
+// args: check --format json --emit definitions
+local action secret(x: T) -> T {
+  uses hands for 1 min
+}
+action shown(x: T) -> T {
+  uses hands for 1 min
+}
+recipe r() {
+  ingredients {
+    rice: 300 g
+  }
+  let s = secret(rice)
+  let t = shown(s)
+}

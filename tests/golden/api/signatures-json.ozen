@@ -1,0 +1,19 @@
+// args: check --format json --emit signatures
+action press(x: T, time: Time = 2 min, heat: Heat = low) -> T<doneness: done> {
+  variant pan {
+    uses hands, HeatSource<stovetop>, FryingPan for 2 min
+  }
+  variant oven {
+    uses HeatSource<oven> for 10 min @unattended @source(provisional)
+  }
+}
+local action hidden(x: T) -> T {
+  uses hands for 1 min
+}
+recipe r() {
+  ingredients {
+    tofu: 100 g
+  }
+  let p = press(tofu)
+  let h = hidden(p)
+}
