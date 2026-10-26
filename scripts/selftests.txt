@@ -32,3 +32,4 @@ scripts/check-severity-table.py scripts/test-check-severity-table.sh
 tools/schedcheck/schedcheck.py scripts/test-schedcheck.sh
 scripts/collect-schedules.sh scripts/test-collect-schedules.sh
 tools/jsoncheck/validate.py scripts/test-validate.sh
+tools/vendorcheck.py scripts/test-vendorcheck.sh
