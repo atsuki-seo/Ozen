@@ -109,10 +109,12 @@ char *ozni_run_json(const ozni_allocator *a, const ozni_limits *lim, const ozni_
   c.set.json = true;
   c.set.api = true;
   ozni_project pr;
-  ozni_buf sched = {.a = a};
+  ozni_buf sched = {.a = a}, ir = {.a = a}, steps = {.a = a};
+  c.ir_json = (emit & 1u) != 0 ? &ir : nullptr;
+  c.steps_json = (emit & 4u) != 0 ? &steps : nullptr;
   bool loaded = ozni_project_load(&c, srcs, n, &pr);
   if (loaded && !c.oom && !pr.syntax_errors && !c.limit_hit) {
-    loaded = ozni_sema_run(&pr, (emit & 2u) != 0 ? OZNI_OUT_SCHEDULE : OZNI_OUT_NONE, &sched, nullptr);
+    loaded = ozni_sema_run(&pr, (emit & 6u) != 0 ? OZNI_OUT_SCHEDULE : OZNI_OUT_NONE, &sched, nullptr);
   }
   if (loaded && !c.oom && !ozni_apply_levels(&pr)) {
     c.oom = true;
@@ -125,10 +127,19 @@ char *ozni_run_json(const ozni_allocator *a, const ozni_limits *lim, const ozni_
   bool errors = false;
   char *out = nullptr;
   if (ozni_render_result_head(&c, &b, &errors)) {
-    if ((emit & 2u) != 0) {
-      ozni_buf_puts(&b, ",\"schedules\":[");
-      ozni_buf_put(&b, sched.p != nullptr ? sched.p : "", c.oom ? 0 : sched.len);
-      ozni_buf_puts(&b, "]");
+    const ozni_buf *parts[3] = {&ir, &sched, &steps};
+    static const char *const keys[3] = {",\"ir\":[", ",\"schedules\":[", ",\"steps\":["};
+    static const unsigned bits[3] = {1u, 2u, 4u};
+    for (int k = 0; k < 3; k++) {
+      if ((emit & bits[k]) != 0) {
+        ozni_buf_puts(&b, keys[k]);
+        bool ok = !c.oom && !parts[k]->failed && parts[k]->p != nullptr;
+        ozni_buf_put(&b, ok ? parts[k]->p : "", ok ? parts[k]->len : 0);
+        ozni_buf_puts(&b, "]");
+      }
+    }
+    if (loaded && !c.oom && (emit & 56u) != 0 && !ozni_render_public(&pr, &b, emit)) {
+      b.failed = true;
     }
     ozni_buf_puts(&b, "}\n");
     out = ozni_buf_finish(&b);
@@ -136,6 +147,8 @@ char *ozni_run_json(const ozni_allocator *a, const ozni_limits *lim, const ozni_
     ozni_buf_discard(&b);
   }
   ozni_buf_discard(&sched);
+  ozni_buf_discard(&ir);
+  ozni_buf_discard(&steps);
   *has_errors = errors;
   ozni_ctx_free(&c);
   return out;

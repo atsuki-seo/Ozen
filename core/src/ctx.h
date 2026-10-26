@@ -45,6 +45,8 @@ typedef struct ozni_ctx {
   bool limit_hit;
   bool oom;
   int level;
+  struct ozni_buf *ir_json;
+  struct ozni_buf *steps_json;
 } ozni_ctx;
 
 [[nodiscard]] bool ozni_ctx_init(ozni_ctx *c, const ozni_allocator *a, const ozni_limits *lim,

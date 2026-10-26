@@ -175,6 +175,8 @@ typedef struct sema {
   ozni_table *plate_units;
   ozni_table *wave_infos;
   ozni_table *vessel_used;
+  ozni_table *ir_meta;
+  ozni_table *ir_args;
 } sema;
 
 typedef struct mframe {
@@ -1431,6 +1433,49 @@ static ozni_index ir_text(sema *s, ozni_buf *b) {
   return id;
 }
 
+typedef struct ir_meta {
+  ozni_index irn;
+  ozni_qty qty;
+  uint32_t first_arg;
+  uint32_t nargs;
+  bool has_qty;
+} ir_meta;
+
+typedef struct ir_arg {
+  ozni_index name;
+  ozni_index value;
+} ir_arg;
+
+static void put_value(sema *s, ozni_buf *b, const value *v);
+
+static void meta_push(sema *s, ozni_index irn, const food *out, const value *params, const ozni_index *pnames,
+                      uint32_t np) {
+  if (s->ir_meta == nullptr || irn == 0) {
+    return;
+  }
+  ir_meta m = {.irn = irn, .first_arg = ozni_table_count(s->ir_args)};
+  if (out != nullptr && out->amount.known) {
+    m.qty = out->amount;
+    m.has_qty = true;
+  }
+  for (uint32_t k = 0; k < np; k++) {
+    if (params[k].kind != V_QTY && params[k].kind != V_ENUM && params[k].kind != V_STR && params[k].kind != V_BOOL) {
+      continue;
+    }
+    ozni_buf b = {.a = s->c->allocator};
+    put_value(s, &b, &params[k]);
+    ir_arg a = {pnames[k], b.failed ? 0 : intern(s, b.p != nullptr ? b.p : "", b.len)};
+    ozni_buf_discard(&b);
+    if (!ozni_table_push(s->ir_args, &a, nullptr)) {
+      s->c->oom = true;
+    }
+    m.nargs++;
+  }
+  if (!ozni_table_push(s->ir_meta, &m, nullptr)) {
+    s->c->oom = true;
+  }
+}
+
 static ozni_index ir_source(sema *s, food *f) {
   if (!ir_on(s) || f == nullptr || f->irn != 0) {
     return f != nullptr ? f->irn : 0;
@@ -1440,6 +1485,7 @@ static ozni_index ir_source(sema *s, food *f) {
   put_food_line(s, &b, f);
   ozni_ir_node node = {.kind = OZNI_IR_IN, .label = f->in_label != 0 ? f->in_label : f->type, .text = ir_text(s, &b)};
   f->irn = ir_add(s, node);
+  meta_push(s, f->irn, f, nullptr, nullptr, 0);
   return f->irn;
 }
 
@@ -3402,6 +3448,7 @@ static ozni_index ir_record_call(sema *s, const ozni_node *act, ozni_index afile
   node.text = ir_text(s, &b);
   ozni_index at = ir_add(s, node);
   wash_record(s, at, afile, anode, vars, nv, params, pnames, np);
+  meta_push(s, at, out, params, pnames, np);
   return at;
 }
 
@@ -5945,6 +5992,7 @@ static value eval_assemble(sema *s, const ozni_node *n) {
     ozni_buf_puts(&b, "]");
     node.text = ir_text(s, &b);
     out->irn = ir_add(s, node);
+    meta_push(s, out->irn, out, nullptr, nullptr, 0);
   }
   value v = {.kind = V_FOOD, .f = out};
   v.ref = record_step(s, intern(s, "assemble", 8), items, k, nullptr, out, nullptr, 0);
@@ -5972,6 +6020,7 @@ static value eval_buy(sema *s, const ozni_node *n) {
     ozni_str ty = src_text(s, s->file, nd(s, s->file, tnode));
     ozni_ir_node node = {.kind = OZNI_IR_BUY, .label = intern(s, ty.p, ty.len), .text = ir_text(s, &ib)};
     f->irn = ir_add(s, node);
+    meta_push(s, f->irn, f, nullptr, nullptr, 0);
   }
   if (printing(s)) {
     ozni_buf *b = s->out;
@@ -6120,6 +6169,165 @@ static value eval_choose(sema *s, const ozni_node *n) {
   return unknown();
 }
 
+static void put_json_rat(ozni_buf *b, ozni_rat r);
+
+static void put_json_range(ozni_buf *b, ozni_rat lo, ozni_rat hi) {
+  ozni_buf_puts(b, "{\"lo\":");
+  put_json_rat(b, lo);
+  ozni_buf_puts(b, ",\"hi\":");
+  put_json_rat(b, hi);
+  ozni_buf_puts(b, "}");
+}
+
+static void put_json_qty(sema *s, ozni_buf *b, ozni_qty q) {
+  ozni_buf_puts(b, "{\"value\":");
+  if (ozni_rat_cmp(q.v.lo, q.v.hi) == 0) {
+    put_json_rat(b, q.v.lo);
+  } else {
+    put_json_range(b, q.v.lo, q.v.hi);
+  }
+  ozni_buf_puts(b, ",\"unit\":");
+  if (dimensionless(q.d)) {
+    ozni_buf_puts(b, "\"1\"");
+  } else {
+    ozni_buf ub = {.a = s->c->allocator};
+    put_dims(s, &ub, q.d);
+    ozni_buf_json(b, ub.p != nullptr ? ub.p : "", ub.failed ? 0 : ub.len);
+    ozni_buf_discard(&ub);
+  }
+  ozni_buf_puts(b, "}");
+}
+
+static void put_json_reqs(sema *s, ozni_buf *b, uint32_t first, uint32_t n) {
+  ozni_buf_puts(b, "[");
+  for (uint32_t r = 0; r < n; r++) {
+    const ozni_ir_req *req = ozni_table_get(s->ir.reqs, first + r);
+    ozni_str t = req->type != 0 ? src_text(s, req->file, nd(s, req->file, req->type)) : S(s, req->text);
+    ozni_buf_puts(b, r == 0 ? "" : ",");
+    ozni_buf_json(b, t.p, t.len);
+  }
+  ozni_buf_puts(b, "]");
+}
+
+static void ir_json(sema *s, ozni_index name) {
+  ozni_buf *b = s->c->ir_json;
+  static const char *const words[] = {"in", "buy", "op", "choose", "plate", "wave"};
+  ozni_str nm = S(s, name);
+  ozni_buf_puts(b, b->len > 0 ? ",{\"name\":" : "{\"name\":");
+  ozni_buf_json(b, nm.p, nm.len);
+  ozni_buf_puts(b, ",\"nodes\":[");
+  bool first = true;
+  for (ozni_index k = s->ir_base; k < ozni_table_count(s->ir.nodes); k++) {
+    const ozni_ir_node *node = ozni_table_get(s->ir.nodes, k);
+    if (node->kind == OZNI_IR_WAVE) {
+      continue;
+    }
+    ozni_buf_puts(b, first ? "{\"id\":" : ",{\"id\":");
+    first = false;
+    ozni_buf_putu(b, node->number);
+    ozni_buf_puts(b, ",\"kind\":\"");
+    ozni_buf_puts(b, words[node->kind]);
+    ozni_buf_puts(b, "\",\"label\":");
+    ozni_str label = S(s, node->label);
+    ozni_buf_json(b, label.p, label.len);
+    ozni_buf_puts(b, ",\"inputs\":[");
+    for (uint32_t i = 0; i < node->ninputs; i++) {
+      const ozni_ir_input *in = ozni_table_get(s->ir.inputs, node->first_input + i);
+      const ozni_ir_node *src = in->node != 0 ? ozni_table_get(s->ir.nodes, in->node - 1) : nullptr;
+      ozni_buf_puts(b, i == 0 ? "{\"node\":" : ",{\"node\":");
+      ozni_buf_putu(b, src != nullptr ? src->number : 0);
+      ozni_buf_puts(b, ",\"part\":");
+      if (in->part != 0) {
+        ozni_buf_putu(b, in->part);
+      } else {
+        ozni_buf_puts(b, "null");
+      }
+      ozni_buf_puts(b, "}");
+    }
+    ozni_buf_puts(b, "],\"after\":[");
+    for (uint32_t i = 0; i < node->nafter; i++) {
+      ozni_index a = *(const ozni_index *)ozni_table_get(s->ir.afters, node->first_after + i);
+      ozni_buf_puts(b, i == 0 ? "" : ",");
+      ozni_buf_putu(b, a != 0 ? ((const ozni_ir_node *)ozni_table_get(s->ir.nodes, a - 1))->number : 0);
+    }
+    ozni_buf_puts(b, "],\"requires\":");
+    put_json_reqs(s, b, node->first_req, node->kind == OZNI_IR_CHOOSE ? 0 : node->nreqs);
+    ozni_buf_puts(b, ",\"time\":");
+    put_json_range(b, node->time_lo, node->time_hi);
+    ozni_buf_puts(b, node->unattended ? ",\"unattended\":true,\"wave\":" : ",\"unattended\":false,\"wave\":");
+    if (node->kind == OZNI_IR_PLATE && node->wave != 0) {
+      ozni_buf_putu(b, node->wave);
+    } else {
+      ozni_buf_puts(b, "null");
+    }
+    ozni_buf_puts(b, ",\"variants\":[");
+    for (uint32_t v = 0; node->kind == OZNI_IR_CHOOSE && v < node->nvariants; v++) {
+      const ozni_ir_variant *var = ozni_table_get(s->ir.variants, node->first_variant + v);
+      ozni_str vn = S(s, var->name);
+      ozni_buf_puts(b, v == 0 ? "{\"name\":" : ",{\"name\":");
+      ozni_buf_json(b, vn.p, vn.len);
+      ozni_buf_puts(b, ",\"requires\":");
+      put_json_reqs(s, b, var->first_req, var->nreqs);
+      ozni_buf_puts(b, ",\"time\":");
+      put_json_range(b, var->time_lo, var->time_hi);
+      ozni_buf_puts(b, var->unattended ? ",\"unattended\":true}" : ",\"unattended\":false}");
+    }
+    const ir_meta *meta = nullptr;
+    for (ozni_index m = 0; s->ir_meta != nullptr && m < ozni_table_count(s->ir_meta); m++) {
+      const ir_meta *mm = ozni_table_get(s->ir_meta, m);
+      meta = mm->irn == k + 1 ? mm : meta;
+    }
+    ozni_buf_puts(b, "],\"args\":[");
+    for (uint32_t a = 0; meta != nullptr && a < meta->nargs; a++) {
+      const ir_arg *arg = ozni_table_get(s->ir_args, meta->first_arg + a);
+      ozni_str an = S(s, arg->name), av = S(s, arg->value);
+      ozni_buf_puts(b, a == 0 ? "{\"name\":" : ",{\"name\":");
+      ozni_buf_json(b, an.p, an.len);
+      ozni_buf_puts(b, ",\"value\":");
+      ozni_buf_json(b, av.p, av.len);
+      ozni_buf_puts(b, "}");
+    }
+    ozni_buf_puts(b, "],\"quantity\":");
+    if (meta != nullptr && meta->has_qty) {
+      put_json_qty(s, b, meta->qty);
+    } else {
+      ozni_buf_puts(b, "null");
+    }
+    ozni_buf_puts(b, "}");
+  }
+  ozni_buf_puts(b, "],\"waves\":[");
+  first = true;
+  uint32_t prev = 0;
+  for (ozni_index k = s->ir_base; k < ozni_table_count(s->ir.nodes); k++) {
+    const ozni_ir_node *node = ozni_table_get(s->ir.nodes, k);
+    if (node->kind != OZNI_IR_WAVE) {
+      continue;
+    }
+    ozni_rat gap = ozni_rat_int(0);
+    for (ozni_index w = 0; s->wave_infos != nullptr && w < ozni_table_count(s->wave_infos); w++) {
+      const wave_info *wi = ozni_table_get(s->wave_infos, w);
+      gap = wi->irn == k + 1 ? wi->gap : gap;
+    }
+    ozni_str wn = S(s, node->label);
+    ozni_buf_puts(b, first ? "{\"id\":" : ",{\"id\":");
+    first = false;
+    ozni_buf_putu(b, node->wave);
+    ozni_buf_puts(b, ",\"name\":");
+    ozni_buf_json(b, wn.p, wn.len);
+    ozni_buf_puts(b, ",\"after\":");
+    if (prev != 0) {
+      ozni_buf_putu(b, prev);
+    } else {
+      ozni_buf_puts(b, "null");
+    }
+    ozni_buf_puts(b, ",\"gap\":");
+    put_json_rat(b, gap);
+    ozni_buf_puts(b, "}");
+    prev = node->wave;
+  }
+  ozni_buf_puts(b, "]}");
+}
+
 static void ir_dump(sema *s, ozni_index name) {
   ozni_buf *b = s->out;
   static const char *const words[] = {"in", "buy", "op", "choose", "plate", "wave"};
@@ -6200,7 +6408,7 @@ static void put_json_rat(ozni_buf *b, ozni_rat r) {
   }
   ozni_buf_putu(b, (uint64_t)(r.num < 0 ? -r.num : r.num));
   ozni_buf_puts(b, ",\"den\":");
-  ozni_buf_putu(b, (uint64_t)r.den);
+  ozni_buf_putu(b, r.den == 0 ? 1 : (uint64_t)r.den);
   ozni_buf_puts(b, "}");
 }
 
@@ -7135,6 +7343,149 @@ static bool better_score(const sched_score *a, const sched_score *b) {
   return false;
 }
 
+static ozni_index root_label(const sema *s, ozni_index irn) {
+  for (uint32_t guard = 0; irn != 0 && guard < 1000; guard++) {
+    const ozni_ir_node *node = ozni_table_get(s->ir.nodes, irn - 1);
+    if ((node->kind != OZNI_IR_OP && node->kind != OZNI_IR_CHOOSE) || node->ninputs == 0) {
+      return node->label;
+    }
+    irn = ((const ozni_ir_input *)ozni_table_get(s->ir.inputs, node->first_input))->node;
+  }
+  return 0;
+}
+
+static void steps_json(sema *s, const sched_out *o, ozni_index name) {
+  const ozni_sched *p = &o->plan;
+  ozni_buf *b = s->c->steps_json;
+  uint32_t nt = p->ntasks, nx = nt + p->nextras, total = nx + o->nholds;
+  uint32_t *order = ozni_arena_alloc(s->c->arena, (total + 1) * sizeof *order);
+  if (order == nullptr) {
+    s->c->oom = true;
+    return;
+  }
+  for (uint32_t i = 0; i < total; i++) {
+    ozni_rat si = i < nt ? p->tasks[i].start : i < nx ? p->extras[i - nt].start : o->holds[i - nx].start;
+    uint32_t ci = i < nt ? 0 : i < nx ? 1 : 2, j = i;
+    while (j > 0) {
+      uint32_t a = order[j - 1];
+      ozni_rat sa = a < nt ? p->tasks[a].start : a < nx ? p->extras[a - nt].start : o->holds[a - nx].start;
+      uint32_t ca = a < nt ? 0 : a < nx ? 1 : 2;
+      int r = ozni_rat_cmp(sa, si);
+      if (r < 0 || (r == 0 && ca < ci) || (r == 0 && ca == 0 && ci == 0 && p->tasks[a].order < p->tasks[i].order) ||
+          (r == 0 && ca == ci && ca != 0 && a < i)) {
+        break;
+      }
+      order[j] = a;
+      j--;
+    }
+    order[j] = i;
+  }
+  static const char *const extra_kinds[] = {"wash", "rinse", "soak", "wipe", "run"};
+  ozni_str nm = S(s, name);
+  ozni_buf_puts(b, b->len > 0 ? ",{\"name\":" : "{\"name\":");
+  ozni_buf_json(b, nm.p, nm.len);
+  ozni_buf_puts(b, ",\"steps\":[");
+  bool first = true;
+  for (uint32_t k = 0; k < total; k++) {
+    uint32_t i = order[k];
+    if (i < nt && o->merged[i] != UINT32_MAX) {
+      continue;
+    }
+    ozni_buf_puts(b, first ? "{\"start\":" : ",{\"start\":");
+    first = false;
+    if (i < nt) {
+      const ozni_sched_task *t = &p->tasks[i];
+      const ozni_ir_node *node = task_node(s, o, i);
+      const ozni_sched_alt *alt = &p->alts[t->first_alt + t->chosen];
+      put_json_rat(b, t->start);
+      ozni_buf_puts(b, ",\"end\":");
+      put_json_rat(b, t->end_hi);
+      ozni_buf_puts(b, node->kind == OZNI_IR_PLATE ? ",\"kind\":\"plate\",\"action\":" : ",\"kind\":\"op\",\"action\":");
+      ozni_str label = S(s, node->kind == OZNI_IR_PLATE ? intern(s, "plate", 5) : node->label);
+      ozni_buf_json(b, label.p, label.len);
+      const ir_meta *meta = nullptr;
+      for (ozni_index m = 0; s->ir_meta != nullptr && m < ozni_table_count(s->ir_meta); m++) {
+        const ir_meta *mm = ozni_table_get(s->ir_meta, m);
+        meta = mm->irn == s->ir_base + o->node_of[i] + 1 ? mm : meta;
+      }
+      ozni_buf_puts(b, ",\"args\":[");
+      for (uint32_t a = 0; meta != nullptr && a < meta->nargs; a++) {
+        const ir_arg *arg = ozni_table_get(s->ir_args, meta->first_arg + a);
+        ozni_str an = S(s, arg->name), av = S(s, arg->value);
+        ozni_buf_puts(b, a == 0 ? "{\"name\":" : ",{\"name\":");
+        ozni_buf_json(b, an.p, an.len);
+        ozni_buf_puts(b, ",\"value\":");
+        ozni_buf_json(b, av.p, av.len);
+        ozni_buf_puts(b, "}");
+      }
+      ozni_buf_puts(b, "],\"foods\":[");
+      for (uint32_t f = 0; f < node->ninputs; f++) {
+        const ozni_ir_input *in = ozni_table_get(s->ir.inputs, node->first_input + f);
+        ozni_str fl = S(s, root_label(s, in->node));
+        ozni_buf_puts(b, f == 0 ? "" : ",");
+        ozni_buf_json(b, fl.p, fl.len);
+      }
+      ozni_buf_puts(b, "],\"resources\":[");
+      for (uint32_t g = 0; g < alt->ngroups; g++) {
+        ozni_str ul = S(s, unit_at(o, p->groups[alt->first_group + g].pick)->label);
+        ozni_buf_puts(b, g == 0 ? "" : ",");
+        ozni_buf_json(b, ul.p, ul.len);
+      }
+      ozni_buf_puts(b, "],\"reason\":null,\"cook\":");
+      if (t->cook != 0) {
+        ozni_buf_putu(b, t->cook);
+      } else {
+        ozni_buf_puts(b, "null");
+      }
+    } else if (i < nx) {
+      const ozni_sched_extra *e = &p->extras[i - nt];
+      put_json_rat(b, e->start);
+      ozni_buf_puts(b, ",\"end\":");
+      put_json_rat(b, e->end_hi);
+      ozni_buf_puts(b, ",\"kind\":\"");
+      ozni_buf_puts(b, extra_kinds[e->kind]);
+      ozni_buf_puts(b, "\",\"action\":\"");
+      ozni_buf_puts(b, extra_kinds[e->kind]);
+      ozni_buf_puts(b, "\",\"args\":[],\"foods\":[],\"resources\":[");
+      if (e->sink != UINT32_MAX) {
+        ozni_str sl = S(s, unit_at(o, e->sink)->label);
+        ozni_buf_json(b, sl.p, sl.len);
+        ozni_buf_puts(b, ",");
+      }
+      ozni_str ul = S(s, unit_at(o, e->unit)->label);
+      ozni_buf_json(b, ul.p, ul.len);
+      for (uint32_t q = 0; e->kind == OZNI_EXTRA_RUN && q < e->ntools; q++) {
+        ozni_str tl = S(s, unit_at(o, p->tools[e->first_tool + q])->label);
+        ozni_buf_puts(b, ",");
+        ozni_buf_json(b, tl.p, tl.len);
+      }
+      ozni_buf_puts(b, "],\"reason\":");
+      ozni_str why = dirt_text(s, o, e->dirt);
+      ozni_buf_json(b, why.p, why.len);
+      ozni_buf_puts(b, ",\"cook\":");
+      if (e->cook != 0) {
+        ozni_buf_putu(b, e->cook);
+      } else {
+        ozni_buf_puts(b, "null");
+      }
+    } else {
+      const sched_hold *h = &o->holds[i - nx];
+      put_json_rat(b, h->start);
+      ozni_buf_puts(b, ",\"end\":");
+      put_json_rat(b, h->end);
+      ozni_buf_puts(b, ",\"kind\":\"hold\",\"action\":\"hold\",\"args\":[],\"foods\":[");
+      ozni_str it = src_text(s, h->file, nd(s, h->file, h->item));
+      ozni_buf_json(b, it.p, it.len);
+      ozni_buf_puts(b, "],\"resources\":[");
+      ozni_str ul = S(s, unit_at(o, h->unit)->label);
+      ozni_buf_json(b, ul.p, ul.len);
+      ozni_buf_puts(b, "],\"reason\":null,\"cook\":null");
+    }
+    ozni_buf_puts(b, "}");
+  }
+  ozni_buf_puts(b, "]}");
+}
+
 static void schedule_dish(sema *s, ozni_index name) {
   uint32_t total = ozni_table_count(s->ir.nodes) - s->ir_base;
   ozni_sched_task *tasks = ozni_arena_alloc(s->c->arena, (total + 1) * sizeof *tasks);
@@ -7772,6 +8123,9 @@ static void schedule_dish(sema *s, ozni_index name) {
     }
     ozni_buf_discard(&b);
   }
+  if (s->c->steps_json != nullptr) {
+    steps_json(s, &o, name);
+  }
   if (s->c->set.json) {
     if (s->c->set.api) {
       ozni_str nm = S(s, name);
@@ -7871,6 +8225,9 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
   }
   if (s->ir_print && s->out != nullptr && (s->c->set.entry == nullptr || s->entry_dish)) {
     ir_dump(s, n->text);
+  }
+  if (s->c->ir_json != nullptr && ir_on(s) && (s->c->set.entry == nullptr || s->entry_dish)) {
+    ir_json(s, n->text);
   }
   if (s->schedule && s->out != nullptr && (s->c->set.entry == nullptr || s->entry_dish)) {
     schedule_dish(s, n->text);
@@ -8232,7 +8589,7 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
   if (s.dims == nullptr || s.units == nullptr) {
     return false;
   }
-  if (s.ir_print || s.schedule || s.ir_keep != nullptr) {
+  if (s.ir_print || s.schedule || s.ir_keep != nullptr || pr->c->ir_json != nullptr) {
     s.ir = (ozni_ir){ozni_table_new(pr->c->arena, sizeof(ozni_ir_node)),
                      ozni_table_new(pr->c->arena, sizeof(ozni_ir_input)),
                      ozni_table_new(pr->c->arena, sizeof(ozni_ir_req)),
@@ -8248,6 +8605,13 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
   check_definitions(&s);
   setup_configs(&s);
   load_rules(&s);
+  if (pr->c->ir_json != nullptr || pr->c->steps_json != nullptr) {
+    s.ir_meta = ozni_table_new(pr->c->arena, sizeof(ir_meta));
+    s.ir_args = ozni_table_new(pr->c->arena, sizeof(ir_arg));
+    if (s.ir_meta == nullptr || s.ir_args == nullptr) {
+      return false;
+    }
+  }
   s.plate_infos = ozni_table_new(pr->c->arena, sizeof(plate_info));
   s.plate_units = ozni_table_new(pr->c->arena, sizeof(plate_unit));
   s.wave_infos = ozni_table_new(pr->c->arena, sizeof(wave_info));
