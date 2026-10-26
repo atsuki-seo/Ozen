@@ -399,6 +399,9 @@ type Kitchen {
   tools: [Tool] = []
   tableware: [Vessel] = []
 }
+enum StrictMode { off, on }
+type DiagnosticName {
+}
 type Person {
   picks: [Dish] = []
   allergies: [AllergenKind] = []
@@ -411,6 +414,10 @@ type Options {
   serveAt: Time?
   prefer: [Preference] = []
   people: [Person] = []
+  strict: StrictMode = off
+  allow: [DiagnosticName] = []
+  warn: [DiagnosticName] = []
+  deny: [DiagnosticName] = []
   check SCH101 tooManyCooks: cooks <= kitchen.floor.capacity else warn
 }
 property whileWarm = serveWithin(5..15 min)
