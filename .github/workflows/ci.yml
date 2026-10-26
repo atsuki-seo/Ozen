@@ -7,6 +7,110 @@ on:
   workflow_dispatch:
 
 jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned clang (Swift toolchain) and CMake
+        run: |
+          swift=6.2.3
+          curl -fsSL "https://download.swift.org/swift-$swift-release/ubuntu2404/swift-$swift-RELEASE/swift-$swift-RELEASE-ubuntu24.04.tar.gz" \
+            | tar xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/swift-$swift-RELEASE-ubuntu24.04/usr/bin" >> "$GITHUB_PATH"
+          want=$(awk '$1 == "cmake" { print $2 }' toolchain.txt)
+          pipx install "cmake==$want"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Record the tool versions
+        run: |
+          mkdir -p out/tools
+          bash scripts/check-tools.sh --print | grep -E '^(gcc|clang|cmake|python3) ' | tee out/tools/tools.txt
+
+      - name: Build the four configurations and run the tests
+        run: bash scripts/goals.sh G-CORE-BUILD G-CORE-UNIT G-CORE-GOLDEN G-CORE-OOM G-CLI-TESTS G-PLAT-LINUX
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tools-linux
+          path: out/tools
+
+  fuzz:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned clang (Swift toolchain) and CMake
+        run: |
+          swift=6.2.3
+          curl -fsSL "https://download.swift.org/swift-$swift-release/ubuntu2404/swift-$swift-RELEASE/swift-$swift-RELEASE-ubuntu24.04.tar.gz" \
+            | tar xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/swift-$swift-RELEASE-ubuntu24.04/usr/bin" >> "$GITHUB_PATH"
+          want=$(awk '$1 == "cmake" { print $2 }' toolchain.txt)
+          pipx install "cmake==$want"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Record the tool versions
+        run: |
+          mkdir -p out/tools
+          bash scripts/check-tools.sh --print | grep -E '^(clang|cmake) ' | tee out/tools/tools.txt
+
+      - name: Fuzz each target for 60 seconds
+        run: bash scripts/fuzz-core.sh 60
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fuzz
+          path: |
+            build/fuzz-core/summary-*.txt
+            build/fuzz-core/artifacts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tools-fuzz
+          path: out/tools
+
+  wasm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the pinned node, Emscripten and CMake
+        run: |
+          emcc=$(awk '$1 == "emcc" { print $2 }' toolchain.txt)
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install "$emcc" > /dev/null
+          "$RUNNER_TEMP/emsdk/emsdk" activate "$emcc" > /dev/null
+          echo "EMSDK=$RUNNER_TEMP/emsdk" >> "$GITHUB_ENV"
+          want=$(awk '$1 == "cmake" { print $2 }' toolchain.txt)
+          pipx install "cmake==$want"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "NODE_VERSION=$(awk '$1 == "node" { print $2 }' toolchain.txt)" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Record the tool versions
+        run: |
+          mkdir -p out/tools
+          bash scripts/check-tools.sh --print | grep -E '^(emcc|node|cmake) ' | tee out/tools/tools.txt
+
+      - name: Build the native and WebAssembly cores and compare them
+        run: |
+          bash scripts/build-core.sh --only core-gcc-release
+          bash scripts/build-wasm.sh
+          bash scripts/goals.sh G-PLAT-WASM
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tools-wasm
+          path: out/tools
+
   ios:
     runs-on: macos-26
     timeout-minutes: 90
