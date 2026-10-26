@@ -41,7 +41,8 @@ static int usage(void) {
         "       ozen debug entry [--entry NAME] [FILE]\n"
         "       ozen debug embedded-std\n"
         "       ozen --version\n"
-        "options: --strict --max-input-bytes N --max-depth N --max-nodes N --max-steps N --fail-alloc-at N\n",
+        "options: --strict --kitchen NAME --options NAME --max-input-bytes N --max-depth N --max-nodes N\n"
+        "         --max-steps N --fail-alloc-at N\n",
         stderr);
   return 2;
 }
@@ -265,6 +266,14 @@ static int take_options(int argc, char **argv, heap *h) {
     unsigned long long v = 0;
     if (strcmp(argv[i], "--strict") == 0) {
       settings.strict = true;
+      continue;
+    }
+    if (strcmp(argv[i], "--kitchen") == 0 || strcmp(argv[i], "--options") == 0) {
+      if (i + 1 >= argc) {
+        return -1;
+      }
+      *(argv[i][2] == 'k' ? &settings.kitchen : &settings.options) = argv[i + 1];
+      i++;
       continue;
     }
     if (which < 0) {

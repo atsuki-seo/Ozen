@@ -20,6 +20,8 @@ typedef struct ozni_limits {
 
 typedef struct ozni_settings {
   bool strict;
+  const char *kitchen;
+  const char *options;
 } ozni_settings;
 
 typedef struct ozni_source {
@@ -44,6 +46,7 @@ typedef enum ozni_diag_id : uint16_t {
 const char *ozni_diag_code(ozni_diag_id id);
 const char *ozni_diag_name(ozni_diag_id id);
 ozni_severity ozni_diag_default_severity(ozni_diag_id id);
+bool ozni_diag_lookup(const char *code, size_t len, ozni_diag_id *out);
 
 ozni_limits ozni_default_limits(void);
 
