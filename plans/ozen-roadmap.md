@@ -1217,6 +1217,24 @@ IR:
 - **S326** 波と波のあいだは食事中で、食事の長さは間隔から取る（concept §4.5）。
 - **S435** `shared`（取り分け）の盛り付けは料理を大皿 1 枚にまとめ、盛り付けの量の合計は料理の量と等しい（盛り残し・盛りすぎは `LIN` の診断、concept §4.2）。
 
+#### 4.22.1 IR・段取りの書式と検査（P9-0 で決めた。すべて（補））
+
+- IR の単位: `--entry` で選んだ料理（無ければ利用者のモジュールのすべての料理と献立を定義の順に）を 1 つの IR にする。献立の `make` はレシピの手順を献立の IR に展開する（D の S434 の合成の動作と同じく、作業として段取りに入る）。IR のノードは、材料 `in`・作業 `op`（動作の呼び出し 1 回）・候補の分岐 `choose`（`variant` を持つ動作）・盛り付け `plate`・`store`・`discard`・波 `wave` の 7 種類で、番号は評価の順（`%1` から）。値は作業の出力で、作業は入力の値の番号を持つ（SSA）
+- 作業の資源: `uses` の型を並べた要求（`hands` は人）と所要時間（`for` の範囲。無ければ、引数 `time` の値、加熱の時間の式（S299）の順で決める。どれも無ければ 0 s）、`@unattended`。`variant` の候補はそれぞれの資源と所要時間を持つ
+- `ozen debug ir [FILE]`: 料理ごとに `ir <名前>` の行に続けて、ノードを 1 行ずつ出す。
+  - `  %n = in <名前> : <型> <量>`
+  - `  %n = op <動作> <入力>[ <名前>=<値>…] : <入力の型> -> <出力の型> [<要求>, …; <時間>[; unattended]]`（入力は `%番号`、型は `debug steps` と同じ書き方で量を付けない、時間は基準単位の範囲）
+  - `  %n = choose <動作> <入力> : <入力の型> -> <出力の型> { <候補> [<要求>, …; <時間>] | … }`（候補の順は §4.21.1 の並び）
+  - `  %n = plate <名前> <入力>, … on <器>[ or <器>] [hands, <器>; <時間>]`・`  %n = store <入力>`・`  %n = discard <入力>`
+  - `  wave <名前>[ after <波> + <間隔>]`（波の名前はメタデータで、IR の比較（`prop/display_only`）では名前を `wave` の番号に置き換えて比べる）
+  - 最後に `ozen check` と同じ診断と結果の行
+- `ozen debug schedule [FILE]`（`--kitchen`・`--options`・`--entry` を取る）: `schedule <名前> level=<レベル> cooks=<人数>` の行に続けて、作業を開始の時刻の順（同じなら IR の番号の順）に 1 行ずつ出す。
+  - `  <開始>..<上限の終わり> (<下限の終わり>) <作業> by <人>|unattended [<資源の個体>, …]`（時刻は開始からの秒の有理数。作業は `%n <動作>`、挿入した洗いは `wash <道具> after <汚れ>`、拭きは `wipe <場所> after <汚れ>`、選んだ候補は `%n <動作>/<候補>`。資源の個体は台所の項目の名前と番号 `board#2`、レベル 1 では人だけ）
+  - `  serve <波> at <時刻>`、最後に `total <上限の終わり>` と、診断と結果の行
+- 段取りの JSON（`schedcheck` の入力。G の JSON の一部になる）: `{"schemaVersion":1,"cooks":n,"resources":[{"id","kind","capacity"}],"tasks":[{"id","op","deps":[…],"start","endHi","endLo","cook"|null,"uses":[資源の id…],"unattended","wave"|null}],"waves":[{"id","serveAt","after"|null,"gap"}],"dishes":[{"id","serveWithin"|null,"ready"}]}`。時刻は `{num, den}`
+- `tools/schedcheck/` の検査（実装と別の経路で、段取りの JSON だけを読む）: (1) 依存: どの作業も、依存する作業の上限の終わり以降に始まる、(2) 資源: どの時刻でも、資源ごとに使っている作業の数が容量以下（区間は `[開始, 上限の終わり)`）、(3) 人: 人を使う作業は人ごとに重ならず、人の数は `cooks` 以下、`unattended` の作業は人を使わない、(4) 1 台の複数の能力: 同じ個体を同時に 2 つの作業が使わない、(5) 波: 波の盛り付けはその波の出す時刻までに終わり、2 つ目からの波の出す時刻は前の波の出す時刻 + 間隔以降、(6) 出すタイミング: `serveWithin` を持つ料理は、下限で仕上がった時刻から出す時刻までが幅以下、(7) 洗い: 汚れの相性で洗いが要る道具は、次に使う前にその道具の洗いの作業がある、(8) 片付け: `--cleanup` の指定どおりに、終わりの時点で道具・場所がきれい。検査の出力は `schedcheck: <作業の数> tasks, <違反の数> violations`
+- 小さな例の期待の段取りを手で組む手順は §9.6 に書く
+
 ### 4.23 G: 公開 API と JSON（§13-7）
 
 - **S327** 公開する関数は `recipe_build`・`recipe_free_string`・`recipe_default_config` の 3 つで、ほかの外部リンケージの記号は内部の接頭辞（`ozni_`）で始まる（concept §8）。
@@ -3159,12 +3177,14 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `prop/monotonic`（S273・境界・上限）— 台所があるとき `vagueAmount` を出さないと `56 cases, 2 decreases`。戻して `0 decreases`
   - わざと壊す確認: `cgolden/levels/first-variant-assumed`（S275・正常系）— 最後の候補を使うと落ちた。戻して合格
   - わざと壊す確認: `cgolden/actions/extend-in-assumptions`（S424・正常系）— 足した候補を候補の並びに入れないと落ちた。戻して合格
+- P9-0（2026-10-26）: §4.22.1 に、IR の単位とノードの種類、作業の資源と所要時間の決め方、`ozen debug ir` と `ozen debug schedule` のテキストの書式、段取りの JSON（`schedcheck` の入力）、`tools/schedcheck/` の 8 つの検査を書き、§9.6 に期待の段取りを手で組む手順を書いた。新しい S は足していないので網羅表の行は増えない。新しい D は無い（D26・D27 の規則の上で決めた）
 - ゲート E（P8-10、2026-10-26）: P7-6 のゴール（`G-CORE-BUILD`・`FLAGS`・`C23-SUBSET`・`DIAG-REGISTRY`（`87 codes … 0 unused`）・`DIAG-APPEND`・`UNIT`・`ARENA-ACCESS`・`NOINT128`・`GOLDEN`（232 件 × 4 構成）・`GRAMMAR`（131 規則）・`STD-EMBED`・`G-STD-LISTS`・`STATIC`・`SOURCES`・`PROVENANCE`・`G-REPO-VERSION`・`G-CORE-OOM`（`212 files, 2716 points, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`DETERMINISM`、`prop/reindent`（`984 cases, 0 differences`）、`G-REPO-SPDX`・`SELFTESTS`・`RED-FIRST`・`TOOLS`・`G-PLAN-COVERAGE`）と P8 のゴール（`G-TYPE-SEVERITY-TABLE`（`--phase E`、`12 examples, 0 mismatched; categories: 13 examples, 0 mismatched`）、`prop/monotonic`（`56 cases, 0 decreases`）、`G-CORE-FUZZ`（`parse` `71283 execs in 602 s`・`expand` `41114 execs in 601 s`・`typecheck` `46557 execs in 601 s`、すべて 0 crashes, 0 leaks, 0 timeouts））がすべて合格。計画との食い違い: 分類の表の `SAF:allergen`（`safety/allergen-bowl` は P9-5）と `KIT:vesselShortage`（`vessels/count-short` は P9-6）は、計画の表で golden が F の作業にあるので、`core/tests/severity-examples.txt` の段階を F に直した（ゲート F の `G-TYPE-SEVERITY-TABLE`（17 例すべて）で確かめる）。`G-CORE-PROPS` の残りの性質（`split_merge` など）と `G-STD-PHRASES`（レンダラーの道具）は F 以降の作業で足す
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
 
 - 手で組んだ期待の段取りの作り方と、その例の一覧（P9-0）
+- 手で組む手順（P9-0、2026-10-26）: 例は作業 3〜6 個・資源 1〜3 種類の小さなものにする。(1) `debug ir` の書式で IR を紙に書き、各作業の所要時間の上限・下限と要求を書く。(2) 優先度（D26）を、作業から出す時刻（`serve` が無ければ料理の最後の作業の終わり）までの最長の経路の長さ（上限で数える）として計算し、同じなら IR の番号の順に並べる。(3) 時刻 0 から、依存が終わった作業を優先度の順に取り、空いている人と資源の個体の中で一番早く終われる割り当て（同点は候補の順 → 洗いを挟まない方 → 資源の宣言の順）を選んで開始の時刻を決める。洗いが要るなら洗いの作業（洗い場・手・道具の洗う時間）を前に置く。(4) すべての作業の開始・上限の終わり・下限の終わりを書き、`--serve-at` があれば時間の向きを逆にして同じことをする。(5) 前後の詰め直し（D26、多くとも 8 往復）で変わる場合は、変わった後の段取りを期待値にし、往復の回数を記録する。(6) 期待の段取りを段取りの JSON にして `tools/schedcheck/` で違反が 0 であることを確かめてから、golden の期待値にする。手で組んだ例は golden ごとにこの節に名前を並べる
 - 改善の往復の回数の実測（D26 の上限 8 に届いた例があるか）
 - わざと壊す確認の記録
 
