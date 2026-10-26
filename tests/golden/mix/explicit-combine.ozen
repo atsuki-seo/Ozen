@@ -1,0 +1,11 @@
+// args: debug ir
+recipe juice() {
+  ingredients {
+    milk1: Milk 300 ml
+    milk2: Milk 300 ml
+  }
+  let a = blend(milk1)
+  let b = blend(milk2)
+  let both = combine([a, b])
+  let c = blend(both)
+}
