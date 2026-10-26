@@ -40,3 +40,9 @@ MAC:fuelExhausted
 MAC:depthExceeded
 MAC:nodeLimit
 MAC:outOfMemory
+TYP:dimension
+TYP:densityMissing
+TYP:vagueAmount
+TYP:unitCycle
+TYP:baseUnitChanged
+NAM:unknownUnit
