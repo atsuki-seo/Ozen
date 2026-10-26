@@ -27,6 +27,7 @@ static int usage(void) {
   fputs("usage: ozen check [FILE]\n"
         "       ozen debug ast [--no-spans] [--rules] FILE\n"
         "       ozen debug modules\n"
+        "       ozen debug definitions [FILE]\n"
         "       ozen debug entry [--entry NAME] [FILE]\n"
         "       ozen debug embedded-std\n"
         "       ozen --version\n",
@@ -127,6 +128,11 @@ static int walk(file_list *l, const char *dir) {
   return rc;
 }
 
+static bool stat_file(const char *path) {
+  struct stat st;
+  return stat(path, &st) == 0 && S_ISREG(st.st_mode);
+}
+
 static int cmp_path(const void *a, const void *b) { return strcmp(*(char *const *)a, *(char *const *)b); }
 
 static int emit(const ozni_allocator *a, char *text, int has_errors) {
@@ -146,8 +152,13 @@ static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const 
     if (add_path(&l, file) != 0) {
       return 2;
     }
-  } else if (walk(&l, "") != 0) {
-    fputs("ozen: cannot read the project folder\n", stderr);
+  } else if (stat_file("package.ozen")) {
+    if (walk(&l, "") != 0) {
+      fputs("ozen: cannot read the project folder\n", stderr);
+      return 2;
+    }
+  } else if (mode == OZNI_MODE_CHECK || mode == OZNI_MODE_MODULES) {
+    fputs("ozen: no FILE given and no package.ozen in this folder\n", stderr);
     return 2;
   }
   qsort(l.paths, l.n, sizeof *l.paths, cmp_path);
@@ -227,6 +238,9 @@ int main(int argc, char **argv) {
   }
   if (strcmp(argv[2], "ast") == 0) {
     return debug_ast(&a, argc, argv);
+  }
+  if (strcmp(argv[2], "definitions") == 0 && argc <= 4) {
+    return run(&a, OZNI_MODE_DEFINITIONS, argc == 4 ? argv[3] : nullptr, nullptr);
   }
   if (strcmp(argv[2], "modules") == 0 && argc == 3) {
     return run(&a, OZNI_MODE_MODULES, nullptr, nullptr);
