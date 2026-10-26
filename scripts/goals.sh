@@ -432,7 +432,7 @@ goal_G_CORE_UNIT() {
 }
 
 golden_entries() {
-  { find tests/golden -name '*.ozen' -not -path '*/*/*/*'; find tests/golden -mindepth 2 -maxdepth 2 -type d; } | wc -l
+  scripts/golden-entries.sh tests/golden | wc -l
 }
 
 goal_G_CORE_GOLDEN() {
