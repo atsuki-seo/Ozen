@@ -399,7 +399,7 @@ type Person {
 type Options {
   servings: Count?
   cooks: Count in 1.. = 1
-  cleanup: Cleanup = none
+  cleanup: Cleanup = none @needs(kitchen)
   serveAt: Time?
   prefer: [Preference] = []
   people: [Person] = []
