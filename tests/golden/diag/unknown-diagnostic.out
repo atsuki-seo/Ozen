@@ -1,0 +1,3 @@
+error NAM017 unknownDiagnostic unknown-diagnostic.ozen:1:19-1:30 args=["nosuchThing"]: unknown diagnostic
+result error errors=1 warnings=0 infos=0
+exit 1
