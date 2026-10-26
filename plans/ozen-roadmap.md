@@ -3343,6 +3343,20 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/api/local-not-listed`（S425・効かない条件）— `local` も一覧に出すと落ちた。戻して合格
 - P10-3（2026-10-26）: golden `api/sarif-mapping`（エラー・警告・情報、展開履歴、直し方の候補）を先にコミットし、SARIF 2.1.0 のスキーマを取り込み（ユーザーの確認の後）、`ozen check --format sarif`（CLI が結果の JSON を読み、規則・成果物・結果に写す。情報は `note`、展開履歴は `relatedLocations`、直し方の候補は診断の範囲を置き換える `fixes`、文面は名前から作る英語）、`validate.py` の draft-04 の語の対応、`run-golden.sh --sarif OUT`、`tools/vendorcheck.py` と自己テストを足した。`G-API-SARIF`（`sarif: 168 files, 0 invalid`）、`tools/vendorcheck.py schemas/vendor/README.md`（`vendor: 1 files, 0 mismatched`。`G-REND-VENDOR` の残りはフェーズ K の Fluent）と golden 318 件が合格。OASIS の注記の全文は取り込んでいないので、`LICENSE-OASIS.txt` は著作権の表示と IPR ポリシー・注記の所在を書いた（§8 で人が確かめる）
   - わざと壊す確認: `cgolden/api/sarif-mapping`（S333・文書との一致）— 情報を `warning` にすると落ちた。戻して合格
+- P10-4（2026-10-26）: CLI のテスト 15 件（`tests/cli/*.sh`）と `scripts/run-cli-tests.sh`（自己テスト `scripts/test-run-cli-tests.sh`）を先にコミットし、CLI を書き直した（サブコマンド `check`・`build`・`render`／`bundle`／`unbundle`（まだ使えない）・`debug`、入口の 4 通りの指し方、`-k` の名前・道筋・曖昧の検査、短い形 4 つと省略の拒否、`--options` とオプションからの条件のテキスト（`ozen debug options`）、プロジェクトのビルドと `out/`・`index.json`・`--format sarif`、前回の出力の消去）。入口ごとのビルドがほかの料理のエラーで失敗しないよう、公開 API に入口を渡したときはその料理だけを評価するようにした（§4.25.1 に追記）。テストを書いた時の誤り（献立から `import` の無いレシピを使った）を直した。`G-CLI-TESTS`（`cli: 15 cases, 0 failed`）と golden 318 件が合格
+  - わざと壊す確認: `cli/subcommands`（S345・正常系）— `unbundle` を外すと落ちた。戻して合格
+  - わざと壊す確認: `cli/entry-forms`（S346・正常系）— 道筋の解決を後ろからにすると落ちた（`side.lunch` が `side/lunch.ozen` に解決される）。戻して合格
+  - わざと壊す確認: `cli/entry-colon`（S347・効かない条件）— `:` の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cli/entry-ambiguous`（S348・効かない条件）— 候補の検査を外して先頭（すべて）をビルドすると落ちた。戻して合格
+  - わざと壊す確認: `cli/kitchen-lookup`（S349・境界・上限）— 最初に見つかった台所を使うと落ちた。戻して合格
+  - わざと壊す確認: `cli/no-default-kitchen`（S350・効かない条件）— `kitchens/home.ozen` を既定にすると落ちた。戻して合格
+  - わざと壊す確認: `cli/no-prefix-abbrev`（S351・境界・上限）— 長い形の途中までを受け付けると落ちた。戻して合格
+  - わざと壊す確認: `cli/project-scope`（S352・正常系）— 定義だけのモジュールも入口にすると落ちた。戻して合格
+  - わざと壊す確認: `cli/project-order-continue`（S353・時間と順序）— 1 つ目の失敗で止めると落ちた。戻して合格
+  - わざと壊す確認: `cli/out-layout`（S354・データの完全性）— `index.json` を書かないと落ちた。戻して合格
+  - わざと壊す確認: `cli/options-to-ozen`（S355・正常系）— `--prefer` を落とすと落ちた。戻して合格
+  - わざと壊す確認: `cli/diag-display`（S356・正常系）— 識別子からの英語の表示を出さないと落ちた。戻して合格
+  - わざと壊す確認: `cli/out-removed-entry`（S443・永続化）— 前回の出力を消さないと落ちた（`out-rebuild-identical` は同じ入力で 1 バイトも違わないことを確かめる）。戻して合格
 
 ### 9.8 H（4 環境）
 
