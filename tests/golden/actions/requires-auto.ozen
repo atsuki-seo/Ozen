@@ -1,4 +1,4 @@
-// args: debug steps
+// args: debug requires
 recipe r() requires Oven {
   ingredients { onion: 1 pcs }
   let p = peel(onion)

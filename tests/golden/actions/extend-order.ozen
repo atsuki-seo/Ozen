@@ -1,4 +1,4 @@
-// args: debug steps
+// args: debug requires
 extend action warm {
   variant oven {
     uses HeatSource<oven> for 5..8 min
