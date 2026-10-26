@@ -1,0 +1,14 @@
+// args: check --format json --emit ir --entry dinner --options today
+recipe juice() {
+  ingredients {
+    banana: 1 pcs
+    milk: 200 ml
+  }
+  let j = blend([banana, milk])
+}
+menu dinner(people: 3) {
+  let drink = choose perPerson from { make juice(), buy Milk 200 ml }
+}
+kitchen today : Options {
+  people: [Person { picks: [Juice] }, Person { picks: [Milk] }, Person { picks: [Juice] }]
+}
