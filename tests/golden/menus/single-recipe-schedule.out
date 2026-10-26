@@ -1,0 +1,11 @@
+schedule curry level=0
+  0..0 (0) %3 combine
+  0..1200 (1200) %4 simmer
+  1200..1260 (1218) %5 plate perPerson
+  serve main at 1260
+  total 1260
+info ASM004 unlimitedEquipment single-recipe-schedule.ozen:2:8-2:13: unlimited equipment
+info SCH009 criticalPath single-recipe-schedule.ozen:2:8-2:13 args=["1260 s"]: critical path
+info ASM007 provisionalValue single-recipe-schedule.ozen:2:16-2:45 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=3
+exit 0

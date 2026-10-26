@@ -1,0 +1,8 @@
+// args: debug ir --entry curry
+recipe curry() @vessel(DeepPlate or Donburi) {
+  ingredients {
+    pork: 200 g
+    roux: CurryRoux 50 g
+  }
+  let m = simmer([pork, roux], 20 min)
+}

@@ -1,0 +1,10 @@
+ir curry
+  %1 = in pork : Pork 200 g
+  %2 = in roux : CurryRoux 50 g
+  %3 = op combine %1, %2 : Pork, CurryRoux -> Mixture 250 g with Allergen(milk), Allergen(wheat), Hazard [0 s]
+  %4 = op simmer %3 time=1200 s heat=low : Mixture -> Mixture<doneness: done> 250 g with Allergen(milk), Allergen(wheat), Hazard [HeatSource<stovetop>, Pot; 1200 s; unattended]
+  wave 1
+  %5 = plate perPerson %4 on DeepPlate or Donburi [hands, Vessel; 18..60 s]
+info ASM004 unlimitedEquipment single-recipe-ir.ozen:2:8-2:13: unlimited equipment
+result ok errors=0 warnings=0 infos=1
+exit 0
