@@ -12,8 +12,16 @@
 #define OZEN_VERSION "0.0.0"
 #endif
 
+typedef struct heap {
+  unsigned long count;
+  unsigned long fail_at;
+} heap;
+
 static void *heap_alloc(void *ctx, size_t size) {
-  (void)ctx;
+  heap *h = ctx;
+  if (++h->count == h->fail_at) {
+    return nullptr;
+  }
   return malloc(size);
 }
 
@@ -24,13 +32,14 @@ static void heap_release(void *ctx, void *ptr, size_t size) {
 }
 
 static int usage(void) {
-  fputs("usage: ozen check [FILE]\n"
+  fputs("usage: ozen check [OPTIONS] [FILE]\n"
         "       ozen debug ast [--no-spans] [--rules] FILE\n"
         "       ozen debug modules\n"
         "       ozen debug definitions [FILE]\n"
         "       ozen debug entry [--entry NAME] [FILE]\n"
         "       ozen debug embedded-std\n"
-        "       ozen --version\n",
+        "       ozen --version\n"
+        "options: --max-input-bytes N --max-depth N --max-nodes N --max-steps N --fail-alloc-at N\n",
         stderr);
   return 2;
 }
@@ -145,8 +154,10 @@ static int emit(const ozni_allocator *a, char *text, int has_errors) {
   return has_errors ? 1 : 0;
 }
 
+static ozni_limits limits;
+
 static int run(const ozni_allocator *a, ozni_mode mode, const char *file, const char *entry) {
-  ozni_limits lim = ozni_default_limits();
+  ozni_limits lim = limits;
   file_list l = {0};
   if (file != nullptr) {
     if (add_path(&l, file) != 0) {
@@ -213,7 +224,7 @@ static int debug_ast(const ozni_allocator *a, int argc, char **argv) {
     fprintf(stderr, "ozen: cannot read %s\n", path);
     return 2;
   }
-  ozni_limits lim = ozni_default_limits();
+  ozni_limits lim = limits;
   ozni_source src = {path, text, len};
   int has_errors = 0;
   char *out = ozni_debug_ast_text(a, &lim, &src, flags, &has_errors);
@@ -221,8 +232,64 @@ static int debug_ast(const ozni_allocator *a, int argc, char **argv) {
   return emit(a, out, has_errors);
 }
 
+static bool parse_number(const char *s, unsigned long long *out) {
+  if (*s == '\0') {
+    return false;
+  }
+  unsigned long long v = 0;
+  for (; *s != '\0'; s++) {
+    if (*s < '0' || *s > '9' || v > 100000000000000ull) {
+      return false;
+    }
+    v = v * 10 + (unsigned long long)(*s - '0');
+  }
+  *out = v;
+  return true;
+}
+
+static int take_options(int argc, char **argv, heap *h) {
+  int out = 1;
+  for (int i = 1; i < argc; i++) {
+    static const char *const names[] = {"--max-input-bytes", "--max-depth", "--max-nodes", "--max-steps",
+                                        "--fail-alloc-at"};
+    int which = -1;
+    for (int k = 0; k < 5; k++) {
+      if (strcmp(argv[i], names[k]) == 0) {
+        which = k;
+      }
+    }
+    unsigned long long v = 0;
+    if (which < 0) {
+      argv[out++] = argv[i];
+      continue;
+    }
+    if (i + 1 >= argc || !parse_number(argv[i + 1], &v)) {
+      return -1;
+    }
+    i++;
+    if (which == 0) {
+      limits.input_bytes = (size_t)v;
+    } else if (which == 1) {
+      limits.depth = (uint32_t)(v > UINT32_MAX ? UINT32_MAX : v);
+    } else if (which == 2) {
+      limits.nodes = (uint32_t)(v > UINT32_MAX ? UINT32_MAX : v);
+    } else if (which == 3) {
+      limits.steps = v;
+    } else {
+      h->fail_at = (unsigned long)v;
+    }
+  }
+  return out;
+}
+
 int main(int argc, char **argv) {
-  ozni_allocator a = {heap_alloc, heap_release, nullptr};
+  heap h = {0, 0};
+  ozni_allocator a = {heap_alloc, heap_release, &h};
+  limits = ozni_default_limits();
+  argc = take_options(argc, argv, &h);
+  if (argc < 0) {
+    return usage();
+  }
   if (argc < 2) {
     return usage();
   }
