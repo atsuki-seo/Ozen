@@ -61,15 +61,18 @@ jobs:
           xcrun simctl bootstatus "$udid" -b
           driver="$PWD/build/ios-iphonesimulator/ozenproto"
           runner="xcrun simctl spawn $udid $driver"
-          bash proto/scripts/run-golden.sh "$runner"
           mkdir -p out
+          bash proto/scripts/run-golden.sh "$runner" > out/golden.txt || { cat out/golden.txt; exit 1; }
+          cat out/golden.txt
           bash proto/scripts/digest.sh "$runner" > out/digest.txt
           cat out/digest.txt
 
       - uses: actions/upload-artifact@v4
         with:
           name: ios-digest
-          path: out/digest.txt
+          path: |
+            out/digest.txt
+            out/golden.txt
 
       - uses: actions/upload-artifact@v4
         with:
