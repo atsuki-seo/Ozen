@@ -58,6 +58,10 @@ expect sample-wrong "$r" "spdx: 1 files checked, 0 missing, 1 wrong" 1
 r=$(new_repo); put "$r" core/src/a.c "no header"; put "$r" cli/src/main.c "/* $code */"; put "$r" core/grammar.ebnf "(* $code *)"
 expect core-and-cli "$r" "spdx: 3 files checked, 1 missing, 0 wrong" 1
 
+r=$(new_repo); put "$r" bindings/swift/Ozen.swift "// $code"; put "$r" bindings/android/java/ozen/Ozen.java "no header"
+put "$r" bindings/wasm/worker-test.html "<!-- $code -->"; put "$r" bindings/inputs.txt "no header"
+expect bindings "$r" "spdx: 3 files checked, 1 missing, 0 wrong" 1
+
 r=$(new_repo); put "$r" proto/README.md "no header"; put "$r" docs/x.c "no header"; put "$r" tools/vendor/lib.py "no header"
 expect not-targets "$r" "spdx: 0 files checked, 0 missing, 0 wrong" 0
 
