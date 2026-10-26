@@ -3381,6 +3381,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-PLAT-LINUX`（`jni`、S340・境界・上限）— Java の側で結果を UTF-8 でなく ASCII として読むと `10 mismatches` になった（`NewStringUTF` の修正 UTF-8 と同じく日本語と絵文字が壊れる形）。戻して合格
   - わざと壊す確認: `G-PLAT-LINUX`（動的な記号、S341・正常系）— 版の台本を外すと内部の記号が見えて落ちた。戻して合格
   - わざと壊す確認: `G-PLAT-LINUX`（`swift`、S343 の Linux の行・プラットフォームの経路）— Swift の橋渡しで出力の末尾の改行を落とすと `12 mismatches` になった。戻して合格
+- P11-2（2026-10-26）: Emscripten 6.0.13 で `build/core-wasm/` に node 用の CLI（`ozen.js`、`NODERAWFS`）と、C の橋渡し `bindings/wasm/bridge.c` の `ozen_bridge.js`（`-sENVIRONMENT=web,worker,node`・`MODULARIZE`、`OzenModule`）を作る `scripts/build-wasm.sh`、JS の橋渡し `bindings/wasm/ozen.mjs`（`build(mod, {sources, kitchen, options, entry, emit})`、長さは UTF-8 のバイト数）、node と Web Worker の両方で入力の一覧を通して手元の CLI の JSON と比べる `bindings/wasm/worker-test.sh`（P5-2 と同じく、ページが結果を検査用のサーバーに POST する形。Chrome 154.0.8037.97、node v20.20.2）と自己テスト `scripts/test-worker-test.sh` を足した。不一致は入力ごとに数える（node と Worker のどちらかが違えば 1）。`G-PLAT-WASM`（golden 318 件、`worker: 12 inputs, 0 mismatches`、digest の一致）が合格
+  - わざと壊す確認: `G-PLAT-WASM`（`worker`、S342・プラットフォームの経路）— 橋渡しで長さに `s.text.length`（UTF-16 の数）を渡すと `worker: 12 inputs, 1 mismatches`（日本語と絵文字の `utf8.ozen` が node と Worker の両方で違う）になった。戻して合格。自己テストにも同じ壊し方を入れた
 
 - NDK の版（r30 の clang-r574158c の予定）と、手元で取得したか（P11-4）
 - `javac --release` の版（D29、P11-0）: 17（Android Gradle Plugin 8 系の d8 が受け付けるクラスファイルの版。手元の JDK 25 の `javac --release 17` で作る）
