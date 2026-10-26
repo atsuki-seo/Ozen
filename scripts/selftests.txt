@@ -36,3 +36,4 @@ tools/vendorcheck.py scripts/test-vendorcheck.sh
 scripts/run-cli-tests.sh scripts/test-run-cli-tests.sh
 bindings/linux/swift-test.sh scripts/test-bridge-tests.sh
 bindings/android/jvm-test.sh scripts/test-bridge-tests.sh
+bindings/wasm/worker-test.sh scripts/test-worker-test.sh

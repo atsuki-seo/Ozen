@@ -1,0 +1,20 @@
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Ozen worker test</title></head>
+<body>
+<pre id="result">pending</pre>
+<script>
+  fetch('inputs.json').then((r) => r.json()).then((inputs) => {
+    const worker = new Worker('worker.js');
+    const report = (text) => {
+      document.getElementById('result').textContent = text;
+      fetch('result', { method: 'POST', body: text });
+    };
+    worker.onmessage = (event) => report(JSON.stringify(event.data));
+    worker.onerror = (event) => report('error: ' + event.message);
+    worker.postMessage(inputs);
+  });
+</script>
+</body>
+</html>
