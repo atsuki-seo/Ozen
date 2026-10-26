@@ -1,0 +1,7 @@
+recipe r
+  rice : Rice 300 g
+  water : Water 450 ml
+  %1 = combine([rice, water]) : Mixture 745.5..750 g
+  %2 = mix(%1) : Mixture 745.5..750 g
+result ok errors=0 warnings=0 infos=0
+exit 0

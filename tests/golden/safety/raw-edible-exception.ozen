@@ -1,0 +1,4 @@
+recipe r() {
+  ingredients { buri: 300 g }
+  let c = cut(buri, style: slice)
+}

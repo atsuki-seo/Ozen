@@ -1,0 +1,11 @@
+recipe r() {
+  ingredients { rice: 300 g }
+  parallel {
+    branch one {
+      let a = wash(rice)
+    }
+    branch two {
+      let b = soak(rice, 10 min)
+    }
+  }
+}

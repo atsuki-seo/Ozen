@@ -1,0 +1,8 @@
+// args: debug steps
+recipe r() {
+  ingredients {
+    pork: 200 g
+    milk: 100 ml
+  }
+  let m = mix([pork, milk])
+}

@@ -1,0 +1,7 @@
+recipe r
+  rice : Rice 300 g
+  %1 = split(rice, 300 g) : (Rice 300 g, Rice 0 g)
+  %2 = discard(%1.2)
+  %3 = wash(%1.1) : Rice<prep has washed> 300 g
+result ok errors=0 warnings=0 infos=0
+exit 0

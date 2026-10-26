@@ -1,0 +1,5 @@
+recipe r() {
+  ingredients { rice: 300 g }
+  let a = wash(rice)
+  let b = wash(rice)
+}

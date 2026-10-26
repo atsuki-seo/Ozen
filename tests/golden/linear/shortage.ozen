@@ -1,0 +1,4 @@
+recipe r() {
+  ingredients { rice: 300 g }
+  let (a, b) = split(rice, 400 g)
+}
