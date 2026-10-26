@@ -1321,12 +1321,12 @@ IR:
 
 #### 4.25.1 CLI の細目（P10-0 で決めた。すべて（補））
 
-- CLI はコアの公開 API（`recipe_build`）だけを使う（`debug` を除く）。`check` と `build` は、プロジェクト（`package.ozen` のあるフォルダ。無ければ指定したファイル 1 つ）のすべての `.ozen` を並べて渡す
+- `--format json`・`--format sarif` と `build` の出力はコアの公開 API（`recipe_build`）で作る。テキストの表示（既定の `--format text`）と `debug` は、golden と同じ行を出すためにコアの内部のテキストの出力を使う。`check` と `build` は、プロジェクト（`package.ozen` のあるフォルダ。無ければ指定したファイル 1 つ）のすべての `.ozen` を並べて渡す
 - 診断の表示（S356）は 1 行に `<重さ> <コード> <名前> <道筋>:<行>:<列>-<行>:<列>[ args=[…]][ via …][ fixes=[…]]: <英語の言葉>`（英語の言葉は名前のキャメルケースを区切って小文字にしたもの、D21）。最後に `result <ok|error> errors=<n> warnings=<n> infos=<n>`
-- 条件の変換（S355）: `--servings N`・`--cooks N`（`-c`）・`--serve-at T`（`-t`）・`--cleanup X`・`--prefer A,B`・`--strict`・`--allow NAME`・`--warn NAME`・`--deny NAME` を `kitchen cli : Options { … }` に書き、`--options FILE` の中身の後ろに付けて `options` に渡す（S476 で後ろが優先）。`-s` は `--servings`、`-k` は `--kitchen`
+- 条件の変換（S355）: `--servings N`（`-s`）・`--cooks N`（`-c`）・`--serve-at T`（`-t`）・`--cleanup X`・`--prefer A,B`・`--strict`・`--allow NAME`・`--warn NAME`・`--deny NAME` を `kitchen cli : Options { … }` に書き、`--options FILE` の中身（`FILE` が無ければ、その名前の条件の宣言のテキスト）の後ろに付けて `options` に渡す（S476 で後ろが優先）。`--options NAME` だけで条件のオプションが無いときは、宣言の位置を保つため名前のまま渡す。`ozen debug options [オプション]` は作った `options` のテキストを出す
 - `-k NAME|PATH`（S349）: `PATH` が既存のファイルなら、その中の台所の宣言（1 つ）を使う。そうでなければ、プロジェクトの `.ozen` から `kitchen NAME { … }`（`Options` でないもの）を探す。0 個なら `cli: kitchen not found: NAME`、2 個以上なら `cli: kitchen is ambiguous: NAME (<道筋>, <道筋>)`（終了コード 2）
-- 入口（S346〜S348）: 位置の引数は、既存のファイルならそのファイルのモジュール、そうでなければ `.` 区切りの先頭から順にモジュールとして解決し、残りを入口の名前とする。`--entry` はさらに名前を指す。`:` を含む引数は `cli: use a module path, not file:name`（終了コード 2）。入口が複数あって指定が無ければ `cli: several entries; choose one of: <名前>, …`（終了コード 2）
-- `build`（S352〜S354）: 指定の範囲（無ければプロジェクト全体）の献立と料理を、モジュール名と入口の名前の順に 1 つずつビルドし、`out/<モジュールの道筋>/<入口>/` に `schedule.json`・`ir.txt`・`diagnostics.json`（`--format sarif` で `diagnostics.sarif`）を書く。`out/index.json` は `{"schemaVersion": 1, "entries": [{"module", "entry", "status", "errors", "warnings", "infos", "dir"}…]}`。最後に `build: <n> entries, <m> passed`。前回の `out/` のうち今回の入口に無いものは消す（S443）
+- 入口（S346〜S348）: 位置の引数は、既存のファイルならそのファイルのモジュール、そうでなければ `.` 区切りの先頭から順にモジュールとして解決し（最初にモジュールになった前の部分をモジュールとし）、残りを入口の名前とする。モジュールでもその前の部分でもなければ、その名前のフォルダの下のモジュールすべて（`build menus`）。`--entry` はさらに名前を指す。入口（献立と料理）は各ファイルの行頭の `recipe <名前>`・`menu <名前>` から集める。`:` を含む引数は `cli: use a module path, not file:name`（終了コード 2）。`build` で 1 つのモジュールを指し、入口が複数あって名前の指定が無ければ `cli: several entries; choose one of: <名前>, …`（終了コード 2）。`check` はファイルやモジュールのすべての料理を検査する
+- `build`（S352〜S354）: 指定の範囲（無ければプロジェクト全体）の献立と料理を、モジュール名と入口の名前の順に 1 つずつビルドし、`out/<モジュールの道筋>/`（そのモジュールの入口が複数なら `out/<モジュールの道筋>/<入口>/`）に `schedule.json`・`ir.txt`・`diagnostics.json`（`--format sarif` で `diagnostics.sarif`）を書く。`out/index.json` は `{"schemaVersion": 1, "entries": [{"module", "entry", "status", "errors", "warnings", "infos", "dir"}…]}`。最後に `build: <n> entries, <m> passed`。`schedule.json` は段取りだけ、`diagnostics.json` は出力を選ばない結果の JSON、`ir.txt` は `debug ir` と同じテキスト。書く前に `out/` の中身を消す（S443。前回の入口の出力が残らない）
 - `render`・`bundle`・`unbundle` は K・L で中身を作る。G では `cli: <名前> is not available yet` を出して終了コード 2
 
 ### 4.26 J: 標準ライブラリと言い回し（§13-10）
