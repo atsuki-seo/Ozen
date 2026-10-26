@@ -1279,9 +1279,9 @@ IR:
 - 公開ヘッダー `core/include/ozen.h`（C17 でも読める。`bool`・`nullptr`・`[[…]]` を使わない）:
   - `typedef struct recipe_source { const char *path; const char *text; size_t len; } recipe_source;`
   - `enum { RECIPE_EMIT_IR = 1, RECIPE_EMIT_SCHEDULE = 2, RECIPE_EMIT_STEPS = 4, RECIPE_EMIT_SIGNATURES = 8, RECIPE_EMIT_DEFINITIONS = 16, RECIPE_EMIT_TYPES = 32 };`
-  - `typedef struct recipe_config { const char *entry; unsigned emit; unsigned long max_steps, max_depth, max_nodes, max_input_bytes; void *(*alloc)(void *ctx, size_t size); void (*release)(void *ctx, void *ptr, size_t size); void *alloc_ctx; } recipe_config;`（`alloc` が NULL なら標準の `malloc`/`free`。上限は 0 なら既定）
+  - `typedef struct recipe_config { const char *entry; unsigned emit; unsigned long max_steps, max_depth, max_nodes, max_input_bytes; void *(*alloc)(void *ctx, size_t size); void (*release)(void *ctx, void *ptr, size_t size); void *alloc_ctx; } recipe_config;`（コアは標準ライブラリの確保を呼ばないので（S181）、`alloc`・`release` は呼び出し側が渡し、NULL なら `recipe_build` は NULL を返す。上限は 0 なら既定）
   - `recipe_config recipe_default_config(void);`・`char *recipe_build(const recipe_config *cfg, const recipe_source *sources, size_t n_sources, const char *kitchen, size_t kitchen_len, const char *options, size_t options_len);`・`void recipe_free_string(const recipe_config *cfg, char *s);`（返り値は `cfg` の確保の関数で確保し、同じ `cfg` で解放する。確保に失敗したら NULL）
-- `kitchen` のテキストは `kitchen <名前> { … }` の宣言を 1 つ、`options` のテキストは `kitchen <名前> : Options { … }` の宣言を 1 つ以上持つ Ozen のテキスト。コアはそれぞれをファイルの表の `<kitchen>`・`<options>` として読み、その中の宣言を台所・条件に使う（宣言が無ければエラー `NAM:unknownKitchen`）。重さの設定は `Options` の `strict: Bool = false`・`allow`・`warn`・`deny: [Text] = []`（診断やまとまりの名前の文字列）で渡す
+- `kitchen` のテキストは `kitchen <名前> { … }` の宣言を 1 つ、`options` のテキストは `kitchen <名前> : Options { … }` の宣言を 1 つ以上持つ Ozen のテキスト。コアはそれぞれをファイルの表の `<kitchen>`・`<options>` として読み、その中の宣言を台所・条件に使う（宣言が無ければエラー `NAM:unknownKitchen`）。重さの設定は `Options` の `strict: StrictMode = off`（`enum StrictMode { off, on }`）・`allow`・`warn`・`deny: [DiagnosticName] = []`（診断やまとまりの名前の文字列。`type DiagnosticName {}`）で渡す
 - 結果の JSON（`schemas/result.schema.json`）: `{"schemaVersion": 1, "ozenVersion", "level": 0|1|2, "entry": 名前|null, "files": [道筋…], "outcome": {"status": "ok"|"error", "errors", "warnings", "infos"}, "diagnostics": [診断…]}` に、`emit` で選んだ `ir`・`schedules`・`steps`・`signatures`・`definitions`・`types` を足す。有理数は `{"num","den"}`（整数、`den` は正）、範囲は `{"lo","hi"}`、数量は `{"value": 有理数|範囲, "unit": 単位の名前}`
   - 診断: `{"code", "name", "category", "severity", "defaultSeverity", "span": {"file": 添字, "start": {"line","column"}, "end": {"line","column"}}, "args": [文字列…], "related": [{"kind": "via", "span"}…], "fixes": [文字列…]}`（文面の項目は持たない、S337）
   - `ir`: 料理ごとに `{"name", "nodes": [{"id", "kind": "in"|"buy"|"op"|"choose"|"plate", "label", "inputs": [{"node", "part": 整数|null}…], "after": [id…], "requires": [文字列…], "time": 範囲, "unattended", "wave": 整数|null, "variants": [{"name","requires","time","unattended"}…], "outputs": [数量|null…]}…], "waves": [{"id", "name", "after": 整数|null, "gap": 有理数}…]}`（数量の無い出力は null）
@@ -3325,6 +3325,13 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 
 - `schemas/` の一覧、SARIF のスキーマの取得元・取得日・sha256（P10-3）
 - わざと壊す確認の記録
+- P10-0（2026-10-26）: §4.23.1 に公開ヘッダー・`kitchen`／`options` のテキスト・結果の JSON とその中身・`schemas/` の書き方を、§4.25.1 に CLI の細目を書いた。S476（`options` の宣言の合成）を足し、網羅表に行を足した。新しい D は無い。コアは標準ライブラリの確保を呼べない（S181）ため、確保の関数は呼び出し側が必ず渡す形にした
+- P10-1（2026-10-26）: `core/include/ozen.h`、`core/src/api.c`（`recipe_default_config`・`recipe_build`・`recipe_free_string`）、結果の JSON の先頭（版・レベル・入口・ファイルの表・結果・診断）と `RECIPE_EMIT_SCHEDULE` の段取り、`kitchen`／`options` のテキストを `<kitchen>`・`<options>` のファイルとして読む仕組み、`options` の宣言の合成、`Options` の `strict`・`allow`・`warn`・`deny`（`std` に `StrictMode`・`DiagnosticName` を足した）、`cunit/api_levels_by_null`・`api_free_balance`・`api_options_merge` を足した。`G-API-EXPORTS`・`G-API-HEADER`（4 組）・`G-CORE-UNIT`・`PURE`・`NOGLOBAL`・`C23-SUBSET` と golden 312 件が合格
+  - わざと壊す確認: `G-API-EXPORTS`（S327・効かない条件）— 内部の関数を接頭辞なしの外部の記号にすると落ちた。戻して合格
+  - わざと壊す確認: `cunit/api_levels_by_null`（S328・正常系）— `kitchen` が NULL でも台所ありとすると落ちた。戻して合格
+  - わざと壊す確認: `cunit/api_free_balance`（S329・副作用とコスト）— `recipe_free_string` で解放しないと落ちた（AddressSanitizer の漏れ）。戻して合格
+  - わざと壊す確認: `G-API-HEADER`（S336・プラットフォームの経路）— ヘッダーで `nullptr` を使うと `-std=c17` の 2 組が落ちた。戻して合格
+  - わざと壊す確認: `cunit/api_options_merge`（S476・正常系）— 最初の宣言の値を使うと落ちた。戻して合格
 
 ### 9.8 H（4 環境）
 
