@@ -6,7 +6,7 @@ set -uo pipefail
 [ $# -ge 1 ] || { echo "usage: $0 DIR..." >&2; exit 2; }
 for dir in "$@"; do
   [ -d "$dir" ] || continue
-  find "$dir" -name expected.out -printf '%h\n'
+  find "$dir" -name expected.out | while IFS= read -r f; do dirname "$f"; done
   find "$dir" -name '*.ozen' | while IFS= read -r f; do
     d=$(dirname "$f")
     inside=0
