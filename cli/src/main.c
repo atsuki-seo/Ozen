@@ -283,7 +283,7 @@ static int take_options(int argc, char **argv, heap *h) {
       }
       char list[256];
       snprintf(list, sizeof list, "%s", argv[++i]);
-      for (char *tok = strtok(list, ","); tok != nullptr; tok = strtok(nullptr, ",")) {
+      for (char *rest = nullptr, *tok = strtok_r(list, ",", &rest); tok != nullptr; tok = strtok_r(nullptr, ",", &rest)) {
         bool known = false;
         for (unsigned k = 0; k < 6; k++) {
           if (strcmp(tok, kinds[k]) == 0) {
@@ -600,7 +600,7 @@ static char *cli_options_text(const char *base, size_t base_len, bool levels, si
       char list[256];
       snprintf(list, sizeof list, "%s", opt.prefer);
       bool first = true;
-      for (char *tok = strtok(list, ","); tok != nullptr; tok = strtok(nullptr, ",")) {
+      for (char *rest = nullptr, *tok = strtok_r(list, ",", &rest); tok != nullptr; tok = strtok_r(nullptr, ",", &rest)) {
         appends(&buf, &len, &cap, first ? "" : ", ");
         appends(&buf, &len, &cap, tok);
         first = false;
