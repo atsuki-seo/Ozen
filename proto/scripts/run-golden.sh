@@ -42,7 +42,7 @@ while IFS= read -r input; do
   case "$first" in
     "// args: "*) read -r -a args <<< "${first#// args: }" ;;
   esac
-  timeout 10 "${runner[@]}" "${args[@]}" "$input" > "$work/out" 2>/dev/null
+  timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" "${args[@]}" "$input" > "$work/out" 2>/dev/null
   status=$?
   if [ "$status" -eq 124 ]; then
     timedout=$((timedout + 1))

@@ -36,6 +36,14 @@ printf 'args: wrong\nexit 0\n' > "$work/g/a/one.out"
 expect mismatch "golden: 1 passed, 1 failed, 0 timed out" 1
 printf 'args: %s\nexit 1\n' "$work/g/a/one.ozen" > "$work/g/a/one.out"
 expect exit-code-compared "golden: 1 passed, 1 failed, 0 timed out" 1
+printf '#!/bin/sh\nsleep 3\n' > "$work/slow.sh"
+chmod +x "$work/slow.sh"
+cases=$((cases + 1))
+got=$(OZP_RUN_TIMEOUT=1 "$here/run-golden.sh" "$work/slow.sh" --dir "$work/g" 2>/dev/null | tail -n 1) || true
+if [ "$got" != "golden: 0 passed, 0 failed, 2 timed out" ]; then
+  echo "FAIL timeout-env: got '$got'" >&2
+  failed=$((failed + 1))
+fi
 rm "$work/g/a/one.ozen" "$work/g/a/one.out" "$work/g/a/two.ozen" "$work/g/a/two.out"
 expect empty-dir "golden: 0 passed, 0 failed, 0 timed out" 1
 

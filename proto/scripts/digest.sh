@@ -34,12 +34,12 @@ digest=$(
         "// args: "*) read -r -a args <<< "${first#// args: }" ;;
       esac
       printf 'golden/%s\n' "${f#"$golden"/}"
-      timeout 10 "${runner[@]}" "${args[@]}" "$f" 2>/dev/null
+      timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" "${args[@]}" "$f" 2>/dev/null
       printf 'exit %s\n' "$?"
     done
     [ -d "$corpus" ] && find "$corpus" -type f | LC_ALL=C sort | while IFS= read -r f; do
       printf 'corpus/%s\n' "${f#"$corpus"/}"
-      timeout 10 "${runner[@]}" "$f" 2>/dev/null
+      timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" "$f" 2>/dev/null
       printf 'exit %s\n' "$?"
     done
   } | sha256sum | cut -d' ' -f1
