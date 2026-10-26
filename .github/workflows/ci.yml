@@ -1,0 +1,130 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+name: ci
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select and check Xcode
+        run: |
+          want=$(awk '$1 == "xcode" { print $2 }' toolchain.txt)
+          sudo xcode-select -s "/Applications/Xcode_${want}.app"
+          got=$(xcodebuild -version | head -n 1)
+          echo "runner image: ${ImageOS:-?} ${ImageVersion:-?}"
+          echo "$got"
+          [ "$got" = "Xcode $want" ] || { echo "Xcode is '$got', toolchain.txt pins $want" >&2; exit 1; }
+          mkdir -p out/tools
+          echo "xcode ${got#Xcode }" > out/tools/tools.txt
+
+      - name: Install GNU tools used by the scripts
+        run: |
+          brew install bash coreutils
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Compile the C23 probes with Xcode's clang
+        run: |
+          mkdir -p out/c23
+          bash scripts/check-c23-subset.sh --toolchains "clang:-std=c23" --ci /nonexistent core/src cli/src | tee out/c23/c23.txt
+
+      - name: Build the static libraries and the CLIs
+        run: |
+          for sdk in iphoneos iphonesimulator; do
+            cmake -S core -B "build/ios-$sdk" -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT="$sdk" \
+              -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_BUNDLE=OFF
+            cmake --build "build/ios-$sdk" -j 4 --target ozen_lib
+          done
+          cmake --build build/ios-iphonesimulator -j 4 --target ozen
+          cmake -S core -B build/macos -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/macos -j 4 --target ozen_lib ozen
+          test -x build/ios-iphonesimulator/ozen
+          test -x build/macos/ozen
+
+      - name: Create the XCFramework
+        run: |
+          mkdir -p build/headers
+          cp core/include/ozen.h bindings/apple/module.modulemap build/headers/
+          xcodebuild -create-xcframework \
+            -library build/ios-iphoneos/libozen.a -headers build/headers \
+            -library build/ios-iphonesimulator/libozen.a -headers build/headers \
+            -library build/macos/libozen.a -headers build/headers \
+            -output build/Ozen.xcframework
+          ls build/Ozen.xcframework
+          (cd build && ditto -c -k --keepParent Ozen.xcframework Ozen.xcframework.zip)
+
+      - name: Call the XCFramework from Swift on macOS
+        run: |
+          slice=build/Ozen.xcframework/macos-arm64_x86_64
+          mkdir -p out/swift-macos
+          BRIDGE_MODULE_DIR="$slice/Headers" BRIDGE_NATIVE="$PWD/build/macos/ozen" \
+            bash bindings/linux/swift-test.sh "$slice" | tee out/swift-macos/result.txt
+          grep -qE '^swift: [1-9][0-9]* inputs, 0 mismatches$' out/swift-macos/result.txt
+
+      - name: Boot a simulator
+        run: |
+          udid=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          for runtime in sorted(devices, reverse=True):
+              if "iOS" in runtime:
+                  for d in devices[runtime]:
+                      if d["name"].startswith("iPhone"):
+                          print(d["udid"]); sys.exit(0)
+          sys.exit(1)')
+          xcrun simctl bootstatus "$udid" -b
+          echo "SIM_UDID=$udid" >> "$GITHUB_ENV"
+
+      - name: Call the XCFramework from Swift on the simulator
+        run: |
+          slice=build/Ozen.xcframework/ios-arm64-simulator
+          mkdir -p out/swift-ios
+          BRIDGE_MODULE_DIR="$slice/Headers" BRIDGE_NATIVE="$PWD/build/macos/ozen" \
+            BRIDGE_SWIFTC="xcrun --sdk iphonesimulator swiftc -target arm64-apple-ios16.0-simulator" \
+            BRIDGE_RUN="xcrun simctl spawn $SIM_UDID" \
+            bash bindings/linux/swift-test.sh "$slice" | tee out/swift-ios/result.txt
+          grep -qE '^swift: [1-9][0-9]* inputs, 0 mismatches$' out/swift-ios/result.txt
+
+      - name: Run the golden tests and the digest on the simulator
+        env:
+          OZP_RUN_TIMEOUT: 120
+        run: |
+          runner="xcrun simctl spawn $SIM_UDID $PWD/build/ios-iphonesimulator/ozen"
+          mkdir -p out/digest
+          bash scripts/run-golden.sh "$runner" tests/golden > out/digest/golden.txt || { cat out/digest/golden.txt; exit 1; }
+          tail -n 1 out/digest/golden.txt
+          bash scripts/digest.sh "$runner" tests/golden samples > out/digest/digest.txt
+          cat out/digest/digest.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digest-ios
+          path: out/digest
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xcframework
+          path: build/Ozen.xcframework.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: swift-macos
+          path: out/swift-macos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: swift-ios
+          path: out/swift-ios
+      - uses: actions/upload-artifact@v4
+        with:
+          name: c23-ios
+          path: out/c23
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tools-ios
+          path: out/tools
