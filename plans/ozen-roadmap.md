@@ -2994,7 +2994,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-STD-STATIC`（S460・効かない条件）— 鶏肉の部位の廃棄率を `10..20 %` と数値で書くと `1 fct-inline` で落ちた。戻して合格
   - わざと壊す確認: `G-STD-STATIC`（S461・効かない条件）— `Blender` から `Blending` を外すと `1 capability-unprovided` で落ちた。戻して合格
   - わざと壊す確認: `G-STD-LISTS`（S462・データの完全性）— 定義から器 `Platter` を落とすと `1 missing` と関係 `vesselTrait` の不一致で落ちた。戻して合格
-  - わざと壊す確認: `G-STD-SOURCES`（S468・データの完全性）— 炊飯器の時間を書き写しと違う `42..55 min` にすると `1 quote mismatches` で落ちた。戻して合格
+  - わざと壊す確認: `G-STD-SOURCES`（S468・データの完全性）— `stdlib/sources.ozen` の一次情報から書き写し（`quote`）を消すと `1 missing fields, 1 quote mismatches` で落ちた。炊飯器の時間を書き写しと違う `42..55 min` にしても `1 quote mismatches` で落ちた。戻して合格
 
 ### 9.5 E（型検査）
 
