@@ -2704,6 +2704,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 試作の書き心地とバグ量、ファズで出た問題の量が許容できるか（報告書の (1)・(3)）と、それを受けて D 以降の作り方を変えるか — 機械で決められない理由: 許容の基準が主観で、行数と欠陥の数は判断の材料にとどまる
 
 ---
+- `schemas/vendor/sarif-2.1.0.json` を再配布してよいか（OASIS の IPR ポリシーと仕様の Notices の条件。`schemas/vendor/LICENSE-OASIS.txt` の記述で足りるか）— 機械で決められない理由: ライセンスの条件の解釈は法的な判断で、検査で決められない
 
 ## 9. 着手時に確認して記録する事項
 
@@ -3323,7 +3324,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 
 ### 9.7 G（API・JSON・CLI）
 
-- `schemas/` の一覧、SARIF のスキーマの取得元・取得日・sha256（P10-3）
+- `schemas/` の一覧: `result.schema.json`（結果の JSON。P10-2）、`vendor/sarif-2.1.0.json`（SARIF 2.1.0 Errata 01。取得元 https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json、取得日 2026-10-26、112768 バイト、sha256 `c3b4bb2d6093897483348925aaa73af03b3e3f4bd4ca38cef26dcb4212a2682e`、ユーザーの確認を取って取得。ライセンスの記述は `vendor/LICENSE-OASIS.txt`）（P10-3）
 - わざと壊す確認の記録
 - P10-0（2026-10-26）: §4.23.1 に公開ヘッダー・`kitchen`／`options` のテキスト・結果の JSON とその中身・`schemas/` の書き方を、§4.25.1 に CLI の細目を書いた。S476（`options` の宣言の合成）を足し、網羅表に行を足した。新しい D は無い。コアは標準ライブラリの確保を呼べない（S181）ため、確保の関数は呼び出し側が必ず渡す形にした
 - P10-1（2026-10-26）: `core/include/ozen.h`、`core/src/api.c`（`recipe_default_config`・`recipe_build`・`recipe_free_string`）、結果の JSON の先頭（版・レベル・入口・ファイルの表・結果・診断）と `RECIPE_EMIT_SCHEDULE` の段取り、`kitchen`／`options` のテキストを `<kitchen>`・`<options>` のファイルとして読む仕組み、`options` の宣言の合成、`Options` の `strict`・`allow`・`warn`・`deny`（`std` に `StrictMode`・`DiagnosticName` を足した）、`cunit/api_levels_by_null`・`api_free_balance`・`api_options_merge` を足した。`G-API-EXPORTS`・`G-API-HEADER`（4 組）・`G-CORE-UNIT`・`PURE`・`NOGLOBAL`・`C23-SUBSET` と golden 312 件が合格
@@ -3340,6 +3341,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/api/types-json`（S335・正常系）— 範囲の制約を出さないと落ちた。戻して合格
   - わざと壊す確認: `G-API-SCHEMA`（S337・効かない条件）— 診断に英語の文の項目を足すと `242 invalid` になった。戻して合格
   - わざと壊す確認: `cgolden/api/local-not-listed`（S425・効かない条件）— `local` も一覧に出すと落ちた。戻して合格
+- P10-3（2026-10-26）: golden `api/sarif-mapping`（エラー・警告・情報、展開履歴、直し方の候補）を先にコミットし、SARIF 2.1.0 のスキーマを取り込み（ユーザーの確認の後）、`ozen check --format sarif`（CLI が結果の JSON を読み、規則・成果物・結果に写す。情報は `note`、展開履歴は `relatedLocations`、直し方の候補は診断の範囲を置き換える `fixes`、文面は名前から作る英語）、`validate.py` の draft-04 の語の対応、`run-golden.sh --sarif OUT`、`tools/vendorcheck.py` と自己テストを足した。`G-API-SARIF`（`sarif: 168 files, 0 invalid`）、`tools/vendorcheck.py schemas/vendor/README.md`（`vendor: 1 files, 0 mismatched`。`G-REND-VENDOR` の残りはフェーズ K の Fluent）と golden 318 件が合格。OASIS の注記の全文は取り込んでいないので、`LICENSE-OASIS.txt` は著作権の表示と IPR ポリシー・注記の所在を書いた（§8 で人が確かめる）
+  - わざと壊す確認: `cgolden/api/sarif-mapping`（S333・文書との一致）— 情報を `warning` にすると落ちた。戻して合格
 
 ### 9.8 H（4 環境）
 
