@@ -1,0 +1,2 @@
+// args: check --max-input-bytes 51
+property p = 12

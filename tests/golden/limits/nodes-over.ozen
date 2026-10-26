@@ -1,0 +1,2 @@
+// args: check --max-nodes 3
+property p = 1 + 2

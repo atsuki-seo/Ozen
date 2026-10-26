@@ -1,0 +1,5 @@
+// args: check --max-steps 2
+recipe r() {
+  ingredients { rice: 300 g }
+  let w = wash(rice)
+}

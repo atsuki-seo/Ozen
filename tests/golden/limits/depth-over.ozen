@@ -1,0 +1,2 @@
+// args: check --max-depth 2
+property p = (((1)))
