@@ -3383,12 +3383,23 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-PLAT-LINUX`（`swift`、S343 の Linux の行・プラットフォームの経路）— Swift の橋渡しで出力の末尾の改行を落とすと `12 mismatches` になった。戻して合格
 - P11-2（2026-10-26）: Emscripten 6.0.13 で `build/core-wasm/` に node 用の CLI（`ozen.js`、`NODERAWFS`）と、C の橋渡し `bindings/wasm/bridge.c` の `ozen_bridge.js`（`-sENVIRONMENT=web,worker,node`・`MODULARIZE`、`OzenModule`）を作る `scripts/build-wasm.sh`、JS の橋渡し `bindings/wasm/ozen.mjs`（`build(mod, {sources, kitchen, options, entry, emit})`、長さは UTF-8 のバイト数）、node と Web Worker の両方で入力の一覧を通して手元の CLI の JSON と比べる `bindings/wasm/worker-test.sh`（P5-2 と同じく、ページが結果を検査用のサーバーに POST する形。Chrome 154.0.8037.97、node v20.20.2）と自己テスト `scripts/test-worker-test.sh` を足した。不一致は入力ごとに数える（node と Worker のどちらかが違えば 1）。`G-PLAT-WASM`（golden 318 件、`worker: 12 inputs, 0 mismatches`、digest の一致）が合格
   - わざと壊す確認: `G-PLAT-WASM`（`worker`、S342・プラットフォームの経路）— 橋渡しで長さに `s.text.length`（UTF-16 の数）を渡すと `worker: 12 inputs, 1 mismatches`（日本語と絵文字の `utf8.ozen` が node と Worker の両方で違う）になった。戻して合格。自己テストにも同じ壊し方を入れた
+  - `scripts/check-c23-subset.sh` に emcc（`-std=c23`）を足して t = 3 にし、CI のジョブが書く `build/ci/c23-*/c23.txt` を読んでツールチェーンの数に足す形にした（P11-3・P11-4 の後で t = 5）
+- P11-3（2026-10-26）: `.github/workflows/ci.yml` の `ios`（`macos-26`、Xcode 26.6）。端末用・シミュレーター用・macOS（`arm64;x86_64`）の静的ライブラリを `Ozen.xcframework` にまとめ（ヘッダーは `core/include/ozen.h` と `bindings/apple/module.modulemap`）、macOS のスライスとシミュレーターのスライスで `bindings/linux/swift-test.sh`（コンパイラー・実行の前置き・モジュールのフォルダを環境変数で替えられるようにした）を回し、シミュレーターで golden と digest、Xcode の clang で 12 のプローブを通す。成果物は `digest-ios`・`xcframework`・`swift-macos`・`swift-ios`・`c23-ios`・`tools-ios`。直したこと: `simctl spawn` は子を `/` で起動して呼び出し元のフォルダを引き継がないので、シミュレーター用の `bindings/apple/sim-chdir.c`（`chdir` してから `execv`）と `bindings/apple/sim-run.sh` を通して CLI を動かす。`scripts/golden-entries.sh` が GNU の `find -printf` を使っていて macOS ではフォルダの golden 20 件が抜けていたので、`dirname` に替えた。デバイスの golden のステップは全件が通ったときだけ成功にした。`G-PLAT-IOS`（digest `c668e8a2…` の一致、スライス 3 つ、`swift: 12 inputs, 0 mismatches`）が合格
+  - わざと壊す確認: `G-PLAT-IOS`（S338・プラットフォームの経路）— CI の成果物の `Ozen.xcframework.zip` から `ios-arm64` を外して判定の命令に通すとスライスが 2 つになり落ちた（成果物の写しで確かめた）
+  - わざと壊す確認: `G-PLAT-IOS`（S455・プラットフォームの経路）— 同じく `macos-arm64_x86_64` を外すとスライスが 2 つになり落ちた（CI では Swift の macOS のステップも落ちる）
+  - わざと壊す確認: `G-CORE-C23-SUBSET`（S151 の Xcode の行・プラットフォームの経路）— `scripts/c23-probes/04-constexpr.c` を外すと `c23: 11 allowed probes ok on 5 toolchains` になり落ちた。戻して合格
+  - S343 の iOS の行: macOS とシミュレーターの Swift の橋渡しは Linux と同じ `bindings/swift/Ozen.swift` と `swift-test.sh` で比べるので、P11-1 の壊し方（末尾の改行を落とす）で同じく落ちる
+- P11-4（2026-10-26）: `android`（`ubuntu-24.04`）。`sdkmanager` で NDK 30.0.16248370（`toolchain.txt` の `ndk 30.0.16248370 ci`。手元には取得していない）とエミュレーター 37.2.12.0・`system-images;android-34;default;x86_64`（API 34）を入れ、4 つの ABI の `libozen.so`（Android でも `ozen_shared` を作るようにした）と `libozen_jni.so`、x86_64 の CLI を作る。エミュレーターで `bindings/android/emulator-test.sh`（`d8` で dex にし、`dalvikvm` で `JvmTest` を回して手元の CLI の JSON と比べる。自己テストは偽の `adb`・`d8`・`dalvikvm` を使う `scripts/test-emulator-test.sh`）と、`bindings/android/adb-run.sh`（ホストのフォルダを端末の `/data/local/tmp/ozen/repo/` の同じ場所に写して CLI を動かす）を通した golden と digest。直したこと: NDK が `strtok` を非推奨にしているので CLI を `strtok_r` に、`avdmanager` とエミュレーターの AVD のフォルダを `ANDROID_AVD_HOME` で揃えた、`adb shell` が標準入力を端末に送り golden の一覧を飲み込んでいたので `/dev/null` を渡す、起動の待ちに 600 秒の上限を付けた。`G-PLAT-ANDROID`（digest の一致、ABI 4 つ）と `jni-android: 12 inputs, 0 mismatches` が合格
+  - わざと壊す確認: `G-PLAT-ANDROID`（S339・プラットフォームの経路）— 成果物の `android-libs` から `x86` を外すと ABI の一覧が `arm64-v8a armeabi-v7a x86_64` になり落ちた（成果物の写しで確かめた）
+  - S340・S343 の Android の行: JNI のラッパーと Java のクラスは Linux の JVM のテストと同じなので、P11-1 の壊し方（ASCII として読む・末尾の改行を落とす）で同じく落ちる
+- P11-5（2026-10-26）: `linux`（Swift 6.2.3 の配布物の clang 17.0.0 と `pipx` の CMake 3.28.3 で手元と同じ版にし、`scripts/goals.sh` の `G-CORE-BUILD`・`UNIT`・`GOLDEN`・`OOM`・`G-CLI-TESTS`・`G-PLAT-LINUX`）・`fuzz`（`scripts/fuzz-core.sh 60`）・`wasm`（emsdk 6.0.13、node 20.20.2、`G-PLAT-WASM`）を足し、ジョブの名前を `ci/jobs.txt` に書いた。どのジョブも使う道具の版を `tools.txt` に書き、`scripts/check-ci-tools.py`（`toolchain.txt` の `ci` の行を優先して比べる。自己テストは `scripts/test-check-ci-tools.sh`）で比べる。直したこと: Makefile の生成器では 2 つのライブラリが同じ `std_embedded.c` を並行に書いて gcc-release のビルドが落ちることがあったので、生成を `ozen_std_gen` の 1 つのターゲットにまとめた。`build-core.sh` は失敗のときエラーの行も出す。SPDX の検査に `bindings/` と `.swift`・`.java`・`.js`・`.html` を足した。`G-PLAT-CI`・`G-REPO-TOOLS-CI`（`ci-tools: 5 jobs, 0 mismatched`）・`G-CORE-C23-SUBSET`（`12 allowed probes ok on 5 toolchains`）が合格
+  - わざと壊す確認: `G-PLAT-CI`（S344・データの完全性）— 実行のジョブの一覧から `fuzz` を除いて `ci/jobs.txt` と比べると `> fuzz success` の差が出て落ちた（ワークフローからジョブを消した実行を押す代わりに、判定の命令の入力で確かめた）
 
-- NDK の版（r30 の clang-r574158c の予定）と、手元で取得したか（P11-4）
+- NDK の版（P11-4）: 30.0.16248370（r30）。CI の `sdkmanager` で入れ、手元には取得していない
 - `javac --release` の版（D29、P11-0）: 17（Android Gradle Plugin 8 系の d8 が受け付けるクラスファイルの版。手元の JDK 25 の `javac --release 17` で作る）
-- Xcode の版と、12 のプローブの結果（P11-3）
-- エミュレーターのシステムイメージと API レベル（P11-4）
-- CI の実行時間（R4）
+- Xcode の版と、12 のプローブの結果（P11-3）: Xcode 26.6（`macos-26` の image `20261013.0424.1`）。12 のプローブはすべて通った
+- エミュレーターのシステムイメージと API レベル（P11-4）: `system-images;android-34;default;x86_64`（API 34）、エミュレーター 37.2.12.0
+- CI の実行時間（R4）: 全部のジョブが通った実行（`9dcbbf0`）で `ios` 21.5 分・`fuzz` 4.8 分・`android` 2.8 分・`linux` 2.2 分・`wasm` 1.7 分（GitHub の記録）。macOS のランナーが割り当てられずに取り消された実行が 1 回あり、ジョブだけ再実行した
 - わざと壊す確認の記録
 
 ### 9.9 I・J（サンプル）
