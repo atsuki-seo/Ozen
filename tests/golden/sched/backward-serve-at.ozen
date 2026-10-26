@@ -1,0 +1,13 @@
+// args: debug schedule --options today
+recipe r() {
+  ingredients {
+    rice: 300 g
+    onion: 1 pcs
+  }
+  let w = wash(rice)
+  let p = peel(onion)
+}
+kitchen today : Options {
+  cooks: 1
+  serveAt: 3600 s
+}

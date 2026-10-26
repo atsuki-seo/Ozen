@@ -1,0 +1,6 @@
+schedule r level=1 cooks=1
+  0..120 (60) %2 peel by cook1
+  120..240 (180) %4 peel by cook1
+  total 240
+result ok errors=0 warnings=0 infos=0
+exit 0

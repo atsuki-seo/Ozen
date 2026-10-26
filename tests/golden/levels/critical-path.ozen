@@ -1,0 +1,10 @@
+// args: debug schedule
+recipe r() {
+  ingredients {
+    rice: 300 g
+    onion: 1 pcs
+  }
+  let w = wash(rice)
+  let s = soak(w)
+  let p = peel(onion)
+}

@@ -1,0 +1,12 @@
+// args: debug schedule --options today
+recipe r() {
+  ingredients {
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let a = peel(carrot)
+  let b = peel(onion)
+}
+kitchen today : Options {
+  cooks: 1
+}

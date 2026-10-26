@@ -1,0 +1,7 @@
+schedule r level=1 cooks=1
+  0..180 (60) %4 wash by cook1
+  180..300 (240) %2 peel by cook1
+  180..1980 (1980) %5 soak unattended
+  total 1980
+result ok errors=0 warnings=0 infos=0
+exit 0
