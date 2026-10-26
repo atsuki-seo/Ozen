@@ -1,0 +1,3 @@
+bundle { std: "0.1" }
+module std.fake {
+}

@@ -1,0 +1,3 @@
+error PKG007 requiresIncompatible package.ozen:4:5-4:15 args=["std", "1.0", "{{STD_VERSION}}"]: requires incompatible
+result error errors=1 warnings=0 infos=0
+exit 1

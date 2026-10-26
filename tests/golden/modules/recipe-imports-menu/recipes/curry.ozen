@@ -1,0 +1,3 @@
+import menus.dinner
+recipe curry() {
+}

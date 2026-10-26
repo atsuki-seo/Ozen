@@ -1,0 +1,3 @@
+error PKG003 topFolderClash package.ozen:4:5-4:16 args=["dashi"]: top folder clash
+result error errors=1 warnings=0 infos=0
+exit 1

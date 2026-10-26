@@ -1,0 +1,3 @@
+info NAM006 localOverride local-overrides-import.ozen:2:1-2:27 args=["cup", "std.units.jp"]: local override
+result ok errors=0 warnings=0 infos=1
+exit 0

@@ -1,0 +1,3 @@
+error PKG001 importCycle a.ozen:1:1-1:9 args=["book.a", "book.b", "book.a"]: import cycle
+result error errors=1 warnings=0 infos=0
+exit 1

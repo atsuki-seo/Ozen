@@ -1,0 +1,3 @@
+recipe curry() {
+  ingredients { rice: 300 g }
+}

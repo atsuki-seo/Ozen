@@ -1,0 +1,4 @@
+kitchen home { places { sink: Sink } }
+recipe r() {
+  let k = home
+}

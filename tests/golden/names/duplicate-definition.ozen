@@ -1,0 +1,2 @@
+action stir(x: T) -> T
+action stir(x: T) -> T

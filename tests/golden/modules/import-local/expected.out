@@ -1,0 +1,3 @@
+error NAM005 importLocal main.ozen:1:11-1:17 args=["helper", "book.a"]: import local
+result error errors=1 warnings=0 infos=0
+exit 1

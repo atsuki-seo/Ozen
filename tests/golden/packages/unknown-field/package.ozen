@@ -1,0 +1,4 @@
+package book {
+  version: "1.0.0"
+  homepage: "https://example.invalid"
+}

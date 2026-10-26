@@ -1,0 +1,3 @@
+error NAM009 ambiguousEntry entry-multiple.ozen:1:1-1:1 args=["dinner", "lunch"]: ambiguous entry
+result error errors=1 warnings=0 infos=0
+exit 1

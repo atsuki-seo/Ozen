@@ -1,0 +1,5 @@
+// args: debug entry
+menu lunch() {
+}
+menu dinner() {
+}

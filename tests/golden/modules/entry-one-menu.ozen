@@ -1,0 +1,6 @@
+// args: debug entry
+menu dinner() {
+  let c = make curry()
+}
+recipe curry() {
+}

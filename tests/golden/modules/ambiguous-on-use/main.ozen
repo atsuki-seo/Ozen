@@ -1,0 +1,6 @@
+import a.{stir}
+import b.{stir}
+recipe r() {
+  ingredients { rice: 300 g }
+  let s = stir(rice)
+}

@@ -1,0 +1,5 @@
+error PKG005 stdReserved extra.ozen:1:1-2:2 args=["std.extra"]: std reserved
+error PKG005 stdReserved package.ozen:1:1-3:2 args=["std"]: std reserved
+error PKG005 stdReserved shared.ozen:2:1-3:2 args=["std.fake"]: std reserved
+result error errors=3 warnings=0 infos=0
+exit 1
