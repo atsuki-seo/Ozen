@@ -2491,6 +2491,23 @@ static void check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index 
     return;
   }
   ozni_index df, dn;
+  if (nd(s, vfile, vnode)->kind == OZNI_N_Construct && find_from(s, tfile, bn->text, &df, &dn) &&
+      nd(s, df, dn)->kind == OZNI_N_Type) {
+    for (ozni_index c = nd(s, vfile, vnode)->first; c != 0; c = nd(s, vfile, c)->next) {
+      const ozni_node *cn = nd(s, vfile, c);
+      ozni_index ff, fn;
+      if (cn->kind != OZNI_N_Entry) {
+        continue;
+      }
+      if (!type_field(s, df, dn, cn->text, &ff, &fn, 0)) {
+        ozni_str args[2] = {S(s, bn->text), S(s, cn->text)};
+        diag_node(s, OZNI_D_NAM_unknownArgument, vfile, cn, args, 2);
+      } else if (cn->first != 0 && field_type_node(s, ff, fn) != 0) {
+        check_value(s, vfile, cn->first, ff, field_type_node(s, ff, fn), cn->text);
+      }
+    }
+    return;
+  }
   if (dim_index(s, bn->text) >= 0) {
     ozni_qty v;
     if (!typed_qty(s, vfile, vnode, tfile, tnode, &v)) {
@@ -2658,8 +2675,10 @@ static void add_entry(sema *s, ozni_index name, ozni_index vfile, ozni_index vno
     for (ozni_index c = nd(s, vfile, vnode)->first; c != 0; c = nd(s, vfile, c)->next) {
       const ozni_node *cn = nd(s, vfile, c);
       ozni_index ff, fn;
-      if (cn->kind == OZNI_N_Entry && cn->first != 0 && type_field(s, e.sfile, e.snode, cn->text, &ff, &fn, 0) &&
-          field_type_node(s, ff, fn) != 0) {
+      if (cn->kind == OZNI_N_Entry && !type_field(s, e.sfile, e.snode, cn->text, &ff, &fn, 0)) {
+        ozni_str args[2] = {S(s, kind_name), S(s, cn->text)};
+        diag_node(s, OZNI_D_NAM_unknownArgument, vfile, cn, args, 2);
+      } else if (cn->kind == OZNI_N_Entry && cn->first != 0 && field_type_node(s, ff, fn) != 0) {
         check_value(s, vfile, cn->first, ff, field_type_node(s, ff, fn), cn->text);
       }
     }
@@ -2970,6 +2989,10 @@ static void setup_configs(sema *s) {
        c = nd(s, s->ofile, c)->next) {
     const ozni_node *cn = nd(s, s->ofile, c);
     ozni_index ff, fn;
+    if (cn->kind == OZNI_N_Field && !type_field(s, tf, tn, cn->text, &ff, &fn, 0)) {
+      ozni_str args[2] = {S(s, nd(s, tf, tn)->text), S(s, cn->text)};
+      diag_node(s, OZNI_D_NAM_unknownArgument, s->ofile, cn, args, 2);
+    }
     if (cn->kind == OZNI_N_Field && cn->first != 0 && type_field(s, tf, tn, cn->text, &ff, &fn, 0) &&
         field_type_node(s, ff, fn) != 0) {
       check_value(s, s->ofile, cn->first, ff, field_type_node(s, ff, fn), cn->text);
