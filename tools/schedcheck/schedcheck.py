@@ -102,9 +102,11 @@ def check(doc):
     cleaned = {}
     used = {}
     for t in order:
-        clean = t.get("cleans")
+        cleans = t.get("cleans")
+        cleans = [] if cleans is None else cleans if isinstance(cleans, list) else [cleans]
+        cleaning = {c["resource"] for c in cleans}
         for rid in t.get("uses", []):
-            if t.get("kind") == "soak" or (clean is not None and clean["resource"] == rid):
+            if t.get("kind") == "soak" or rid in cleaning:
                 continue
             marks = history.get(rid, [])
             level = max((need(m, t, rid) for _, m in marks), default=0)
@@ -115,7 +117,7 @@ def check(doc):
                 history[rid] = []
                 cleaned[rid] = None
             used[rid] = t["id"]
-        if clean is not None:
+        for clean in cleans:
             rid = clean["resource"]
             cleaned[rid] = 99 if clean["level"] == "wipe" else LEVELS.index(clean["level"])
             used.pop(rid, None)
