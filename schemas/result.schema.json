@@ -329,6 +329,54 @@
     "irdish": {
       "additionalProperties": false,
       "properties": {
+        "choices": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "type": "string"
+              },
+              "options": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "count": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "node": {
+                      "oneOf": [
+                        {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "count",
+                    "label",
+                    "node"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "mode",
+              "options"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
         "name": {
           "type": "string"
         },
@@ -376,6 +424,7 @@
         }
       },
       "required": [
+        "choices",
         "name",
         "nodes",
         "waves"
@@ -389,6 +438,12 @@
           "items": {
             "minimum": 0,
             "type": "integer"
+          },
+          "type": "array"
+        },
+        "allergens": {
+          "items": {
+            "type": "string"
           },
           "type": "array"
         },
@@ -521,6 +576,7 @@
       },
       "required": [
         "after",
+        "allergens",
         "args",
         "id",
         "inputs",

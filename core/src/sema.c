@@ -177,6 +177,8 @@ typedef struct sema {
   ozni_table *vessel_used;
   ozni_table *ir_meta;
   ozni_table *ir_args;
+  ozni_table *choices;
+  ozni_table *choice_opts;
 } sema;
 
 typedef struct mframe {
@@ -1439,7 +1441,30 @@ typedef struct ir_meta {
   uint32_t first_arg;
   uint32_t nargs;
   bool has_qty;
+  uint32_t nallergens;
+  ozni_index allergens[8];
 } ir_meta;
+
+typedef struct choice {
+  ozni_index at;
+  ozni_index mode;
+  uint32_t first_opt;
+  uint32_t nopts;
+} choice;
+
+typedef struct choice_opt {
+  ozni_index irn;
+  ozni_index label;
+  uint32_t count;
+} choice_opt;
+
+static uint32_t food_allergens(sema *s, const food *f, ozni_index *out, uint32_t cap);
+
+static bool name_after(ozni_str a, ozni_str b) {
+  uint32_t n = a.len < b.len ? a.len : b.len;
+  int c = n > 0 ? memcmp(a.p, b.p, n) : 0;
+  return c > 0 || (c == 0 && a.len > b.len);
+}
 
 typedef struct ir_arg {
   ozni_index name;
@@ -1457,6 +1482,14 @@ static void meta_push(sema *s, ozni_index irn, const food *out, const value *par
   if (out != nullptr && out->amount.known) {
     m.qty = out->amount;
     m.has_qty = true;
+  }
+  m.nallergens = out != nullptr ? food_allergens(s, out, m.allergens, 8) : 0;
+  for (uint32_t i = 1; i < m.nallergens; i++) {
+    for (uint32_t j = i; j > 0 && name_after(S(s, m.allergens[j - 1]), S(s, m.allergens[j])); j--) {
+      ozni_index t = m.allergens[j];
+      m.allergens[j] = m.allergens[j - 1];
+      m.allergens[j - 1] = t;
+    }
   }
   for (uint32_t k = 0; k < np; k++) {
     if (params[k].kind != V_QTY && params[k].kind != V_ENUM && params[k].kind != V_STR && params[k].kind != V_BOOL) {
@@ -1615,7 +1648,12 @@ static ozni_index ir_simple(sema *s, const char *label, food *const *ins, uint32
   }
   ozni_buf_puts(&b, " [0 s]");
   node.text = ir_text(s, &b);
-  return ir_add(s, node);
+  ozni_index irn = ir_add(s, node);
+  meta_push(s, irn, out, nullptr, nullptr, 0);
+  if (s->ir_meta != nullptr && irn != 0 && ozni_table_count(s->ir_meta) > 0) {
+    ((ir_meta *)ozni_table_at(s->ir_meta, ozni_table_count(s->ir_meta) - 1))->has_qty = false;
+  }
+  return irn;
 }
 
 /* Evaluation */
@@ -6169,6 +6207,24 @@ static value eval_choose(sema *s, const ozni_node *n) {
       diag_node(s, OZNI_D_ASM_evenChoice, s->file, n, args, 2);
     }
   }
+  if (s->choices != nullptr && ir_on(s)) {
+    choice ch = {ir_from[0], n->text, ozni_table_count(s->choice_opts), k};
+    for (uint32_t j = 0; j < k; j++) {
+      const ozni_node *on = nd(s, s->file, onodes[j]);
+      ozni_index lab = on->first != 0 ? nd(s, s->file, on->first)->text : 0;
+      if (on->kind == OZNI_N_Make && on->first != 0 && nd(s, s->file, on->first)->kind == OZNI_N_Call &&
+          nd(s, s->file, on->first)->first != 0) {
+        lab = nd(s, s->file, nd(s, s->file, on->first)->first)->text;
+      }
+      choice_opt co = {ir_to[j] > ir_from[j] ? ir_to[j] : 0, lab, counts[j]};
+      if (!ozni_table_push(s->choice_opts, &co, nullptr)) {
+        s->c->oom = true;
+      }
+    }
+    if (!ozni_table_push(s->choices, &ch, nullptr)) {
+      s->c->oom = true;
+    }
+  }
   s->step_no++;
   ozni_index ref = step_ref(s);
   if (printing(s)) {
@@ -6316,7 +6372,13 @@ static void ir_json(sema *s, ozni_index name) {
     } else {
       ozni_buf_puts(b, "null");
     }
-    ozni_buf_puts(b, "}");
+    ozni_buf_puts(b, ",\"allergens\":[");
+    for (uint32_t a = 0; meta != nullptr && a < meta->nallergens; a++) {
+      ozni_str an = S(s, meta->allergens[a]);
+      ozni_buf_puts(b, a == 0 ? "" : ",");
+      ozni_buf_json(b, an.p, an.len);
+    }
+    ozni_buf_puts(b, "]}");
   }
   ozni_buf_puts(b, "],\"waves\":[");
   first = true;
@@ -6347,6 +6409,35 @@ static void ir_json(sema *s, ozni_index name) {
     put_json_rat(b, gap);
     ozni_buf_puts(b, "}");
     prev = node->wave;
+  }
+  ozni_buf_puts(b, "],\"choices\":[");
+  first = true;
+  for (ozni_index c = 0; s->choices != nullptr && c < ozni_table_count(s->choices); c++) {
+    const choice *ch = ozni_table_get(s->choices, c);
+    if (ch->at < s->ir_base) {
+      continue;
+    }
+    ozni_str mode = S(s, ch->mode);
+    ozni_buf_puts(b, first ? "{\"mode\":" : ",{\"mode\":");
+    first = false;
+    ozni_buf_json(b, mode.p, mode.len);
+    ozni_buf_puts(b, ",\"options\":[");
+    for (uint32_t o = 0; o < ch->nopts; o++) {
+      const choice_opt *co = ozni_table_get(s->choice_opts, ch->first_opt + o);
+      ozni_buf_puts(b, o == 0 ? "{\"node\":" : ",{\"node\":");
+      if (co->irn != 0) {
+        ozni_buf_putu(b, ((const ozni_ir_node *)ozni_table_get(s->ir.nodes, co->irn - 1))->number);
+      } else {
+        ozni_buf_puts(b, "null");
+      }
+      ozni_str lab = S(s, co->label);
+      ozni_buf_puts(b, ",\"label\":");
+      ozni_buf_json(b, lab.p, lab.len);
+      ozni_buf_puts(b, ",\"count\":");
+      ozni_buf_putu(b, co->count);
+      ozni_buf_puts(b, "}");
+    }
+    ozni_buf_puts(b, "]}");
   }
   ozni_buf_puts(b, "]}");
 }
@@ -8695,7 +8786,9 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
   if (pr->c->ir_json != nullptr || pr->c->steps_json != nullptr) {
     s.ir_meta = ozni_table_new(pr->c->arena, sizeof(ir_meta));
     s.ir_args = ozni_table_new(pr->c->arena, sizeof(ir_arg));
-    if (s.ir_meta == nullptr || s.ir_args == nullptr) {
+    s.choices = ozni_table_new(pr->c->arena, sizeof(choice));
+    s.choice_opts = ozni_table_new(pr->c->arena, sizeof(choice_opt));
+    if (s.ir_meta == nullptr || s.ir_args == nullptr || s.choices == nullptr || s.choice_opts == nullptr) {
       return false;
     }
   }
