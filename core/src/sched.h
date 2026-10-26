@@ -124,6 +124,9 @@ typedef struct ozni_sched {
   ozni_rat first_serve;
   ozni_rat last_serve;
   bool serves_known;
+  bool tie_reverse;
+  bool reuse_units;
+  const ozni_rat *rank;
 } ozni_sched;
 
 [[nodiscard]] bool ozni_schedule(ozni_arena *ar, ozni_sched *s);

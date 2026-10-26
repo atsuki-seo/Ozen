@@ -6881,6 +6881,179 @@ static void schedule_text(sema *s, const sched_out *o, ozni_index name) {
   ozni_buf_puts(b, "\n");
 }
 
+typedef struct sched_score {
+  bool feasible;
+  ozni_rat total;
+  ozni_rat metric[4];
+  uint8_t order[4];
+  uint32_t norder;
+} sched_score;
+
+static ozni_rat sched_total(const ozni_sched *p) {
+  ozni_rat end = ozni_rat_int(0);
+  for (uint32_t i = 0; i < p->ntasks; i++) {
+    end = later_rat(end, p->tasks[i].end_hi);
+  }
+  for (uint32_t k = 0; k < p->nextras; k++) {
+    end = later_rat(end, p->extras[k].end_hi);
+  }
+  return end;
+}
+
+static ozni_rat sched_start(const ozni_sched *p) {
+  ozni_rat start = p->ntasks > 0 ? p->tasks[0].start : ozni_rat_int(0);
+  for (uint32_t i = 0; i < p->ntasks; i++) {
+    start = ozni_rat_cmp(p->tasks[i].start, start) < 0 ? p->tasks[i].start : start;
+  }
+  for (uint32_t k = 0; k < p->nextras; k++) {
+    start = ozni_rat_cmp(p->extras[k].start, start) < 0 ? p->extras[k].start : start;
+  }
+  return start;
+}
+
+static ozni_rat busy_overlap(sema *s, const ozni_sched *p, uint32_t cook, bool waiting) {
+  uint32_t n = p->ntasks + p->nextras;
+  ozni_rat *pts = ozni_arena_alloc(s->c->arena, (2 * n + 1) * sizeof *pts);
+  ozni_rat sum = ozni_rat_int(0);
+  if (pts == nullptr) {
+    s->c->oom = true;
+    return sum;
+  }
+  uint32_t np = 0;
+  for (uint32_t i = 0; i < n; i++) {
+    bool task = i < p->ntasks;
+    uint32_t c = task ? p->tasks[i].cook : p->extras[i - p->ntasks].cook;
+    if (waiting && c != cook) {
+      continue;
+    }
+    pts[np++] = task ? p->tasks[i].start : p->extras[i - p->ntasks].start;
+    pts[np++] = task ? p->tasks[i].end_hi : p->extras[i - p->ntasks].end_hi;
+  }
+  for (uint32_t i = 1; i < np; i++) {
+    for (uint32_t j = i; j > 0 && ozni_rat_cmp(pts[j - 1], pts[j]) > 0; j--) {
+      ozni_rat x = pts[j - 1];
+      pts[j - 1] = pts[j];
+      pts[j] = x;
+    }
+  }
+  for (uint32_t k = 0; k + 1 < np; k++) {
+    ozni_rat mid, len;
+    if (ozni_rat_add(pts[k], pts[k + 1], &mid) != OZNI_OK || ozni_rat_cmp(pts[k], pts[k + 1]) == 0) {
+      continue;
+    }
+    uint32_t active = 0;
+    for (uint32_t i = 0; i < n; i++) {
+      bool task = i < p->ntasks;
+      uint32_t c = task ? p->tasks[i].cook : p->extras[i - p->ntasks].cook;
+      ozni_rat a = task ? p->tasks[i].start : p->extras[i - p->ntasks].start;
+      ozni_rat b = task ? p->tasks[i].end_hi : p->extras[i - p->ntasks].end_hi;
+      ozni_rat a2, b2;
+      if ((waiting && c != cook) || ozni_rat_add(a, a, &a2) != OZNI_OK || ozni_rat_add(b, b, &b2) != OZNI_OK) {
+        continue;
+      }
+      active += ozni_rat_cmp(a2, mid) < 0 && ozni_rat_cmp(mid, b2) < 0 ? 1 : 0;
+    }
+    if ((waiting ? active == 0 : active >= 2) && ozni_rat_sub(pts[k + 1], pts[k], &len) == OZNI_OK &&
+        ozni_rat_add(sum, len, &len) == OZNI_OK) {
+      sum = len;
+    }
+  }
+  return sum;
+}
+
+static sched_score score_schedule(sema *s, const sched_out *o, const ozni_table *units, const ozni_rat *serves,
+                                  uint32_t nwaves, ozni_index prefer, bool enforce) {
+  const ozni_sched *p = &o->plan;
+  sched_score sc = {.feasible = true, .total = sched_total(p)};
+  if (p->backward) {
+    ozni_rat start = sched_start(p);
+    if (ozni_rat_sub(ozni_rat_int(0), start, &sc.total) != OZNI_OK) {
+      sc.total = ozni_rat_int(0);
+    }
+  }
+  for (uint32_t i = 0; i < p->ntasks; i++) {
+    const ozni_ir_node *node = task_node(s, o, i);
+    const plate_info *pi = node->kind == OZNI_IR_PLATE ? plate_info_for(s, s->ir_base + o->node_of[i] + 1) : nullptr;
+    bool limited = pi != nullptr && (pi->timing == TIMING_WITHIN ||
+                                     (pi->timing == TIMING_WARM && ozni_rat_cmp(pi->limit, ozni_rat_int(0)) > 0));
+    for (uint32_t j = 0; limited && node->wave >= 1 && node->wave <= nwaves && j < node->ninputs; j++) {
+      ozni_index src = ((const ozni_ir_input *)ozni_table_get(s->ir.inputs, node->first_input + j))->node;
+      uint32_t r = src > s->ir_base ? o->task_of[src - 1 - s->ir_base] : UINT32_MAX;
+      ozni_rat wait;
+      if (r != UINT32_MAX && ozni_rat_sub(serves[node->wave - 1], p->tasks[r].end_lo, &wait) == OZNI_OK &&
+          ozni_rat_cmp(wait, pi->limit) > 0) {
+        sc.feasible = false;
+      }
+    }
+  }
+  (void)enforce;
+  for (ozni_index v = prefer != 0 && nd(s, s->ofile, prefer)->kind == OZNI_N_List ? nd(s, s->ofile, prefer)->first : 0;
+       v != 0 && sc.norder < 4; v = nd(s, s->ofile, v)->next) {
+    static const char *const names[] = {"fewerWashes", "lessWaiting", "fewerTools", "steadyPace"};
+    for (uint8_t k = 0; k < 4; k++) {
+      if (str_is(S(s, nd(s, s->ofile, v)->text), names[k])) {
+        sc.order[sc.norder++] = k;
+      }
+    }
+  }
+  uint32_t washes = 0, tools = 0;
+  for (uint32_t k = 0; k < p->nextras; k++) {
+    washes += p->extras[k].task != UINT32_MAX && p->extras[k].kind != OZNI_EXTRA_WIPE ? 1 : 0;
+  }
+  sc.metric[0] = ozni_rat_int(washes);
+  ozni_rat idle = ozni_rat_int(0);
+  for (uint32_t c = 1; c <= p->cooks; c++) {
+    bool any = false;
+    ozni_rat first = ozni_rat_int(0), last = ozni_rat_int(0);
+    for (uint32_t i = 0; i < p->ntasks + p->nextras; i++) {
+      bool task = i < p->ntasks;
+      if ((task ? p->tasks[i].cook : p->extras[i - p->ntasks].cook) != c) {
+        continue;
+      }
+      ozni_rat a = task ? p->tasks[i].start : p->extras[i - p->ntasks].start;
+      ozni_rat b = task ? p->tasks[i].end_hi : p->extras[i - p->ntasks].end_hi;
+      first = !any || ozni_rat_cmp(a, first) < 0 ? a : first;
+      last = !any || ozni_rat_cmp(b, last) > 0 ? b : last;
+      any = true;
+    }
+    ozni_rat gap = busy_overlap(s, p, c, true), sum;
+    if (any && ozni_rat_cmp(first, last) < 0 && ozni_rat_add(idle, gap, &sum) == OZNI_OK) {
+      idle = sum;
+    }
+  }
+  sc.metric[1] = idle;
+  for (ozni_index u = 0; u < ozni_table_count(units); u++) {
+    bool used = false;
+    for (uint32_t i = 0; i < p->ntasks && !used && p->unit_info != nullptr; i++) {
+      const ozni_sched_alt *alt = &p->alts[p->tasks[i].first_alt + p->tasks[i].chosen];
+      for (uint32_t g = 0; g < alt->ngroups; g++) {
+        used = used || p->groups[alt->first_group + g].pick == u;
+      }
+    }
+    tools += used && p->unit_info[u].category == OZNI_UNIT_TOOL ? 1 : 0;
+  }
+  sc.metric[2] = ozni_rat_int(tools);
+  sc.metric[3] = busy_overlap(s, p, 0, false);
+  return sc;
+}
+
+static bool better_score(const sched_score *a, const sched_score *b) {
+  if (a->feasible != b->feasible) {
+    return a->feasible;
+  }
+  int r = ozni_rat_cmp(a->total, b->total);
+  if (r != 0) {
+    return r < 0;
+  }
+  for (uint32_t k = 0; k < a->norder; k++) {
+    int m = ozni_rat_cmp(a->metric[a->order[k]], b->metric[a->order[k]]);
+    if (m != 0) {
+      return m < 0;
+    }
+  }
+  return false;
+}
+
 static void schedule_dish(sema *s, ozni_index name) {
   uint32_t total = ozni_table_count(s->ir.nodes) - s->ir_base;
   ozni_sched_task *tasks = ozni_arena_alloc(s->c->arena, (total + 1) * sizeof *tasks);
@@ -7231,101 +7404,187 @@ static void schedule_dish(sema *s, ozni_index name) {
       }
     }
   }
-  bool known = false;
-  for (uint32_t iter = 0; iter < 8; iter++) {
+  ozni_index prefer = s->onode != 0 ? options_value(s, intern(s, "prefer", 6)) : 0;
+  bool constrained = false;
+  for (ozni_index k = 0; s->plate_infos != nullptr && k < ozni_table_count(s->plate_infos); k++) {
+    const plate_info *pi = ozni_table_get(s->plate_infos, k);
+    constrained = constrained || (pi->irn > s->ir_base && pi->timing != TIMING_NONE);
+  }
+  ozni_rat *rank = ozni_arena_alloc(s->c->arena, (ntasks + 1) * sizeof *rank);
+  ozni_rat *prev_rank = ozni_arena_alloc(s->c->arena, (ntasks + 1) * sizeof *prev_rank);
+  if (rank == nullptr || prev_rank == nullptr) {
+    s->c->oom = true;
+    return;
+  }
+  sched_score best_score = {0};
+  uint32_t best = 0;
+  for (uint32_t attempt = 0; attempt <= 6; attempt++) {
+    uint32_t pick = attempt == 6 ? best : attempt;
+    bool enforce = pick != 5;
+    o.plan.tie_reverse = pick == 1 || pick == 3;
+    o.plan.reuse_units = pick == 2 || pick == 3;
+    o.plan.rank = nullptr;
+    if (pick == 4 && (nwaves > 1 || constrained || o.plan.backward)) {
+      continue;
+    }
     for (uint32_t i = 0; i < ntasks; i++) {
-      ozni_sched_task keep = tasks[i];
       tasks[i] = tmpl[i];
-      tasks[i].release = keep.release;
-      tasks[i].has_release = keep.has_release;
-      tasks[i].hold_until = keep.hold_until;
-      tasks[i].has_hold = keep.has_hold;
     }
-    o.plan.blocks = blocks;
-    o.plan.nblocks = nblocks;
-    o.plan.serves_known = known && nwaves > 0;
-    o.plan.first_serve = serves[0];
-    o.plan.last_serve = nwaves > 0 ? serves[nwaves - 1] : ozni_rat_int(0);
-    if (!ozni_schedule(s->c->arena, &o.plan)) {
-      return;
-    }
-    bool changed = !known;
-    for (uint32_t w = 1; w <= nwaves; w++) {
-      bool any = false;
-      ozni_rat at = ozni_rat_int(0), after;
+    nblocks = 0;
+    bool known = false;
+    bool rank_valid = false, prev_valid = false, reverting = false;
+    ozni_rat prev_total = ozni_rat_int(0);
+    for (uint32_t round = 0;; round++) {
+      o.plan.rank = rank_valid ? rank : nullptr;
+      for (uint32_t i = 0; i < ntasks; i++) {
+        tasks[i] = tmpl[i];
+      }
+      known = false;
+      nblocks = 0;
+    for (uint32_t iter = 0; iter < 8; iter++) {
+      for (uint32_t i = 0; i < ntasks; i++) {
+        ozni_sched_task keep = tasks[i];
+        tasks[i] = tmpl[i];
+        tasks[i].release = keep.release;
+        tasks[i].has_release = keep.has_release;
+        tasks[i].hold_until = keep.hold_until;
+        tasks[i].has_hold = keep.has_hold;
+      }
+      o.plan.blocks = blocks;
+      o.plan.nblocks = nblocks;
+      o.plan.serves_known = known && nwaves > 0;
+      o.plan.first_serve = serves[0];
+      o.plan.last_serve = nwaves > 0 ? serves[nwaves - 1] : ozni_rat_int(0);
+      if (!ozni_schedule(s->c->arena, &o.plan)) {
+        return;
+      }
+      bool changed = !known;
+      for (uint32_t w = 1; w <= nwaves; w++) {
+        bool any = false;
+        ozni_rat at = ozni_rat_int(0), after;
+        for (uint32_t i = 0; i < ntasks; i++) {
+          const ozni_ir_node *node = task_node(s, &o, i);
+          if (node->kind == OZNI_IR_PLATE && node->wave == w) {
+            at = any ? later_rat(at, tasks[i].end_hi) : tasks[i].end_hi;
+            any = true;
+          }
+        }
+        if (w > 1 && ozni_rat_add(fresh[w - 2], gaps[w - 1], &after) == OZNI_OK) {
+          at = any ? later_rat(at, after) : after;
+        }
+        if (o.plan.backward && w == nwaves) {
+          at = o.plan.serve_at;
+        }
+        fresh[w - 1] = at;
+      }
+      if (nwaves > 0 && o.plan.cleanup == OZNI_CLEANUP_BEFORE_MEAL) {
+        for (uint32_t e = 0; e < o.plan.nextras; e++) {
+          if (o.plan.extras[e].task == UINT32_MAX) {
+            fresh[nwaves - 1] = later_rat(fresh[nwaves - 1], o.plan.extras[e].end_hi);
+          }
+        }
+      }
+      for (uint32_t w = 0; w < nwaves; w++) {
+        changed = changed || ozni_rat_cmp(fresh[w], serves[w]) != 0;
+        serves[w] = fresh[w];
+      }
+      known = true;
+      uint32_t nb = 0;
+      for (uint32_t w = 0; !o.plan.backward && w + 1 < nwaves && nb < 64; w++) {
+        ozni_rat end;
+        if (ozni_rat_cmp(gaps[w + 1], ozni_rat_int(0)) > 0 && ozni_rat_add(serves[w], gaps[w + 1], &end) == OZNI_OK) {
+          changed = changed || nb >= nblocks || ozni_rat_cmp(blocks[2 * nb], serves[w]) != 0 ||
+                    ozni_rat_cmp(blocks[2 * nb + 1], end) != 0;
+          blocks[2 * nb] = serves[w];
+          blocks[2 * nb + 1] = end;
+          nb++;
+        }
+      }
+      changed = changed || nb != nblocks;
+      nblocks = nb;
       for (uint32_t i = 0; i < ntasks; i++) {
         const ozni_ir_node *node = task_node(s, &o, i);
-        if (node->kind == OZNI_IR_PLATE && node->wave == w) {
-          at = any ? later_rat(at, tasks[i].end_hi) : tasks[i].end_hi;
-          any = true;
-        }
-      }
-      if (w > 1 && ozni_rat_add(fresh[w - 2], gaps[w - 1], &after) == OZNI_OK) {
-        at = any ? later_rat(at, after) : after;
-      }
-      if (o.plan.backward && w == nwaves) {
-        at = o.plan.serve_at;
-      }
-      fresh[w - 1] = at;
-    }
-    if (nwaves > 0 && o.plan.cleanup == OZNI_CLEANUP_BEFORE_MEAL) {
-      for (uint32_t e = 0; e < o.plan.nextras; e++) {
-        if (o.plan.extras[e].task == UINT32_MAX) {
-          fresh[nwaves - 1] = later_rat(fresh[nwaves - 1], o.plan.extras[e].end_hi);
-        }
-      }
-    }
-    for (uint32_t w = 0; w < nwaves; w++) {
-      changed = changed || ozni_rat_cmp(fresh[w], serves[w]) != 0;
-      serves[w] = fresh[w];
-    }
-    known = true;
-    uint32_t nb = 0;
-    for (uint32_t w = 0; !o.plan.backward && w + 1 < nwaves && nb < 64; w++) {
-      ozni_rat end;
-      if (ozni_rat_cmp(gaps[w + 1], ozni_rat_int(0)) > 0 && ozni_rat_add(serves[w], gaps[w + 1], &end) == OZNI_OK) {
-        changed = changed || nb >= nblocks || ozni_rat_cmp(blocks[2 * nb], serves[w]) != 0 ||
-                  ozni_rat_cmp(blocks[2 * nb + 1], end) != 0;
-        blocks[2 * nb] = serves[w];
-        blocks[2 * nb + 1] = end;
-        nb++;
-      }
-    }
-    changed = changed || nb != nblocks;
-    nblocks = nb;
-    for (uint32_t i = 0; i < ntasks; i++) {
-      const ozni_ir_node *node = task_node(s, &o, i);
-      const plate_info *pi = node->kind == OZNI_IR_PLATE ? plate_info_for(s, s->ir_base + node_of[i] + 1) : nullptr;
-      if (pi == nullptr || node->wave == 0 || node->wave > nwaves) {
-        continue;
-      }
-      ozni_rat at = serves[node->wave - 1];
-      for (uint32_t j = 0; j < node->ninputs; j++) {
-        ozni_index src = ((const ozni_ir_input *)ozni_table_get(s->ir.inputs, node->first_input + j))->node;
-        uint32_t r = src > s->ir_base ? task_of[src - 1 - s->ir_base] : UINT32_MAX;
-        if (r == UINT32_MAX) {
+        const plate_info *pi = node->kind == OZNI_IR_PLATE ? plate_info_for(s, s->ir_base + node_of[i] + 1) : nullptr;
+        if (pi == nullptr || node->wave == 0 || node->wave > nwaves) {
           continue;
         }
-        ozni_rat wait, excess, rel;
-        bool limited = pi->timing == TIMING_WITHIN ||
-                       (pi->timing == TIMING_WARM && ozni_rat_cmp(pi->limit, ozni_rat_int(0)) > 0);
-        if (limited && ozni_rat_sub(at, tasks[r].end_lo, &wait) == OZNI_OK && ozni_rat_cmp(wait, pi->limit) > 0 &&
-            ozni_rat_sub(wait, pi->limit, &excess) == OZNI_OK &&
-            ozni_rat_add(tasks[r].start, excess, &rel) == OZNI_OK &&
-            (!tasks[r].has_release || ozni_rat_cmp(rel, tasks[r].release) > 0)) {
-          tasks[r].release = rel;
-          tasks[r].has_release = true;
-          changed = true;
-        }
-        if (pi->timing == TIMING_WARM && (!tasks[r].has_hold || ozni_rat_cmp(tasks[r].hold_until, at) != 0)) {
-          tasks[r].hold_until = at;
-          tasks[r].has_hold = true;
-          changed = true;
+        ozni_rat at = serves[node->wave - 1];
+        for (uint32_t j = 0; j < node->ninputs; j++) {
+          ozni_index src = ((const ozni_ir_input *)ozni_table_get(s->ir.inputs, node->first_input + j))->node;
+          uint32_t r = src > s->ir_base ? task_of[src - 1 - s->ir_base] : UINT32_MAX;
+          if (r == UINT32_MAX) {
+            continue;
+          }
+          ozni_rat wait, excess, rel;
+          bool limited = pi->timing == TIMING_WITHIN ||
+                         (pi->timing == TIMING_WARM && ozni_rat_cmp(pi->limit, ozni_rat_int(0)) > 0);
+          if (enforce && limited && ozni_rat_sub(at, tasks[r].end_lo, &wait) == OZNI_OK && ozni_rat_cmp(wait, pi->limit) > 0 &&
+              ozni_rat_sub(wait, pi->limit, &excess) == OZNI_OK &&
+              ozni_rat_add(tasks[r].start, excess, &rel) == OZNI_OK &&
+              (!tasks[r].has_release || ozni_rat_cmp(rel, tasks[r].release) > 0)) {
+            tasks[r].release = rel;
+            tasks[r].has_release = true;
+            changed = true;
+          }
+          if (pi->timing == TIMING_WARM && (!tasks[r].has_hold || ozni_rat_cmp(tasks[r].hold_until, at) != 0)) {
+            tasks[r].hold_until = at;
+            tasks[r].has_hold = true;
+            changed = true;
+          }
         }
       }
+      if (!changed) {
+        break;
+      }
     }
-    if (!changed) {
+      if (pick != 4 || reverting) {
+        break;
+      }
+      ozni_rat now_total = sched_total(&o.plan);
+      if (round > 0 && ozni_rat_cmp(now_total, prev_total) >= 0) {
+        rank_valid = prev_valid;
+        for (uint32_t i = 0; i < ntasks; i++) {
+          rank[i] = prev_rank[i];
+        }
+        reverting = true;
+        continue;
+      }
+      if (round == 8) {
+        break;
+      }
+      prev_total = now_total;
+      prev_valid = rank_valid;
+      for (uint32_t i = 0; i < ntasks; i++) {
+        prev_rank[i] = rank[i];
+        rank[i] = tasks[i].end_hi;
+      }
+      o.plan.rank = rank;
+      o.plan.backward = true;
+      o.plan.serve_at = now_total;
+      o.plan.nblocks = 0;
+      for (uint32_t i = 0; i < ntasks; i++) {
+        tasks[i] = tmpl[i];
+      }
+      bool ok = ozni_schedule(s->c->arena, &o.plan);
+      o.plan.backward = false;
+      o.plan.serve_at = ozni_rat_int(0);
+      if (!ok) {
+        return;
+      }
+      for (uint32_t i = 0; i < ntasks; i++) {
+        if (ozni_rat_sub(now_total, tasks[i].start, &rank[i]) != OZNI_OK) {
+          return;
+        }
+      }
+      rank_valid = true;
+    }
+    if (attempt == 6) {
       break;
+    }
+    sched_score sc = score_schedule(s, &o, units, serves, nwaves, prefer, enforce);
+    if (attempt == 0 || better_score(&sc, &best_score)) {
+      best_score = sc;
+      best = pick;
     }
   }
   o.serves = serves;
@@ -7419,6 +7678,19 @@ static void schedule_dish(sema *s, ozni_index name) {
   o.nholds = nholds;
   o.plan.unit_info = unit_array;
   o.plan.dirts = dirt_array;
+  if (s->level == 0 && s->dish_node != 0) {
+    const ozni_node *dish = nd(s, s->dish_file, s->dish_node);
+    uint32_t start, end;
+    name_span(dish, S(s, dish->text), &start, &end);
+    ozni_buf b = {.a = s->c->allocator};
+    put_rat(&b, sched_total(&o.plan));
+    ozni_buf_puts(&b, " s");
+    ozni_str arg = {b.p != nullptr ? b.p : "", (uint32_t)b.len};
+    if (!b.failed) {
+      diag(s, OZNI_D_SCH_criticalPath, s->dish_file, start, end, &arg, 1);
+    }
+    ozni_buf_discard(&b);
+  }
   if (s->c->set.json) {
     schedule_json(s, &o);
     return;

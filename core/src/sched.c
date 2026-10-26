@@ -17,6 +17,7 @@ typedef struct state {
   uint32_t *head;
   uint32_t *owner;
   bool *soaked;
+  bool *used;
   hist *hist;
   uint32_t nhist;
   uint32_t hist_cap;
@@ -157,7 +158,8 @@ static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sc
         }
       }
       int r = grp->pick == UINT32_MAX ? -1 : ozni_rat_cmp(at, best);
-      if (r < 0 || (r == 0 && wash == OZNI_CLEAN_NONE && grp->wash != OZNI_CLEAN_NONE)) {
+      bool reuse = s->reuse_units && r == 0 && wash == grp->wash && st->used[unit] && !st->used[grp->pick];
+      if (r < 0 || (r == 0 && wash == OZNI_CLEAN_NONE && grp->wash != OZNI_CLEAN_NONE) || reuse) {
         best = at;
         grp->pick = unit;
         grp->wash = wash;
@@ -299,6 +301,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
               ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.head),
               ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.owner),
               ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.soaked),
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.used),
               nullptr,
               0,
               0};
@@ -311,7 +314,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
   st.hist_cap = total_groups + 1;
   st.hist = ozni_arena_alloc(ar, st.hist_cap * sizeof *st.hist);
   if (prio == nullptr || best == nullptr || ready == nullptr || defer == nullptr || st.cook_free == nullptr ||
-      st.unit_free == nullptr || st.head == nullptr || st.owner == nullptr || st.soaked == nullptr ||
+      st.unit_free == nullptr || st.head == nullptr || st.owner == nullptr || st.soaked == nullptr || st.used == nullptr ||
       st.hist == nullptr) {
     return false;
   }
@@ -322,6 +325,10 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
     uint32_t i = k - 1;
     if (!add(s->alts[s->tasks[i].first_alt].hi, best[i], &prio[i])) {
       return false;
+    }
+    if (s->rank != nullptr) {
+      prio[i] = s->rank[i];
+      continue;
     }
     for (uint32_t d = 0; d < dep_count[i]; d++) {
       uint32_t p = deps[dep_first[i] + d];
@@ -338,6 +345,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
     st.head[u] = 0;
     st.owner[u] = 0;
     st.soaked[u] = false;
+    st.used[u] = false;
   }
   ozni_rat now = ozni_rat_int(0);
   uint32_t left = n;
@@ -381,8 +389,8 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
       while (j > 0) {
         uint32_t a = ready[j - 1];
         int c = ozni_rat_cmp(prio[a], prio[i]);
-        if (c > 0 || (c == 0 && defer[a] < defer[i]) ||
-            (c == 0 && defer[a] == defer[i] && s->tasks[a].order < s->tasks[i].order)) {
+        bool first = s->tie_reverse ? s->tasks[a].order > s->tasks[i].order : s->tasks[a].order < s->tasks[i].order;
+        if (c > 0 || (c == 0 && defer[a] < defer[i]) || (c == 0 && defer[a] == defer[i] && first)) {
           break;
         }
         ready[j] = a;
@@ -453,6 +461,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
       for (uint32_t g = 0; g < alt->ngroups; g++) {
         uint32_t unit = s->groups[alt->first_group + g].pick;
         st.unit_free[unit] = t->end_hi;
+        st.used[unit] = true;
         if (t->has_hold && g < 64 && (alt->hold_mask >> g & 1) != 0) {
           st.unit_free[unit] = later(t->end_hi, t->hold_until);
         }
@@ -795,6 +804,16 @@ bool ozni_schedule(ozni_arena *ar, ozni_sched *s) {
   }
   ozni_sched rs = *s;
   rs.tasks = rev;
+  if (s->rank != nullptr) {
+    ozni_rat *rrank = ozni_arena_alloc(ar, (n + 1) * sizeof *rrank);
+    if (rrank == nullptr) {
+      return false;
+    }
+    for (uint32_t i = 0; i < n; i++) {
+      rrank[n - 1 - i] = s->rank[i];
+    }
+    rs.rank = rrank;
+  }
   if (!run(ar, &rs, rfirst, rcount, deps)) {
     return false;
   }
