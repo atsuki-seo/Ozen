@@ -28,3 +28,4 @@ tools/stdcheck/lists.py scripts/test-stdcheck.sh
 tools/stdcheck/static.py scripts/test-stdcheck.sh
 tools/stdcheck/provenance.py scripts/test-stdcheck.sh
 tools/stdcheck/sources.py scripts/test-stdcheck.sh
+scripts/check-severity-table.py scripts/test-check-severity-table.sh

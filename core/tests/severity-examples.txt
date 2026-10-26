@@ -1,0 +1,33 @@
+# kind	example (concept §6.1)	diagnostic	severity	phase
+severity	状態の抜け（皮をむかずに切る）	TYP:stateRequired	error	E
+severity	量の不足	LIN:insufficient	error	E
+severity	二重消費	LIN:doubleUse	error	E
+severity	単位の不一致	TYP:dimension	error	E
+severity	生肉の後に洗わず使う	SAF:unwashedHazard	error	F
+severity	生の豚肉・鶏肉の加熱不足	SAF:undercooked	error	E
+severity	台所が要求を満たさない	KIT:requiresUnmet	error	E
+severity	「適量」（通常モード）	TYP:vagueAmount	warning	E
+severity	器の容量超過	SCH:vesselOverflow	warning	E
+severity	硬い食材より先に柔らかい食材を入れる	SCH:softBeforeHard	warning	F
+severity	立てる人数より作る人が多い	SCH:tooManyCooks	warning	E
+severity	レベルに合わないオプション	TYP:optionLevel	warning	E
+severity	残った部位（アラ 300 g）	LIN:leftoverPart	info	E
+severity	挿入した洗い	SCH:washInserted	info	F
+severity	代わりに使った器（丼を 1 枚）	KIT:vesselSubstituted	info	F
+severity	仮定（設備は無制限）	ASM:unlimitedEquipment	info	E
+severity	最短時間	SCH:criticalPath	info	F
+category	括弧の対応	SYN:unexpectedToken	-	D
+category	曖昧な名前	NAM:ambiguous	-	D
+category	local の import	NAM:importLocal	-	D
+category	量の不足	LIN:insufficient	-	E
+category	残った部位	LIN:leftoverPart	-	E
+category	加熱不足	SAF:undercooked	-	E
+category	アレルゲン	SAF:allergen	-	E
+category	設備がない	KIT:noVariant	-	E
+category	器が足りない	KIT:vesselShortage	-	E
+category	器の容量超過	SCH:vesselOverflow	-	E
+category	立てる人数を超える	SCH:tooManyCooks	-	E
+category	燃料切れ	MAC:fuelExhausted	-	D
+category	版の混在	PKG:twoVersions	-	D
+category	依存の循環	PKG:importCycle	-	D
+category	設備は無制限の仮定	ASM:unlimitedEquipment	-	E
