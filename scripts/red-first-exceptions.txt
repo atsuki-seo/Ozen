@@ -1,3 +1,4 @@
 de17d51 fix of hand-calculation errors in four prototype golden expectations (nesting inputs, macro name position, span with closing parenthesis)
 0b79c35 golden added after the implementation so that MAC:overflow appears in a golden output (S147)
 f8ba286 nodes-short rewritten so that the limit is crossed by a step; the first version could not detect uncounted steps (S109)
+3899678 reindent property test written after the parser because it compares parser dumps; the S160 mutation shows it detects indentation-sensitive parsing
