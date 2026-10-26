@@ -1,0 +1,8 @@
+recipe r() {
+  ingredients {
+    cabbage: 200 g
+    carrot: 1 pcs
+  }
+  let c = simmer(cabbage, 5 min)
+  let s = simmer([c, carrot], 10 min)
+}

@@ -1,0 +1,12 @@
+ir r
+  %1 = in a : Carrot 1 pcs
+  %2 = op cut %1 style=dice size=20 mm : Carrot -> Carrot<shape: cut(dice, 20 mm)> 1 pcs [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
+  %3 = op stew %2 : Carrot<shape: cut(dice, 20 mm)> -> Carrot<doneness: done, shape: cut(dice, 20 mm)> 1 pcs [HeatSource<stovetop>, Pot; 720..1080 s; unattended]
+  %4 = in b : Carrot 1 pcs
+  %5 = op cut %4 style=dice size=40 mm : Carrot -> Carrot<shape: cut(dice, 40 mm)> 1 pcs [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
+  %6 = op stew %5 : Carrot<shape: cut(dice, 40 mm)> -> Carrot<doneness: done, shape: cut(dice, 40 mm)> 1 pcs [HeatSource<stovetop>, Pot; 1440..2160 s; unattended]
+  %7 = in c : Carrot 1 pcs
+  %8 = op cut %7 style=dice size=40 mm : Carrot -> Carrot<shape: cut(dice, 40 mm)> 1 pcs [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
+  %9 = op stewWide %8 : Carrot<shape: cut(dice, 40 mm)> -> Carrot<doneness: done, shape: cut(dice, 40 mm)> 1 pcs [HeatSource<stovetop>, Pot; 960..2160 s; unattended]
+result ok errors=0 warnings=0 infos=0
+exit 0

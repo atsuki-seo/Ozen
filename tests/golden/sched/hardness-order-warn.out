@@ -1,0 +1,3 @@
+warning SCH004 softBeforeHard hardness-order-warn.ozen:7:11-7:38 args=["Cabbage", "Carrot"]: soft before hard
+result ok errors=0 warnings=1 infos=0
+exit 0

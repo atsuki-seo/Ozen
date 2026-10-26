@@ -1,0 +1,5 @@
+schedule r level=2 cooks=1
+  0..600 (600) %2 steam/basket unattended [stove#1, pot#1]
+  total 600
+result ok errors=0 warnings=0 infos=0
+exit 0

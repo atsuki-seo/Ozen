@@ -1,0 +1,7 @@
+schedule r level=2 cooks=1
+  0..1800 (1800) %2 soak unattended [pot#1]
+  1800..3000 (2700) %3 cookRice/microwave unattended [micro#1, pot#1]
+  total 3000
+info SCH003 variantChosen variant-earliest.ozen:15:11-15:22 args=["cookRice", "microwave", "cooker", "earlier"]: variant chosen
+result ok errors=0 warnings=0 infos=1
+exit 0

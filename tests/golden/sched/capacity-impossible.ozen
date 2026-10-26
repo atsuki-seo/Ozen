@@ -1,0 +1,16 @@
+// args: debug schedule --kitchen home
+action twoPots(x: T) -> T<doneness: done> {
+  uses HeatSource<stovetop>, Pot, Pot for 10 min @unattended
+}
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pot: Pot
+  }
+}
+recipe r() {
+  ingredients { potato: 1 pcs }
+  let a = twoPots(potato)
+}

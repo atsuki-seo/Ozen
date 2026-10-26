@@ -1,0 +1,9 @@
+// args: check --kitchen home --options today
+kitchen home {
+  places {
+    floor: Floor { capacity: 2 }
+  }
+}
+kitchen today : Options {
+  cooks: 3
+}

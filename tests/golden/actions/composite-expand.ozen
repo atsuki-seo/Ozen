@@ -1,0 +1,11 @@
+// args: debug ir
+action prepOnion(x: T<Peelable, shape: whole>) -> T<shape: cut(dice, 3 mm)> {
+  steps {
+    let p = peel(x)
+    let c = cut(p, style: dice)
+  }
+}
+recipe r() {
+  ingredients { onion: 1 pcs }
+  let o = prepOnion(onion)
+}

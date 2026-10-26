@@ -1,0 +1,15 @@
+// args: debug ir
+action stew(x: T) -> T<doneness: done> {
+  uses HeatSource<stovetop>, Pot @unattended
+  takes heating(x, simmer, 2)
+}
+recipe r() {
+  ingredients {
+    a: Carrot 1 pcs
+    b: Carrot 1 pcs
+    c: Carrot 1 pcs
+  }
+  let x = stew(cut(a, style: slice, size: 10 mm))
+  let y = stew(cut(b, style: dice, size: 10 mm))
+  let z = stew(cut(c, style: roughChop, size: 10 mm))
+}

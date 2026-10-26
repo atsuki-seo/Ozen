@@ -1,0 +1,6 @@
+ir r
+  %1 = in cabbage : Cabbage 200 g
+  %2 = op cut %1 style=roughChop size=40 mm : Cabbage -> Cabbage<shape: cut(roughChop, 40 mm)> 200 g [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
+  %3 = op stew %2 : Cabbage<shape: cut(roughChop, 40 mm)> -> Cabbage<doneness: done, shape: cut(roughChop, 40 mm)> 200 g [HeatSource<stovetop>, Pot; 180..360 s; unattended]
+result ok errors=0 warnings=0 infos=0
+exit 0

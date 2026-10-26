@@ -1,0 +1,9 @@
+action halfPrep(x: T<Peelable, shape: whole>) -> T<shape: cut(dice, 3 mm)> {
+  steps {
+    let p = peel(x)
+  }
+}
+recipe r() {
+  ingredients { onion: 1 pcs }
+  let o = halfPrep(onion)
+}

@@ -1,0 +1,3 @@
+warning SCH101 tooManyCooks too-many-cooks.ozen:7:9-7:14: too many cooks
+result ok errors=0 warnings=1 infos=0
+exit 0
