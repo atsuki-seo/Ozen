@@ -25,6 +25,7 @@ typedef struct walker {
   ozni_table *scope;
   bool in_action;
   bool in_dish;
+  uint32_t depth;
 } walker;
 
 static ozni_str str_of(const ozni_ctx *c, ozni_index id) { return ozni_intern_get(c->names, id); }
@@ -1001,7 +1002,42 @@ static void resolve_member(walker *w, ozni_index file, ozni_index i) {
   }
 }
 
+static bool enter_depth(walker *w, ozni_index file, const ozni_node *n) {
+  ozni_ctx *c = w->pr->c;
+  uint32_t limit = M(w->pr, w->mod)->is_std ? ozni_default_limits().depth : c->lim.depth;
+  if (c->limit_hit) {
+    return false;
+  }
+  if (++w->depth > limit) {
+    char num[24], rev[24];
+    size_t len = 0;
+    uint32_t v = limit;
+    do {
+      rev[len++] = (char)('0' + v % 10);
+      v /= 10;
+    } while (v != 0);
+    for (size_t k = 0; k < len; k++) {
+      num[k] = rev[len - 1 - k];
+    }
+    ozni_str arg = {num, (uint32_t)len};
+    diag_node(w->pr, OZNI_D_MAC_depthExceeded, file, n, &arg, 1);
+    c->limit_hit = true;
+    w->depth--;
+    return false;
+  }
+  return true;
+}
+
+static void resolve_expr_inner(walker *w, ozni_index file, ozni_index i);
+
 static void resolve_expr(walker *w, ozni_index file, ozni_index i) {
+  if (enter_depth(w, file, node(w->pr, file, i))) {
+    resolve_expr_inner(w, file, i);
+    w->depth--;
+  }
+}
+
+static void resolve_expr_inner(walker *w, ozni_index file, ozni_index i) {
   const ozni_node *n = node(w->pr, file, i);
   ozni_node_kind k = n->kind;
   if (k == OZNI_N_Name) {
@@ -1191,7 +1227,7 @@ static void bind_params(walker *w, ozni_index file, ozni_index d) {
 
 static void resolve_bodies(ozni_project *pr, ozni_index mi) {
   ozni_module *m = M(pr, mi);
-  walker w = {pr, mi, &pr->asts[m->file], nullptr, false, false};
+  walker w = {pr, mi, &pr->asts[m->file], nullptr, false, false, 0};
   for (ozni_index d = 0; d < ozni_table_count(m->defs) && !pr->c->oom; d++) {
     ozni_index dn = def_at(m, d)->node;
     const ozni_node *n = node(pr, m->file, dn);

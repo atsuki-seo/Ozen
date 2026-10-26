@@ -4,6 +4,10 @@
 #include "render.h"
 #include "text.h"
 
+/* Chains such as a + b + c are parsed iteratively and do not count toward the parse depth, so the
+   dump bounds its own recursion to keep the C stack small. */
+enum { OZNI_DUMP_DEPTH = 1024 };
+
 typedef struct pos {
   uint32_t line;
   uint32_t col;
@@ -168,7 +172,14 @@ static void put_text(ozni_buf *b, const ozni_ctx *c, ozni_index text) {
 
 static void dump(const ozni_ctx *c, const ozni_ast *ast, ozni_index i, unsigned depth, unsigned flags, ozni_buf *b) {
   const ozni_node *n = ozni_node_get(ast, i);
-  if (n == nullptr) {
+  if (n == nullptr || b->failed) {
+    return;
+  }
+  if (depth > OZNI_DUMP_DEPTH) {
+    for (unsigned k = 0; k < depth; k++) {
+      ozni_buf_puts(b, "  ");
+    }
+    ozni_buf_puts(b, "...\n");
     return;
   }
   for (unsigned k = 0; k < depth; k++) {
