@@ -1,0 +1,14 @@
+schedule r level=2 cooks=1
+  0..120 (120) %5 trim by cook1 [board#1]
+  0..300 (300) %8 stew unattended [stove#1, pot#1]
+  120..240 (240) %2 trim by cook1 [board#2]
+  120..420 (420) %6 stew unattended [stove#2, pot#2]
+  240..360 (300) wash board#1 after soil by cook1 [sink#1, board#1]
+  360..660 (660) %3 sear by cook1 [stove#1, pan#1]
+  660..780 (780) %11 trim by cook1 [board#1]
+  780..900 (900) %12 fold by cook1
+  900..1020 (1020) %9 fold by cook1
+  total 1020
+info SCH006 washInserted prefer-pace-then-tools.ozen:29:18-29:31 args=["board#1", "soil"]: wash inserted
+result ok errors=0 warnings=0 infos=1
+exit 0

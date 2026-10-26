@@ -1,0 +1,12 @@
+schedule r level=2 cooks=2
+  0..240 (240) %2 trim by cook1 [board#1]
+  240..540 (540) %3 stew unattended [stove#1, pot#1]
+  240..480 (480) %5 trim by cook1 [board#1]
+  480..840 (840) %6 fold by cook2
+  480..600 (540) rinse board#1 after odor by cook1 [sink#1, board#1]
+  600..840 (840) %8 trim by cook1 [board#1]
+  840..1140 (1140) %9 sear by cook1 [stove#1, pan#1]
+  total 1140
+info SCH006 washInserted improvement.ozen:26:15-26:25 args=["board#1", "odor"]: wash inserted
+result ok errors=0 warnings=0 infos=1
+exit 0

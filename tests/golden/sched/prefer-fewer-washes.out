@@ -1,0 +1,11 @@
+schedule r level=2 cooks=2
+  0..240 (240) %5 trim by cook2 [board#2]
+  0..240 (240) %10 trim by cook1 [board#1]
+  240..480 (480) %2 fold by cook1
+  240..480 (480) %6 fold by cook2
+  240..1440 (1440) %11 stew unattended [stove#1, pot#1]
+  480..720 (720) %3 trim by cook1 [board#2]
+  1440..1620 (1620) %8 sear by cook1 [stove#1, pan#1]
+  total 1620
+result ok errors=0 warnings=0 infos=0
+exit 0

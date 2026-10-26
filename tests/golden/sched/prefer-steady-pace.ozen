@@ -1,0 +1,45 @@
+// args: debug schedule --kitchen home --options today
+action trim(x: T) -> T {
+  uses hands, CuttingSurface for 2 min
+  leaves: x on CuttingSurface
+}
+action sear(x: T) -> T<doneness: done> {
+  uses hands, HeatSource<stovetop>, FryingPan for 3 min
+  leaves: oil on FryingPan
+}
+action stew(x: T) -> T<doneness: done> {
+  uses HeatSource<stovetop>, Pot for 10 min @unattended
+}
+action fold(x: T) -> T {
+  uses hands for 1 min
+}
+recipe r() {
+  ingredients {
+    carrot: Carrot 1 pcs
+    lettuce: Lettuce 100 g
+    cabbage: Cabbage 100 g
+    onion: Onion 1 pcs
+  }
+  let carrot0 = trim(carrot)
+  let carrot1 = sear(carrot0)
+  let lettuce0 = trim(lettuce)
+  let lettuce1 = fold(lettuce0)
+  let cabbage0 = stew(cabbage)
+  let cabbage1 = fold(cabbage0)
+  let onion0 = sear(onion)
+}
+kitchen home {
+  places {
+    floor: Floor { capacity: 2 }
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    board: CuttingBoard { count: 2 }
+    pan: FryingPan { count: 1 }
+    pot: Pot { count: 1 }
+  }
+}
+kitchen today : Options {
+  cooks: 2
+  prefer: [steadyPace]
+}

@@ -2,6 +2,7 @@ schedule r level=0
   0..180 (60) %2 wash
   total 180
 info ASM004 unlimitedEquipment provisional-assumed.ozen:2:8-2:9: unlimited equipment
+info SCH009 criticalPath provisional-assumed.ozen:2:8-2:9 args=["180 s"]: critical path
 info ASM007 provisionalValue provisional-assumed.ozen:4:11-4:21 args=["wash"]: provisional value
-result ok errors=0 warnings=0 infos=2
+result ok errors=0 warnings=0 infos=3
 exit 0

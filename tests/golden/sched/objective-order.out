@@ -1,0 +1,15 @@
+schedule dinner level=1 cooks=2
+  0..600 (600) %4 rest unattended
+  0..1800 (1800) %7 rest unattended
+  1800..1920 (1920) %8 h1 by cook1
+  1920..1980 (1938) %11 plate perPerson by cook1
+  1980..2100 (2100) %2 h1 by cook1
+  1980..2100 (2100) %5 h1 by cook2
+  2100..2160 (2118) %9 plate perPerson by cook1
+  2100..2160 (2118) %10 plate perPerson by cook2
+  serve main at 2160
+  total 2160
+info ASM004 unlimitedEquipment objective-order.ozen:28:6-28:12: unlimited equipment
+info ASM007 provisionalValue objective-order.ozen:35:5-35:40 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=2
+exit 0
