@@ -3456,13 +3456,22 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - 台所の照合の挙動: 炊飯器の候補は 42〜54 分、鍋の候補は 25〜35 分なので、鍋が 2 つある台所では `cookRice` は鍋の候補（一番早く終わる候補）になる。鍋が 1 つの台所では鍋の候補がカレーの `simmer` の鍋を待たせて全体が長くなる（候補の選び方は作業ごとの局所の判断のため）。サンプルの台所は鍋 2 つにした
 - P12-2（2026-10-26）: 確認を取ってコミット `14fde8f` まで push し、CI の実行 `40413793325` で 5 つのジョブがすべて `success`。サンプルを含む digest は、手元の CLI（その時点の golden 320 件とサンプル）・iOS のシミュレーター・Android のエミュレーターで同じ `9329767…`。WASM は手元の `G-PLAT-WASM` で一致（`G-PLAT-*` は次の push の HEAD でもう一度確かめる）
 - P13-0（2026-10-26）: §4.27.1 に `expect.yaml` の形と性質の語彙、基準の献立と T1〜T4 の実行と性質を書いた。結果の JSON にアレルゲンと選択の内訳が無いことが分かり、D33 として確認を取った（IR の節に `allergens`、料理ごとに `choices`）。新しい S は無い
-- P13-2（2026-10-26）: `phrases/ja.ftl`・`phrases/en.ftl`（`std` の動作 29・食材 38・部位 13・別名 2・器 11・性質 14・診断 102 の 209 キー。CC-BY-4.0）と、ずれの検査 `renderers/tools/phrases-check.mjs`（自己テスト `renderers/tools/test-phrases-check.sh`）を足した。キーの付け方は §4.26.1。SPDX の検査に `renderers/` と `phrases/` を足した。`G-STD-PHRASES`（`phrases: 209 keys, 0 missing in ja, 0 missing in en, 0 unknown args`）が合格
-  - わざと壊す確認: `G-STD-PHRASES`（S362・データの完全性）— `en.ftl` から `action-tear` を消すと `1 missing in en` で落ちた。戻して合格
 - P13-1（2026-10-26）: `std` の一覧・関係・出どころ・prelude は P7〜P9 で入っていて `G-STD-LISTS`（`267 listed`）・`G-STD-PROVENANCE`（`97 values`）が合格。golden `std/prelude-contents`（`import` なしで `gou`・`kg`・`pcs`・`L`・`pinch`・`tbsp`・`tsp`・`min`・`h` と基本の動作が使える）と性質のテスト `tests/props/std_copy.py`（golden の料理が呼ぶ `std` の動作の定義を利用者のファイルに同じ構文で書き写し、テキストの IR を比べる）を足した。`std_copy: 105 cases, 0 differences`。どちらも変更の前から通るので red-first の例外に書いた
   - わざと壊す確認: `G-STD-LISTS`（S358・データの完全性）— `stdlib/prelude.ozen` から `tear` を消すと `1 missing` で落ちた。戻して合格
   - わざと壊す確認: `G-STD-PROVENANCE`（S359・データの完全性）— `Onion` の `unitWeight` から `@source(provisional)` を消すと `1 without source` で落ちた。戻して合格
   - わざと壊す確認: `prop/std_copy`（S360・正常系）— `std` の動作の IR の行にだけ印を付けると `104 cases, 103 differences` になった。戻して合格
   - わざと壊す確認: `cgolden/std/prelude-contents`（S361・正常系）— prelude から `unit g` を外すと落ちた。戻して合格
+- P13-2（2026-10-26）: `phrases/ja.ftl`・`phrases/en.ftl`（`std` の動作 29・食材 38・部位 13・別名 2・器 11・性質 14・診断 102 の 209 キー。CC-BY-4.0）と、ずれの検査 `renderers/tools/phrases-check.mjs`（自己テスト `renderers/tools/test-phrases-check.sh`）を足した。キーの付け方は §4.26.1。SPDX の検査に `renderers/` と `phrases/` を足した。`G-STD-PHRASES`（`phrases: 209 keys, 0 missing in ja, 0 missing in en, 0 unknown args`）が合格
+  - わざと壊す確認: `G-STD-PHRASES`（S362・データの完全性）— `en.ftl` から `action-tear` を消すと `1 missing in en` で落ちた。戻して合格
+- P13-3（2026-10-26）: 先に `samples/menuA`〜`menuE` の `expect.yaml`（§4.27.1 の性質、実行 11・期待 100 件）をコミットし、献立を書いた（A 焼きそばは `@vessel(FlatPlate)` の単品、B は「カレーとごはん」と同じ合成、C は豚肉に下味をつけて置く炒め物・味噌汁・ごはん、D はカレー（人ごとにライスかナン）・サラダ・デザートの波のパフェ、E はミキサーに入りきらず 2 回に分けるミックスジュース。どれも `std` の語彙だけ）。検査の語彙に `serveWithin`（出すまでの時間の上限を持つ料理の数）を足した。`G-SAMPLE-CHECK`（`samples: 6 samples, 162 expectations, 0 failed`）・`G-SCHED-CHECK`・`G-SAMPLE-STD-ONLY` が合格
+  - 献立を書く途中で見つけて直したこと（どれも golden を先にコミットした）: `@vessel` の単品のレシピに盛り付けと波が補われるのは `debug steps` の表示だけで、IR と段取りに無かった（S248。`menus/single-recipe-ir`・`single-recipe-schedule`、`levels/provisional-assumed` の期待値も直した）。性質の器の並び（`deepPlate`）を液体の検査で展開しておらず、深皿でも `TYP:vesselLiquid` になり、`smallBowl` の `dryOnly` も効いていなかった（`vessels/liquid-vessel-order`）。明示的な `combine([…])` が入力を落としていた（`mix/explicit-combine`）。`plate`・`assemble` の中の品に付けた `@chilled`・`@frozen` が効いていなかった（`serve/item-frozen`、§4.22.1 に追記）。保持が段取りの JSON に無かった（`serve/holds-json`、D33 に追記）。`washInserted`・`variantChosen`・`stainLeft`・`provisionalValue` が段取りのテキストのときだけ出て、JSON の結果に出ていなかった（`api/schedule-diags-json`）。`assemble` の作業の位置が、直前の呼び出しを指していた。出すタイミングの待ちの数え方（D34。`serve/serve-within-missed`・`dessert-just-before`・`missed-json`、登録簿に `SCH010 serveWithinMissed`）
+  - わざと壊す確認: `sample/menuA`（S364・正常系）— 単品の盛り付けを補わないと `waves`・`plate uses FlatPlate`・`season before plate` など 6 件が落ちた。戻して合格
+  - わざと壊す確認: `sample/menuB`（S365・正常系）— `make` の出力を IR につながないと、材料から盛り付けへのつながりと順序の 6 件が落ちた。戻して合格
+  - わざと壊す確認: `sample/menuC`（S366・実際の経路）— 共有の切る作業をまとめないと `task count cut@Cabbage: 2` が 2 件落ちた。戻して合格
+  - わざと壊す確認: `sample/menuD`（S367・実際の経路）— 2 つ目の波を 1 つ目と同じ番号にすると `waves`・`wave of plate` が落ちた。戻して合格
+  - わざと壊す確認: `sample/menuE`（S368・実際の経路）— `std` の `afterSticky` を `wash` にすると `task soak` が落ちた。戻して合格
+  - わざと壊す確認: `G-SAMPLE-STD-ONLY`（S456・データの完全性）— `samples/menuA/yakisoba.ozen` に `ingredient` を 1 つ足すと `1` で落ちた。戻して合格
+  - 段取りの挙動の記録: 献立 E の 1 回目のジュースは、ミキサーの浸け置き（`afterSticky` は同じ食べ物でも浸け置き）の 30 分を待ってから 2 回目と合わせて出る（`serveWithin` は合わせた後の作業で数える）。献立 C は `--serve-at` を渡さないと前から詰めるので、炒め物と味噌汁がごはんを 40 分以上待つ（`SCH:longWait`）
 
 - 各サンプルの `expect.yaml` の性質の数
 - 暫定の値で組まれた段取りの一覧（S277）
