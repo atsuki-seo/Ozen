@@ -1238,6 +1238,7 @@ IR:
 - 段取りの JSON（`schedcheck` の入力。G の JSON の一部になる）: `{"schemaVersion":1,"cooks":n,"resources":[{"id","kind","capacity"}],"tasks":[{"id","op","deps":[…],"start","endHi","endLo","cook"|null,"uses":[資源の id…],"unattended","wave"|null}],"waves":[{"id","serveAt","after"|null,"gap"}],"dishes":[{"id","serveWithin"|null,"ready"}]}`。時刻は `{num, den}`
 - `tools/schedcheck/` の検査（実装と別の経路で、段取りの JSON だけを読む）: (1) 依存: どの作業も、依存する作業の上限の終わり以降に始まる、(2) 資源: どの時刻でも、資源ごとに使っている作業の数が容量以下（区間は `[開始, 上限の終わり)`）、(3) 人: 人を使う作業は人ごとに重ならず、人の数は `cooks` 以下、`unattended` の作業は人を使わない、(4) 1 台の複数の能力: 同じ個体を同時に 2 つの作業が使わない、(5) 波: 波の盛り付けはその波の出す時刻までに終わり、2 つ目からの波の出す時刻は前の波の出す時刻 + 間隔以降、(6) 出すタイミング: `serveWithin` を持つ料理は、下限で仕上がった時刻から出す時刻までが幅以下、(7) 洗い: 汚れの相性で洗いが要る道具は、次に使う前にその道具の洗いの作業がある、(8) 片付け: `--cleanup` の指定どおりに、終わりの時点で道具・場所がきれい。検査の出力は `schedcheck: <段取りの数> schedules, <違反の数> violations`。洗いと片付けの検査のため、作業は `leaves`（`[{resource, dirt, sameFoodAs}]`）と `cleans`（`{resource, level}`）を、段取りは `rules`（汚れごとに要る洗い方）と `cleanup` を、資源は `category`（`tool`・`place`・`vessel`）と、複数の能力を持つ個体は `capabilities` を持つ（P9-2）
 - 依存と段取りの細目（P9-3）: 作業の依存は、入力の値を作った作業（データの依存）に加えて、`parallel` の枝の中は 1 つ前の作業、`parallel` の後の作業は枝の中のすべての作業（S433）。IR の行には ` after %a, …` として入力と値の引数の後ろに出す。優先度は、その作業から終わりまでの最長の経路（上限で数え、自分の上限を含む）。時刻 0 から、依存がすべて終わった作業を優先度の高い順（同じなら IR の番号の順）に取り、人を使う作業（要求に `hands` があり放置でない）は空いている一番若い番号の人に、ほかの要求はそれを満たす台所の個体（項目の `count`、コンロは `burners` も掛けた数だけある）の空いている一番前のものに割り当てる。割り当てられない作業は次に何かが終わる時刻まで待つ。終わりは上限、下限の終わりは開始 + 下限（D27）。条件に `serveAt` があれば、依存を逆にした段取りを同じ規則で組み、`serveAt` から引いて時刻を戻す。レベル 0 は人も設備も数えない（最短の時間）、レベル 1 は人だけ（`cooks`、無ければ 1）、レベル 2 は人と台所の個体を数える。候補の分岐は、台所で使える最初の候補（P9-4 で一番早く終わる候補にする）。`debug schedule` の作業の行は `<開始>..<上限の終わり> (<下限の終わり>) %n <動作>[/<候補>]`、レベル 1・2 はさらに ` by cook<番号>` か ` unattended`、レベル 2 は使った個体を ` [<項目>#<番号>, …]`。`--format json` で段取りの JSON を 1 行に出す（`scripts/collect-schedules.sh` が golden の段取りを集め、`G-SCHED-CHECK` が検査する）。`--entry` の料理の段取りで暫定の値（`@source(provisional)` の時間）を使った動作は、最初の呼び出しの位置に `ASM:provisionalValue`（引数は動作）
+- 設備・候補・加熱の細目（P9-4）: 候補の分岐は、台所で使える候補（無ければすべて）をそれぞれの所要時間・個体・人で並べ、割り当てのときに一番早く終わる候補を選ぶ（同点は候補の順）。最初の候補を選ばなかったときは `SCH:variantChosen`（情報、引数は動作・選んだ候補・最初の候補・理由 `unavailable` か `earlier`、位置は呼び出し）。1 台が複数の能力を持つ項目も 1 つの個体（S295）。台所の `calibration { <加熱の種類>: <倍率> }` は、`HeatSource<種類>` を要求する作業の所要時間に掛ける。同じ要求を台所の個体の数より多く持つ作業は `SCH:capacityShortage`（引数は要求・要る数・ある数、位置は呼び出し）で、足りない分の要求は外して組む。条件の `people` の `Person { avoids: [<種類>…] }` は、その種類を要求する作業をその人（並びの順に cook1、cook2…）に割り当てない。所要時間は `for`、続けて動作の `takes` の式、続けて引数 `time`。組み込みの `heating(食材, 調理法, 指数)` は、食材の `props.heating.<調理法>` に `direct` があればその時間、無ければ `heatUp × (厚さ ÷ at)^指数 + soften`（指数が範囲なら時間も範囲。整数でない端は下と上の整数で安全側に囲む）。厚さは切った大きさ（`roughChop`・`rollCut`・`biteSize` は `std` の `nominalCutSize` の目安、切っていなければ `at`）。並びを鍋に入れるとき、火を通した柔らかい食材（`hardness: soft`）と生の硬い食材（`hardness: hard`）が同じ並びにあれば `SCH:softBeforeHard`（警告、引数は柔らかい・硬い食材の型、位置は呼び出し）。`steps { … }` を持つ動作（合成した動作）は、呼び出すと引数を束縛して手順を評価し、最後の値を結果にする（IR と段取りには手順の作業が入る）。結果が出力の型を満たさなければ `TYP:outputMismatch`（引数は動作と結果の型）
 - 小さな例の期待の段取りを手で組む手順は §9.6 に書く
 
 ### 4.23 G: 公開 API と JSON（§13-7）
@@ -3216,6 +3217,19 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/sched/range-duration-upper`（S304・正常系）— 下限で割り当てると落ちた。戻して合格
   - わざと壊す確認: `cgolden/sched/parallel-join`（S433・時間と順序）— 合流を外すと落ちた。戻して合格
   - わざと壊す確認: `cgolden/levels/level-1-human-only`（S436・正常系）— レベル 1 でも要求ごとに 1 つの設備を数えると落ちた。戻して合格
+- P9-4（2026-10-26）: 手で組んだ期待値の golden 15 件（`sched/oven-range-one-unit`・`variant-earliest`・`variant-tie-order`・`variant-info`・`calibration`・`heat-model`・`heat-thickness-by-cut`・`heat-direct-attribute`・`hardness-order-warn`・`capacity-impossible`・`too-many-cooks`・`too-many-cooks-exact`・`person-attributes`・`actions/composite-expand`・`composite-schedule`・`composite-types`。`too-many-cooks` はちょうどの場合を `too-many-cooks-exact` に分けた）を先にコミットし、候補の選択・補正・容量の不足・人ごとの制限・加熱の時間の式・硬さの順・合成した動作を足した。登録簿に `SCH003 variantChosen`・`SCH004 softBeforeHard`・`SCH005 capacityShortage`・`TYP019 outputMismatch` を足し、`std` に `nominalCutSize` を足した。詳細は §4.22.1 の（補）。`oven-range-one-unit`・`variant-tie-order`・`too-many-cooks`（2 件）は実装の前から通るので red-first の例外に書いた。最初の実行で 264 件すべてが合格し、`G-SCHED-CHECK` も合格
+  - わざと壊す確認: `cgolden/sched/oven-range-one-unit`（S295・境界・上限）— 複数の能力を持つ台を能力ごとに別の台として数えると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/variant-*`（S296・正常系）— 最初の候補を常に選ぶと `variant-earliest` が落ち、同点で後ろの候補を選ぶと `variant-tie-order` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/variant-info`（S297・正常系）— 候補を選んだ情報を出さないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/calibration`（S298・正常系）— 補正を掛けないと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/heat-model`（S299・境界・上限）— 指数を掛けない（指数を 1 にする）と落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/hardness-order-warn`（S300・効かない条件）— 硬さの検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/capacity-impossible`（S301・効かない条件）— 容量の超過を許すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/too-many-cooks*`（S302・境界・上限）— `std` の `check` の比較を `<` にすると `too-many-cooks-exact` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/person-attributes`（S303・正常系）— 人ごとの制限を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/actions/composite-*`（S434・正常系）— 合成した動作を 1 つの作業のままにすると 3 件とも落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/heat-thickness-by-cut`（S438・正常系）— 不揃いな切り方でも切った大きさで数えると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/sched/heat-direct-attribute`（S439・正常系）— `direct` を使わず式を使うと落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.7 G（API・JSON・CLI）
