@@ -18,6 +18,7 @@ fi
 for f in "$fixtures"/bad-*.json; do
   name=$(basename "$f" .json)
   name=${name#bad-}
+  name=${name%%-*}
   out=$(python3 -B "$check" "$f" 2>&1)
   cases=$((cases + 1))
   kinds=$(sed -nE 's/^violation: [^:]+: ([a-z]+): .*/\1/p' <<< "$out" | sort -u | tr '\n' ' ')

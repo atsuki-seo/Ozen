@@ -69,8 +69,11 @@ def check(doc):
         wave = waves.get(dish.get("wave"))
         ready = tasks.get(dish.get("ready"))
         if limit is not None and wave is not None and ready is not None:
-            if wave["serveAt"] - ready["endLo"] > num(limit):
+            late = wave["serveAt"] - ready["endHi"] > num(limit)
+            if late and not dish.get("missed"):
                 out.append(("serving", f"dish {dish['id']} waits longer than allowed"))
+            if dish.get("missed") and not late:
+                out.append(("serving", f"dish {dish['id']} is marked missed but is served in time"))
 
     rules = {r["dirt"]: r["cases"] for r in doc.get("rules", [])}
 
