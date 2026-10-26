@@ -1114,6 +1114,8 @@ void ozp_free_string(const ozp_options *opt, char *s);
   - `MAC`: `overflow`・`divisionByZero`
   - `std` の `check` の診断（D32）: `SCH101 tooManyCooks`（警告。`Options` の型）
 - concept §6.1 の「重さの基準」の 17 例と分類の表の例は `core/tests/severity-examples.txt` に置き、`scripts/check-severity-table.py` が登録簿と `std` の `check` に照らす。F の段取りで決まる例（生肉の後に洗わず使う `SAF:unwashedHazard`、硬い食材より先に柔らかい食材 `SCH:softBeforeHard`、挿入した洗い `SCH:washInserted`、代わりに使った器 `KIT:vesselSubstituted`、最短時間 `SCH:criticalPath`）はフェーズを F にし、E のゲートでは `--phase E` で数えない
+- `ozen debug steps [FILE]`: 利用者のモジュールのレシピと献立を定義の順に評価し、`recipe <名前>`（献立は `menu <名前>`）の行に続けて、材料を `  <名前> : <型> <量>`、動作の呼び出しを `  %<番号> = <動作>(<引数>) : <型> <量>`（出力の無い動作は `: …` を省く。番号はレシピごとに 1 から）で出し、最後に `ozen check` と同じ診断と結果の行を出す。引数は、材料は名前、手順の結果は `%<番号>`、量・列挙型の値はその値、名前付きの引数は `名前: 値`。型は名前に、部位と、初期の状態から変わった軸を `<…>` で付ける（集合の軸は `prep has washed`、引数つきの値は `cut(slice, 3 mm)`）。量は次元の基準単位で、有理数のまま（分母が 2 と 5 だけなら小数、ほかは `a/b`）、範囲は `lo..hi`。並び `[a, b]` を食材 1 つの引数に渡すと、先に `combine` の手順を出す（D11）
+- 量の換算（補）: 混ぜた値（`combine`）の量は、すべての量を質量に直して足す（体積は `density`、数は `unitWeight`）。直せない材料があるとき、すべての量の次元が同じならその次元で足し、違えば `TYP:densityMissing`。厳密モード（`--strict`）では `strict` のまとまり（P8-8 までは `vagueAmount` だけ）をエラーにする
 - 燃料（評価ステップ）の数え方: 名前の解決で名前を 1 つ引くたびに 1（D と同じ）、評価で次のノードを 1 つ評価するたびに 1。ブロック・`let`・`if`（`else if` は else 側の `if`）・`for`・`repeat`・呼び出し（動作・レシピ・組み込み。引数を左から）・マクロの呼び出し（引数は評価せず、展開したブロック）・名前・量（`1 h 30 min` も 1 つ）・数・文字列・真偽値・並び・レコード・二項演算（短絡しなければ右も）・単項演算・メンバーの参照・注釈・`make`・`buy`・`choose`・`assemble`・`ingredients`（と項目ごとに 1）・`parallel`・`branch`・`serve`・`plate`。生成ノードは D の数え方に、マクロの展開でコピーしたノードの数を足す。深さは評価の入れ子の数（D の解決の深さと同じ上限）
 
 ### 4.22 F: IR と段取り（§13-6）
@@ -3025,6 +3027,14 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - P8-0（2026-10-26）: §4.21.1 に E の診断の名前（`NAM` 8・`TYP` 21・`LIN` 4・`SAF` 3・`KIT` 3・`SCH` 1・`ASM` 8・`MAC` 2 と `std` の `check` の `SCH101 tooManyCooks`）、17 例と分類の例の対応、燃料の数え方を書いた。17 例と分類の表の 15 例は `core/tests/severity-examples.txt`（フェーズの列つき。F で決まる 5 例はフェーズ F）に置き、`scripts/check-severity-table.py` と自己テスト（`4 cases, 0 failed`）を書いた。登録簿への追記は golden を書く P8 の各タスクで行うので、P8-0 の時点の `--phase E` は `12 examples, 12 mismatched` で、ゲート E で 0 を確かめる。新しい S は足していない。`cgolden/std/package`（`std` の名前と版に頼る golden。今の解決で通るので red-first の例外に書いた）が合格。燃料は、D の名前の引き当てに評価のノードを足すので、P8-7 で `limits/steps-*` の期待値を直す見込み
   - わざと壊す確認: `cgolden/std/package`（S357・正常系）— `stdlib/package.ozen` の名前を `stdx` にすると落ちた。戻して合格
   - わざと壊す確認: P8-0 の完了条件（D28・否定）— 変換のスクリプトが食材の並びを実行ごとに変えると、もう一度走らせたときに `stdlib/prelude.ozen` に差分が出た（`184 insertions(+), 184 deletions(-)`）。戻して差分なし
+- P8-1（2026-10-26）: golden 13 件を先にコミットし、意味の解析（`sema.c`）を足した。単位の表（次元の名前の並びで次元を持ち、基準単位への倍率は範囲つきの有理数。循環と 2 つ目の基準単位を検査）、量の評価（並べた量の和、単位の道筋 `g/ml`、`%`）、食材の値（型・軸の状態・量）、レシピの本体の評価（`ingredients`・`let`・動作の呼び出し・並びの糖衣・二項演算）、`ozen debug steps`、CLI の `--strict`。登録簿に `TYP001 dimension`〜`TYP005 baseUnitChanged` と `NAM011 unknownUnit` を足した。最初の実行で 109 件すべてが合格。アリーナの確保の失敗を `sema` の中で見落とす箇所があり（確保の失敗の注入で 3 件）、実行の終わりにアリーナの失敗の回数を見るようにした
+  - わざと壊す確認: `cgolden/dim/add-mismatch`（S186・効かない条件）— 足し算の次元の検査を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/dim/density-missing`（S187・境界・上限）— 密度が無いとき 1 g/ml とみなすと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/dim/any-amount-strict`（S188・境界・上限）— `--strict` を無視すると落ちた。戻して合格
+  - わざと壊す確認: `cgolden/dim/pinch-strict-ok`（S189・効かない条件）— 厳密モードで範囲つきの量も曖昧とみなすと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/dim/rational-quarter`（S193・正常系）— 割り切れない有理数を小数 2 桁に丸めて出すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/dim/unit-cycle`（S194・効かない条件）— 循環の検出を外すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/dim/cup-us`（S195・正常系）— `cup` を `import` によらず最初の定義（`std.units.jp`）に決めると落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
