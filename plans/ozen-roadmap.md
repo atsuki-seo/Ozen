@@ -1140,6 +1140,7 @@ void ozp_free_string(const ozp_options *opt, char *s);
 - 重さの仕組み（補、P8-8）: 診断の重さは、作った時点の重さ（登録簿の既定値、`check` は `else`）に、`--strict`（`--deny strict`）、`--allow`・`--warn`・`--deny` を書いた順に、続けて注釈 `@allow`・`@warn`・`@deny`・`@expect` のうち診断の位置を含む一番狭い範囲（注釈を付けた宣言・文の span）のものを当てて決める。指定は診断の名前・分類の接頭辞（3 文字）・まとまりの名前で、知らない名前は `NAM:unknownDiagnostic`（注釈は名前の位置、ビルド時の指定はファイルの先頭）。まとまりは `property 名前 = diagnostics(名前, …)` で、`std` の `strict = diagnostics(vagueAmount)` に、同じ名前の書き手の `property` が足される（上書きの情報は出さない）。`@allow`・`@expect` は隠す。`@expect` が何にも当たらなければ `NAM:expectUnfulfilled`（警告、位置は注釈）。`SAF` のエラーは何をしてもエラーのままで、注釈で下げようとしたときは注釈の位置に `SAF:fixedSeverity`（情報）。依存先のパッケージのファイルの診断は、`SAF` のエラーを除いて隠す
 - 注釈の付く先と非推奨（補、P8-8）: 文に付けた `@unattended` は、文の式の一番外側が動作・マクロの呼び出しか `make` でなければ `TYP:annotationTarget`（位置は注釈）。重さの注釈は範囲を変えるだけで付く先を問わない。`std` の定義に `@deprecated` を付けると、書き手のファイルの量の単位で使ったとき `PKG:deprecated`（警告、引数は単位）。`std` の `cc`（1 ml）を非推奨にした
 - 直し方の候補と `check` のコード（補、P8-8）: `TYP:stateRequired` は、既定値の無い引数が食材 1 つだけで、その食材の要求を満たし、出力の効果で要求を満たす動作（`std` の前置き、続けて書き手のモジュールの順で最初のもの）を `動作(式)` の候補として持つ。テキストの出力では `--fixes` のときだけ ` fixes=["…"]` を引数と展開履歴の後ろに出す（JSON は G で）。書き手の型の `check` のコードは、`std`（C の登録簿）とパッケージの中の重複が `PKG:checkCodeDuplicate`、`XXX9nn` の形でなければ `PKG:checkCodeRange`（位置は `check`）。書き手の `check` の診断は、そのコード（根のパッケージがあれば `パッケージ名:コード`）と `check` の名前で出す
+- 検証レベルと仮定（補、P8-9）: レベルは、台所を選べば 2、条件に `servings` か `cooks` があれば 1、どちらも無ければ 0。`--entry` で選んだ料理は、レベル 2 未満で `ASM:unlimitedEquipment`（位置は料理の名前）、引数 `servings` を条件で上書きしていなければ `ASM:defaultServings`（引数は既定値の式）、台所が無いとき `variant` を持つ動作の呼び出しごとに `ASM:firstVariant`（引数は動作・最初の候補・ほかの候補を `, ` で並べたもの、位置は呼び出し。足した候補も並ぶ）を出す。`std` の `Options` の型の項目の注釈 `@needs(kitchen)` は台所を前提にする項目で（今は `cleanup`）、台所なしで書いたら `TYP:optionLevel`（警告、引数は項目の名前、位置は値）。`check` は型検査で止め、段取りを組まない。単調性は `tests/props/monotonic.py` が、`check` の 1 ファイルの golden に条件と全部入りの台所を足して、仮定を除く診断がレベル 0 ⊆ 1 ⊆ 2 であることを確かめる
 - 燃料（評価ステップ）の数え方: 名前の解決で名前を 1 つ引くたびに 1（D と同じ）、評価で次のノードを 1 つ評価するたびに 1。ブロック・`let`・`if`（`else if` は else 側の `if`）・`for`・`repeat`・呼び出し（動作・レシピ・組み込み。引数を左から）・マクロの呼び出し（引数は評価せず、展開したブロック）・名前・量（`1 h 30 min` も 1 つ）・数・文字列・真偽値・並び・レコード・二項演算（短絡しなければ右も）・単項演算・メンバーの参照・注釈・`make`・`buy`・`choose`・`assemble`・`ingredients`（と項目ごとに 1）・`parallel`・`branch`・`serve`・`plate`。生成ノードは D の数え方に、マクロの展開でコピーしたノードの数を足す。深さは評価の入れ子の数（D の解決の深さと同じ上限）
 
 ### 4.22 F: IR と段取り（§13-6）
@@ -3150,6 +3151,14 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cgolden/syntax/annotation-target`（S415・効かない条件）— 付く先の無い注釈を無視すると落ちた。戻して合格
   - わざと壊す確認: `cgolden/packages/deprecated-warning`（S428・正常系）— 警告を出さないと落ちた。戻して合格
   - わざと壊す確認: `cgolden/diag/check-codes`（S464・境界・上限）— 書き手の番号の範囲を検査しないと落ちた。戻して合格
+- P8-9（2026-10-26）: golden 8 件を先にコミットし、検証レベル、レベルの仮定（`ASM004 unlimitedEquipment`・`ASM005 defaultServings`・`ASM006 firstVariant`）、台所が要る条件の項目（`TYP018 optionLevel`、`std` の `cleanup` に `@needs(kitchen)`）、性質のテスト `prop/monotonic`、ファズの対象 `typecheck` を足した。詳細は §4.21.1 の（補）。仮定が増えたので、`--entry` を使う既存の golden 6 件に `ASM004` の行が、`misspelled-cleanup` に `optionLevel` の行が増えた（期待値だけのコミット。差分はその行と件数だけ）。`check-stops`・`level-2` は実装の前から通るので red-first の例外に、`prop/monotonic` は実装の前から成り立つ性質なので例外に書いた。最初の実行で 232 件すべてが合格、`monotonic: 56 cases, 0 decreases`、`typecheck` の 60 秒のファズで落ちは無し
+  - わざと壊す確認: `cgolden/kitchen/cleanup-without-kitchen`（S237・効かない条件）— 警告せずに使うと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/levels/level-*`（S270・正常系）— レベルを常に 2 にすると `level-0`・`level-1` が落ちた。戻して合格
+  - わざと壊す確認: `cgolden/levels/check-stops`（S271・副作用とコスト）— `check` でも手順を出すと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/levels/assumptions-as-info`（S272・正常系）— 仮定を警告で返すと落ちた。戻して合格
+  - わざと壊す確認: `prop/monotonic`（S273・境界・上限）— 台所があるとき `vagueAmount` を出さないと `56 cases, 2 decreases`。戻して `0 decreases`
+  - わざと壊す確認: `cgolden/levels/first-variant-assumed`（S275・正常系）— 最後の候補を使うと落ちた。戻して合格
+  - わざと壊す確認: `cgolden/actions/extend-in-assumptions`（S424・正常系）— 足した候補を候補の並びに入れないと落ちた。戻して合格
 - わざと壊す確認の記録
 
 ### 9.6 F（IR と段取り）
