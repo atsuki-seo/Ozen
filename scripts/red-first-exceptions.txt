@@ -20,3 +20,5 @@ cc20652 the rule-override golden passes because no wash was inserted before wash
 f493f30 the objective-order golden passes because the schedule that keeps the serving time was the only one built before, and the prefer-tools-then-pace golden passes because the default schedule already has the fewest tools; the S291 mutation (comparing the total time before the serving times) and the S292 mutation (ignoring the order of the preferences) show that they detect the change
 dc01918 the prelude-contents golden passes because the prelude already held these units and actions; the S361 mutation (removing the g unit from the prelude) makes it fail
 2b5ca15 the std_copy property test checks that std needs no special treatment, which already held; the S360 mutation (marking the IR lines of std actions) makes it report differences
+7b5d7b8 the group-display-only golden passes because @group never reached the IR; the S378 mutation (writing the group key into the IR text) makes it fail
+bd3945a the display_only property test now also strips @group, which already left the IR unchanged; the S378 mutation makes it report differences
