@@ -40,7 +40,7 @@ static int usage(void) {
   fputs("usage: ozen check [OPTIONS] [ENTRY|FILE]\n"
         "       ozen build [OPTIONS] [ENTRY|FILE...]\n"
         "       ozen render [OPTIONS] [ENTRY|FILE]\n"
-        "       ozen bundle [OPTIONS]\n"
+        "       ozen bundle [ENTRY] [-o FILE]\n"
         "       ozen unbundle [OPTIONS]\n"
         "       ozen debug ast [--no-spans] [--rules] FILE\n"
         "       ozen debug modules\n"
@@ -1210,6 +1210,113 @@ static int render(int nargs, char **args, const char *argv0) {
   return rc;
 }
 
+static int list_ftl(strings *l, const char *dir) {
+  DIR *d = opendir(dir);
+  if (d == nullptr) {
+    return 0;
+  }
+  struct dirent *e;
+  int rc = 0;
+  while (rc == 0 && (e = readdir(d)) != nullptr) {
+    size_t len = strlen(e->d_name);
+    char path[4096];
+    if (e->d_name[0] == '.' || len <= 4 || strcmp(e->d_name + len - 4, ".ftl") != 0) {
+      continue;
+    }
+    int n = snprintf(path, sizeof path, "%s/%s", dir, e->d_name);
+    rc = n < 0 || (size_t)n >= sizeof path || !push_string(l, path) ? -1 : 0;
+  }
+  closedir(d);
+  return rc;
+}
+
+static int collect_phrases(strings *l) {
+  int rc = list_ftl(l, "phrases");
+  DIR *d = opendir("deps");
+  if (d != nullptr) {
+    struct dirent *e;
+    while (rc == 0 && (e = readdir(d)) != nullptr) {
+      char dir[4096];
+      int n = snprintf(dir, sizeof dir, "deps/%s/phrases", e->d_name);
+      if (e->d_name[0] != '.' && n > 0 && (size_t)n < sizeof dir) {
+        rc = list_ftl(l, dir);
+      }
+    }
+    closedir(d);
+  }
+  qsort(l->items, l->n, sizeof *l->items, cmp_path);
+  return rc;
+}
+
+static int bundle(const ozni_allocator *a, int nargs, char **args) {
+  if (nargs > 1) {
+    return usage();
+  }
+  if (!stat_file("package.ozen")) {
+    fputs("cli: bundle needs a package.ozen in this folder\n", stderr);
+    return 2;
+  }
+  project p = {0};
+  const char *entry = opt.entry;
+  char module[1024] = "", name[256] = "";
+  int rc = load_project(&p, nullptr, false);
+  if (rc == 0 && nargs == 1) {
+    const char *dot = strrchr(args[0], '.');
+    bool split = split_target(&p, args[0], module, sizeof module, name, sizeof name);
+    entry = split && name[0] != '\0' ? name : dot != nullptr ? dot + 1 : args[0];
+  }
+  strings files = {0};
+  ozni_source *phrases = nullptr;
+  if (rc == 0 && collect_phrases(&files) != 0) {
+    fputs("ozen: cannot read the phrases folders\n", stderr);
+    rc = 2;
+  }
+  if (rc == 0) {
+    phrases = calloc(files.n + 1, sizeof *phrases);
+    rc = phrases == nullptr ? 2 : 0;
+  }
+  for (size_t i = 0; rc == 0 && i < files.n; i++) {
+    size_t len = 0;
+    char *text = read_file(files.items[i], &len);
+    if (text == nullptr) {
+      fprintf(stderr, "ozen: cannot read %s\n", files.items[i]);
+      rc = 2;
+      break;
+    }
+    phrases[i] = (ozni_source){files.items[i], text, len};
+    if (strstr(text, "\"\"\"") != nullptr) {
+      fprintf(stderr, "cli: %s holds \"\"\", which a bundle cannot quote\n", files.items[i]);
+      rc = 2;
+    }
+  }
+  if (rc == 0) {
+    ozni_settings set = settings;
+    set.entry = entry;
+    int has_errors = 0;
+    char *text = ozni_bundle_text(a, &limits, &set, p.srcs, p.n, phrases, files.n, &has_errors);
+    if (text != nullptr && !has_errors && opt.output != nullptr) {
+      FILE *f = fopen(opt.output, "wb");
+      rc = f == nullptr || fputs(text, f) < 0 ? 2 : 0;
+      if (f != nullptr && fclose(f) != 0) {
+        rc = 2;
+      }
+      if (rc != 0) {
+        fprintf(stderr, "ozen: cannot write %s\n", opt.output);
+      }
+      ozni_free_text(a, text);
+    } else {
+      rc = emit_text(a, text, has_errors);
+    }
+  }
+  for (size_t i = 0; phrases != nullptr && i < files.n; i++) {
+    free((void *)phrases[i].text);
+  }
+  free(phrases);
+  free_strings(&files);
+  free_project(&p);
+  return rc;
+}
+
 static int check(const ozni_allocator *a, int nargs, char **args, ozni_mode mode) {
   if (nargs > 1) {
     return usage();
@@ -1326,7 +1433,10 @@ int main(int argc, char **argv) {
   if (strcmp(cmd, "render") == 0) {
     return render(n - 2, argv + 2, argv[0]);
   }
-  if (strcmp(cmd, "bundle") == 0 || strcmp(cmd, "unbundle") == 0) {
+  if (strcmp(cmd, "bundle") == 0) {
+    return bundle(&a, n - 2, argv + 2);
+  }
+  if (strcmp(cmd, "unbundle") == 0) {
     fprintf(stderr, "cli: %s is not available yet\n", cmd);
     return 2;
   }
