@@ -2,7 +2,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Phrases, layerOrder, renderHtml, renderRecipe, renderSchedule, renderShopping, renderSettings, settingsSpec } from '../lib/render.mjs';
+import { Phrases, layerOrder, renderBook, renderHtml, renderRecipe, renderSchedule, renderShopping, renderSettings, settingsSpec } from '../lib/render.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -44,10 +44,15 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
     }
   };
   let settings = null;
+  const books = new Map();
   for (const file of files) {
     const result = JSON.parse(readFileSync(join(dir, file), 'utf8'));
     const sample = file.split('--')[0];
     settings = settings ?? (result.types ? settingsSpec(result.types, result.definitions) : null);
+    if (!books.has(sample)) {
+      books.set(sample, { sources: null, runs: [] });
+    }
+    books.get(sample).runs.push({ file, result });
     const depDir = join(sampleRoot, sample, 'deps');
     const deps = existsSync(depDir) ? readdirSync(depDir).map((d) => phrasesIn(join(depDir, d, 'phrases'), d)) : [];
     const sources = layerOrder({ std: phrasesIn(join(root, 'phrases'), 'std'), deps, project: phrasesIn(join(sampleRoot, sample, 'phrases'), sample) });
@@ -58,6 +63,18 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
         scan(text, lang);
       }
       writeFileSync(join(outDir, `${file.replace(/\.json$/, '')}.${lang}.html`), html);
+      count(ph);
+    }
+    books.get(sample).sources = sources;
+  }
+  for (const [sample, book] of books) {
+    const index = { entries: book.runs.map((r) => ({ module: r.file, entry: r.result.entry })) };
+    const results = new Map(book.runs.map((r) => [`${r.file}:${r.result.entry}`, r.result]));
+    for (const lang of langs) {
+      const ph = new Phrases(book.sources, { lang });
+      const html = renderBook(index, results, ph);
+      scan(html, lang);
+      writeFileSync(join(outDir, `book.${sample}.${lang}.html`), html);
       count(ph);
     }
   }
