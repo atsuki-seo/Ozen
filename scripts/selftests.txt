@@ -41,3 +41,5 @@ bindings/android/emulator-test.sh scripts/test-emulator-test.sh
 scripts/check-ci-tools.py scripts/test-check-ci-tools.sh
 tests/samples/check.py tests/samples/test-check.sh
 renderers/tools/phrases-check.mjs renderers/tools/test-phrases-check.sh
+tools/htmlcheck/htmlcheck.py scripts/test-htmlcheck.sh
+tools/htmlcheck/selfcontained.py scripts/test-htmlcheck.sh
