@@ -1,0 +1,6 @@
+error NAM005 importLocal local-import-rejected.ozen:12:16-12:25 args=["HouseSalt", "book.a"]: import local
+info ASM002 noPlating local-import-rejected.ozen:14:8-14:12 args=["soup"]: no plating
+info ASM004 unlimitedEquipment local-import-rejected.ozen:14:8-14:12: unlimited equipment
+error NAM001 undefined local-import-rejected.ozen:17:11-17:20 args=["HouseSalt"]: undefined
+result error errors=2 warnings=0 infos=2
+exit 1

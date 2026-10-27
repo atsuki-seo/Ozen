@@ -1,0 +1,6 @@
+package book {
+  version: "1.0.0"
+  requires: {
+    dashi: "1.2"
+  }
+}

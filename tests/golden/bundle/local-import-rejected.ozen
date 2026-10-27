@@ -1,0 +1,21 @@
+bundle {
+  std: "0.1.0"
+  entry: soup
+  from: book "1.0.0"
+}
+
+module book.a {
+local ingredient HouseSalt : Seasoning
+}
+
+module book.soup {
+import book.a.{HouseSalt}
+
+recipe soup() {
+  ingredients {
+    water: 400 ml
+    salt: HouseSalt 2 g
+  }
+  let s = simmer([water, salt], 5 min)
+}
+}

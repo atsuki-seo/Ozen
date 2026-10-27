@@ -1,0 +1,26 @@
+bundle {
+  std: "{{STD_VERSION}}"
+  entry: r
+  from: book "1.0.0"
+}
+
+module book.pantry.ovens {
+// An oven warms naan too.
+extend action warm {
+  variant oven {
+    uses HeatSource<oven> for 5..8 min
+  }
+}
+}
+
+module book.pantry.rules {
+rule afterOily after Greasy: rinse
+}
+
+module book.r {
+recipe r() {
+  ingredients { naan: 1 pcs }
+  let w = warm(naan)
+}
+}
+exit 0

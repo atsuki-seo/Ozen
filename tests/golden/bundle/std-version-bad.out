@@ -1,0 +1,5 @@
+error PKG010 badVersion std-version-bad.ozen:2:3-2:13 args=["abc"]: bad version
+info ASM002 noPlating std-version-bad.ozen:8:8-8:12 args=["soup"]: no plating
+info ASM004 unlimitedEquipment std-version-bad.ozen:8:8-8:12: unlimited equipment
+result error errors=1 warnings=0 infos=2
+exit 1

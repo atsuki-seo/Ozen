@@ -1,0 +1,5 @@
+error PKG007 requiresIncompatible std-version-incompatible.ozen:2:3-2:15 args=["std", "1.0.0", "{{STD_VERSION}}"]: requires incompatible
+info ASM002 noPlating std-version-incompatible.ozen:8:8-8:12 args=["soup"]: no plating
+info ASM004 unlimitedEquipment std-version-incompatible.ozen:8:8-8:12: unlimited equipment
+result error errors=1 warnings=0 infos=2
+exit 1

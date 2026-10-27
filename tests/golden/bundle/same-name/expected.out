@@ -1,0 +1,27 @@
+bundle {
+  std: "{{STD_VERSION}}"
+  entry: soup
+  from: book "1.0.0"
+}
+
+module book.pantry.a {
+ingredient Salt2 : Seasoning
+}
+
+module book.pantry.b {
+ingredient Salt2 : Seasoning
+}
+
+module book.soup {
+import pantry.a.{Salt2}
+import pantry.b
+
+recipe soup() {
+  ingredients {
+    water: 400 ml
+    salt: Salt2 2 g
+  }
+  let s = simmer([water, salt], 5 min)
+}
+}
+exit 0

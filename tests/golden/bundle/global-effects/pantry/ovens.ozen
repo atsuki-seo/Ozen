@@ -1,0 +1,8 @@
+// An oven warms naan too.
+extend action warm {
+  variant oven {
+    uses HeatSource<oven> for 5..8 min
+  }
+}
+
+ingredient Unused : Seasoning

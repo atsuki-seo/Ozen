@@ -5,17 +5,6 @@ bundle {
   from: zeta "2.0.0"
 }
 
-module book.menus.dinner {
-import recipes.soup.{soup}
-
-menu dinner(people: 2) {
-  let s = make soup()
-  serve main {
-    plate perPerson on SoupBowl { s }
-  }
-}
-}
-
 module book.recipes.soup {
 import zeta.fish.{Niboshi}
 
@@ -25,6 +14,17 @@ recipe soup() {
     fish: Niboshi 10 g
   }
   let s = simmer([water, fish], 5 min)
+}
+}
+
+module book.zmenus.dinner {
+import recipes.soup.{soup}
+
+menu dinner(people: 2) {
+  let s = make soup()
+  serve main {
+    plate perPerson on SoupBowl { s }
+  }
 }
 }
 

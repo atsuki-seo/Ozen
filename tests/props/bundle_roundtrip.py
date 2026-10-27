@@ -84,6 +84,12 @@ def main():
             label = os.path.relpath(project, irprops.root_dir()) + (f" {entry}" if entry else "")
             made = run(ozen, project, "bundle", *([entry] if entry else []), "-o", bundled)
             if made.returncode != 0:
+                if entry and run(ozen, project, "check", "--entry", entry).returncode == 1:
+                    print(f"skipped: {label}: the entry has errors", file=sys.stderr)
+                    continue
+                cases += 1
+                differences += 1
+                print(f"difference: {label}: bundle failed", file=sys.stderr)
                 continue
             cases += 1
             if entry is None:

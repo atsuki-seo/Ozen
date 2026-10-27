@@ -1,0 +1,14 @@
+bundle {
+  std: "1.0.0"
+  entry: soup
+  from: book "1.0.0"
+}
+
+module book.soup {
+recipe soup() {
+  ingredients {
+    water: 400 ml
+  }
+  let s = simmer(water, 5 min)
+}
+}
