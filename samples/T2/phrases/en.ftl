@@ -5,3 +5,4 @@ dish-dinner = dinner
 dish-miso-soup = miso soup
 dish-oyakodon = chicken and egg bowl
 dish-tori-don = chicken bowl
+name-soup = miso soup

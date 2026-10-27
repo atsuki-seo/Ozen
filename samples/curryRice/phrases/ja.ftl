@@ -3,3 +3,4 @@
 dish-cooked-rice = ごはん
 dish-curry = カレー
 dish-curry-rice = カレーとごはん
+name-curry-pot = カレー

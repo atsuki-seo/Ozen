@@ -3,3 +3,4 @@
 dish-cooked-rice = rice
 dish-curry = curry
 dish-curry-rice = Curry and rice
+name-curry-pot = curry
