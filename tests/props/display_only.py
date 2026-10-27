@@ -37,6 +37,10 @@ def rename_waves(text):
     return text
 
 
+def strip_groups(text):
+    return re.sub(r" @group\(\w+\)", "", text)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ozen", required=True)
@@ -44,7 +48,7 @@ def main():
     cases = differences = 0
     with tempfile.TemporaryDirectory() as tmp:
         for rel, text, flags in irprops.corpus():
-            changed = rename_waves(reverse_ingredients(text))
+            changed = strip_groups(rename_waves(reverse_ingredients(text)))
             if changed == text:
                 continue
             irprops.write(tmp, "a.ozen", text)
