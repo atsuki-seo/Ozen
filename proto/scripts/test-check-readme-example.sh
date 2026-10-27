@@ -15,7 +15,8 @@ expect() {
   local name=$1 want=$2 status=$3 got st
   cases=$((cases + 1))
   set +e
-  got=$("$here/check-readme-example.sh" --readme "$work/README.md" --bin "$work/upper.sh" 2>/dev/null | tail -n 1)
+  got=$("$here/check-readme-example.sh" --readme "$work/README.md" --bin "$work/upper.sh" --ozen "$work/upper.sh" \
+    2>/dev/null | tail -n 1)
   st=$?
   set -e
   if [ "$got" != "$want" ] || [ "$st" -ne "$status" ]; then
@@ -28,6 +29,12 @@ printf '# x\n\n```ozen\nabc\n```\n\nprints:\n\n```text\nABC\n```\n' > "$work/REA
 expect match "readme: 1 examples, 0 mismatches" 0
 printf '# x\n\n```ozen\nabc\n```\n\nprints:\n\n```text\nABD\n```\n' > "$work/README.md"
 expect mismatch "readme: 1 examples, 1 mismatches" 1
+printf '# x\n\n<!-- file: a.ozen -->\n```ozen\nabc\n```\n\n<!-- file: b.ozen -->\n```ozen\ndef\n```\n\n<!-- run: ozen a.ozen -->\n```text\nABC\n```\n' > "$work/README.md"
+expect named-files "readme: 1 examples, 0 mismatches" 0
+printf '# x\n\n<!-- file: a.ozen -->\n```ozen\nabc\n```\n\n<!-- file: b.ozen -->\n```ozen\ndef\n```\n\n<!-- run: ozen b.ozen -->\n```text\nABC\n```\n' > "$work/README.md"
+expect run-other-file "readme: 1 examples, 1 mismatches" 1
+printf '# x\n\n<!-- file: a.ozen -->\n```ozen\nabc\n```\n\n```text\nABC\n```\n\n<!-- run: ozen a.ozen -->\n```text\nABC\n```\n' > "$work/README.md"
+expect carried-files "readme: 2 examples, 0 mismatches" 0
 printf '# x\n\nno examples\n' > "$work/README.md"
 expect none "readme: 0 examples, 0 mismatches" 1
 
