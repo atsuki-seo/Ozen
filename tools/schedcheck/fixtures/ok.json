@@ -221,15 +221,15 @@
    "op": "wipe",
    "deps": [],
    "start": {
-    "num": 700,
+    "num": 3100,
     "den": 1
    },
    "endHi": {
-    "num": 760,
+    "num": 3160,
     "den": 1
    },
    "endLo": {
-    "num": 730,
+    "num": 3130,
     "den": 1
    },
    "cook": 1,

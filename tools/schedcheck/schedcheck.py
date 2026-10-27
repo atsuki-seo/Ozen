@@ -63,6 +63,11 @@ def check(doc):
         prev = waves.get(w.get("after"))
         if prev is not None and w["serveAt"] < prev["serveAt"] + w["gap"]:
             out.append(("waves", f"wave {w['id']} is served before wave {prev['id']} plus its gap"))
+        if prev is not None and w["gap"] > 0:
+            start, end = prev["serveAt"], prev["serveAt"] + w["gap"]
+            for t in tasks.values():
+                if t.get("cook") is not None and t["start"] < end and t["endHi"] > start:
+                    out.append(("meal", f"task {t['id']} uses a cook during the meal after wave {prev['id']}"))
 
     for dish in doc.get("dishes", []):
         limit = dish.get("serveWithin")
