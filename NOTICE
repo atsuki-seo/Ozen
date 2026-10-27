@@ -23,3 +23,13 @@ Technology (MEXT)
   日本食品標準成分表（八訂）増補2023年から引用
   Used in: data/mext-fct-2023/ (refuse rates). See data/mext-fct-2023/README.md
   for the source URL, retrieval date, file name, and SHA-256.
+
+Fluent (@fluent/bundle 0.19.1), Mozilla
+  Apache License 2.0
+  Used in: renderers/vendor/fluent-bundle/ (unmodified ES module build). See
+  renderers/vendor/README.md for the source URL, retrieval date, and SHA-256.
+
+SARIF 2.1.0 JSON Schema (Errata 01), OASIS
+  Used under the license in schemas/vendor/LICENSE-OASIS.txt
+  Used in: schemas/vendor/sarif-2.1.0.json. See schemas/vendor/README.md for the
+  source URL, retrieval date, and SHA-256.
