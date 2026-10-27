@@ -316,3 +316,45 @@ value-mince = みじん切り
 value-low = 弱火
 value-medium = 中火
 value-high = 強火
+
+## 設備
+kind-floor = 床
+kind-counter = 調理台
+kind-sink = シンク
+kind-stove = コンロ
+kind-gas-stove = ガスコンロ
+kind-ih-stove = IH コンロ
+kind-oven = オーブン
+kind-microwave = 電子レンジ
+kind-toaster = トースター
+kind-oven-range = オーブンレンジ
+kind-fridge = 冷蔵庫
+kind-freezer = 冷凍庫
+kind-dishwasher = 食洗機
+kind-cutting-board = まな板
+kind-knife = 包丁
+kind-peeler = ピーラー
+kind-frying-pan = フライパン
+kind-pot = 鍋
+kind-mixing-bowl = ボウル
+kind-colander = ざる
+kind-cooking-chopsticks = 菜箸
+kind-ladle = お玉
+kind-whisk = 泡立て器
+kind-measuring-spoon = 計量スプーン
+kind-rice-cooker = 炊飯器
+kind-blender = ミキサー
+
+## 段取り表の部品
+schedule-title = { $dish }の段取り表
+by-cook = （{ $n }人目）
+unattended-note = （放置）
+serve-chapter = { $wave }を出す（{ $time }）
+heading-cleanup = 片付け
+unit-numbered = { $name } { $n }
+clean-wash = { $tool }を洗う
+clean-rinse = { $tool }をすすぐ
+clean-soak = { $tool }を浸け置きする
+clean-wipe = { $tool }を拭く
+clean-run = 食洗機で{ $tool }を洗う
+time-from = { $time }〜

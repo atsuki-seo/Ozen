@@ -299,3 +299,45 @@ value-mince = mince
 value-low = low
 value-medium = medium
 value-high = high
+
+## Equipment
+kind-floor = floor
+kind-counter = counter
+kind-sink = sink
+kind-stove = stove
+kind-gas-stove = gas stove
+kind-ih-stove = induction stove
+kind-oven = oven
+kind-microwave = microwave
+kind-toaster = toaster
+kind-oven-range = microwave oven
+kind-fridge = fridge
+kind-freezer = freezer
+kind-dishwasher = dishwasher
+kind-cutting-board = cutting board
+kind-knife = knife
+kind-peeler = peeler
+kind-frying-pan = frying pan
+kind-pot = pot
+kind-mixing-bowl = mixing bowl
+kind-colander = colander
+kind-cooking-chopsticks = cooking chopsticks
+kind-ladle = ladle
+kind-whisk = whisk
+kind-measuring-spoon = measuring spoon
+kind-rice-cooker = rice cooker
+kind-blender = blender
+
+## Schedule parts
+schedule-title = Schedule for { $dish }
+by-cook = {" "}(cook { $n })
+unattended-note = {" "}(unattended)
+serve-chapter = Serve { $wave } ({ $time })
+heading-cleanup = Cleanup
+unit-numbered = { $name } { $n }
+clean-wash = Wash { $tool }
+clean-rinse = Rinse { $tool }
+clean-soak = Soak { $tool }
+clean-wipe = Wipe { $tool }
+clean-run = Run the dishwasher with { $tool }
+time-from = { $time }
