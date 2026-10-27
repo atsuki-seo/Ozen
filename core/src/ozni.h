@@ -79,6 +79,7 @@ char *ozni_debug_ast_text(const ozni_allocator *a, const ozni_limits *lim, const
                           unsigned flags, int *has_errors);
 char *ozni_bundle_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_settings *set,
                        const ozni_source *srcs, size_t n, const ozni_source *phrases, size_t nphrases, int *has_errors);
+char *ozni_unbundle_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *src, int *has_errors);
 void ozni_free_text(const ozni_allocator *a, char *text);
 char *ozni_run_json(const ozni_allocator *a, const ozni_limits *lim, const ozni_settings *set,
                     const ozni_source *srcs, size_t n, unsigned emit, int *has_errors);

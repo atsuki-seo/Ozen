@@ -567,3 +567,253 @@ char *ozni_bundle_text(const ozni_allocator *a, const ozni_limits *lim, const oz
   ozni_ctx_free(&c);
   return text;
 }
+
+typedef struct unbundler {
+  ozni_ctx *c;
+  const ozni_ast *ast;
+  const char *text;
+  ozni_buf *out;
+  ozni_buf *err;
+  ozni_index froms[64];
+  size_t nfrom;
+} unbundler;
+
+static const ozni_node *un_nd(const unbundler *u, ozni_index i) { return ozni_node_get(u->ast, i); }
+
+static void un_error(unbundler *u, const char *what, ozni_str detail) {
+  ozni_buf_puts(u->err, "unbundle: ");
+  ozni_buf_puts(u->err, what);
+  if (detail.len > 0) {
+    ozni_buf_puts(u->err, ": ");
+    put_str(u->err, detail);
+  }
+  ozni_buf_puts(u->err, "\n");
+}
+
+static void un_file(unbundler *u, bool dep, ozni_str pkg, const char *mid, ozni_str module_path, const char *ext,
+                    const char *body, size_t len) {
+  ozni_buf path = {.a = u->out->a};
+  if (dep) {
+    ozni_buf_puts(&path, "deps/");
+    put_str(&path, pkg);
+    ozni_buf_puts(&path, "/");
+  }
+  ozni_buf_puts(&path, mid);
+  for (uint32_t k = 0; k < module_path.len; k++) {
+    ozni_buf_put(&path, module_path.p[k] == '.' ? "/" : module_path.p + k, 1);
+  }
+  ozni_buf_puts(&path, ext);
+  if (path.failed || path.p == nullptr) {
+    u->out->failed = true;
+  } else {
+    ozni_buf_put(u->out, path.p, path.len);
+  }
+  ozni_buf_discard(&path);
+  ozni_buf_puts(u->out, "\n");
+  ozni_buf_putu(u->out, len);
+  ozni_buf_puts(u->out, "\n");
+  ozni_buf_put(u->out, body, len);
+}
+
+static ozni_index un_from(const unbundler *u, ozni_str pkg) {
+  for (size_t k = 0; k < u->nfrom; k++) {
+    if (str_order(str_of(u->c, un_nd(u, u->froms[k])->text), pkg) == 0) {
+      return (ozni_index)k;
+    }
+  }
+  return NONE;
+}
+
+static ozni_index un_field(const unbundler *u, ozni_index bundle_node, const char *name) {
+  for (ozni_index k = un_nd(u, bundle_node)->first; k != 0; k = un_nd(u, k)->next) {
+    const ozni_node *f = un_nd(u, k);
+    ozni_str n = str_of(u->c, f->text);
+    if (f->kind == OZNI_N_Field && n.len == strlen(name) && memcmp(n.p, name, n.len) == 0 && f->first != 0 &&
+        un_nd(u, f->first)->kind == OZNI_N_String) {
+      return un_nd(u, f->first)->text;
+    }
+  }
+  return 0;
+}
+
+static void un_packages(unbundler *u, ozni_index bundle_node) {
+  ozni_buf body = {.a = u->out->a};
+  for (size_t k = 0; k < u->nfrom; k++) {
+    const ozni_node *f = un_nd(u, u->froms[k]);
+    ozni_str name = str_of(u->c, f->text), ver = str_of(u->c, f->text2);
+    body.len = 0;
+    ozni_buf_puts(&body, "package ");
+    put_str(&body, name);
+    ozni_buf_puts(&body, " {\n  version: ");
+    ozni_buf_quoted(&body, ver.p, ver.len);
+    ozni_buf_puts(&body, "\n");
+    if (k == 0) {
+      ozni_index lic = un_field(u, bundle_node, "license"), std = un_field(u, bundle_node, "std");
+      if (lic != 0) {
+        ozni_str l = str_of(u->c, lic);
+        ozni_buf_puts(&body, "  license: ");
+        ozni_buf_quoted(&body, l.p, l.len);
+        ozni_buf_puts(&body, "\n");
+      }
+      ozni_buf_puts(&body, "  requires: {\n");
+      if (std != 0) {
+        ozni_str sv = str_of(u->c, std);
+        ozni_buf_puts(&body, "    std: ");
+        ozni_buf_quoted(&body, sv.p, sv.len);
+        ozni_buf_puts(&body, "\n");
+      }
+      for (size_t d = 1; d < u->nfrom; d++) {
+        const ozni_node *df = un_nd(u, u->froms[d]);
+        ozni_str dv = str_of(u->c, df->text2);
+        ozni_buf_puts(&body, "    ");
+        put_str(&body, str_of(u->c, df->text));
+        ozni_buf_puts(&body, ": ");
+        ozni_buf_quoted(&body, dv.p, dv.len);
+        ozni_buf_puts(&body, "\n");
+      }
+      ozni_buf_puts(&body, "  }\n");
+    }
+    ozni_buf_puts(&body, "}\n");
+    if (body.failed || body.p == nullptr) {
+      u->out->failed = true;
+      break;
+    }
+    un_file(u, k != 0, name, "", (ozni_str){"", 0}, "package.ozen", body.p, body.len);
+  }
+  ozni_buf_discard(&body);
+}
+
+static void un_module(unbundler *u, const ozni_node *m) {
+  ozni_str name = str_of(u->c, m->text);
+  uint32_t dot = 0;
+  while (dot < name.len && name.p[dot] != '.') {
+    dot++;
+  }
+  ozni_str pkg = {name.p, dot};
+  ozni_index from = un_from(u, pkg);
+  if (from == NONE || dot >= name.len) {
+    un_error(u, "a module belongs to no from package", name);
+    return;
+  }
+  uint32_t open = m->span.start, close = m->span.end;
+  while (open < close && u->text[open] != '{') {
+    open++;
+  }
+  while (close > open && u->text[close - 1] != '}') {
+    close--;
+  }
+  uint32_t start = open + 1, end = close > 0 ? close - 1 : close;
+  start += start < end && u->text[start] == '\n' ? 1 : 0;
+  ozni_str rest = {name.p + dot + 1, name.len - dot - 1};
+  un_file(u, from != 0, pkg, "", rest, ".ozen", u->text + start, end > start ? end - start : 0);
+}
+
+static void un_phrases(unbundler *u, const ozni_node *p) {
+  const ozni_node *s = p->first != 0 ? un_nd(u, p->first) : nullptr;
+  if (s == nullptr || s->kind != OZNI_N_MlString || s->span.end - s->span.start < 6) {
+    un_error(u, "phrases must be a multi-line string", str_of(u->c, p->text));
+    return;
+  }
+  uint32_t at = s->span.start + 3, end = s->span.end - 3;
+  at += at < end && u->text[at] == '\n' ? 1 : 0;
+  ozni_str lang = str_of(u->c, p->text);
+  char mid[80];
+  if (lang.len + 13 > sizeof mid) {
+    un_error(u, "a phrases language name is too long", lang);
+    return;
+  }
+  ozni_copy(mid, "phrases/", 8);
+  ozni_copy(mid + 8, lang.p, lang.len);
+  mid[8 + lang.len] = '\0';
+  ozni_index cur = NONE;
+  uint32_t body = at;
+  while (at <= end) {
+    uint32_t eol = at;
+    while (eol < end && u->text[eol] != '\n') {
+      eol++;
+    }
+    ozni_index marker = NONE;
+    if (eol - at > 4 && memcmp(u->text + at, "### ", 4) == 0) {
+      marker = un_from(u, (ozni_str){u->text + at + 4, eol - at - 4});
+    }
+    if (marker != NONE || at == end) {
+      if (cur != NONE) {
+        ozni_str pkg = str_of(u->c, un_nd(u, u->froms[cur])->text);
+        un_file(u, cur != 0, pkg, mid, (ozni_str){"", 0}, ".ftl", u->text + body, at - body);
+      } else if (at > body) {
+        un_error(u, "phrases start before a ### package line", lang);
+      }
+      cur = marker;
+      body = eol < end ? eol + 1 : end;
+    }
+    if (at == end) {
+      break;
+    }
+    at = eol < end ? eol + 1 : end;
+  }
+}
+
+char *ozni_unbundle_text(const ozni_allocator *a, const ozni_limits *lim, const ozni_source *src, int *has_errors) {
+  ozni_ctx c;
+  *has_errors = 0;
+  if (!ozni_ctx_init(&c, a, lim, src, 1)) {
+    return nullptr;
+  }
+  ozni_ast ast = {0};
+  size_t bad = 0;
+  bool admitted = src->len <= lim->input_bytes && ozni_check_utf8(src->text, src->len, &bad);
+  if (src->len > lim->input_bytes) {
+    ozni_diag_add(&c, OZNI_D_SYN_inputTooLarge, (ozni_span){0, 0, 0}, 0, nullptr, 0);
+  } else if (!admitted) {
+    ozni_diag_add(&c, OZNI_D_SYN_invalidUtf8, (ozni_span){0, (uint32_t)bad, (uint32_t)bad + 1}, 0, nullptr, 0);
+  }
+  bool parsed = admitted && ozni_parse(&c, 0, &ast) && ozni_table_count(c.diags) == 0;
+  ozni_buf out = {.a = a}, err = {.a = a};
+  unbundler u = {.c = &c, .ast = &ast, .text = src->text, .out = &out, .err = &err};
+  ozni_index bundle_node = 0;
+  for (ozni_index i = parsed ? un_nd(&u, ast.root)->first : 0; i != 0; i = un_nd(&u, i)->next) {
+    const ozni_node *n = un_nd(&u, i);
+    if (n->kind == OZNI_N_Bundle && bundle_node == 0) {
+      bundle_node = i;
+      for (ozni_index k = n->first; k != 0; k = un_nd(&u, k)->next) {
+        if (un_nd(&u, k)->kind == OZNI_N_BundleFrom && u.nfrom < 64) {
+          u.froms[u.nfrom++] = k;
+        }
+      }
+    } else if (n->kind != OZNI_N_Module && n->kind != OZNI_N_Phrases) {
+      un_error(&u, "a bundle holds only its header, modules and phrases", (ozni_str){"", 0});
+      break;
+    }
+  }
+  if (parsed && (bundle_node == 0 || u.nfrom == 0)) {
+    un_error(&u, "the file has no bundle header with a from package", (ozni_str){"", 0});
+  }
+  if (parsed && err.len == 0) {
+    un_packages(&u, bundle_node);
+    for (ozni_index i = un_nd(&u, ast.root)->first; i != 0; i = un_nd(&u, i)->next) {
+      const ozni_node *n = un_nd(&u, i);
+      if (n->kind == OZNI_N_Module) {
+        un_module(&u, n);
+      } else if (n->kind == OZNI_N_Phrases) {
+        un_phrases(&u, n);
+      }
+    }
+  }
+  char *text = nullptr;
+  if (parsed && err.len == 0 && !out.failed && !c.oom) {
+    ozni_buf_discard(&err);
+    text = ozni_buf_finish(&out);
+  } else {
+    ozni_buf_discard(&out);
+    *has_errors = 1;
+    if (!parsed && !c.oom) {
+      bool errors = false;
+      ozni_buf_discard(&err);
+      text = ozni_render_check(&c, &err, &errors) ? ozni_buf_finish(&err) : nullptr;
+    } else {
+      text = ozni_buf_finish(&err);
+    }
+  }
+  ozni_ctx_free(&c);
+  return text;
+}
