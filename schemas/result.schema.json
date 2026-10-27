@@ -377,6 +377,33 @@
           },
           "type": "array"
         },
+        "ingredients": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "node": {
+                "oneOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "label",
+              "node"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
         "name": {
           "type": "string"
         },
@@ -425,6 +452,7 @@
       },
       "required": [
         "choices",
+        "ingredients",
         "name",
         "nodes",
         "waves"
@@ -465,6 +493,16 @@
             "type": "object"
           },
           "type": "array"
+        },
+        "group": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "id": {
           "minimum": 1,
@@ -510,6 +548,16 @@
         "label": {
           "type": "string"
         },
+        "part": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "quantity": {
           "oneOf": [
             {
@@ -528,6 +576,16 @@
         },
         "time": {
           "$ref": "#/$defs/range"
+        },
+        "type": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "unattended": {
           "type": "boolean"
@@ -578,13 +636,16 @@
         "after",
         "allergens",
         "args",
+        "group",
         "id",
         "inputs",
         "kind",
         "label",
+        "part",
         "quantity",
         "requires",
         "time",
+        "type",
         "unattended",
         "variants",
         "wave"

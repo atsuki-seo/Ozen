@@ -180,6 +180,9 @@ typedef struct sema {
   ozni_table *choices;
   ozni_table *choice_opts;
   ozni_table *assemble_infos;
+  ozni_table *ir_groups;
+  ozni_table *decl_ings;
+  ozni_index group_key;
 } sema;
 
 typedef struct mframe {
@@ -1389,6 +1392,11 @@ static value eval_in(sema *s, ozni_index file, ozni_index node, const value *par
 
 static bool ir_on(const sema *s) { return s->ir.nodes != nullptr; }
 
+typedef struct ir_group {
+  ozni_index irn;
+  ozni_index key;
+} ir_group;
+
 static ozni_index ir_add(sema *s, ozni_ir_node node) {
   ozni_index at;
   if (node.kind != OZNI_IR_WAVE) {
@@ -1400,6 +1408,11 @@ static ozni_index ir_add(sema *s, ozni_ir_node node) {
   }
   if (s->in_branch && (node.kind == OZNI_IR_OP || node.kind == OZNI_IR_CHOOSE || node.kind == OZNI_IR_PLATE)) {
     s->branch_last = at + 1;
+  }
+  ir_group g = {at + 1, s->group_key};
+  if (s->group_key != 0 && s->ir_groups != nullptr && (node.kind == OZNI_IR_OP || node.kind == OZNI_IR_CHOOSE) &&
+      !ozni_table_push(s->ir_groups, &g, nullptr)) {
+    s->c->oom = true;
   }
   return at + 1;
 }
@@ -1444,7 +1457,14 @@ typedef struct ir_meta {
   bool has_qty;
   uint32_t nallergens;
   ozni_index allergens[8];
+  ozni_index type;
+  ozni_index part;
 } ir_meta;
+
+typedef struct decl_ing {
+  ozni_index label;
+  const struct food *f;
+} decl_ing;
 
 typedef struct choice {
   ozni_index at;
@@ -1485,6 +1505,8 @@ static void meta_push(sema *s, ozni_index irn, const food *out, const value *par
     m.has_qty = true;
   }
   m.nallergens = out != nullptr ? food_allergens(s, out, m.allergens, 8) : 0;
+  m.type = out != nullptr ? out->type : 0;
+  m.part = out != nullptr ? out->part : 0;
   for (uint32_t i = 1; i < m.nallergens; i++) {
     for (uint32_t j = i; j > 0 && name_after(S(s, m.allergens[j - 1]), S(s, m.allergens[j])); j--) {
       ozni_index t = m.allergens[j];
@@ -4873,6 +4895,10 @@ static void eval_ingredients(sema *s, const ozni_node *n) {
     f->in_label = item->text;
     value fv = {.kind = V_FOOD, .f = f, .ref = item->text};
     bind(s, item->text, fv);
+    decl_ing di = {item->text, f};
+    if (s->decl_ings != nullptr && !ozni_table_push(s->decl_ings, &di, nullptr)) {
+      s->c->oom = true;
+    }
     if (printing(s)) {
       ozni_buf_puts(s->out, "  ");
       ozni_str nm = S(s, item->text);
@@ -5032,6 +5058,16 @@ static void bind_splice(sema *s, const ozni_node *let, value v) {
   }
 }
 
+static ozni_index group_of(sema *s, const ozni_node *stmt, ozni_index outer) {
+  for (ozni_index c = stmt->first; c != 0; c = nd(s, s->file, c)->next) {
+    const ozni_node *an = nd(s, s->file, c);
+    if (an->kind == OZNI_N_Annotation && str_is(S(s, an->text), "group") && an->first != 0) {
+      return nd(s, s->file, an->first)->text;
+    }
+  }
+  return outer;
+}
+
 static void eval_block(sema *s, ozni_index block, bool top) {
   const ozni_node *bn = nd(s, s->file, block);
   if (!enter(s, s->file, bn) || !tick(s, s->file, bn)) {
@@ -5051,7 +5087,10 @@ static void eval_block(sema *s, ozni_index block, bool top) {
       }
       tick_annotations(s, n);
       check_targets(s, n, n->first);
+      ozni_index outer_group = s->group_key;
+      s->group_key = group_of(s, n, outer_group);
       value v = n->first != 0 ? eval(s, n->first) : unknown();
+      s->group_key = outer_group;
       if (v.kind == V_FOOD) {
         label(v.f, n->text, (ozni_span){s->file, n->name_start, n->name_end});
         if (top) {
@@ -5076,9 +5115,12 @@ static void eval_block(sema *s, ozni_index block, bool top) {
         }
       }
       tick_annotations(s, n);
+      ozni_index outer_group = s->group_key;
+      s->group_key = group_of(s, n, outer_group);
       if (expr != 0) {
         v = eval(s, expr);
       }
+      s->group_key = outer_group;
       if (top && v.kind == V_TUPLE) {
         s->last = v;
         s->last_node = expr;
@@ -6395,6 +6437,15 @@ static void put_json_reqs(sema *s, ozni_buf *b, uint32_t first, uint32_t n) {
   ozni_buf_puts(b, "]");
 }
 
+static void put_json_name(sema *s, ozni_buf *b, ozni_index name) {
+  if (name == 0) {
+    ozni_buf_puts(b, "null");
+    return;
+  }
+  ozni_str t = S(s, name);
+  ozni_buf_json(b, t.p, t.len);
+}
+
 static void ir_json(sema *s, ozni_index name) {
   ozni_buf *b = s->c->ir_json;
   static const char *const words[] = {"in", "buy", "op", "choose", "plate", "wave"};
@@ -6485,7 +6536,18 @@ static void ir_json(sema *s, ozni_index name) {
       ozni_buf_puts(b, a == 0 ? "" : ",");
       ozni_buf_json(b, an.p, an.len);
     }
-    ozni_buf_puts(b, "]}");
+    ozni_buf_puts(b, "],\"type\":");
+    put_json_name(s, b, meta != nullptr ? meta->type : 0);
+    ozni_buf_puts(b, ",\"part\":");
+    put_json_name(s, b, meta != nullptr ? meta->part : 0);
+    ozni_index key = 0;
+    for (ozni_index g = 0; s->ir_groups != nullptr && g < ozni_table_count(s->ir_groups); g++) {
+      const ir_group *ig = ozni_table_get(s->ir_groups, g);
+      key = ig->irn == k + 1 ? ig->key : key;
+    }
+    ozni_buf_puts(b, ",\"group\":");
+    put_json_name(s, b, key);
+    ozni_buf_puts(b, "}");
   }
   ozni_buf_puts(b, "],\"waves\":[");
   first = true;
@@ -6545,6 +6607,20 @@ static void ir_json(sema *s, ozni_index name) {
       ozni_buf_puts(b, "}");
     }
     ozni_buf_puts(b, "]}");
+  }
+  ozni_buf_puts(b, "],\"ingredients\":[");
+  for (ozni_index i = 0; s->decl_ings != nullptr && i < ozni_table_count(s->decl_ings); i++) {
+    const decl_ing *di = ozni_table_get(s->decl_ings, i);
+    ozni_str lab = S(s, di->label);
+    ozni_buf_puts(b, i == 0 ? "{\"label\":" : ",{\"label\":");
+    ozni_buf_json(b, lab.p, lab.len);
+    ozni_buf_puts(b, ",\"node\":");
+    if (di->f->irn != 0 && di->f->irn > s->ir_base) {
+      ozni_buf_putu(b, ((const ozni_ir_node *)ozni_table_get(s->ir.nodes, di->f->irn - 1))->number);
+    } else {
+      ozni_buf_puts(b, "null");
+    }
+    ozni_buf_puts(b, "}");
   }
   ozni_buf_puts(b, "]}");
 }
@@ -8448,6 +8524,9 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
   s->file = m->file;
   s->step_no = 0;
   s->entry_dish = s->c->set.entry != nullptr && str_is(S(s, n->text), s->c->set.entry);
+  if (s->decl_ings != nullptr) {
+    ozni_table_truncate(s->decl_ings, 0);
+  }
   s->dish_file = m->file;
   s->dish_node = d->node;
   s->small_seen = ozni_table_new(s->c->arena, sizeof(ozni_index));
@@ -8959,8 +9038,11 @@ bool ozni_sema_run(ozni_project *pr, ozni_sema_out what, ozni_buf *out, ozni_ir 
     s.ir_meta = ozni_table_new(pr->c->arena, sizeof(ir_meta));
     s.ir_args = ozni_table_new(pr->c->arena, sizeof(ir_arg));
     s.choices = ozni_table_new(pr->c->arena, sizeof(choice));
+    s.ir_groups = ozni_table_new(pr->c->arena, sizeof(ir_group));
+    s.decl_ings = ozni_table_new(pr->c->arena, sizeof(decl_ing));
     s.choice_opts = ozni_table_new(pr->c->arena, sizeof(choice_opt));
-    if (s.ir_meta == nullptr || s.ir_args == nullptr || s.choices == nullptr || s.choice_opts == nullptr) {
+    if (s.ir_meta == nullptr || s.ir_args == nullptr || s.choices == nullptr || s.choice_opts == nullptr ||
+        s.ir_groups == nullptr || s.decl_ings == nullptr) {
       return false;
     }
   }
