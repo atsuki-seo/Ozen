@@ -356,6 +356,15 @@
 
 ---
 
+### D37. 束ねたファイルの中身の単位と細かな形 【決定済み】
+
+- **決定:** 推奨のとおり、入口からたどれる定義だけを元のテキストのまま入れ、往復は「戻した宣言は元の宣言の部分集合で、1 つ 1 つは元と同じ、ビルドした IR は元と同じ」と読む。入口のモジュールも含めてすべてをインラインの `module` にし、依存の版は `from` を繰り返して記録し、言い回しは言語ごとに 1 つの `phrases` にまとめてパッケージごとに `###` のコメントで区切る。（2026-10-27、ユーザー確認）
+- 背景: S399（使われていない定義は入れない）と S401（`unbundle` で戻したファイルの宣言は元のソースと同じ）は、元のモジュールに使われない定義があると両立しない。concept §4.7 の例は入口の `menu` をファイルの最上位に置き、`from` を 1 つだけ持つが、それでは入口のモジュールの道筋と依存の版（S407 の検査）が戻せない。
+- **推奨**: 定義の単位で落とし、往復は部分集合で照合する。形は上の決定のとおり。
+- 代替: モジュールの単位で丸ごと入れ、戻したファイルを元と完全に一致させる（S399 を「使われないモジュール」と読み替える）。例のとおり入口を最上位に置き、`from` は 1 つだけにする。
+
+---
+
 ## 3. 現状の確認結果（2026-10-25）
 
 ### 3.1 実装先の土台
@@ -1502,6 +1511,19 @@ IR:
 - **S406** `local` の定義は、束ねても、そのモジュールの中に閉じたまま（concept §4.7）。
 - **S407** 束ねたファイルをプロジェクトに取り込むとき、同じパッケージの別の版があればエラー（concept §4.7）。
 - **S408** 共有されたファイル（束ねたファイル・台所スペック）は信頼できない入力として扱い、上限が効き、ファズで突く（concept §4.2・§4.6・§10）。
+- **S477** 束ねたファイルの中のモジュールは、名前の先頭の区切りと同じ `from` のパッケージに属し、その中の `import` は同じパッケージの中の道筋（`import recipes.curry`）でも解決する。（補、D37）
+- **S478** `ozen unbundle` は `phrases` をパッケージごとの `###` の区切りで分け、それぞれのパッケージの `phrases/<言語>.ftl` に戻す。（補、D37）
+
+#### 4.29.1 束ねたファイルの細目（P15-0 で決めた。すべて（補）、D37）
+
+- 形: ファイルの最上位は `bundle { … }`、モジュール名の順のインラインの `module 名前 { … }`、言語の名前の順の `phrases <言語> """ … """` だけ。`bundle` の項目は `std`（作ったときの `std` の版の `主.副`）・`entry`（入口の定義の名前）・`from`（元のパッケージの名前と版。続けて、入れた依存のパッケージを名前の順に 1 つずつ）・`license`（元の `package.ozen` にあれば）の順
+- 中身: 入口の定義から、定義の本体に現れる名前を、同じモジュールの定義と、そのモジュールが `import` するモジュールの定義に当てて、たどれる定義を集める（名前が同じなら両方入れる。多めに入れるのは安全側）。`extend` は対象の型が入るときに入れる。台所スペック（`kitchen` の宣言）と `std` は入れない。モジュールの中の定義は元の順で、元のソースのその定義の範囲のテキスト（直前のコメントを含む）をそのまま写す。`import` は、入るモジュールを指すものだけ残す。定義が 1 つも入らないモジュールは入れない
+- モジュールの名前: 元のモジュール名（パッケージ名 + 道筋）。依存のパッケージは `deps/<名前>/` の下のモジュール（S397）
+- 言い回し: 元のパッケージの `phrases/<言語>.ftl` と、入れた依存の `deps/<名前>/phrases/<言語>.ftl` を、依存（名前の順）→ 元のパッケージの順に、それぞれ `### <パッケージ名>` の行を先頭に付けてつなぐ（レンダラーの重ね方 S385 と同じ順）。本文に `"""` があればエラー
+- 単体のビルド（S402）: `bundle` を持つファイルの中のモジュールは、名前の先頭の区切りと同じ `from` のパッケージに属する（S477）。入口を指定しなければ `bundle` の `entry` を入口にする。記録された `std` の版は `requires` と同じ規則で検査する（S404。`PKG006`・`PKG007`・`PKG010`）
+- 取り込み（S407）: プロジェクトの中に置いた束ねたファイルの `from` のパッケージと、`deps/` のパッケージに同じ名前で版の違うものがあれば `PKG009`
+- 戻し方（S401・S444・S478）: `ozen unbundle FILE [-o DIR]`（既定は今のフォルダ）。元のパッケージのモジュールは `<道筋>.ozen`、依存は `deps/<名前>/<道筋>.ozen` に書き、`package.ozen`（`from` の名前と版、`license`、`requires { std: "<版>" }`）と依存の `deps/<名前>/package.ozen` も書く。書く先に 1 つでもファイルがあれば何も書かずにエラー（終了コード 2）
+- CLI: `ozen bundle [ENTRY] [-o FILE]`（既定は標準出力）。中身を作るのはコアの内部の関数（ファイルを読み書きしない）で、CLI は言い回しのファイルを読んで渡し、結果を書く
 
 ### 4.30 D〜L の足すもの・コードの配置
 
@@ -2511,6 +2533,8 @@ gh run download "$id" -n xcframework -D build/ios && unzip -l build/ios/OzenProt
 | S442 | 正常系 | `cgolden/sched/veg-before-meat` | 洗いを数えずに選ぶ | P9-5 |
 | S443 | 永続化 | `cli/out-rebuild-identical`、`cli/out-removed-entry` | 古い出力を消さない | P10-4 |
 | S444 | 永続化 | `cli/unbundle-no-overwrite` | 上書きする | P15-2 |
+| S477 | 正常系 | `cgolden/bundle/relative-import` | 束ねたファイルの中のモジュールをパッケージに属させない | P15-1 |
+| S478 | 正常系 | `cli/unbundle-phrases` | 言い回しを元のパッケージにまとめて戻す | P15-2 |
 | S445 | 正常系 | `rtest/recipe-wave-sections` | 波の名前で区切らない | P14-2 |
 | S446 | 正常系 | `rtest/diag-text` | 診断の文面を英語の固定の文にする | P14-1 |
 | S447 | 正常系 | `rtest/wash-vs-togu` | 米にも「洗う」を使う | P14-1 |
@@ -3532,12 +3556,13 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: S393（単位を付けずに書き出す）は `settings-form-roundtrip` が落ちた（テキストの照合を外しても、CLI の `check` が `TYP001` を出して落ちる）。S394（項目を手で並べる）は `settings-form-new-field` が落ちた。S453（量の項目の単位を出さない）は `G-REND-HTML` が `36 quantity without unit` で落ちた。戻して合格
 - P14-5（2026-10-27）: 先に CLI のテスト `cli/render`（`tests/cli/render.sh`。HTML の題に自分のプロジェクトの言い回し、本文に `std` の言い回し、`--kind recipe -o`、`--kind settings` のフォーム、知らない `--kind` と見つからないレンダラーで終了コード 2）と、`subcommands` の期待の変更（`render` を「まだ使えない」から外す）をコミットし、`ozen render [OPTIONS] [ENTRY|FILE]` を書いた（`--kind recipe|schedule|shopping|html|settings`・`--lang`・`--dialect`・`-o/--output`）。CLI は `check` と同じ入口の解決で結果の JSON（`ir,schedule,steps,definitions,types`）を作り、`node renderers/cli.mjs` の標準入力に渡す（D21）。レンダラーは環境変数 `OZEN_RENDERER`、無ければ実行ファイルの実際の場所（`build/<構成>/ozen`）から `../../renderers/cli.mjs`・`../renderers/cli.mjs` の順に探し、`std` の言い回しはその隣の `phrases/`、自分のプロジェクトの言い回しは今のフォルダの `phrases/`。node は環境変数 `OZEN_NODE`、無ければ `node`。`render.mjs` の `kind` に `settings` を足した。`renderers/tools/bundle.mjs` は本体と Fluent を依存の順に関数で包んだ 1 つの普通のスクリプト（`globalThis.OzenRenderer` を定義する、既定の出力は `build/renderer/ozen-renderer.js`）に束ね、相対でない import は読み込んだときに例外を出す形にする（import の循環はエラー）。`renderers/tools/browser-test.sh` はサンプルの結果の JSON（`build/results/json/samples/`）を言い回しと一緒にヘッドレスの Chrome に渡し、束ねたファイルで 2 言語 × 5 種類を描画した結果を、node で `renderers/lib/` を直接読んだ結果と比べる（共通の手順は `browser-cases.mjs`）。自己テスト `scripts/test-browser-test.sh`（同じ・node の API を使う束ね・出力を変えた束ね・入力 0 件の 5 件）を `scripts/selftests.txt` に登録した。`G-CLI-TESTS`（`16 cases, 0 failed`）・`G-REND-BROWSER-SAFE`（node の参照 0、`browser: 26 inputs, 0 mismatches`）・`G-CORE-BUILD`・`G-CORE-FLAGS`・`G-CORE-C23-SUBSET` が合格
   - わざと壊す確認: S395（`render` を外す）は、関数を消すと未使用でビルドが失敗して古い実行ファイルで測ってしまったため、サブコマンドの名前の照合を変える形で壊し直し、`cli/render` が落ちた（`html status: got '2'`）。S396（本体で `fs` を読み込む。`xml.mjs` に `import { readFileSync } from 'node:fs'`）は `G-REND-BROWSER-SAFE` が node の参照 `1` と `browser: 26 inputs, 26 mismatches` の両方で落ちた。戻して合格
-- ゲート K（P14-6、2026-10-27）: P13-6 のゴール（`G-CORE-BUILD`・`FLAGS`・`C23-SUBSET`（`12 allowed probes ok on 5 toolchains`）・`DIAG-REGISTRY`（`103 codes`）・`DIAG-APPEND`・`UNIT`（24 件 × 4 構成）・`ARENA-ACCESS`・`NOINT128`・`GOLDEN`（339 件 × 4 構成）・`GRAMMAR`（131 規則）・`STD-EMBED`・`G-STD-LISTS`（`267 listed`）・`STATIC`・`SOURCES`・`PROVENANCE`・`G-REPO-VERSION`・`G-CORE-OOM`（`319 files, 4256 points, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`DETERMINISM`・`G-REPO-SPDX`・`SELFTESTS`・`RED-FIRST`・`TOOLS`・`G-PLAN-COVERAGE`・`G-TYPE-SEVERITY-TABLE`・`G-SCHED-CHECK`（`65 schedules, 0 violations`）・`G-CORE-FUZZ`（`parse` `71130 execs in 601 s`・`expand` `32306 execs in 601 s`・`typecheck` `27292 execs in 606 s`・`schedule` `35826 execs in 601 s`、すべて 0 crashes, 0 leaks, 0 timeouts）・`G-API-EXPORTS`・`G-API-HEADER`・`G-API-SCHEMA`（`json: 339 files, 0 invalid`）・`G-API-SARIF`（`sarif: 181 files, 0 invalid`）・`G-CLI-TESTS`（`16 cases`）・`G-PLAT-LINUX`・`G-PLAT-WASM`・`G-SAMPLE-CHECK`（`11 samples, 236 expectations, 0 failed`）・`G-SAMPLE-STD-ONLY`・`G-STD-PHRASES`（`219 keys`）・`G-CORE-PROPS` の `std_copy`（`111 cases, 0 differences`）・`G-REPO-NOREPLY`）と P14 のゴール（`G-REND-TESTS`（`# pass 32`）・`G-REND-VENDOR`・`G-REND-PHRASES-RENDER`（`26 samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved`）・`G-REND-SELFCONTAINED`（`54 files, 0 external references`）・`G-REND-HTML`（`54 files, … 42 charts, 0 overlaps, 0 out of bounds; form: 144 inputs, 0 without label, 0 quantity without unit`）・`G-REND-BROWSER-SAFE`（`browser: 26 inputs, 0 mismatches`））が合格。`G-PLAT-WASM` は最初 `build/core-wasm` が古いまま（ゴールは wasm をビルドし直さない）で落ちたので、`scripts/build-wasm.sh` でビルドし直して合格（CLI の `ozen render` の `popen` も emcc でビルドできた）。計画との食い違い: `G-CORE-PROPS` の `bundle_roundtrip` は P15-2 で作るのでまだ合格しない（ゲート H〜J と同じ扱い）。`G-PLAT-IOS`・`G-PLAT-ANDROID`・`G-PLAT-CI`・`G-REPO-TOOLS-CI` は今の HEAD の CI の実行を読むので、push の後に確かめる
+- ゲート K（P14-6、2026-10-27）: P13-6 のゴール（`G-CORE-BUILD`・`FLAGS`・`C23-SUBSET`（`12 allowed probes ok on 5 toolchains`）・`DIAG-REGISTRY`（`103 codes`）・`DIAG-APPEND`・`UNIT`（24 件 × 4 構成）・`ARENA-ACCESS`・`NOINT128`・`GOLDEN`（339 件 × 4 構成）・`GRAMMAR`（131 規則）・`STD-EMBED`・`G-STD-LISTS`（`267 listed`）・`STATIC`・`SOURCES`・`PROVENANCE`・`G-REPO-VERSION`・`G-CORE-OOM`（`319 files, 4256 points, 0 failures`）・`PURE`・`NOGLOBAL`・`NOFLOAT`・`DETERMINISM`・`G-REPO-SPDX`・`SELFTESTS`・`RED-FIRST`・`TOOLS`・`G-PLAN-COVERAGE`・`G-TYPE-SEVERITY-TABLE`・`G-SCHED-CHECK`（`65 schedules, 0 violations`）・`G-CORE-FUZZ`（`parse` `71130 execs in 601 s`・`expand` `32306 execs in 601 s`・`typecheck` `27292 execs in 606 s`・`schedule` `35826 execs in 601 s`、すべて 0 crashes, 0 leaks, 0 timeouts）・`G-API-EXPORTS`・`G-API-HEADER`・`G-API-SCHEMA`（`json: 339 files, 0 invalid`）・`G-API-SARIF`（`sarif: 181 files, 0 invalid`）・`G-CLI-TESTS`（`16 cases`）・`G-PLAT-LINUX`・`G-PLAT-WASM`・`G-SAMPLE-CHECK`（`11 samples, 236 expectations, 0 failed`）・`G-SAMPLE-STD-ONLY`・`G-STD-PHRASES`（`219 keys`）・`G-CORE-PROPS` の `std_copy`（`111 cases, 0 differences`）・`G-REPO-NOREPLY`）と P14 のゴール（`G-REND-TESTS`（`# pass 32`）・`G-REND-VENDOR`・`G-REND-PHRASES-RENDER`（`26 samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved`）・`G-REND-SELFCONTAINED`（`54 files, 0 external references`）・`G-REND-HTML`（`54 files, … 42 charts, 0 overlaps, 0 out of bounds; form: 144 inputs, 0 without label, 0 quantity without unit`）・`G-REND-BROWSER-SAFE`（`browser: 26 inputs, 0 mismatches`））が合格。`G-PLAT-WASM` は最初 `build/core-wasm` が古いまま（ゴールは wasm をビルドし直さない）で落ちたので、`scripts/build-wasm.sh` でビルドし直して合格（CLI の `ozen render` の `popen` も emcc でビルドできた）。計画との食い違い: `G-CORE-PROPS` の `bundle_roundtrip` は P15-2 で作るのでまだ合格しない（ゲート H〜J と同じ扱い）。`G-PLAT-IOS`・`G-PLAT-ANDROID`・`G-PLAT-CI`・`G-REPO-TOOLS-CI` は push の後に確かめて合格（CI はコミット `e9e1d08` の実行 40465944412、5 ジョブとも成功）
 - `@fluent/bundle` の版・取得元・sha256（P14-1）: 0.19.1（Apache-2.0）。`https://registry.npmjs.org/@fluent/bundle/-/bundle-0.19.1.tgz`（33,539 バイト、SHA-1 `d9931a0b…`）の `package/esm/` の 10 ファイルと `package.json`。アーカイブにライセンスのファイルが無いので、`renderers/vendor/fluent-bundle/LICENSE` はリポジトリの `LICENSE-APACHE` の本文。ファイルごとの sha256 は `renderers/vendor/README.md`
 - わざと壊す確認の記録
 
 ### 9.11 L（bundle）
 
+- P15-0（2026-10-27）: コアの今のモジュールの扱いを調べた（インラインの `module` はパースと名前の登録まで動き、名前は書いたとおり。`bundle` と `phrases` はパースだけ。`sema.c` の `mod_of_file`・`defs.c` の `module_of`・`levels.c` の `dependency_file` は 1 ファイル 1 モジュールを前提にし、注釈の集めがインラインのモジュールで二重になる）。S399 と S401 がぶつかることが分かり、D37 として確認を取った。§4.29.1 に形・中身・言い回し・単体のビルド・取り込み・戻し方・CLI を書き、S477・S478 と網羅表の行を足した
 - わざと壊す確認の記録
 
 ---
