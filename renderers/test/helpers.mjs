@@ -35,3 +35,12 @@ export function projectPhrases(dir, name) {
 export function expected(name) {
   return readFileSync(join(root, 'renderers', 'test', 'expected', name), 'utf8');
 }
+
+export function ozen(args, cwd = root) {
+  return spawnSync(join(root, 'build', 'core-gcc-release', 'ozen'), args, { cwd, encoding: 'utf8' });
+}
+
+export function typesResult() {
+  return JSON.parse(ozen(['check', '--format', 'json', '--emit', 'types,definitions', 'small.ozen'],
+    join(root, 'renderers', 'test', 'inputs')).stdout);
+}
