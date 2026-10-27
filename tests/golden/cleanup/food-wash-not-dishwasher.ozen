@@ -1,0 +1,15 @@
+// args: debug schedule --kitchen home --options today
+recipe r() {
+  ingredients {
+    rice: 300 g
+  }
+  let w = wash(rice)
+}
+kitchen home {
+  places {
+    dishwasher: Dishwasher
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}

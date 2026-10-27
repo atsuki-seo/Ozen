@@ -1,0 +1,5 @@
+schedule r level=2 cooks=1
+  0..180 (60) %2 wash by cook1 [sink#1]
+  total 180
+result ok errors=0 warnings=0 infos=0
+exit 0
