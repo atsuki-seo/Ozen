@@ -67,10 +67,14 @@ export class Phrases {
       if (!message?.value) {
         continue;
       }
+      if (l !== this.lang) {
+        this.stats.fallbacks++;
+        this.missing.add(`${this.lang}: ${key}`);
+      }
       return this.resolve(bundle, message.value, args);
     }
     this.stats.fallbacks++;
-    this.missing.add(key);
+    this.missing.add(`${this.lang}: ${key}`);
     return fallback ?? key;
   }
 }

@@ -29,7 +29,7 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
       renderShopping(result, ph);
       writeFileSync(join(outDir, `${file.replace(/\.json$/, '')}.${lang}.html`), renderHtml(result, ph));
       for (const key of ph.missing) {
-        missing.add(`${lang}: ${key}`);
+        missing.add(key);
       }
       for (const k of Object.keys(total)) {
         total[k] += ph.stats[k];
