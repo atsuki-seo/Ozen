@@ -45,6 +45,24 @@ def declarations(ozen, path):
     return Counter("\n".join(b) for b in blocks if not b[0].startswith("  Import"))
 
 
+def dep_folders(project):
+    folders = {}
+    deps = os.path.join(project, "deps")
+    for name in sorted(os.listdir(deps)) if os.path.isdir(deps) else []:
+        manifest = os.path.join(deps, name, "package.ozen")
+        m = re.search(r"^package (\w+)", open(manifest, encoding="utf-8").read(), re.M) if os.path.isfile(manifest) else None
+        if m:
+            folders[m.group(1)] = name
+    return folders
+
+
+def original_path(project, rel):
+    parts = rel.split(os.sep)
+    if len(parts) > 2 and parts[0] == "deps":
+        parts[1] = dep_folders(project).get(parts[1], parts[1])
+    return os.path.join(project, *parts)
+
+
 def ozen_files(d):
     for base, _, files in os.walk(d):
         for f in files:
@@ -73,7 +91,7 @@ def main():
             restored = run(ozen, work, "unbundle", bundled, "-o", back)
             problems = [] if restored.returncode == 0 else ["unbundle failed"]
             for rel in ozen_files(back) if restored.returncode == 0 else []:
-                original = os.path.join(project, rel)
+                original = original_path(project, rel)
                 if not os.path.isfile(original):
                     problems.append(f"{rel} has no original")
                 elif declarations(ozen, os.path.join(back, rel)) - declarations(ozen, original):
