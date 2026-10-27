@@ -108,50 +108,23 @@ static bool module_used(const bundler *b, ozni_index mi) {
   return false;
 }
 
-static ozni_index last_segment(const bundler *b, ozni_index name) {
-  ozni_str s = str_of(b->c, name);
-  size_t k = s.len;
-  while (k > 0 && s.p[k - 1] != '.') {
-    k--;
-  }
-  return k == 0 ? name : intern(b->c, s.p + k, s.len - k);
-}
-
-static void take_extensions(bundler *b) {
-  bool changed = true;
-  while (changed && !b->c->oom) {
-    changed = false;
-    for (ozni_index mi = 0; mi < ozni_table_count(b->pr->modules); mi++) {
-      const ozni_module *m = mod(b, mi);
-      if (!user_module(b, mi) || !module_used(b, mi)) {
-        continue;
-      }
-      for (ozni_index i = nd(b, m->file, m->root)->first; i != 0; i = nd(b, m->file, i)->next) {
-        ozni_node_kind k = item_kind(b, m->file, i);
-        if (b->marked[m->file][i] || (k != OZNI_N_Extend && k != OZNI_N_Check)) {
-          continue;
-        }
-        bool wanted = k == OZNI_N_Check;
-        if (k == OZNI_N_Extend) {
-          const ozni_node *e = nd(b, m->file, i);
-          e = e->kind == OZNI_N_Local ? nd(b, m->file, e->first) : e;
-          ozni_index mods[32], defs[32];
-          size_t n = ozni_project_candidates(b->pr, mi, last_segment(b, e->text), mods, defs, 32);
-          for (size_t c = 0; c < n && !wanted; c++) {
-            const ozni_module *dm = mod(b, mods[c]);
-            ozni_index top = top_item(b, mods[c], ((const ozni_def *)ozni_table_get(dm->defs, defs[c]))->node);
-            wanted = top != 0 && b->marked[dm->file][top];
-          }
-        }
-        if (wanted) {
-          take(b, mi, i);
-          changed = true;
-        }
-      }
-      while (b->nwork > 0) {
-        scan(b, b->work[--b->nwork]);
+/* Extensions, washing rules and checks act on the whole project wherever they are written, so a
+   bundle keeps every one of them instead of following names to them. */
+static void take_global(bundler *b) {
+  for (ozni_index mi = 0; mi < ozni_table_count(b->pr->modules); mi++) {
+    const ozni_module *m = mod(b, mi);
+    if (!user_module(b, mi)) {
+      continue;
+    }
+    for (ozni_index i = nd(b, m->file, m->root)->first; i != 0; i = nd(b, m->file, i)->next) {
+      ozni_node_kind k = item_kind(b, m->file, i);
+      if (k == OZNI_N_Extend || k == OZNI_N_Rule || k == OZNI_N_Check) {
+        take(b, mi, i);
       }
     }
+  }
+  while (b->nwork > 0) {
+    scan(b, b->work[--b->nwork]);
   }
 }
 
@@ -451,7 +424,7 @@ static bool build(bundler *b, ozni_index entry, ozni_buf *out, const ozni_source
   while (b->nwork > 0) {
     scan(b, b->work[--b->nwork]);
   }
-  take_extensions(b);
+  take_global(b);
   ozni_index *mods = ozni_arena_alloc(c->arena, (nmod + 1) * sizeof *mods);
   ozni_index *pkgs = ozni_arena_alloc(c->arena, (ozni_table_count(pr->packages) + 1) * sizeof *pkgs);
   if (mods == nullptr || pkgs == nullptr) {
