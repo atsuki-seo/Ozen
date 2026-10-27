@@ -158,8 +158,8 @@ def main(argv):
         samples += 1
         with open(path, encoding="utf-8") as f:
             expect = yaml.safe_load(f) or {}
-        entry = expect.get("entry")
         for run in expect.get("runs", []):
+            entry = run.get("entry", expect.get("entry"))
             r = Run(f"{name}/{run.get('name', '?')}")
             cmd = [ozen, "check", "--format", "json", "--emit", "ir,schedule,steps"]
             if run.get("kitchen"):

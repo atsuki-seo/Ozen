@@ -1409,7 +1409,7 @@ IR:
 
 #### 4.27.1 サンプルの期待の細目（P13-0 で決めた。すべて（補））
 
-- `expect.yaml` は `entry`（入口。省けば CLI の既定）と `runs`（実行の並び）を持つ。実行は `name` と、`kitchen`・`options`・`cooks`・`args`（CLI に足す引数）と `expect`（性質）を持ち、`tests/samples/check.py` が `ozen check --format json --emit ir,schedule,steps …` をサンプルのフォルダで回して照合する。結果のすべての段取りは `tools/schedcheck/` の検査も通す（S373）。性質 1 つ（並びの 1 項目）を期待 1 件と数える
+- `expect.yaml` は `entry`（入口。省けば CLI の既定）と `runs`（実行の並び）を持つ。実行は `name` と、`entry`（その実行だけの入口）・`kitchen`・`options`・`cooks`・`args`（CLI に足す引数）と `expect`（性質）を持ち、`tests/samples/check.py` が `ozen check --format json --emit ir,schedule,steps …` をサンプルのフォルダで回して照合する。結果のすべての段取りは `tools/schedcheck/` の検査も通す（S373）。性質 1 つ（並びの 1 項目）を期待 1 件と数える
 - 性質の語彙:
   - 全体: `errors`・`warnings`（数）、`level`、`diagnostics.include`（名前、または `{name, args}` で引数の先頭からの一致）・`diagnostics.exclude`（名前）
   - IR（入口の料理の IR）: `labels`（節の名前を含む）、`reaches`（`{to, from}`。`to` の節（種類か名前）から入力をさかのぼって `from` の名前に届く）、`kinds`（`{種類: 最小の数}`）、`inputs`（`{名前: [入力の名前の順]}`。組み立ての順）、`allergens`（`{名前: [アレルゲン]}`、D33）、`choices`（`{選択の候補の名前: 人数}`、D33）
