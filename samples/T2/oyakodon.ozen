@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe oyakodon(servings: 3) {
+  ingredients {
+    chicken: Chicken<thigh> 300 g
+    onion: 1 pcs
+    egg: 3 pcs
+    water: 200 ml
+    dashi: Dashi 1 tsp
+    sugar: Sugar 1 tbsp
+  }
+  let chickenCut = cut(chicken, biteSize, 30 mm)
+  let onionCut = cut(peel(onion), slice, 5 mm)
+  let simmered = simmer([chickenCut, onionCut, water, dashi, sugar], 10 min)
+  let beaten = mix(egg)
+  let topping = simmer([simmered, beaten], 2 min)
+}

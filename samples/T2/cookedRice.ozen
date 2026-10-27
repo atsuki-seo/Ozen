@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe cookedRice(servings: 4) {
+  ingredients {
+    rice: 2 gou
+  }
+  let soaked = soak(wash(rice), 30 min)
+  let cooked = cookRice(soaked)
+}

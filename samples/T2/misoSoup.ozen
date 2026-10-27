@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe misoSoup(servings: 4) {
+  ingredients {
+    tofu: Tofu 150 g
+    wakame: Wakame 5 g
+    water: 600 ml
+    dashi: Dashi 1 tsp
+    miso: Miso 50 g
+  }
+  let tofuCut = cut(tofu, dice, 15 mm)
+  let boiled = boilWater(water)
+  let simmered = simmer([boiled, dashi, tofuCut, wakame], 3 min)
+  let soup = dissolve([simmered, miso])
+}

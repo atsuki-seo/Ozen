@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe karubiTopping(meat: Beef<Fatty>, servings: 2) {
+  ingredients {
+    onion: 1 pcs
+    sauce: WorcesterSauce 2 tbsp
+    sugar: Sugar 1 tsp
+  }
+  let onionCut = cut(peel(onion), slice, 5 mm)
+  let fried = fry([meat, onionCut], 5 min, heat: high)
+  let topping = season(fried, sauce)
+}

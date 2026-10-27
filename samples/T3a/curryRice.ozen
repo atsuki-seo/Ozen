@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: CC-BY-4.0
+import cookedRice.{cookedRice}
+import curry.{curry}
+
+menu curryRice(people: 4) {
+  let rice = make cookedRice(servings: 4)
+  let curryPot = make curry(servings: 4)
+  serve main {
+    plate perPerson on DeepPlate or Donburi { rice, curryPot }
+  }
+}

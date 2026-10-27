@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: CC-BY-4.0
+kitchen home {
+  places {
+    stove: IHStove { burners: 2 }
+    fridge: Fridge
+  }
+  tools {
+    board: CuttingBoard
+    knife: Knife
+    pan: FryingPan
+    pot: Pot
+    ladle: Ladle
+  }
+  tableware {
+    plate: FlatPlate { count: 8 }
+    bowl: Bowl { count: 4 }
+  }
+}

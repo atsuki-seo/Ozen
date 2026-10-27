@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: CC-BY-4.0
+kitchen family : Options {
+  people: [Person { picks: [Oyakodon] }, Person { picks: [Oyakodon] }, Person { picks: [Oyakodon] },
+    Person { picks: [ToriDon], allergies: [egg] }]
+}
+kitchen mixedUp : Options {
+  people: [Person { picks: [Oyakodon] }, Person { picks: [Oyakodon] }, Person { picks: [ToriDon] },
+    Person { picks: [Oyakodon], allergies: [egg] }]
+}

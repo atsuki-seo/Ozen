@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: CC-BY-4.0
+kitchen noCooker {
+  places {
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    board: CuttingBoard
+    knife: Knife
+    pan: FryingPan
+    bowl: MixingBowl
+    pot: Pot { count: 2 }
+  }
+}

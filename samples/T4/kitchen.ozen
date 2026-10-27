@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: CC-BY-4.0
+kitchen home {
+  places {
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    board: CuttingBoard
+    knife: Knife
+    pan: FryingPan
+    bowl: MixingBowl
+    pot: Pot
+    cooker: RiceCooker
+  }
+  tableware {
+    donburi: Donburi { count: 2 }
+  }
+}

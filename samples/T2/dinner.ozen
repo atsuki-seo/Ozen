@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: CC-BY-4.0
+import cookedRice.{cookedRice}
+import misoSoup.{misoSoup}
+import oyakodon.{oyakodon}
+import toriDon.{toriDon}
+
+menu dinner(people: 4) {
+  let rice = make cookedRice(servings: 4)
+  let topping = choose perPerson from { make oyakodon(servings: 3), make toriDon(servings: 1) }
+  let soup = make misoSoup(servings: 4)
+  serve main {
+    plate perPerson on Donburi { rice, topping }
+    plate perPerson on SoupBowl { soup }
+  }
+}

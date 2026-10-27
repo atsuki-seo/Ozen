@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: CC-BY-4.0
+import cookedRice.{cookedRice}
+import karubiTopping.{karubiTopping}
+
+menu karubiDon(people: 2) {
+  let meat = buy Karubi 300 g
+  let rice = make cookedRice(servings: 2)
+  let topping = make karubiTopping(meat: meat, servings: 2)
+  serve main {
+    plate perPerson on Donburi { rice, topping }
+  }
+}

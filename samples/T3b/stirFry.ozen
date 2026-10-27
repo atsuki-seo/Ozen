@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: CC-BY-4.0
+recipe stirFry(servings: 4) {
+  ingredients {
+    pork: Pork<belly> 200 g
+    cabbage: 300 g
+    salt: Salt 1 pinch
+    pepper: Pepper 1 dash
+  }
+  let porkCut = cut(pork, biteSize, 30 mm)
+  let marinated = rest(season(porkCut, salt), 10 min)
+  let porkFried = fry(marinated, 3 min, heat: high)
+  let cabbageCut = cut(cabbage, roughChop, 30 mm)
+  let fried = fry([porkFried, cabbageCut], 3 min, heat: high)
+  let seasoned = season(fried, pepper)
+}
