@@ -165,7 +165,7 @@ def main(argv):
         for run in expect.get("runs", []):
             entry = run.get("entry", expect.get("entry"))
             r = Run(f"{name}/{run.get('name', '?')}")
-            cmd = [ozen, "check", "--format", "json", "--emit", "ir,schedule,steps,definitions"]
+            cmd = [ozen, "check", "--format", "json", "--emit", "ir,schedule,steps,definitions,types"]
             if run.get("kitchen"):
                 cmd += ["--kitchen", run["kitchen"]]
             if run.get("options"):

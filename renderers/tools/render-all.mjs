@@ -2,7 +2,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Phrases, layerOrder, renderHtml, renderRecipe, renderSchedule, renderShopping } from '../lib/render.mjs';
+import { Phrases, layerOrder, renderHtml, renderRecipe, renderSchedule, renderShopping, renderSettings, settingsSpec } from '../lib/render.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -18,9 +18,19 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
   mkdirSync(outDir, { recursive: true });
   const total = { fallbacks: 0, errors: 0, unresolved: 0 };
   const missing = new Set();
+  const count = (ph) => {
+    for (const key of ph.missing) {
+      missing.add(key);
+    }
+    for (const k of Object.keys(total)) {
+      total[k] += ph.stats[k];
+    }
+  };
+  let settings = null;
   for (const file of files) {
     const result = JSON.parse(readFileSync(join(dir, file), 'utf8'));
     const sample = file.split('--')[0];
+    settings = settings ?? (result.types ? settingsSpec(result.types, result.definitions) : null);
     const sources = layerOrder({ std: phrasesIn(join(root, 'phrases'), 'std'), project: phrasesIn(join(sampleRoot, sample, 'phrases'), sample) });
     for (const lang of langs) {
       const ph = new Phrases(sources, { lang });
@@ -28,13 +38,13 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
       renderSchedule(result, ph);
       renderShopping(result, ph);
       writeFileSync(join(outDir, `${file.replace(/\.json$/, '')}.${lang}.html`), renderHtml(result, ph));
-      for (const key of ph.missing) {
-        missing.add(key);
-      }
-      for (const k of Object.keys(total)) {
-        total[k] += ph.stats[k];
-      }
+      count(ph);
     }
+  }
+  for (const lang of settings ? langs : []) {
+    const ph = new Phrases([phrasesIn(join(root, 'phrases'), 'std')], { lang });
+    writeFileSync(join(outDir, `settings.${lang}.html`), renderSettings(settings, ph));
+    count(ph);
   }
   return { samples: files.length, ...total, missing: [...missing].sort() };
 }
