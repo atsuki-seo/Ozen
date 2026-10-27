@@ -39,7 +39,7 @@ export function renderGantt(ph, sched) {
   const end = Math.max(60, ...tasks.map((t) => seconds(t.endHi)), ...(sched.holds || []).map((h) => seconds(h.end)));
   const width = LABEL + Math.ceil(end / 60) * PER_MINUTE + 10;
   const height = rows.length * ROW + 10;
-  const parts = [`<svg xmlns="http://www.w3.org/2000/svg" data-gantt="true" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`];
+  const parts = [`<svg xmlns="http://www.w3.org/2000/svg" data-gantt="true" data-label-width="${LABEL}" data-per-minute="${PER_MINUTE}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`];
   rows.forEach((row, i) => {
     const label = row.cook ? ph.format('cook-name', { n: row.cook }) : unitName(ph, sched, row.unit);
     parts.push(`<text x="4" y="${i * ROW + 17}" font-size="12">${escapeXml(label)}</text>`);

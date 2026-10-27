@@ -12,10 +12,10 @@ function amount(text) {
   return m ? { value: m[1], unit: m[2] ?? null } : null;
 }
 
-function fieldSpec(id, field, enums) {
+function fieldSpec(id, field, enums, dims) {
   const optional = field.type.endsWith('?');
   const base = optional ? field.type.slice(0, -1) : field.type;
-  const out = { id, name: field.name, optional, default: field.default };
+  const out = { id, name: field.name, type: base, optional, default: field.default };
   const list = /^\[(\w+)\]$/.exec(base);
   if (list && enums.has(list[1])) {
     return { ...out, input: 'checks', values: enums.get(list[1]) };
@@ -24,8 +24,8 @@ function fieldSpec(id, field, enums) {
     return { ...out, input: 'select', values: enums.get(base) };
   }
   const bounds = [field.default, field.min, field.max].map(amount);
-  const unit = bounds.find((b) => b?.unit)?.unit ?? DISPLAY_UNITS[base] ?? null;
-  if (base === 'Count' || unit) {
+  const unit = bounds.find((b) => b?.unit)?.unit ?? DISPLAY_UNITS[base] ?? dims.get(base) ?? null;
+  if (base === 'Count' || dims.has(base)) {
     return { ...out, input: 'number', unit: base === 'Count' ? null : unit,
       min: bounds[1]?.value ?? null, max: bounds[2]?.value ?? null, initial: bounds[0]?.value ?? '' };
   }
@@ -33,11 +33,14 @@ function fieldSpec(id, field, enums) {
 }
 
 export function settingsSpec(types, definitions) {
-  const enums = new Map((definitions?.definitions ?? []).filter((d) => d.kind === 'enum').map((d) => [d.name, d.values]));
+  const all = definitions?.definitions ?? [];
+  const enums = new Map(all.filter((d) => d.kind === 'enum').map((d) => [d.name, d.values]));
+  const dims = new Map(all.filter((d) => d.kind === 'dimension' && d.name !== 'Count').map((d) => [d.name,
+    all.find((u) => u.kind === 'unit' && u.dimension === d.name && u.value?.text === 'base')?.name ?? null]));
   const blocks = { places: [], tools: [], tableware: [] };
   const item = (e, category) => ({
     kind: e.kind,
-    fields: e.fields.map((f) => fieldSpec(`k-${e.kind}-${f.name}`, f, enums)),
+    fields: e.fields.map((f) => fieldSpec(`k-${e.kind}-${f.name}`, f, enums, dims)),
     category,
   });
   for (const e of types.equipment) {
@@ -48,7 +51,7 @@ export function settingsSpec(types, definitions) {
   }
   return {
     kitchen: Object.entries(blocks).map(([block, items]) => ({ block, items })),
-    options: types.options.map((f) => fieldSpec(`o-${f.name}`, f, enums)),
+    options: types.options.map((f) => fieldSpec(`o-${f.name}`, f, enums, dims)),
   };
 }
 
@@ -144,7 +147,7 @@ function label(ph, kind, name) {
 }
 
 function control(ph, f, value) {
-  const named = `id="${f.id}" name="${f.id}"`;
+  const named = `id="${f.id}" name="${f.id}" data-type="${escapeXml(f.type)}"`;
   const text = label(ph, 'field', f.name);
   if (f.input === 'checks') {
     const boxes = f.values.map((v) => `<span class="check"><input type="checkbox" id="${f.id}-${v}" name="${f.id}" value="${v}"/>` +
