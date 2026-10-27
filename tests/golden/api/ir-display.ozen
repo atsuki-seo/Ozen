@@ -1,0 +1,10 @@
+// args: check --format json --emit ir --entry r
+recipe r() {
+  ingredients {
+    water: 200 ml
+    onion: 1 pcs
+    pork: Pork<belly> 100 g
+  }
+  let sliced = cut(peel(onion), slice, 3 mm) @group(onionPrep)
+  let cooked = simmer([pork, sliced, water], 10 min)
+}
