@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+recipe soup() @vessel(SoupBowl) {
+  ingredients {
+    water: 400 ml
+    banana: 1 pcs
+    onion: 2 pcs
+    carrot: 1 pcs
+  }
+  let onionCut = cut(peel(onion), slice, 3 mm) @group(onionPrep)
+  let carrotCut = cut(peel(carrot), rollCut, 20 mm)
+  let mashed = mix(peel(banana))
+  let soup = simmer([water, onionCut, carrotCut], 15 min)
+}
+menu lunch(people: 2) {
+  let s = make soup()
+  serve main {
+    plate perPerson on SoupBowl { s } @whileWarm
+    plate perPerson on Glass { buy Milk 200 ml } @serveWithin(5 min)
+  }
+}
