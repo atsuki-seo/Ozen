@@ -347,6 +347,13 @@
 - 代替 A: T1〜T4 だけは S456 の外にし、テストのレシピの中で捌く動作と卵を宣言する。`std` は変えないが、「サンプルは `std` の語彙だけで書ける」の確認が基準の献立だけになる。
 - 代替 B: T1 は手で切り分けた部位を `buy`（`buy Buri<collar>` など）で用意し、T2 は卵の代わりに `std` の別のアレルゲン（乳）で同じ機能を試す。語彙は足さないが、concept §12.4 の内容（捌く・卵アレルギー）から外れる。
 
+### D36. レンダラーに要る表示の情報を結果の JSON に足す 【決定済み】
+
+- **決定:** 推奨のとおり、IR の節に `type`（と `part`）と `group`、料理ごとに `ingredients`（書いた順）を足し、テキストの IR は変えない。（2026-10-26、ユーザー確認）
+- 背景: レンダラー（フェーズ K）は結果の JSON だけから文章を作る。言い回しのキー（`ingredient-onion`）と部位つきの名前（S388）には値の型と部位が、材料の一覧（S450）には `ingredients` に書いた順が、まとまりの表示（S378）には `@group` の範囲が要るが、今の JSON の IR の節は名前（`roux` などの書き手の名前）と量しか持たず、どれも出ていない（`@group` と書いた順は AST のメタデータで、IR には入れない約束、concept §6）。2026-10-26 の P14-0 で分かった。
+- **推奨**: IR の節に `type`（その値の型の名前。部位があれば `part` も）と `group`（`@group(キー)` の範囲にあればそのキー、無ければ null）を、IR の料理ごとの項目に `ingredients`（`ingredients` に書いた順の `[{"label", "node"}]`）を足す。どれも表示だけの情報で、テキストの IR と IR の不変条件（S281）は変えない。`schemas/result.schema.json` にも足す。
+- 代替: レンダラーが Ozen のソースを自分で読む。JSON だけで描画できる約束（S330・S334）から外れ、パーサーを二重に持つ。
+
 ---
 
 ## 3. 現状の確認結果（2026-10-25）
@@ -1465,6 +1472,20 @@ IR:
 - **S452** ガント図で、同じ行の作業は重ならず、すべての作業が描画の範囲に収まる。
 - **S453** 設定画面のフォームのすべての入力に名前の表示（label）があり、量の項目には単位が付く。
 - **S454** 出力の HTML は整形式の XML としても読める（`xml.etree` で誤りが出ない）。（補）
+
+#### 4.28.1 レンダラーの細目（P14-0 で決めた。すべて（補））
+
+- 置き場所: 本体は `renderers/lib/*.mjs`（`phrases.mjs` 言い回しの重ね方・代わり・呼び名、`recipe.mjs` レシピの文章、`schedule.mjs` 段取り表、`gantt.mjs` ガント図、`shopping.mjs` 買い物リスト、`html.mjs` HTML、`book.mjs` 本の形、`settings.mjs` 設定画面、`render.mjs` 入口）。Fluent は `renderers/vendor/fluent-bundle/`（`@fluent/bundle` 0.19.1 の ES モジュールの `esm/` とライセンスの本文、取得元・版・sha256 は `renderers/vendor/README.md`）。テストは `renderers/test/<rtest の名前>.test.mjs`（網羅表の `rtest/*` と 1 対 1）。道具は `renderers/tools/`（`phrases-check.mjs`・`render-all.mjs`・`bundle.mjs`・`browser-test.sh`）
+- 入力: 結果の JSON（`--emit ir,schedule,steps,definitions`）と言い回しのファイルの並び（`std` → 依存のパッケージ（名前の順）→ 自分のプロジェクト、S385）。入口は `render(result, {phrases, lang, dialect, kind})`（`kind` は `recipe`・`schedule`・`shopping`・`html`・`book`）で文字列を返す。本体は node の API を使わない（S396）。ファイルの読み書きは道具と CLI（`ozen render`）が受け持つ
+- 名前: 値の表示名は IR の節の `type`（D36）から `ingredient-<型>`、部位は組み合わせのキー `ingredient-<型>-<部位>` があればそれ、無ければ `name-with-part`（`{ $ingredient }{ $part }`）で組み立てる（S388）。呼び名の選択子に `$stage`・`$dialect`（描画の設定）・`$context`（料理の文脈）を渡す（S387）。助数詞は `counter-<型>`（無ければ `counter-default`）を数の量に付ける（S390）。曖昧な時間の性質は `property-<名前>` の言葉のまま出す（S391）
+- 動作の文: `action-<名前>` に動作の引数を名前で渡し、食べ物の引数 `x` にはさらに `$x-kind`（その型の種類のトレイトを小文字にしたもの。`Grain` なら `grain`）を渡す。米の「研ぐ」と「洗う」は `action-wash` の `$x-kind` の選択子で言い分ける（S447。言い回しの検査は動作の引数とその `-kind` を許す）。言い回しが無いときは利用者の言語 → 英語 → 識別子から作った表示（`slice(onion, 3 mm)`）の順（S386）
+- レシピの文章（レベル 0、S375）: 材料の一覧（書いた順、S450）の後に、IR の依存の順で手順を並べる。同じ値に続けて行う作業（入力がちょうど 1 つで、その値を次の作業だけが使う）は 1 文にまとめ（S377）、`@group` の範囲は見出しの付いた 1 つのまとまりにする（S378）。波が 2 つ以上なら、波の名前（`wave-<名前>` の言い回し、無ければ名前）で区切る（S445）
+- 段取り表（レベル 2、S376）: 時刻（`--serve-at` があれば時計の時刻、無ければ開始からの `0:00` の形）・手順・作り手の行。提供の波を章にし、波と波のあいだに「食事中」の欄を置いて放置の作業を載せる（S379）。最初の波の出す時刻から 30 分より前に終わる作業を「下ごしらえ」、それ以降を「調理」に分ける（区切りの距離は描画の設定 `prepBefore`、既定 30 分。S380）。選んだ候補・挿入した洗いの理由・仮定（診断の `variantChosen`・`washInserted`・`ASM`）を `diag-*` の文面で文章に出す（S392・S446）
+- ガント図（S382）: SVG。行は作り手（`cook1`…）と、作業が使う資源の個体。1 分を一定の幅にし、各作業の矩形に `data-row`・`data-start`・`data-end`（秒）を付ける（`tools/htmlcheck/htmlcheck.py` が重なりと範囲を照合、S452）
+- 買い物リスト（S383）: IR の `in` と `buy` の節の量を型ごとに足す（次元の同じ量だけ。違う次元は別の行）。`buy` の品も含める
+- HTML（S381・S449・S454）: 1 つのファイルで、CSS と JS はインライン、外部の参照を持たない。`@media print` の CSS を持つ。要素は整形式の XML として読める書き方（空の要素は `<br/>`）。中身は、題・材料・レシピの文章・段取り表・ガント図・買い物リスト・注記
+- 本の形（S448）: `ozen build` の `out/index.json` と各入口の結果から、目次と入口ごとの章を持つ 1 つの HTML
+- golden の作り方: `rtest` の期待値は `renderers/test/expected/<名前>.<txt|html>` に先に書き、テストは結果の JSON をテストの中で `build/core-gcc-release/ozen` に作らせる（サンプルか小さな入力から）。`render-all.mjs` は `build/results/json/samples/` の JSON（`tests/samples/check.py` が各実行の結果を書く）をすべて `ja`・`en` で描画して `build/results/html/` に書き、代わりに落ちた語・Fluent の誤り・解決されない変数を数える（S451）
 
 ### 4.29 L: `ozen bundle`（§13-12）
 
@@ -3498,6 +3519,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 
 ### 9.10 K（レンダラー）
 
+- P14-0（2026-10-26）: §4.28.1 にレンダラーの置き場所・入力・名前と言い回し・レシピの文章・段取り表・ガント図・買い物リスト・HTML・本の形・golden の作り方を書いた。結果の JSON に表示の情報（値の型・書いた順・`@group`）が無いことが分かり、D36 として確認を取った。Fluent の取得（`@fluent/bundle` 0.19.1）も確認を取った。新しい S は無い
 - `@fluent/bundle` の版・取得元・sha256（P14-1）
 - わざと壊す確認の記録
 
