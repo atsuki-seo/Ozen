@@ -1,0 +1,9 @@
+// args: debug ir
+recipe r() {
+  ingredients {
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let onionCut = cut(peel(onion), slice, 3 mm) @group(onionPrep)
+  let carrotCut = cut(peel(carrot), rollCut, 20 mm) @group(carrotPrep)
+}
