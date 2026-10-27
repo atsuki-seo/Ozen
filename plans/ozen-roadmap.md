@@ -1493,7 +1493,7 @@ IR:
 - **S448** `index.json` と各入口の結果から、目次と章立てを持つ本の形の HTML を作る（concept §5.2）。
 - **S449** HTML は印刷向けの CSS（`@media print`）を持つ（concept §7）。
 - **S450** 材料の一覧は、レシピの `ingredients` に書いた順に並ぶ（AST のメタデータ、concept §6）。
-- **S451** すべてのサンプルを `ja` と `en` で描画したとき、識別子からの機械的な表示に落ちた語・Fluent の誤り・解決されない変数が 0 件。
+- **S451** すべてのサンプルを `ja` と `en` で描画したとき、識別子からの機械的な表示に落ちた語・Fluent の誤り・解決されない変数・本文に残った識別子（診断の引数を含む。D38）が 0 件。
 - **S452** ガント図で、同じ行の作業は重ならず、すべての作業が描画の範囲に収まる。
 - **S453** 設定画面のフォームのすべての入力に名前の表示（label）があり、量の項目には単位が付く。
 - **S454** 出力の HTML は整形式の XML としても読める（`xml.etree` で誤りが出ない）。（補）
@@ -1655,7 +1655,7 @@ IR:
 | `G-REPO-NOREPLY` | S475（push の前に毎回） | 全コミットのメールが `146819854+atsuki-seo@users.noreply.github.com` だけ、このリポジトリの `user.email` も同じ、追跡するファイルに個人のメールが 0 件 |
 | `G-STD-STATIC` | S458〜S461 | `std-static: <n> definitions, 0 naming, 0 provisional-point, 0 fct-inline, 0 capability-unprovided` |
 | `G-REND-HTML` | S452〜S454 | `html: <n> files, 0 not well-formed; gantt: <g> charts, 0 overlaps, 0 out of bounds; form: <f> inputs, 0 without label, 0 quantity without unit` |
-| `G-REND-PHRASES-RENDER` | S451 | `render-phrases: <n> samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved` |
+| `G-REND-PHRASES-RENDER` | S451 | `render-phrases: <n> samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved, 0 identifiers`（識別子は本文に残った英字の語（日本語）・キャメルケースと設備の個体の番号（英語）。D38） |
 | `G-SAMPLE-STD-ONLY` | S456 | 0 |
 | `G-REPO-TOOLS-CI` | S131 を CI のジョブにも | `ci-tools: <n> jobs, 0 mismatched`（各ジョブが道具の版を成果物に書き、`toolchain.txt` と比べる） |
 | `G-PLAN-COVERAGE` | 本計画の網羅表 | §5.3 末尾の 2 つのコマンドの出力が、空と 0 |
@@ -1876,7 +1876,7 @@ test -f renderers/vendor/fluent-bundle/LICENSE && python3 tools/vendorcheck.py r
 # G-REND-HTML
 python3 tools/htmlcheck/htmlcheck.py build/results/html   # → html: … 0 not well-formed; gantt: … 0 overlaps, 0 out of bounds; form: … 0 without label, 0 quantity without unit
 # G-REND-PHRASES-RENDER
-node renderers/tools/render-all.mjs --langs ja,en build/results/json   # → render-phrases: <n> samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved
+node renderers/tools/render-all.mjs --langs ja,en build/results/json   # → render-phrases: <n> samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved, 0 identifiers
 # G-SAMPLE-STD-ONLY
 git grep -nE '^[[:space:]]*(local[[:space:]]+)?(ingredient|action|unit|kind|vessel|dirt|trait)[[:space:]]' -- samples | wc -l   # → 0
 # G-REPO-NOREPLY（push の前に毎回。個人のメールはこの計画に書かず、git の全体の設定から読む）

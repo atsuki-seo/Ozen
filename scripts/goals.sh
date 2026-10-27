@@ -673,7 +673,7 @@ goal_G_REND_HTML() {
 }
 
 goal_G_REND_PHRASES_RENDER() {
-  want_re "render-phrases" '^render-phrases: [1-9][0-9]* samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved$' \
+  want_re "render-phrases" '^render-phrases: [1-9][0-9]* samples × 2 languages, 0 fallbacks, 0 fluent errors, 0 unresolved, 0 identifiers$' \
     "$(node renderers/tools/render-all.mjs --langs ja,en build/results/json 2>&1 | tail -n 1)"
 }
 

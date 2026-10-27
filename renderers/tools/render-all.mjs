@@ -11,6 +11,15 @@ function phrasesIn(dir, name) {
   return { name, files: { ja: read('ja'), en: read('en') } };
 }
 
+const UNITS = new Set(['g', 'kg', 'mg', 'ml', 'l', 'mm', 'cm', 'm', 'min', 's', 'h', 'pcs', 'IH']);
+
+export function identifiers(text, lang) {
+  const plain = text.replace(/<(style|script|svg)[^>]*>[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ');
+  const words = lang === 'ja' ? plain.match(/[A-Za-z][A-Za-z0-9_]*(?:#\d+)?/g) || []
+    : plain.match(/\b[a-z]+[A-Z]\w*\b|\b\w+#\d+\b/g) || [];
+  return words.filter((w) => !UNITS.has(w));
+}
+
 export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'samples')) {
   const dir = join(jsonDir, 'samples');
   const files = existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.json')).sort() : [];
@@ -18,6 +27,14 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
   mkdirSync(outDir, { recursive: true });
   const total = { fallbacks: 0, errors: 0, unresolved: 0 };
   const missing = new Set();
+  const found = new Set();
+  let idents = 0;
+  const scan = (text, lang) => {
+    for (const w of identifiers(text, lang)) {
+      idents++;
+      found.add(`${lang}: ${w}`);
+    }
+  };
   const count = (ph) => {
     for (const key of ph.missing) {
       missing.add(key);
@@ -36,10 +53,11 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
     const sources = layerOrder({ std: phrasesIn(join(root, 'phrases'), 'std'), deps, project: phrasesIn(join(sampleRoot, sample, 'phrases'), sample) });
     for (const lang of langs) {
       const ph = new Phrases(sources, { lang });
-      renderRecipe(result, ph);
-      renderSchedule(result, ph);
-      renderShopping(result, ph);
-      writeFileSync(join(outDir, `${file.replace(/\.json$/, '')}.${lang}.html`), renderHtml(result, ph));
+      const html = renderHtml(result, ph);
+      for (const text of [renderRecipe(result, ph), renderSchedule(result, ph), renderShopping(result, ph), html]) {
+        scan(text, lang);
+      }
+      writeFileSync(join(outDir, `${file.replace(/\.json$/, '')}.${lang}.html`), html);
       count(ph);
     }
   }
@@ -48,7 +66,7 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
     writeFileSync(join(outDir, `settings.${lang}.html`), renderSettings(settings, ph));
     count(ph);
   }
-  return { samples: files.length, ...total, missing: [...missing].sort() };
+  return { samples: files.length, ...total, identifiers: idents, missing: [...missing].sort(), found: [...found].sort() };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
@@ -64,6 +82,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
   for (const key of r.missing) {
     console.error(`fallback: ${key}`);
   }
-  console.log(`render-phrases: ${r.samples} samples × ${langs.length} languages, ${r.fallbacks} fallbacks, ${r.errors} fluent errors, ${r.unresolved} unresolved`);
-  process.exit(r.samples > 0 && r.fallbacks + r.errors + r.unresolved === 0 ? 0 : 1);
+  for (const word of r.found) {
+    console.error(`identifier: ${word}`);
+  }
+  console.log(`render-phrases: ${r.samples} samples × ${langs.length} languages, ${r.fallbacks} fallbacks, ${r.errors} fluent errors, ` +
+    `${r.unresolved} unresolved, ${r.identifiers} identifiers`);
+  process.exit(r.samples > 0 && r.fallbacks + r.errors + r.unresolved + r.identifiers === 0 ? 0 : 1);
 }
