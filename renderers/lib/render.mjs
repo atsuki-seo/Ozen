@@ -9,7 +9,13 @@ import { settingsSpec, settingsText, renderSettings } from './settings.mjs';
 
 export { Phrases, layerOrder, renderRecipe, renderSchedule, renderShopping, renderHtml, renderBook, settingsSpec, settingsText, renderSettings };
 
-const KINDS = { recipe: renderRecipe, schedule: renderSchedule, shopping: renderShopping, html: renderHtml };
+const KINDS = {
+  recipe: renderRecipe,
+  schedule: renderSchedule,
+  shopping: renderShopping,
+  html: renderHtml,
+  settings: (result, ph) => renderSettings(settingsSpec(result.types, result.definitions), ph),
+};
 
 export function render(result, { phrases, lang = 'ja', dialect, kind = 'html', prepBefore } = {}) {
   const ph = phrases instanceof Phrases ? phrases : new Phrases(layerOrder(phrases || {}), { lang });
