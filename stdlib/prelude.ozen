@@ -60,19 +60,48 @@ trait Light
 trait Fatty
 trait RoundFish : Fish {
   parts {
-    head
-    collar
-    back
+    head {
+      props {
+        yield: 15..20 % @source(provisional)
+      }
+    }
+    collar {
+      props {
+        yield: 5..8 % @source(provisional)
+      }
+    }
+    back {
+      props {
+        yield: 25..30 % @source(provisional)
+      }
+    }
     belly {
       traits: Fatty
+      props {
+        yield: 15..20 % @source(provisional)
+      }
     }
-    frame
-    skin
+    frame {
+      props {
+        yield: 10..15 % @source(provisional)
+      }
+    }
+    skin {
+      props {
+        yield: 3..5 % @source(provisional)
+      }
+    }
     guts {
       discard: true
+      props {
+        yield: 8..12 % @source(provisional)
+      }
     }
     scales {
       discard: true
+      props {
+        yield: 1..2 % @source(provisional)
+      }
     }
   }
 }
@@ -332,6 +361,13 @@ ingredient Beef : Meat, Hazard, SkinEdible {
       traits: Fatty
     }
     leg
+  }
+}
+ingredient Egg : Hazard, Refrigerated, Allergen(egg) {
+  axes: doneness, shape, prep
+  leaves: rawEgg, allergen
+  props {
+    unitWeight: 58..64 g/pcs @source(provisional)
   }
 }
 ingredient Buri : RoundFish, Hazard, RawEdible, SkinEdible {
@@ -603,6 +639,10 @@ action drain(x: T<prep has washed | prep has soaked>) -> T {
 }
 action cut(x: T<shape: peeled | shape: cut | SkinEdible, shape: whole>, style: CutStyle, size: Length = 3 mm) -> T<shape: cut(style, size)> {
   uses hands, WorkSurface, CuttingSurface, Knife for 1..3 min @source(provisional)
+  leaves: x on CuttingSurface, x on Knife
+}
+action fillet(x: T<RoundFish>) -> (T<head>, T<collar>, T<back>, T<belly>, T<frame>, T<skin>, T<guts>, T<scales>) {
+  uses hands, WorkSurface, CuttingSurface, Knife for 15..30 min @source(provisional)
   leaves: x on CuttingSurface, x on Knife
 }
 action tear(x: T<LeafyVegetable>) -> T<shape: cut(biteSize)> {

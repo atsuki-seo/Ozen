@@ -171,3 +171,38 @@ searches:
     reason: "機種をまたいで標準の運転時間を示す一次情報は見つからなかった。レビューの約 80 分を囲む範囲を暫定の値にした"
     covers:
       - kinds.Dishwasher.props.runTime
+  - date: "2026-10-26"
+    queries:
+      - "ブリ 三枚おろし 歩留まり 部位 割合 頭 カマ 中骨 内臓 重量比"
+    consulted:
+      - "京都府の魚のさばき方の資料（ツバスの手順だけで、部位の割合は無い）"
+      - "本田技研の釣りの図鑑のブリのさばき方（カマ・ハラモの切り分けの手順だけ）"
+      - "岩手県水産技術センターの加工の報告（頭・内臓の除去の手順だけ）"
+    reason: "ブリの部位ごとの重量の割合を示す一次情報は見つからなかった。頭・カマ・背身・腹身・中骨・皮・内臓・うろこの和が 100% を含む範囲を暫定の値にした"
+    covers:
+      - traits.RoundFish.parts.head.props.yield
+      - traits.RoundFish.parts.collar.props.yield
+      - traits.RoundFish.parts.back.props.yield
+      - traits.RoundFish.parts.belly.props.yield
+      - traits.RoundFish.parts.frame.props.yield
+      - traits.RoundFish.parts.skin.props.yield
+      - traits.RoundFish.parts.guts.props.yield
+      - traits.RoundFish.parts.scales.props.yield
+  - date: "2026-10-26"
+    queries:
+      - "ブリ 一尾 さばく 時間 何分 三枚おろし 家庭"
+    consulted:
+      - "茨城県水産試験場のイナダのさばき方の資料（調理時間 約 10 分。ブリの若魚）"
+      - "一般のレシピサイトの三枚おろし（調理時間 30 分。魚の大きさは不明）"
+    reason: "成魚のブリ 1 尾を捌く時間を示す一次情報は見つからなかった。若魚の約 10 分より長い範囲を暫定の値にした"
+    covers:
+      - actions.fillet.time
+  - date: "2026-10-26"
+    queries:
+      - "鶏卵規格取引要綱 M サイズ 58g 64g 農林水産省 重量区分"
+    consulted:
+      - "農林水産省の告示（鶏卵の規格の外装の表示の要件。重量区分の数値の別表は検索結果に無い）"
+      - "日本卵業協会の区分を紹介する解説ページ（M は 58 g 以上 64 g 未満。二次情報）"
+    reason: "鶏卵の重量区分の一次情報（要綱の別表）は確かめられなかった。二次情報の M の区分を暫定の値にした"
+    covers:
+      - ingredients.Egg.props.unitWeight
