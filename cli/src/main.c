@@ -55,7 +55,7 @@ static int usage(void) {
         "         -t/--serve-at TIME --cleanup MODE --prefer A,B --strict --allow NAME --warn NAME --deny NAME\n"
         "         --format text|json|sarif --emit LIST --fixes --max-input-bytes N --max-depth N --max-nodes N\n"
         "         --max-steps N --fail-alloc-at N\n"
-        "render:  --kind recipe|schedule|shopping|html|settings --lang ja|en --dialect NAME -o/--output FILE\n",
+        "render:  --kind recipe|schedule|shopping|html|settings --lang ja|en --dialect NAME --stage NAME -o/--output FILE\n",
         stderr);
   return 2;
 }
@@ -190,6 +190,7 @@ typedef struct cli_options {
   const char *kind;
   const char *lang;
   const char *dialect;
+  const char *stage;
   const char *output;
   bool strict;
   bool no_spans;
@@ -237,7 +238,7 @@ static int take_options(int argc, char **argv, heap *h) {
         {"--servings", "-s", &opt.servings}, {"--cooks", "-c", &opt.cooks},        {"--serve-at", "-t", &opt.serve_at},
         {"--cleanup", nullptr, &opt.cleanup}, {"--prefer", nullptr, &opt.prefer}, {"--format", nullptr, &opt.format},
         {"--kind", nullptr, &opt.kind},       {"--lang", nullptr, &opt.lang},     {"--dialect", nullptr, &opt.dialect},
-        {"--output", "-o", &opt.output},
+        {"--stage", nullptr, &opt.stage},     {"--output", "-o", &opt.output},
     };
     bool done = false;
     for (size_t k = 0; k < sizeof with_value / sizeof with_value[0] && !done; k++) {
@@ -1209,6 +1210,7 @@ static int render(const ozni_allocator *a, int nargs, char **args, const char *a
     const char *pairs[][2] = {{"--kind", opt.kind},
                               {"--lang", opt.lang},
                               {"--dialect", opt.dialect},
+                              {"--stage", opt.stage},
                               {"--output", opt.output},
                               {"--std", std},
                               {"--project", stat("phrases", &st) == 0 && S_ISDIR(st.st_mode) ? "phrases" : nullptr}};
@@ -1219,6 +1221,21 @@ static int render(const ozni_allocator *a, int nargs, char **args, const char *a
       }
     }
     free(std);
+    DIR *deps = opendir("deps");
+    struct dirent *e;
+    while (deps != nullptr && (e = readdir(deps)) != nullptr) {
+      char dir[4096], pair[4352];
+      int n = snprintf(dir, sizeof dir, "deps/%s/phrases", e->d_name);
+      if (e->d_name[0] == '.' || n < 0 || (size_t)n >= sizeof dir || stat(dir, &st) != 0 || !S_ISDIR(st.st_mode)) {
+        continue;
+      }
+      snprintf(pair, sizeof pair, "%s=%s", e->d_name, dir);
+      append_quoted(&cmd, &len, &cap, "--dep");
+      append_quoted(&cmd, &len, &cap, pair);
+    }
+    if (deps != nullptr) {
+      closedir(deps);
+    }
   }
   if (rc == 0 && cmd != nullptr) {
     fflush(stdout);
