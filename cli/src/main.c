@@ -1245,7 +1245,9 @@ static int collect_phrases(strings *l) {
     }
     closedir(d);
   }
-  qsort(l->items, l->n, sizeof *l->items, cmp_path);
+  if (l->n > 1) {
+    qsort(l->items, l->n, sizeof *l->items, cmp_path);
+  }
   return rc;
 }
 
