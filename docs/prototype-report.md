@@ -21,7 +21,7 @@ concept §9 の「試作で確認すること」の 3 項目について、`prot
 | golden の期待値 | `proto/tests/golden/**/*.out` | 443 |
 | ファズの入口 | `proto/fuzz/*.c` | 28 |
 | WASM の橋渡しと Worker | `proto/wasm/*` | 133 |
-| 検査とビルドのスクリプト | `proto/scripts/*` | 1,247 |
+| 検査とビルドのスクリプト | `proto/scripts/*` | 1,283 |
 | ビルドの設定 | `proto/CMakeLists.txt` | 89 |
 
 コアの内訳はパーサー（`parse.c`）1,391 行、評価器（`eval.c`）1,084 行で、この 2 つで 8 割を占める。128 bit の整数（`u128.c`）と有理数・区間（`rational.c`）は合わせて 208 行。
