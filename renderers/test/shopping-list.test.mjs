@@ -19,3 +19,11 @@ test('the same ingredient from two recipes is summed', () => {
   const text = renderShopping(result(join(root, 'samples', 'menuC'), ['--entry', 'dinner']), ph);
   assert.match(text, /^- キャベツ 400 g$/m);
 });
+
+test('amounts of different dimensions stay on separate lines', () => {
+  const ph = new Phrases([stdPhrases()], { lang: 'ja' });
+  const text = renderShopping(result(join(root, 'renderers', 'test', 'inputs'), ['--entry', 'sweets', 'dims.ozen']), ph);
+  assert.equal(text.split('\n').filter((l) => l.startsWith('- 砂糖 ')).length, 2, text);
+  assert.match(text, /^- 砂糖 10 g$/m);
+  assert.match(text, /^- 水 150 ml$/m);
+});

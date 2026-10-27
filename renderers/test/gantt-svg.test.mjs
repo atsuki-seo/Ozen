@@ -20,3 +20,23 @@ test('each task is drawn in its cook row at its time', () => {
     assert.ok(Math.abs(r.x - (140 + (seconds(t.start) / 60) * 6)) < 0.11);
   }
 });
+
+test('each task and hold is drawn in the row of every unit it uses', () => {
+  const res = result(join(root, 'samples', 'T3b'), ['--entry', 'curryRice', '--kitchen', 'withDishwasher']);
+  const sched = entrySchedule(res);
+  const svg = renderGantt(new Phrases([stdPhrases()], { lang: 'ja' }), sched);
+  const rects = [...svg.matchAll(/data-row="([^"]+)" data-start="([\d.]+)" data-end="([\d.]+)"/g)]
+    .map((m) => ({ row: m[1], start: Number(m[2]), end: Number(m[3]) }));
+  let checked = 0;
+  for (const t of scheduledTasks(sched)) {
+    for (const u of t.uses || []) {
+      assert.ok(rects.some((r) => r.row === u && r.start === seconds(t.start) && r.end === seconds(t.endHi)), `task ${t.id} in ${u}`);
+      checked++;
+    }
+  }
+  for (const h of sched.holds || []) {
+    assert.ok(rects.some((r) => r.row === h.resource && r.start === seconds(h.start) && r.end === seconds(h.end)), `hold on ${h.resource}`);
+    checked++;
+  }
+  assert.ok(checked > 0);
+});

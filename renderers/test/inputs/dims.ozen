@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+recipe glaze() {
+  ingredients {
+    sugar: Sugar 10 g
+    water: 50 ml
+  }
+  let g = mix([sugar, water])
+}
+recipe syrup() {
+  ingredients {
+    sugar: Sugar 2 tbsp
+    water: 100 ml
+  }
+  let s = simmer([sugar, water], 5 min)
+}
+menu sweets(people: 2) {
+  let a = make glaze()
+  let b = make syrup()
+  serve main {
+    plate perPerson on SmallPlate { a }
+    plate perPerson on SmallBowl { b }
+  }
+}
