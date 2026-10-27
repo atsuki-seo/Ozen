@@ -27,3 +27,4 @@ bade82c the std-module-rejected bundle golden passes because PKG005 already reje
 e7effd2 the import-two-versions bundle golden passes because the bundle step already compared a bundle's from versions with the copied dependencies; the S407 mutation (removing that comparison) makes it fail
 e7effd2 the subcommands CLI test only stops listing unbundle among the unavailable commands, which holds before and after; the unbundle CLI tests fail without ozen unbundle
 95417f2 the limits-shared goldens pass because the input limit already applied to every user source, the kitchen text included; the S408 mutation (skipping the limit for the kitchen argument) makes kitchen-over fail
+1d367a6 the prep-cook-split additions from the P16-3 audit pass because the split already used the prepBefore setting with an inclusive boundary; changing the boundary to exclusive or ignoring prepBefore makes them fail
