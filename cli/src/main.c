@@ -42,7 +42,7 @@ static int usage(void) {
         "       ozen build [OPTIONS] [ENTRY|FILE...]\n"
         "       ozen render [OPTIONS] [ENTRY|FILE]\n"
         "       ozen bundle [ENTRY] [-o FILE]\n"
-        "       ozen unbundle [OPTIONS]\n"
+        "       ozen unbundle FILE [-o DIR]\n"
         "       ozen debug ast [--no-spans] [--rules] FILE\n"
         "       ozen debug modules\n"
         "       ozen debug definitions [FILE]\n"
@@ -1338,6 +1338,116 @@ static int bundle(const ozni_allocator *a, int nargs, char **args) {
   return rc;
 }
 
+static bool make_parents(const char *path) {
+  char dir[8200];
+  size_t n = strlen(path);
+  if (n >= sizeof dir) {
+    return false;
+  }
+  memcpy(dir, path, n + 1);
+  for (size_t k = 1; k < n; k++) {
+    if (dir[k] == '/') {
+      dir[k] = '\0';
+      if (mkdir(dir, 0777) != 0 && errno != EEXIST) {
+        return false;
+      }
+      dir[k] = '/';
+    }
+  }
+  return true;
+}
+
+typedef struct unbundled {
+  char path[8200];
+  const char *text;
+  size_t len;
+} unbundled;
+
+static int unbundle(const ozni_allocator *a, int nargs, char **args) {
+  if (nargs != 1) {
+    return usage();
+  }
+  size_t len = 0;
+  char *src = read_file(args[0], &len);
+  if (src == nullptr) {
+    fprintf(stderr, "ozen: cannot read %s\n", args[0]);
+    return 2;
+  }
+  ozni_source in = {args[0], src, len};
+  int has_errors = 0;
+  char *text = ozni_unbundle_text(a, &limits, &in, &has_errors);
+  free(src);
+  if (text == nullptr) {
+    return emit_text(a, text, 0);
+  }
+  if (has_errors) {
+    fputs(text, stderr);
+    ozni_free_text(a, text);
+    return 1;
+  }
+  const char *dir = opt.output != nullptr ? opt.output : ".";
+  size_t cap = 16, n = 0;
+  unbundled *files = malloc(cap * sizeof *files);
+  int rc = files == nullptr ? 2 : 0;
+  for (const char *p = text; rc == 0 && *p != '\0';) {
+    const char *nl = strchr(p, '\n');
+    const char *nl2 = nl != nullptr ? strchr(nl + 1, '\n') : nullptr;
+    unsigned long long size = 0;
+    char num[32];
+    if (nl2 == nullptr || (size_t)(nl2 - nl - 1) >= sizeof num) {
+      rc = 2;
+      break;
+    }
+    memcpy(num, nl + 1, (size_t)(nl2 - nl - 1));
+    num[nl2 - nl - 1] = '\0';
+    if (!parse_number(num, &size) || size > strlen(nl2 + 1)) {
+      rc = 2;
+      break;
+    }
+    if (n == cap) {
+      unbundled *more = realloc(files, cap * 2 * sizeof *files);
+      if (more == nullptr) {
+        rc = 2;
+        break;
+      }
+      files = more;
+      cap *= 2;
+    }
+    int w = snprintf(files[n].path, sizeof files[n].path, "%s/%.*s", dir, (int)(nl - p), p);
+    if (w < 0 || (size_t)w >= sizeof files[n].path) {
+      rc = 2;
+      break;
+    }
+    files[n].text = nl2 + 1;
+    files[n].len = (size_t)size;
+    n++;
+    p = nl2 + 1 + size;
+  }
+  if (rc != 0) {
+    fputs("cli: unbundle could not read the files back\n", stderr);
+  }
+  for (size_t k = 0; rc == 0 && k < n; k++) {
+    if (stat_file(files[k].path)) {
+      fprintf(stderr, "cli: unbundle would overwrite %s\n", files[k].path);
+      rc = 2;
+    }
+  }
+  for (size_t k = 0; rc == 0 && k < n; k++) {
+    FILE *f = make_parents(files[k].path) ? fopen(files[k].path, "wb") : nullptr;
+    bool ok = f != nullptr && fwrite(files[k].text, 1, files[k].len, f) == files[k].len;
+    if (f != nullptr && fclose(f) != 0) {
+      ok = false;
+    }
+    if (!ok) {
+      fprintf(stderr, "ozen: cannot write %s\n", files[k].path);
+      rc = 2;
+    }
+  }
+  free(files);
+  ozni_free_text(a, text);
+  return rc;
+}
+
 static int check(const ozni_allocator *a, int nargs, char **args, ozni_mode mode) {
   if (nargs > 1) {
     return usage();
@@ -1458,8 +1568,7 @@ int main(int argc, char **argv) {
     return bundle(&a, n - 2, argv + 2);
   }
   if (strcmp(cmd, "unbundle") == 0) {
-    fprintf(stderr, "cli: %s is not available yet\n", cmd);
-    return 2;
+    return unbundle(&a, n - 2, argv + 2);
   }
   if (strcmp(cmd, "debug") != 0 || n < 3) {
     return usage();
