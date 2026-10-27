@@ -1,0 +1,3 @@
+error SYN010 inputTooLarge bundle-over.ozen:1:1-1:1 args=["207", "206"]: input too large
+result error errors=1 warnings=0 infos=0
+exit 1

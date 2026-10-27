@@ -1,0 +1,4 @@
+info ASM002 noPlating bundle-exact.ozen:9:8-9:12 args=["soup"]: no plating
+info ASM004 unlimitedEquipment bundle-exact.ozen:9:8-9:12: unlimited equipment
+result ok errors=0 warnings=0 infos=2
+exit 0

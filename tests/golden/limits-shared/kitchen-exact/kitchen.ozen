@@ -1,0 +1,9 @@
+kitchen home {
+  places {
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    pot: Pot
+    board: CuttingBoard
+  }
+}
