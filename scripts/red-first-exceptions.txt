@@ -23,3 +23,4 @@ dc01918 the prelude-contents golden passes because the prelude already held thes
 7b5d7b8 the group-display-only golden passes because @group never reached the IR; the S378 mutation (writing the group key into the IR text) makes it fail
 bd3945a the display_only property test now also strips @group, which already left the IR unchanged; the S378 mutation makes it report differences
 bade82c the std-module-rejected bundle golden passes because PKG005 already rejected an inline module named std; the S403 mutation (removing that check) makes it fail
+3ed9c51 the subcommands CLI test only stops listing bundle among the unavailable commands, which holds before and after; the bundle goldens fail without ozen bundle
