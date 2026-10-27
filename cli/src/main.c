@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "../../core/include/ozen.h"
 #include "ozni.h"
@@ -1252,6 +1253,24 @@ static int bundle(const ozni_allocator *a, int nargs, char **args) {
   if (nargs > 1) {
     return usage();
   }
+  struct stat st;
+  char output[8200] = "";
+  if (opt.output != nullptr) {
+    snprintf(output, sizeof output, "%s", opt.output);
+  }
+  if (nargs == 1 && stat(args[0], &st) == 0 && S_ISDIR(st.st_mode)) {
+    char cwd[4096];
+    if (opt.output != nullptr && opt.output[0] != '/' && getcwd(cwd, sizeof cwd) != nullptr &&
+        (size_t)snprintf(output, sizeof output, "%s/%s", cwd, opt.output) >= sizeof output) {
+      fputs("ozen: output path too long\n", stderr);
+      return 2;
+    }
+    if (chdir(args[0]) != 0) {
+      fprintf(stderr, "ozen: cannot enter %s\n", args[0]);
+      return 2;
+    }
+    nargs = 0;
+  }
   if (!stat_file("package.ozen")) {
     fputs("cli: bundle needs a package.ozen in this folder\n", stderr);
     return 2;
@@ -1294,14 +1313,14 @@ static int bundle(const ozni_allocator *a, int nargs, char **args) {
     set.entry = entry;
     int has_errors = 0;
     char *text = ozni_bundle_text(a, &limits, &set, p.srcs, p.n, phrases, files.n, &has_errors);
-    if (text != nullptr && !has_errors && opt.output != nullptr) {
-      FILE *f = fopen(opt.output, "wb");
+    if (text != nullptr && !has_errors && output[0] != '\0') {
+      FILE *f = fopen(output, "wb");
       rc = f == nullptr || fputs(text, f) < 0 ? 2 : 0;
       if (f != nullptr && fclose(f) != 0) {
         rc = 2;
       }
       if (rc != 0) {
-        fprintf(stderr, "ozen: cannot write %s\n", opt.output);
+        fprintf(stderr, "ozen: cannot write %s\n", output);
       }
       ozni_free_text(a, text);
     } else {
