@@ -1081,6 +1081,41 @@ static int build(const ozni_allocator *a, int nargs, char **args) {
   return passed == total ? 0 : 1;
 }
 
+static int pick_entry(const ozni_allocator *a, project *p, int nargs, char **args, char *out, size_t size) {
+  if (nargs == 1) {
+    entry_list all = {0};
+    collect_entries(p, &all);
+    bool *chosen = calloc(all.n + 1, sizeof *chosen);
+    int rc = chosen == nullptr ? 2 : select_entries(p, &all, 1, args, chosen);
+    size_t n = 0;
+    for (size_t i = 0; rc == 0 && i < all.n; i++) {
+      if (chosen[i] && n++ == 0) {
+        snprintf(out, size, "%s", all.items[i].name);
+      }
+    }
+    if (rc == 0 && n != 1) {
+      fprintf(stderr, "cli: %s names %zu entries; choose one with --entry\n", args[0], n);
+      rc = 2;
+    }
+    free(chosen);
+    free_entries(&all);
+    return rc;
+  }
+  if (opt.entry != nullptr) {
+    snprintf(out, size, "%s", opt.entry);
+    return 0;
+  }
+  int has_errors = 0;
+  char *text = ozni_run_text(a, &limits, &settings, p->srcs, p->n, OZNI_MODE_ENTRY, nullptr, &has_errors);
+  const char *sp = text != nullptr && strncmp(text, "entry ", 6) == 0 ? strchr(text + 6, ' ') : nullptr;
+  if (sp == nullptr) {
+    return emit_text(a, text, 1);
+  }
+  snprintf(out, size, "%.*s", (int)strcspn(sp + 1, "\n"), sp + 1);
+  ozni_free_text(a, text);
+  return 0;
+}
+
 static void append_quoted(char **buf, size_t *len, size_t *cap, const char *s) {
   appends(buf, len, cap, " '");
   for (; *s != '\0'; s++) {
@@ -1135,7 +1170,7 @@ static char *find_renderer(const char *argv0) {
   return nullptr;
 }
 
-static int render(int nargs, char **args, const char *argv0) {
+static int render(const ozni_allocator *a, int nargs, char **args, const char *argv0) {
   if (nargs > 1) {
     return usage();
   }
@@ -1143,15 +1178,14 @@ static int render(int nargs, char **args, const char *argv0) {
   if (renderer == nullptr) {
     return 2;
   }
-  const char *target = nargs == 1 ? args[0] : nullptr;
+  const char *target = nargs == 1 && stat_file(args[0]) && !stat_file("package.ozen") ? args[0] : nullptr;
   project p = {0};
-  const char *entry = opt.entry;
-  char module[1024] = "", name[256] = "";
+  char name[256] = "";
   int rc = load_project(&p, target, false);
-  if (rc == 0 && target != nullptr && !stat_file(target) &&
-      split_target(&p, target, module, sizeof module, name, sizeof name) && name[0] != '\0') {
-    entry = name;
+  if (rc == 0) {
+    rc = pick_entry(a, &p, target != nullptr ? 0 : nargs, args, name, sizeof name);
   }
+  const char *entry = name;
   api_inputs in = {0};
   if (rc == 0) {
     rc = api_prepare(&p, &in);
@@ -1279,12 +1313,11 @@ static int bundle(const ozni_allocator *a, int nargs, char **args) {
   }
   project p = {0};
   const char *entry = opt.entry;
-  char module[1024] = "", name[256] = "";
+  char name[256] = "";
   int rc = load_project(&p, nullptr, false);
   if (rc == 0 && nargs == 1) {
-    const char *dot = strrchr(args[0], '.');
-    bool split = split_target(&p, args[0], module, sizeof module, name, sizeof name);
-    entry = split && name[0] != '\0' ? name : dot != nullptr ? dot + 1 : args[0];
+    rc = pick_entry(a, &p, 1, args, name, sizeof name);
+    entry = name;
   }
   strings files = {0};
   ozni_source *phrases = nullptr;
@@ -1562,7 +1595,7 @@ int main(int argc, char **argv) {
     return build(&a, n - 2, argv + 2);
   }
   if (strcmp(cmd, "render") == 0) {
-    return render(n - 2, argv + 2, argv[0]);
+    return render(&a, n - 2, argv + 2, argv[0]);
   }
   if (strcmp(cmd, "bundle") == 0) {
     return bundle(&a, n - 2, argv + 2);
