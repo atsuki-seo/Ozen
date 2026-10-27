@@ -1,0 +1,4 @@
+info ASM004 unlimitedEquipment plate-raw-buy.ozen:2:6-2:12: unlimited equipment
+error SAF001 undercooked plate-raw-buy.ozen:5:36-5:40 args=["Beef", "raw"]: undercooked
+result error errors=1 warnings=0 infos=1
+exit 1

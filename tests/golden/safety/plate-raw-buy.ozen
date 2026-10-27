@@ -1,0 +1,7 @@
+// args: check --entry dinner
+menu dinner(people: 2) {
+  let meat = buy Beef 300 g
+  serve main {
+    plate perPerson on FlatPlate { meat }
+  }
+}
