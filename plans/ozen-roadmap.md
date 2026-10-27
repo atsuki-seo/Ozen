@@ -3487,6 +3487,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `sample/T2`（S370・実際の経路）— 人ごとのアレルギーを見ないと `diagnostic allergen ['egg']` が落ちた。戻して合格
   - わざと壊す確認: `sample/T3a`・`T3b`（S371・実際の経路）— 候補を最初の候補（炊飯器）に固定すると T3a の 2 件（`variantChosen … unavailable`）が落ちた（T3b は炊飯器のある台所なので変わらない）。戻して合格
   - わざと壊す確認: `sample/T4`（S372・実際の経路）— 別名を展開しないと、最初は期待が 1 件も落ちなかった（展開しなくても `Beef<Fatty>` の引数の検査で落ちない）。別名から `Hazard` が伝わることを確かめる実行（生のカルビを盛ると `SAF:undercooked`）を足し、その途中で上の `buy` の生の肉の不具合を見つけて直した。直した後は `diagnostic undercooked ['Karubi']` が落ちた。戻して合格
+- P13-5（2026-10-26）: 確認を取ってコミット `c2399aa` まで push し、CI の実行 `40437608127` で 5 つのジョブがすべて `success`。すべてのサンプル（11 件）を含む digest は、手元の CLI・WASM・iOS のシミュレーター・Android のエミュレーターで同じ `2024f97a…`（`G-PLAT-LINUX`・`G-PLAT-WASM`・`G-PLAT-IOS`・`G-PLAT-ANDROID`・`G-PLAT-CI`・`G-REPO-TOOLS-CI`・`G-CORE-C23-SUBSET` が合格）。すべてのサンプルの段取りは `tests/samples/check.py` の中で `tools/schedcheck/` の検査を通る（S373）
+  - わざと壊す確認: `G-PLAT-WASM` の digest（S374・プラットフォームの経路）— WASM の CLI だけ入力のファイルの最後の 1 バイトを読み落とすと、digest が `aeb6dc86…` になり手元と食い違った。戻して一致
 
 - 各サンプルの `expect.yaml` の性質の数
 - 暫定の値で組まれた段取りの一覧（S277）
