@@ -31,7 +31,9 @@ export function renderAll(jsonDir, langs, outDir, sampleRoot = join(root, 'sampl
     const result = JSON.parse(readFileSync(join(dir, file), 'utf8'));
     const sample = file.split('--')[0];
     settings = settings ?? (result.types ? settingsSpec(result.types, result.definitions) : null);
-    const sources = layerOrder({ std: phrasesIn(join(root, 'phrases'), 'std'), project: phrasesIn(join(sampleRoot, sample, 'phrases'), sample) });
+    const depDir = join(sampleRoot, sample, 'deps');
+    const deps = existsSync(depDir) ? readdirSync(depDir).map((d) => phrasesIn(join(depDir, d, 'phrases'), d)) : [];
+    const sources = layerOrder({ std: phrasesIn(join(root, 'phrases'), 'std'), deps, project: phrasesIn(join(sampleRoot, sample, 'phrases'), sample) });
     for (const lang of langs) {
       const ph = new Phrases(sources, { lang });
       renderRecipe(result, ph);

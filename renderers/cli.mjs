@@ -9,14 +9,21 @@ function phrasesIn(dir, name) {
 }
 
 const args = process.argv.slice(2);
-const opts = { kind: 'html', lang: 'ja', dialect: undefined, std: null, project: null, output: null };
+const opts = { kind: 'html', lang: 'ja', dialect: undefined, stage: undefined, std: null, project: null, output: null };
+const deps = [];
 for (let i = 0; i < args.length; i += 2) {
   const key = args[i].replace(/^--/, '');
-  if (!(key in opts) || i + 1 >= args.length) {
-    console.error('usage: cli.mjs [--kind K] [--lang L] [--dialect D] [--std DIR] [--project DIR] [--output FILE] < RESULT.json');
+  if (!(key in opts || key === 'dep') || i + 1 >= args.length) {
+    console.error('usage: cli.mjs [--kind K] [--lang L] [--dialect D] [--stage S] [--std DIR] [--dep NAME=DIR]... ' +
+      '[--project DIR] [--output FILE] < RESULT.json');
     process.exit(2);
   }
-  opts[key] = args[i + 1];
+  if (key === 'dep') {
+    const at = args[i + 1].indexOf('=');
+    deps.push(phrasesIn(args[i + 1].slice(at + 1), args[i + 1].slice(0, at)));
+  } else {
+    opts[key] = args[i + 1];
+  }
 }
 const result = JSON.parse(readFileSync(0, 'utf8'));
 if (result.outcome?.status === 'error') {
@@ -27,11 +34,12 @@ if (result.outcome?.status === 'error') {
 }
 const phrases = {
   std: opts.std ? phrasesIn(opts.std, 'std') : null,
+  deps,
   project: opts.project ? phrasesIn(opts.project, 'project') : null,
 };
 let text;
 try {
-  text = render(result, { phrases, lang: opts.lang, dialect: opts.dialect, kind: opts.kind });
+  text = render(result, { phrases, lang: opts.lang, dialect: opts.dialect, stage: opts.stage, kind: opts.kind });
 } catch (e) {
   console.error(`render: ${e.message}`);
   process.exit(2);

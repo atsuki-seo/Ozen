@@ -17,11 +17,11 @@ const KINDS = {
   settings: (result, ph) => renderSettings(settingsSpec(result.types, result.definitions), ph),
 };
 
-export function render(result, { phrases, lang = 'ja', dialect, kind = 'html', prepBefore } = {}) {
+export function render(result, { phrases, lang = 'ja', dialect, stage, kind = 'html', prepBefore } = {}) {
   const ph = phrases instanceof Phrases ? phrases : new Phrases(layerOrder(phrases || {}), { lang });
   const fn = KINDS[kind];
   if (!fn) {
     throw new Error(`unknown kind: ${kind}`);
   }
-  return fn(result, ph, { dialect, prepBefore });
+  return fn(result, ph, { dialect, stage, prepBefore });
 }
