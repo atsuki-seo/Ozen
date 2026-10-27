@@ -7857,9 +7857,11 @@ static void schedule_dish(sema *s, ozni_index name) {
             continue;
           }
           ozni_sched_group g = {ozni_table_count(lists), 0, 0, 0};
+          ozni_index washer = intern(s, "Dishwasher", 10);
           for (ozni_index u = 0; u < ozni_table_count(units); u++) {
             const sched_unit *su = ozni_table_get(units, u);
-            if (kind_has(s, su->kfile, su->knode, req->file, nd(s, req->file, req->type), 0)) {
+            bool runs_only = req->text != washer && kind_is(s, su->kfile, su->knode, washer, 0);
+            if (!runs_only && kind_has(s, su->kfile, su->knode, req->file, nd(s, req->file, req->type), 0)) {
               if (!ozni_table_push(lists, &u, nullptr)) {
                 s->c->oom = true;
               }
