@@ -144,9 +144,15 @@ def check_run(r, doc, spec, entry):
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--ozen", required=True)
+    parser.add_argument("--save", help="write each run's JSON into this folder")
     parser.add_argument("dir")
     args = parser.parse_args(argv)
     ozen = os.path.abspath(args.ozen)
+    if args.save:
+        os.makedirs(args.save, exist_ok=True)
+        for old in os.listdir(args.save):
+            if old.endswith(".json"):
+                os.remove(os.path.join(args.save, old))
     samples, expectations, failures = 0, 0, []
     for name in sorted(os.listdir(args.dir)):
         sample = os.path.join(args.dir, name)
@@ -159,7 +165,7 @@ def main(argv):
         for run in expect.get("runs", []):
             entry = run.get("entry", expect.get("entry"))
             r = Run(f"{name}/{run.get('name', '?')}")
-            cmd = [ozen, "check", "--format", "json", "--emit", "ir,schedule,steps"]
+            cmd = [ozen, "check", "--format", "json", "--emit", "ir,schedule,steps,definitions"]
             if run.get("kitchen"):
                 cmd += ["--kitchen", run["kitchen"]]
             if run.get("options"):
@@ -175,6 +181,9 @@ def main(argv):
             except ValueError:
                 doc = None
             r.want("json output", isinstance(doc, dict), proc.stderr.decode("utf-8", "replace").strip()[:200])
+            if args.save and isinstance(doc, dict):
+                with open(os.path.join(args.save, f"{name}--{run.get('name', 'run')}.json"), "wb") as f:
+                    f.write(proc.stdout)
             if isinstance(doc, dict):
                 check_run(r, doc, run.get("expect", {}), entry)
             expectations += r.count

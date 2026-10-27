@@ -1824,7 +1824,7 @@ diff <(gh run view "$id" --json jobs -q '.jobs[] | .name + " " + .conclusion' | 
 python3 scripts/check-ci-tools.py toolchain.txt build/ci/tools-*/tools.txt   # → ci-tools: <n> jobs, 0 mismatched
 
 # G-SAMPLE-CHECK
-python3 tests/samples/check.py --ozen build/core-gcc-release/ozen samples   # → samples: <n> samples, <k> expectations, 0 failed
+python3 tests/samples/check.py --ozen build/core-gcc-release/ozen --save build/results/json/samples samples   # → samples: <n> samples, <k> expectations, 0 failed（各実行の JSON を描画のために書く）
 
 # G-REND-TESTS
 node --test renderers/test/ 2>&1 | grep -E '^# (pass|fail)'      # → # pass <n> / # fail 0

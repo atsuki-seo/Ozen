@@ -640,7 +640,7 @@ goal_G_REPO_TOOLS_CI() {
 
 goal_G_SAMPLE_CHECK() {
   want_re "samples" '^samples: [1-9][0-9]* samples, [0-9]+ expectations, 0 failed$' \
-    "$(python3 -B tests/samples/check.py --ozen build/core-gcc-release/ozen samples 2>&1 | tail -n 1)"
+    "$(python3 -B tests/samples/check.py --ozen build/core-gcc-release/ozen --save build/results/json/samples samples 2>&1 | tail -n 1)"
 }
 
 goal_G_REND_TESTS() {
