@@ -18,3 +18,9 @@ runs:
       level: 2
       diagnostics:
         exclude: [aliasCandidates]
+  - name: raw-karubi
+    entry: rawKarubi
+    expect:
+      diagnostics:
+        include:
+          - {name: undercooked, args: [Karubi]}
