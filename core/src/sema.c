@@ -6670,6 +6670,16 @@ static void ir_json(sema *s, ozni_index name) {
     } else {
       ozni_buf_puts(b, "null");
     }
+    ozni_buf_puts(b, ",\"type\":");
+    put_json_name(s, b, di->f->type);
+    ozni_buf_puts(b, ",\"part\":");
+    put_json_name(s, b, di->f->part);
+    ozni_buf_puts(b, ",\"quantity\":");
+    if (di->f->amount.known && !di->f->vague) {
+      put_json_qty(s, b, di->f->amount);
+    } else {
+      ozni_buf_puts(b, "null");
+    }
     ozni_buf_puts(b, "}");
   }
   ozni_buf_puts(b, "]}");

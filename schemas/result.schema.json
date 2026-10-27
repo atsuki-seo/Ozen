@@ -394,11 +394,44 @@
                     "type": "null"
                   }
                 ]
+              },
+              "part": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "quantity": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/quantity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
               "label",
-              "node"
+              "node",
+              "type",
+              "part",
+              "quantity"
             ],
             "type": "object"
           },
