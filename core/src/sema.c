@@ -778,20 +778,41 @@ static bool find_def(sema *s, ozni_index name, ozni_index *file, ozni_index *nod
   return true;
 }
 
-static ozni_index mod_of_file(const sema *s, ozni_index file) {
-  ozni_index found = s->mod;
+static ozni_index mod_at_node(const sema *s, ozni_index file, ozni_index at) {
+  ozni_index found = NONE, first = NONE;
+  uint32_t width = UINT32_MAX;
+  const ozni_node *n = at != 0 ? nd(s, file, at) : nullptr;
   for (ozni_index mi = 0; mi < ozni_table_count(s->pr->modules); mi++) {
-    if (mod_at(s, mi)->file == file) {
+    const ozni_module *m = mod_at(s, mi);
+    if (m->file != file) {
+      continue;
+    }
+    first = first == NONE ? mi : first;
+    const ozni_node *r = nd(s, file, m->root);
+    if (n != nullptr && r->span.start <= n->span.start && n->span.end <= r->span.end &&
+        r->span.end - r->span.start < width) {
       found = mi;
+      width = r->span.end - r->span.start;
     }
   }
-  return found;
+  if (found != NONE) {
+    return found;
+  }
+  return mod_at(s, s->mod)->file == file || first == NONE ? s->mod : first;
 }
+
+static ozni_index mod_of_file(const sema *s, ozni_index file) { return mod_at_node(s, file, 0); }
 
 static bool find_from(sema *s, ozni_index from_file, ozni_index name, ozni_index *file, ozni_index *node) {
   ozni_index saved = s->mod;
   s->mod = mod_of_file(s, from_file);
   bool found = find_def(s, name, file, node);
+  for (ozni_index mi = 0; !found && mi < ozni_table_count(s->pr->modules); mi++) {
+    if (mi != s->mod && mod_at(s, mi)->file == from_file) {
+      s->mod = mi;
+      found = find_def(s, name, file, node);
+    }
+  }
   s->mod = saved;
   return found;
 }
@@ -1140,7 +1161,7 @@ static bool prop_at(sema *s, ozni_index file, ozni_index field, ozni_qty *out) {
   if (field == 0 || nd(s, file, field)->first == 0 || nd(s, file, nd(s, file, field)->first)->kind != OZNI_N_Quantity) {
     return false;
   }
-  return qty_of(s, mod_of_file(s, file), file, nd(s, file, field)->first, out, false);
+  return qty_of(s, mod_at_node(s, file, field), file, nd(s, file, field)->first, out, false);
 }
 
 static bool part_prop(sema *s, const cand *c, ozni_index pfile, ozni_index pnode, const char *key, ozni_qty *out,
@@ -1174,7 +1195,7 @@ static bool contains_prop(sema *s, ozni_index file, ozni_index decl, const char 
     const ozni_node *en = nd(s, file, e);
     ozni_index cf, cn;
     ozni_qty fq, vq;
-    if (n == 16 || en->first == 0 || !qty_of(s, mod_of_file(s, file), file, en->first, &fq, false) ||
+    if (n == 16 || en->first == 0 || !qty_of(s, mod_at_node(s, file, en->first), file, en->first, &fq, false) ||
         !dimensionless(fq.d) || !find_from(s, file, en->text, &cf, &cn) || nd(s, cf, cn)->kind != OZNI_N_Ingredient ||
         !decl_prop(s, cf, cn, key, &vq, depth + 1) || (n > 0 && !dims_equal(d, vq.d))) {
       return false;
@@ -1592,7 +1613,7 @@ static void ir_put_uses(sema *s, ozni_buf *b, ozni_index file, ozni_index holder
         (*nreqs)++;
       } else if (un->kind == OZNI_N_For && un->first != 0) {
         ozni_qty q;
-        if (qty_of(s, mod_of_file(s, file), file, un->first, &q, false)) {
+        if (qty_of(s, mod_at_node(s, file, un->first), file, un->first, &q, false)) {
           *lo = q.v.lo;
           *hi = q.v.hi;
           timed = true;
@@ -2507,7 +2528,7 @@ static bool value_qty(sema *s, ozni_index file, ozni_index node, ozni_qty *out) 
     return true;
   }
   if (n->kind == OZNI_N_Quantity) {
-    return qty_of(s, mod_of_file(s, file), file, node, out, false);
+    return qty_of(s, mod_at_node(s, file, node), file, node, out, false);
   }
   return false;
 }
@@ -3100,7 +3121,7 @@ static value eval_in(sema *s, ozni_index file, ozni_index node, const value *par
     }
   }
   s->file = file;
-  s->mod = mod_of_file(s, file);
+  s->mod = mod_at_node(s, file, node);
   value v = eval(s, node);
   s->file = saved_file;
   s->mod = saved_mod;
@@ -3909,7 +3930,7 @@ static value call_composite(sema *s, ozni_index file, const ozni_node *call, ozn
     bind(s, pnames[k], params[k]);
   }
   s->file = afile;
-  s->mod = mod_of_file(s, afile);
+  s->mod = mod_at_node(s, afile, anode);
   s->last = unknown();
   eval_block(s, block, true);
   value result = s->last;
@@ -4539,7 +4560,7 @@ static value eval_macro(sema *s, const ozni_node *call, ozni_index mfile, ozni_i
     return unknown();
   }
   s->file = mfile;
-  s->mod = mod_of_file(s, mfile);
+  s->mod = mod_at_node(s, mfile, mnode);
   s->trail = tr_index + 1;
   s->frame = &f;
   eval_block(s, quote_block, top);
@@ -4576,7 +4597,7 @@ static bool cut_thickness(sema *s, const food *f, ozni_qty *out) {
         nd(s, pf, nd(s, pf, pn)->first)->kind == OZNI_N_Record) {
       for (ozni_index e = nd(s, pf, nd(s, pf, pn)->first)->first; e != 0; e = nd(s, pf, e)->next) {
         if (nd(s, pf, e)->text == st->style && nd(s, pf, e)->first != 0 &&
-            qty_of(s, mod_of_file(s, pf), pf, nd(s, pf, e)->first, out, false)) {
+            qty_of(s, mod_at_node(s, pf, e), pf, nd(s, pf, e)->first, out, false)) {
           return true;
         }
       }
@@ -5304,7 +5325,7 @@ static bool within_of(sema *s, ozni_index file, ozni_index call, ozni_rat *limit
   while (arg != 0 && nd(s, file, arg)->kind == OZNI_N_CallArgs) {
     arg = nd(s, file, arg)->first;
   }
-  if (arg == 0 || !qty_of(s, mod_of_file(s, file), file, arg, &q, false)) {
+  if (arg == 0 || !qty_of(s, mod_at_node(s, file, arg), file, arg, &q, false)) {
     return false;
   }
   *limit = q.v.hi;
@@ -5326,7 +5347,7 @@ static uint8_t timing_of(sema *s, ozni_index file, ozni_index holder, ozni_rat *
     if (str_is(name, "frozen")) {
       return TIMING_FROZEN;
     }
-    if (str_is(name, "serveWithin") && an->first != 0 && qty_of(s, mod_of_file(s, file), file, an->first, &q, false)) {
+    if (str_is(name, "serveWithin") && an->first != 0 && qty_of(s, mod_at_node(s, file, an->first), file, an->first, &q, false)) {
       *limit = q.v.hi;
       return TIMING_WITHIN;
     }
@@ -5337,7 +5358,7 @@ static uint8_t timing_of(sema *s, ozni_index file, ozni_index holder, ozni_rat *
         if (na->kind == OZNI_N_NamedArg && na->first != 0 && str_is(S(s, na->text), "on")) {
           *on = nd(s, file, na->first)->text;
         } else if (na->kind == OZNI_N_NamedArg && na->first != 0 && str_is(S(s, na->text), "max") &&
-                   qty_of(s, mod_of_file(s, file), file, na->first, &q, false)) {
+                   qty_of(s, mod_at_node(s, file, na->first), file, na->first, &q, false)) {
           *limit = q.v.hi;
         }
       }
@@ -6052,7 +6073,7 @@ static value eval_make(sema *s, const ozni_node *mk) {
   s->quiet++;
   s->make_depth++;
   s->file = rfile;
-  s->mod = mod_of_file(s, rfile);
+  s->mod = mod_at_node(s, rfile, rnode);
   s->scope = ozni_table_new(s->c->arena, sizeof(binding));
   s->portions = ozni_table_new(s->c->arena, sizeof(food *));
   s->reqs = ozni_table_new(s->c->arena, sizeof(ozni_index));
@@ -8782,7 +8803,7 @@ static void check_uses_time(sema *s, ozni_index file, ozni_index node) {
       const ozni_node *un = nd(s, file, u);
       ozni_qty q;
       if (un->kind != OZNI_N_For || un->first == 0 || nd(s, file, un->first)->kind != OZNI_N_Quantity ||
-          !qty_of(s, mod_of_file(s, file), file, un->first, &q, true)) {
+          !qty_of(s, mod_at_node(s, file, un->first), file, un->first, &q, true)) {
         continue;
       }
       ozni_dimvec want = {{0}};

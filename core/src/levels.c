@@ -174,18 +174,29 @@ static void collect_notes(levels *l, ozni_index file, ozni_index node, ozni_inde
     return;
   }
   for (ozni_index c = n->first; c != 0; c = nd(l, file, c)->next) {
-    collect_notes(l, file, c, node);
+    if (nd(l, file, c)->kind != OZNI_N_Module) {
+      collect_notes(l, file, c, node);
+    }
   }
 }
 
-static bool dependency_file(const levels *l, ozni_index file) {
+static bool dependency_at(const levels *l, ozni_span at) {
+  const ozni_module *best = nullptr;
+  uint32_t width = UINT32_MAX;
   for (ozni_index mi = 0; mi < ozni_table_count(l->pr->modules); mi++) {
     const ozni_module *m = ozni_project_module(l->pr, mi);
-    if (m->file == file) {
-      return !m->is_std && l->pr->root_pkg != NONE && m->pkg != NONE && m->pkg != l->pr->root_pkg;
+    if (m->file != at.file) {
+      continue;
+    }
+    const ozni_node *r = nd(l, m->file, m->root);
+    bool inside = r->span.start <= at.start && at.end <= r->span.end;
+    if (best == nullptr || (inside && r->span.end - r->span.start < width)) {
+      best = m;
+      width = inside ? r->span.end - r->span.start : UINT32_MAX;
     }
   }
-  return false;
+  return best != nullptr && !best->is_std && l->pr->root_pkg != NONE && best->pkg != NONE &&
+         best->pkg != l->pr->root_pkg;
 }
 
 static int apply_level(int level, ozni_severity *sev) {
@@ -260,7 +271,7 @@ bool ozni_apply_levels(ozni_project *pr) {
         d = ozni_table_at(pr->c->diags, i);
       }
     }
-    if (dependency_file(&l, d->span.file) && !(saf && sev == OZNI_SEV_ERROR)) {
+    if (dependency_at(&l, d->span) && !(saf && sev == OZNI_SEV_ERROR)) {
       hide = true;
     }
     d->severity = sev;
