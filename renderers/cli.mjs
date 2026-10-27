@@ -19,6 +19,12 @@ for (let i = 0; i < args.length; i += 2) {
   opts[key] = args[i + 1];
 }
 const result = JSON.parse(readFileSync(0, 'utf8'));
+if (result.outcome?.status === 'error') {
+  for (const d of result.diagnostics || []) {
+    console.error(`${d.severity} ${d.code} ${d.name}`);
+  }
+  process.exit(1);
+}
 const phrases = {
   std: opts.std ? phrasesIn(opts.std, 'std') : null,
   project: opts.project ? phrasesIn(opts.project, 'project') : null,
