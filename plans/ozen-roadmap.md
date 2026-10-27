@@ -3481,6 +3481,12 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `sample/menuE`（S368・実際の経路）— `std` の `afterSticky` を `wash` にすると `task soak` が落ちた。戻して合格
   - わざと壊す確認: `G-SAMPLE-STD-ONLY`（S456・データの完全性）— `samples/menuA/yakisoba.ozen` に `ingredient` を 1 つ足すと `1` で落ちた。戻して合格
   - 段取りの挙動の記録: 献立 E の 1 回目のジュースは、ミキサーの浸け置き（`afterSticky` は同じ食べ物でも浸け置き）の 30 分を待ってから 2 回目と合わせて出る（`serveWithin` は合わせた後の作業で数える）。献立 C は `--serve-at` を渡さないと前から詰めるので、炒め物と味噌汁がごはんを 40 分以上待つ（`SCH:longWait`）
+- P13-4（2026-10-26）: D35 のとおり `std` に丸魚を捌く動作 `fillet`（8 つの部位を出す。手・まな板・包丁、汚れは `rawFish`）、`RoundFish` の部位の暫定の歩留まり（頭 15〜20%・カマ 5〜8%・背身 25〜30%・腹身 15〜20%・アラ 10〜15%・皮 3〜5%・内臓 8〜12%・うろこ 1〜2%）、食材 `Egg`（`Allergen(egg)`・`Hazard`・`rawEgg`、1 個 58〜64 g）を、調べた記録（一次情報は見つからなかった）・言い回しのキーとともに足した（golden `std/round-fish-fillet` と、量が決まるようになった既存の golden の期待値を先にコミット）。先に `samples/T1`〜`T4`（T3 は a・b、どちらも献立 B と C を台所ごとに回す）の `expect.yaml` をコミットし、テストのレシピを書いた（T1 はブリ 1 尾を捌いて刺身・カマ焼き・アラ煮、T2 は親子丼 3 人と卵なしの鶏丼 1 人、T3a は炊飯器の無い台所、T3b は食洗機と `--cleanup afterMeal`、T4 はカルビの牛カルビ丼と生のカルビ）。検査に実行ごとの `entry` を足し、`reaches` はどの盛り付けに届いてもよいことにした。`G-SAMPLE-CHECK`（`samples: 11 samples, 236 expectations, 0 failed`）・`G-SCHED-CHECK`・`G-SAMPLE-STD-ONLY` が合格
+  - テストのレシピを書く途中で見つけて直したこと（どれも golden を先にコミットした）: 生で食べられるもの同士を混ぜた値が `RawEdible` を受け継がず刺身のつまで `SAF:undercooked` になった（`safety/raw-edible-mixture`、§4.21 に追記）。`Washing` を要求する食べ物の `wash` が食洗機に割り当てられた（`cleanup/food-wash-not-dishwasher`。`std` の `Dishwasher` は concept §12.3 のとおり `Washing` を持つままにし、食洗機を料理の作業に割り当てない規則を §4.22.1 に追記。いったん能力を外す期待値をコミットして戻した）。献立で `buy` した生の肉をそのまま盛っても `SAF:undercooked` にならなかった（`safety/plate-raw-buy`。`make` で作った料理はレシピの側で検査するので盛り付けでは見ない）。言い回しの検査がトレイトの部位（`RoundFish`）を数えていなかった
+  - わざと壊す確認: `sample/T1`（S369・実際の経路）— `std` の `fillet` の出力を `T<back>` 1 つにすると 7 件が落ちた。戻して合格
+  - わざと壊す確認: `sample/T2`（S370・実際の経路）— 人ごとのアレルギーを見ないと `diagnostic allergen ['egg']` が落ちた。戻して合格
+  - わざと壊す確認: `sample/T3a`・`T3b`（S371・実際の経路）— 候補を最初の候補（炊飯器）に固定すると T3a の 2 件（`variantChosen … unavailable`）が落ちた（T3b は炊飯器のある台所なので変わらない）。戻して合格
+  - わざと壊す確認: `sample/T4`（S372・実際の経路）— 別名を展開しないと、最初は期待が 1 件も落ちなかった（展開しなくても `Beef<Fatty>` の引数の検査で落ちない）。別名から `Hazard` が伝わることを確かめる実行（生のカルビを盛ると `SAF:undercooked`）を足し、その途中で上の `buy` の生の肉の不具合を見つけて直した。直した後は `diagnostic undercooked ['Karubi']` が落ちた。戻して合格
 
 - 各サンプルの `expect.yaml` の性質の数
 - 暫定の値で組まれた段取りの一覧（S277）
