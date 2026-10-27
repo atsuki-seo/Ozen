@@ -14,6 +14,7 @@ export const STYLE = [
   'table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:2px 6px}',
   'svg .task{fill:#7aa6d8;stroke:#335}',
   'nav ol{columns:2}',
+  'fieldset.item{display:inline-block;vertical-align:top;margin:4px}.field{margin:2px 0}input[type=number]{width:6em}',
   '@media print{body{margin:0;font-size:10pt}nav{display:none}section{break-inside:avoid}h2{break-after:avoid}}',
 ].join('');
 

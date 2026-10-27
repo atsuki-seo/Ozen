@@ -5,8 +5,9 @@ import { renderSchedule } from './schedule.mjs';
 import { renderShopping } from './shopping.mjs';
 import { renderHtml } from './html.mjs';
 import { renderBook } from './book.mjs';
+import { settingsSpec, settingsText, renderSettings } from './settings.mjs';
 
-export { Phrases, layerOrder, renderRecipe, renderSchedule, renderShopping, renderHtml, renderBook };
+export { Phrases, layerOrder, renderRecipe, renderSchedule, renderShopping, renderHtml, renderBook, settingsSpec, settingsText, renderSettings };
 
 const KINDS = { recipe: renderRecipe, schedule: renderSchedule, shopping: renderShopping, html: renderHtml };
 
