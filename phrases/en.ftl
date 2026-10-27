@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 ## Actions
-action-wash = Wash { $x }
+action-wash = { $x-kind ->
+    [grain] Rinse { $x }
+   *[other] Wash { $x }
+}
 action-soak = Soak { $x } for { $time }
 action-peel = Peel { $x }
 action-loosen = Loosen { $x }
@@ -37,9 +40,11 @@ ingredient-rice = rice
 ingredient-steamed-noodles = steamed noodles
 ingredient-naan = naan
 ingredient-pork = pork
+ingredient-pork-belly = pork belly
 ingredient-chicken = chicken
 ingredient-beef = beef
 ingredient-buri = yellowtail
+ingredient-buri-collar = yellowtail collar
 ingredient-egg = egg
 ingredient-onion = onion
 ingredient-carrot = carrot
@@ -74,6 +79,7 @@ ingredient-cooked-rice = cooked rice
 ingredient-mixture = mixture
 
 ## Parts
+name-with-part = { $ingredient } { $part }
 part-shoulder = shoulder
 part-loin = loin
 part-shoulder-loin = shoulder loin

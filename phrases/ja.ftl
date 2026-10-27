@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 ## 動作
-action-wash = { $x }を洗う
+action-wash = { $x-kind ->
+    [grain] { $x }を研ぐ
+   *[other] { $x }を洗う
+}
 action-soak = { $x }を{ $time }浸す
 action-peel = { $x }の皮をむく
 action-loosen = { $x }をほぐす
@@ -37,9 +40,21 @@ ingredient-rice = 米
 ingredient-steamed-noodles = 蒸し麺
 ingredient-naan = ナン
 ingredient-pork = 豚肉
+ingredient-pork-belly = 豚バラ
 ingredient-chicken = 鶏肉
 ingredient-beef = 牛肉
-ingredient-buri = ブリ
+ingredient-buri = { $stage ->
+    [young] { $dialect ->
+        [kansai] ハマチ
+       *[kanto] イナダ
+    }
+    [middle] { $dialect ->
+        [kansai] メジロ
+       *[kanto] ワラサ
+    }
+   *[adult] ブリ
+}
+ingredient-buri-collar = ブリカマ
 ingredient-egg = 卵
 ingredient-onion = 玉ねぎ
 ingredient-carrot = にんじん
@@ -74,6 +89,7 @@ ingredient-cooked-rice = ごはん
 ingredient-mixture = 混ぜたもの
 
 ## 部位
+name-with-part = { $ingredient }{ $part }
 part-shoulder = 肩
 part-loin = ロース
 part-shoulder-loin = 肩ロース
