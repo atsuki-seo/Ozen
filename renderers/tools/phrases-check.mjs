@@ -3,6 +3,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const DERIVED = { variantChosen: ['reason'] };
+
 export function kebab(name) {
   return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/([A-Z])([A-Z][a-z])/g, '$1-$2').toLowerCase();
 }
@@ -34,7 +36,7 @@ export function expectedKeys(defs) {
   }
   for (const p of parts) keys.set(`part-${kebab(p)}`, NAME_VARS);
   for (const d of defs.diagnostics) {
-    keys.set(`diag-${kebab(d.name)}`, Array.from({ length: 9 }, (_, i) => `arg${i + 1}`));
+    keys.set(`diag-${kebab(d.name)}`, [...Array.from({ length: 9 }, (_, i) => `arg${i + 1}`), ...(DERIVED[d.name] || [])]);
   }
   return keys;
 }
