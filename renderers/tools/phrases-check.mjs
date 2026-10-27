@@ -23,7 +23,7 @@ export function expectedKeys(defs) {
   const keys = new Map();
   const parts = new Set();
   for (const d of defs.definitions) {
-    if (d.kind === 'action') keys.set(`action-${kebab(d.name)}`, d.params.map((p) => p.name));
+    if (d.kind === 'action') keys.set(`action-${kebab(d.name)}`, d.params.flatMap((p) => [p.name, `${p.name}-kind`]));
     if (d.kind === 'ingredient') keys.set(`ingredient-${kebab(d.name)}`, NAME_VARS);
     if (d.kind === 'ingredient' || d.kind === 'trait') {
       for (const m of d.members || []) if (m.section === 'parts') partNames(m.members, parts);
