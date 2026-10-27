@@ -2933,7 +2933,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - A（表）: `G-VOCAB-*` の 6 つ（FCT・FCT-STABLE・LISTS・LISTS-COPY・PRIORWORK・SOURCES）と `G-STD-*` が合格
   - B・C（試作）: golden・単体・OOM（109 files）・決定性・WASM と Worker・`G-PROTO-COMPILERS`・ファズ（`fuzz: 778144 execs in 601 s, 0 crashes, 0 leaks, 0 timeouts`）が合格
   - D〜G（コア・API・CLI）: golden 363 件、OOM 329 files / 4398 points、SARIF 193 files、JSON 361 files、CLI 23 cases、性質のテスト（`bundle_roundtrip` 24 cases を含む）が合格。ファズは 6 つの対象で各 600 秒、どれも `0 crashes, 0 leaks, 0 timeouts`（bundle 20740・expand 30946・kitchen 38534・parse 71124・schedule 36109・typecheck 25422 execs）
-  - H（環境）: Linux（`G-PLAT-LINUX`）と WASM（`G-PLAT-WASM`。先に `scripts/build-wasm.sh` で `build/core-wasm` を作り直した）が手元で合格。iOS・Android と CI のゴール（`G-PLAT-IOS`・`G-PLAT-ANDROID`・`G-PLAT-CI`・`G-REPO-TOOLS-CI`・`G-PROTO-IOS`）は push した後の CI で確かめる
+  - H（環境）: Linux（`G-PLAT-LINUX`）と WASM（`G-PLAT-WASM`。先に `scripts/build-wasm.sh` で `build/core-wasm` を作り直した）が手元で合格。iOS・Android と CI のゴール（`G-PLAT-IOS`・`G-PLAT-ANDROID`・`G-PLAT-CI`・`G-REPO-TOOLS-CI`・`G-PROTO-IOS`）は、ユーザーの確認を取って `643c00c` を push した後の CI（`ci` の実行 40496811079 と `ios-proto` の実行 40496811209、どちらも成功）で 5 つとも合格。これで 87 のゴールがすべて合格
   - I・J（サンプル）: 11 のサンプルで 236 の検査、段取りの検査 65 件が合格
   - K（レンダラー）: ブラウザと node の比較 26 件、描画の言い回しの検査（`0 unresolved, 0 identifiers`）、自己完結と HTML の検査が合格
   - L（bundle）: `G-BUNDLE-STABLE` が合格
