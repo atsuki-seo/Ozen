@@ -6129,6 +6129,15 @@ static value eval_make(sema *s, const ozni_node *mk) {
   made_from(s, o, made_allergens);
   o->made_file = rfile;
   o->made_node = rnode;
+  if (s->ir_meta != nullptr && o->irn != 0) {
+    for (ozni_index m = ozni_table_count(s->ir_meta); m > 0; m--) {
+      ir_meta *mm = ozni_table_at(s->ir_meta, m - 1);
+      if (mm->irn == o->irn) {
+        mm->type = o->type;
+        break;
+      }
+    }
+  }
   value out = {.kind = V_FOOD, .f = o};
   out.ref = record_step(s, action, shown, nshown, shown_names, o, nullptr, 0);
   return out;
