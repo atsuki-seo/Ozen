@@ -1,9 +1,9 @@
 recipe dressedSalad
   lettuce : Lettuce 200 g
   dressing : Dressing 30 ml
-  %1 = combine([lettuce, dressing]) : Mixture 228.5..233 g
-  %2 = toss(%1) : Mixture 228.5..233 g
+  %1 = combine([lettuce, dressing]) : Mixture 228.5..233 g with RawEdible
+  %2 = toss(%1) : Mixture 228.5..233 g with RawEdible
 menu dinner
-  %1 = make dressedSalad() : Salad 228.5..233 g
+  %1 = make dressedSalad() : Salad 228.5..233 g with RawEdible
 result ok errors=0 warnings=0 infos=0
 exit 0
