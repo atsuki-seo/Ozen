@@ -23,7 +23,7 @@ export function valueName(ph, nodes, id, opts) {
   if (node.type && ph.has(keyFor('dish', node.type))) {
     return foodName(ph, { type: node.type }, opts);
   }
-  if (node.kind === 'op' && STRUCTURAL.has(node.label)) {
+  if (node.kind === 'op' && (STRUCTURAL.has(node.label) || node.label === 'assemble')) {
     return joinList(ph, node.inputs.map((i) => valueName(ph, nodes, i.node, opts)));
   }
   return node.inputs.length > 0 ? valueName(ph, nodes, node.inputs[0].node, opts) : foodName(ph, { type: node.type }, opts);
@@ -42,10 +42,16 @@ function argValue(ph, arg) {
 function stepValues(ph, defs, nodes, node, opts) {
   const values = {};
   const shown = [];
-  const food = node.inputs.length > 0 ? nodes.get(node.inputs[0].node) : null;
-  values.x = node.inputs.length > 0 ? valueName(ph, nodes, node.inputs[0].node, opts) : '';
-  values['x-kind'] = food ? kindOf(defs, food.type ?? '') : 'other';
-  shown.push(values.x);
+  const action = (defs.definitions || []).find((d) => d.kind === 'action' && d.name === node.label);
+  const named = new Set(node.args.map((a) => a.name));
+  const foodParams = action ? action.params.map((p) => p.name).filter((n) => !named.has(n)) : ['x'];
+  node.inputs.forEach((input, i) => {
+    const param = foodParams[i] ?? `x${i + 1}`;
+    const food = nodes.get(input.node);
+    values[param] = valueName(ph, nodes, input.node, opts);
+    values[`${param}-kind`] = food ? kindOf(defs, food.type ?? '') : 'other';
+    shown.push(values[param]);
+  });
   for (const arg of node.args) {
     values[arg.name] = argValue(ph, arg);
     shown.push(values[arg.name]);
@@ -66,7 +72,7 @@ function noteText(ph, note) {
   return ph.format(keyFor('property', note.name), {}, words(note.name));
 }
 
-function stepText(ph, defs, nodes, node, opts) {
+export function stepText(ph, defs, nodes, node, opts) {
   if (node.kind === 'plate') {
     const items = joinList(ph, node.inputs.map((i) => valueName(ph, nodes, i.node, opts)));
     const text = ph.format('action-plate', { x: items }, `plate(${items})`);

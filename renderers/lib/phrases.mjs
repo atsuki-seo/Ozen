@@ -18,6 +18,7 @@ export class Phrases {
   constructor(sources, { lang = 'ja' } = {}) {
     this.lang = lang;
     this.stats = { fallbacks: 0, errors: 0, unresolved: 0 };
+    this.missing = new Set();
     this.bundles = new Map();
     for (const l of new Set([lang, 'en'])) {
       const bundle = new FluentBundle(l, { useIsolating: false });
@@ -69,6 +70,7 @@ export class Phrases {
       return this.resolve(bundle, message.value, args);
     }
     this.stats.fallbacks++;
+    this.missing.add(key);
     return fallback ?? key;
   }
 }
