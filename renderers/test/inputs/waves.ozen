@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+recipe stew() {
+  ingredients {
+    pork: 300 g
+    water: 600 ml
+  }
+  let s = simmer([pork, water], 30 min)
+}
+recipe jelly() {
+  ingredients {
+    milk: 300 ml
+    sugar: Sugar 2 tbsp
+  }
+  let m = mix([milk, sugar])
+  let c = chill(m, 60 min)
+}
+menu dinner() {
+  let a = make stew()
+  let b = make jelly()
+  serve main {
+    plate perPerson on DeepPlate { a }
+  }
+  serve dessert after main + 40 min {
+    plate perPerson on Glass { b }
+  }
+}
+kitchen home {
+  places {
+    stove: IHStove
+    fridge: Fridge
+  }
+  tools {
+    pot: Pot
+    bowl: MixingBowl
+  }
+}
