@@ -24,3 +24,5 @@ dc01918 the prelude-contents golden passes because the prelude already held thes
 bd3945a the display_only property test now also strips @group, which already left the IR unchanged; the S378 mutation makes it report differences
 bade82c the std-module-rejected bundle golden passes because PKG005 already rejected an inline module named std; the S403 mutation (removing that check) makes it fail
 3ed9c51 the subcommands CLI test only stops listing bundle among the unavailable commands, which holds before and after; the bundle goldens fail without ozen bundle
+e7effd2 the import-two-versions bundle golden passes because the bundle step already compared a bundle's from versions with the copied dependencies; the S407 mutation (removing that comparison) makes it fail
+e7effd2 the subcommands CLI test only stops listing unbundle among the unavailable commands, which holds before and after; the unbundle CLI tests fail without ozen unbundle
