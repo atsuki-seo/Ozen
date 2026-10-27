@@ -64,17 +64,15 @@ def check_ir(r, ir, spec):
         r.want(f"choice {label}", count in got, str(got))
     parents = {n["id"]: [i["node"] for i in n["inputs"]] + list(n.get("after", [])) for n in nodes}
     for item in spec.get("reaches", []):
-        for target in [n for n in nodes if matches(n, item["to"], "kind", "label")] or [None]:
-            seen, stack = set(), [target["id"]] if target else []
-            while stack:
-                cur = stack.pop()
-                if cur not in seen:
-                    seen.add(cur)
-                    stack.extend(parents.get(cur, []))
-            reached = {n["label"] for n in nodes if n["id"] in seen}
-            for source in item["from"]:
-                r.want(f"ir {source} reaches {item['to']}", source in reached)
-            break
+        seen, stack = set(), [n["id"] for n in nodes if matches(n, item["to"], "kind", "label")]
+        while stack:
+            cur = stack.pop()
+            if cur not in seen:
+                seen.add(cur)
+                stack.extend(parents.get(cur, []))
+        reached = {n["label"] for n in nodes if n["id"] in seen}
+        for source in item["from"]:
+            r.want(f"ir {source} reaches {item['to']}", source in reached)
 
 
 def check_schedule(r, sched, spec):
