@@ -149,7 +149,7 @@ export function renderSchedule(result, ph, opts = {}) {
   if (notes.length > 0) {
     lines.push('', `## ${ph.format('heading-notes')}`);
     for (const d of notes) {
-      lines.push(`- ${diagText(ph, d)}`);
+      lines.push(`- ${diagText(ph, d, { ...opts, unit: (id) => unitName(ph, sched, id) })}`);
     }
   }
   return `${lines.join('\n')}\n`;

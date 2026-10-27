@@ -123,10 +123,50 @@ export function actionText(ph, defs, action, args, opts = {}) {
   return ph.format(keyFor('action', action), values, `${action}(${shown.join(', ')})`);
 }
 
-export function diagText(ph, diag) {
+const ARG_KINDS = {
+  provisionalValue: ['action'],
+  variantChosen: ['action', 'variant', 'variant'],
+  washInserted: ['unit', 'dirt'],
+  stainLeft: ['unit', 'dirt'],
+  longWait: ['name', 'duration'],
+  serveWithinMissed: ['name', 'duration'],
+  leftoverPart: ['part'],
+  allergen: ['allergen'],
+  smallToolsAssumed: ['kind'],
+  undercooked: ['ingredient', 'value'],
+  evenChoice: ['value'],
+  criticalPath: ['duration'],
+  noPlating: ['name'],
+};
+
+export function termText(ph, kind, x, opts = {}) {
+  if (kind === 'duration') {
+    return durationText(ph, x);
+  }
+  if (kind === 'unit') {
+    return opts.unit ? opts.unit(x) : ph.format(keyFor('unit', x.split('#')[0]), {}, x);
+  }
+  if (kind === 'ingredient') {
+    return foodName(ph, { type: x }, opts);
+  }
+  if (kind === 'action') {
+    return ph.formatAttr(keyFor('action', x), 'name') ?? ph.format(keyFor('term', x), {}, words(x));
+  }
+  if (kind === 'name') {
+    const key = ph.has(keyFor('dish', x)) ? keyFor('dish', x) : keyFor('name', x);
+    return ph.format(key, {}, words(x));
+  }
+  return ph.format(keyFor(kind, x), {}, words(x));
+}
+
+export function diagText(ph, diag, opts = {}) {
+  const kinds = ARG_KINDS[diag.name] || [];
   const values = {};
   (diag.args || []).forEach((a, i) => {
-    values[`arg${i + 1}`] = a;
+    values[`arg${i + 1}`] = kinds[i] ? termText(ph, kinds[i], a, opts) : a;
   });
+  if (diag.name === 'variantChosen') {
+    values.reason = ph.format(keyFor('reason', diag.args[3]), { other: values.arg3 }, words(diag.args[3]));
+  }
   return ph.format(keyFor('diag', diag.name), values, words(diag.name));
 }

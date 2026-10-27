@@ -2,7 +2,7 @@
 import { escapeXml } from './xml.mjs';
 import { foodName, quantityText, diagText } from './names.mjs';
 import { entryIr, dishTitle, steps } from './recipe.mjs';
-import { entrySchedule, scheduleSections, taskText, clock, seconds, waveName } from './schedule.mjs';
+import { entrySchedule, scheduleSections, taskText, clock, seconds, waveName, unitName } from './schedule.mjs';
 import { shoppingItems } from './shopping.mjs';
 import { renderGantt } from './gantt.mjs';
 import { keyFor } from './phrases.mjs';
@@ -29,8 +29,9 @@ export function dishSections(result, ph, opts = {}) {
   const out = [];
   const ingredients = (dish.ingredients || []).map((ing) => {
     const node = ing.node !== null ? nodes.get(ing.node) : null;
-    const name = node ? foodName(ph, { type: node.type, part: node.part }, opts) : ing.label;
-    return ph.format('ingredient-line', { name, amount: quantityText(ph, node?.quantity ?? null, node?.type) });
+    const food = node ?? ing;
+    const name = food.type ? foodName(ph, { type: food.type, part: food.part }, opts) : ing.label;
+    return ph.format('ingredient-line', { name, amount: quantityText(ph, food.quantity ?? null, food.type) });
   });
   out.push(`<section class="ingredients"><h2>${escapeXml(ph.format('heading-ingredients'))}</h2>${list(ingredients)}</section>`);
   out.push(`<section class="steps"><h2>${escapeXml(ph.format('heading-steps'))}</h2>${list(steps(ph, defs, dish, opts).map((s) => s.text), 'ol')}</section>`);
@@ -62,7 +63,8 @@ export function dishSections(result, ph, opts = {}) {
   const shopping = shoppingItems(result).map((item) =>
     ph.format('ingredient-line', { name: foodName(ph, item, opts), amount: quantityText(ph, item.quantity, item.type) }));
   out.push(`<section class="shopping"><h2>${escapeXml(ph.format('heading-shopping'))}</h2>${list(shopping)}</section>`);
-  const notes = (result.diagnostics || []).filter((d) => d.severity !== 'error' || true).map((d) => diagText(ph, d));
+  const unit = sched ? (id) => unitName(ph, sched, id) : undefined;
+  const notes = (result.diagnostics || []).map((d) => diagText(ph, d, { ...opts, unit }));
   if (notes.length > 0) {
     out.push(`<section class="notes"><h2>${escapeXml(ph.format('heading-notes'))}</h2>${list(notes)}</section>`);
   }

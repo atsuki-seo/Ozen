@@ -168,8 +168,9 @@ export function renderRecipe(result, ph, opts = {}) {
   const listed = new Set();
   for (const ing of dish.ingredients || []) {
     const node = ing.node !== null ? nodes.get(ing.node) : null;
-    const name = node ? foodName(ph, { type: node.type, part: node.part }, opts) : ing.label;
-    const amount = quantityText(ph, node?.quantity ?? null, node?.type);
+    const food = node ?? ing;
+    const name = food.type ? foodName(ph, { type: food.type, part: food.part }, opts) : ing.label;
+    const amount = quantityText(ph, food.quantity ?? null, food.type);
     lines.push(`- ${ph.format('ingredient-line', { name, amount })}`);
     listed.add(ing.node);
   }
