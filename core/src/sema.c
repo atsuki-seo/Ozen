@@ -5585,6 +5585,8 @@ static void liquid_order(sema *s, const ozni_node *item, ozni_index pf, ozni_ind
   }
 }
 
+static void check_cooked(sema *s, const food *f, ozni_index node);
+
 static void eval_serve(sema *s, const ozni_node *serve) {
   ozni_index hold = intern(s, "HoldsLiquid", 11);
   if (s->vessel_used != nullptr) {
@@ -5645,6 +5647,9 @@ static void eval_serve(sema *s, const ozni_node *serve) {
         continue;
       }
       consume(s, &v, s->file, c);
+      if (v.f->made_node == 0) {
+        check_cooked(s, v.f, c);
+      }
       if (nplated < 16) {
         info.items[nplated] = c;
         plated[nplated++] = v.f;
@@ -5692,22 +5697,26 @@ static void eval_serve(sema *s, const ozni_node *serve) {
   s->last = unknown();
 }
 
+static void check_cooked(sema *s, const food *f, ozni_index node) {
+  if (!food_has(s, f, intern(s, "Hazard", 6)) || food_has(s, f, intern(s, "RawEdible", 9))) {
+    return;
+  }
+  for (uint32_t k = 0; k < f->naxes; k++) {
+    if (!str_is(S(s, f->axes[k].axis), "doneness")) {
+      continue;
+    }
+    int cur = axis_value_index(s, &f->axes[k], f->axes[k].value);
+    int done = axis_value_index(s, &f->axes[k], intern(s, "done", 4));
+    if (cur >= 0 && done >= 0 && cur < done) {
+      ozni_str args[2] = {S(s, f->type), S(s, f->axes[k].value)};
+      diag_node(s, OZNI_D_SAF_undercooked, s->file, nd(s, s->file, node), args, 2);
+    }
+  }
+}
+
 static void finish_dish(sema *s) {
   if (s->last.kind == V_FOOD && s->last.f != nullptr && !s->last.f->consumed) {
-    food *f = s->last.f;
-    if (food_has(s, f, intern(s, "Hazard", 6)) && !food_has(s, f, intern(s, "RawEdible", 9))) {
-      for (uint32_t k = 0; k < f->naxes; k++) {
-        if (!str_is(S(s, f->axes[k].axis), "doneness")) {
-          continue;
-        }
-        int cur = axis_value_index(s, &f->axes[k], f->axes[k].value);
-        int done = axis_value_index(s, &f->axes[k], intern(s, "done", 4));
-        if (cur >= 0 && done >= 0 && cur < done) {
-          ozni_str args[2] = {S(s, f->type), S(s, f->axes[k].value)};
-          diag_node(s, OZNI_D_SAF_undercooked, s->file, nd(s, s->file, s->last_node), args, 2);
-        }
-      }
-    }
+    check_cooked(s, s->last.f, s->last_node);
   }
   for (ozni_index k = 0; k < ozni_table_count(s->portions); k++) {
     food *f = *(food *const *)ozni_table_get(s->portions, k);
