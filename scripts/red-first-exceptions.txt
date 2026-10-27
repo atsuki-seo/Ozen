@@ -22,3 +22,4 @@ dc01918 the prelude-contents golden passes because the prelude already held thes
 2b5ca15 the std_copy property test checks that std needs no special treatment, which already held; the S360 mutation (marking the IR lines of std actions) makes it report differences
 7b5d7b8 the group-display-only golden passes because @group never reached the IR; the S378 mutation (writing the group key into the IR text) makes it fail
 bd3945a the display_only property test now also strips @group, which already left the IR unchanged; the S378 mutation makes it report differences
+bade82c the std-module-rejected bundle golden passes because PKG005 already rejected an inline module named std; the S403 mutation (removing that check) makes it fail
