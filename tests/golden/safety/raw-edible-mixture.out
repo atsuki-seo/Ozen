@@ -1,0 +1,8 @@
+recipe r
+  buri : Buri 200 g
+  cabbage : Cabbage 100 g
+  %1 = cut(buri, slice, 10 mm) : Buri<shape: cut(slice, 10 mm)> 200 g
+  %2 = cut(cabbage, julienne, 1 mm) : Cabbage<shape: cut(julienne, 1 mm)> 100 g
+  %3 = combine([%1, %2]) : Mixture 300 g with Hazard, RawEdible
+result ok errors=0 warnings=0 infos=0
+exit 0

@@ -1,0 +1,10 @@
+// args: debug steps
+recipe r() {
+  ingredients {
+    buri: 200 g
+    cabbage: 100 g
+  }
+  let sliced = cut(buri, slice, 10 mm)
+  let shredded = cut(cabbage, julienne, 1 mm)
+  let dish = combine([sliced, shredded])
+}
