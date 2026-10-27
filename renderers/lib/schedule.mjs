@@ -70,6 +70,10 @@ export function scheduleSections(sched) {
     return { wave: w, mealStart, mealEnd, meal: [], before: [] };
   });
   const after = [];
+  if (sections.length === 0 && tasks.length > 0) {
+    const end = Math.max(...tasks.map((t) => seconds(t.endHi)));
+    return { sections: [{ wave: null, end, mealStart: null, mealEnd: null, meal: [], before: tasks }], after };
+  }
   for (const t of tasks) {
     const start = seconds(t.start);
     const end = seconds(t.endHi);
@@ -105,7 +109,6 @@ export function renderSchedule(result, ph, opts = {}) {
   const prepBefore = opts.prepBefore ?? 1800;
   const { sections, after } = scheduleSections(sched);
   sections.forEach((s, i) => {
-    const name = waveName(result, s.wave.id);
     if (s.meal.length > 0) {
       lines.push('', `## ${ph.format('heading-meal')}`);
       for (const t of s.meal) {
@@ -113,7 +116,7 @@ export function renderSchedule(result, ph, opts = {}) {
       }
     }
     if (i === 0) {
-      const first = seconds(s.wave.serveAt);
+      const first = s.wave ? seconds(s.wave.serveAt) : s.end;
       const prep = s.before.filter((t) => seconds(t.endHi) <= first - prepBefore);
       const cook = s.before.filter((t) => seconds(t.endHi) > first - prepBefore);
       for (const [heading, list] of [['heading-prep', prep], ['heading-cook', cook]]) {
@@ -130,8 +133,11 @@ export function renderSchedule(result, ph, opts = {}) {
         lines.push(line(ph, defs, nodes, sched, t, opts));
       }
     }
-    const wave = ph.format(keyFor('wave', name), {}, words(name));
-    lines.push('', `## ${ph.format('serve-chapter', { wave, time: clock(seconds(s.wave.serveAt)) })}`);
+    if (s.wave) {
+      const name = waveName(result, s.wave.id);
+      const wave = ph.format(keyFor('wave', name), {}, words(name));
+      lines.push('', `## ${ph.format('serve-chapter', { wave, time: clock(seconds(s.wave.serveAt)) })}`);
+    }
   });
   if (after.length > 0) {
     lines.push('', `## ${ph.format('heading-cleanup')}`);

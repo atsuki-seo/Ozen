@@ -46,9 +46,11 @@ export function dishSections(result, ph, opts = {}) {
         s.meal.forEach(row);
       }
       s.before.forEach(row);
-      const name = waveName(result, s.wave.id);
-      const wave = ph.format(keyFor('wave', name), {}, words(name));
-      rows.push(`<tr><th colspan="3">${escapeXml(ph.format('serve-chapter', { wave, time: clock(seconds(s.wave.serveAt)) }))}</th></tr>`);
+      if (s.wave) {
+        const name = waveName(result, s.wave.id);
+        const wave = ph.format(keyFor('wave', name), {}, words(name));
+        rows.push(`<tr><th colspan="3">${escapeXml(ph.format('serve-chapter', { wave, time: clock(seconds(s.wave.serveAt)) }))}</th></tr>`);
+      }
     }
     if (after.length > 0) {
       rows.push(`<tr><th colspan="3">${escapeXml(ph.format('heading-cleanup'))}</th></tr>`);
