@@ -1572,6 +1572,38 @@ bool ozni_project_find(const ozni_project *pr, ozni_index mod, ozni_index name, 
 
 ozni_index ozni_project_find_module(const ozni_project *pr, ozni_index name) { return find_module(pr, name); }
 
+size_t ozni_project_candidates(const ozni_project *pr, ozni_index mod, ozni_index name, ozni_index *mods,
+                               ozni_index *defs, size_t cap) {
+  const ozni_module *m = ozni_table_get(pr->modules, mod);
+  size_t n = 0;
+  ozni_index d = defs_find(m, name);
+  if (d != NONE && n < cap) {
+    mods[n] = mod;
+    defs[n++] = d;
+  }
+  for (ozni_index b = 0; b < ozni_table_count(m->bindings) && n < cap; b++) {
+    const binding *bd = ozni_table_get(m->bindings, b);
+    ozni_index hit = bd->def != NONE ? (bd->name == name ? bd->def : NONE)
+                                     : defs_find(ozni_table_get(pr->modules, bd->module), name);
+    if (hit != NONE) {
+      mods[n] = bd->module;
+      defs[n++] = hit;
+    }
+  }
+  return n;
+}
+
+ozni_index ozni_project_import_target(const ozni_project *pr, ozni_index mod, ozni_index import) {
+  const ozni_module *m = ozni_table_get(pr->modules, mod);
+  for (ozni_index b = 0; b < ozni_table_count(m->bindings); b++) {
+    const binding *bd = ozni_table_get(m->bindings, b);
+    if (bd->target == import) {
+      return bd->module;
+    }
+  }
+  return NONE;
+}
+
 const ozni_node *ozni_project_node(const ozni_project *pr, ozni_index file, ozni_index i) {
   return ozni_node_get(&pr->asts[file], i);
 }

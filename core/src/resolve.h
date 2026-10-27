@@ -55,6 +55,9 @@ bool ozni_render_modules(const ozni_project *pr, ozni_buf *b);
 bool ozni_project_find(const ozni_project *pr, ozni_index mod, ozni_index name, ozni_index *out_mod,
                        ozni_index *out_def);
 ozni_index ozni_project_find_module(const ozni_project *pr, ozni_index name);
+size_t ozni_project_candidates(const ozni_project *pr, ozni_index mod, ozni_index name, ozni_index *mods,
+                               ozni_index *defs, size_t cap);
+ozni_index ozni_project_import_target(const ozni_project *pr, ozni_index mod, ozni_index import);
 const ozni_node *ozni_project_node(const ozni_project *pr, ozni_index file, ozni_index i);
 bool ozni_render_definitions(const ozni_project *pr, ozni_buf *b);
 bool ozni_render_public(const ozni_project *pr, ozni_buf *b, unsigned emit);
