@@ -1,0 +1,8 @@
+import other.soup.{soup}
+
+menu dinner(people: 2) {
+  let s = make soup()
+  serve main {
+    plate perPerson on SoupBowl { s }
+  }
+}
