@@ -1,0 +1,40 @@
+// args: debug ir
+bundle {
+  std: "0.1.0"
+  entry: lunch
+  from: book "1.0.0"
+}
+
+module book.menus {
+import book.recipes.{soup, tea}
+
+menu dinner(people: 2) {
+  let s = make soup()
+  serve main {
+    plate perPerson on SoupBowl { s }
+  }
+}
+
+menu lunch(people: 1) {
+  let t = make tea()
+  serve main {
+    plate perPerson on Glass { t }
+  }
+}
+}
+
+module book.recipes {
+recipe soup() {
+  ingredients {
+    water: 400 ml
+  }
+  let s = simmer(water, 5 min)
+}
+
+recipe tea() {
+  ingredients {
+    water: 300 ml
+  }
+  let t = boil(water, 3 min)
+}
+}

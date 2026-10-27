@@ -1,0 +1,25 @@
+bundle {
+  std: "0.1.0"
+  entry: dinner
+  from: book "1.0.0"
+}
+
+module book.menus.dinner {
+import recipes.soup.{soup}
+
+menu dinner(people: 2) {
+  let s = make soup()
+  serve main {
+    plate perPerson on SoupBowl { s }
+  }
+}
+}
+
+module book.recipes.soup {
+recipe soup() {
+  ingredients {
+    water: 400 ml
+  }
+  let s = simmer(water, 5 min)
+}
+}

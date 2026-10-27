@@ -1,0 +1,9 @@
+import zeta.fish.{Niboshi}
+
+recipe soup() {
+  ingredients {
+    water: 400 ml
+    fish: Niboshi 10 g
+  }
+  let s = simmer([water, fish], 5 min)
+}

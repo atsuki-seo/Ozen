@@ -1,0 +1,3 @@
+warning PKG012 deprecated annotation-scope.ozen:22:12-22:18 args=["cc"]: deprecated
+result ok errors=0 warnings=1 infos=0
+exit 0

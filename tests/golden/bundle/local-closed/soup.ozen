@@ -1,0 +1,9 @@
+local ingredient HouseSalt : Seasoning
+
+recipe soup() {
+  ingredients {
+    water: 400 ml
+    salt: HouseSalt 2 g
+  }
+  let s = simmer([water, salt], 5 min)
+}

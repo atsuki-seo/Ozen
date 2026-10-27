@@ -1,0 +1,8 @@
+package kitchenBook {
+  version: "0.3.0"
+  license: "CC-BY-4.0"
+  requires: {
+    std: "0.1"
+    dashi: "1.2"
+  }
+}

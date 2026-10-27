@@ -1,0 +1,8 @@
+ir lunch
+  %1 = in water : Water 300 ml
+  %2 = op boil %1 time=180 s : Water -> Water<doneness: done> 300 ml [HeatSource<stovetop>, Pot; 180 s; unattended]
+  wave 1
+  %3 = plate perPerson %2 on Glass [hands, Vessel; 18..60 s]
+info ASM004 unlimitedEquipment build-standalone.ozen:18:6-18:11: unlimited equipment
+result ok errors=0 warnings=0 infos=1
+exit 0

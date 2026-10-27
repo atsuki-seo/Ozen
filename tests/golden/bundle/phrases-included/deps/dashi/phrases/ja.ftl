@@ -1,0 +1,1 @@
+ingredient-katsuobushi = かつお節

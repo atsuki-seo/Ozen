@@ -1,0 +1,10 @@
+import dashi.stock.{Katsuobushi}
+
+// Clear soup with bonito flakes.
+recipe soup() {
+  ingredients {
+    water: 400 ml
+    bonito: Katsuobushi 10 g
+  }
+  let s = simmer([water, bonito], 5 min)
+}
