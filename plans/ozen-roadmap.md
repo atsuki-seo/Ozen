@@ -2929,6 +2929,14 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `cli/bundle-phrases-quote`（S399・効かない条件）— 言い回しの `"""` を確かめないと落ちた。戻して合格
   - わざと壊す確認: `cli/unbundle-manifest-taken`（`package.ozen` と依存の下の衝突）（S444・永続化）— モジュールのファイルだけ確かめると落ちた。戻して合格
 - 網羅の監査（P16-3、2026-10-27）: 指摘 19 件、取り込み 17 件（取り込まなかった 2 件と理由は §5.3 の末尾）。実際の不具合が 5 件見つかり、テストを先に足して直した: `ozen render` がモジュール名だけの指定や対象を省いたときに入口を決めず別の料理を描いた、エラーのある結果でレンダラーが例外で落ちた、`ozen render` が依存の言い回しを渡さなかった、レシピだけの段取りの作業がすべて「片付け」に入った、`ozen bundle` が使われないモジュールの `extend`・`rule` を落として入口の候補が変わった。ほかに、注記の文に診断の引数が識別子のまま出ていた（D38）、出世魚の段階が実際の経路で渡らなかった（D39）、S453 の検査が単位の有無から量を判定していて壊し方を検出できなかった、ガント図の位置とページの幅を見ていなかった、テストの無かった細目（まとめない場合・違う次元・本の形の検査・束ねる仕組みの 7 件）を、テストと検査の追加で直した
+- P16-4 の最終確認（2026-10-27、`main` の `2af02fa` まで。手元は Linux）: D28 で退役した 6 つを除く 87 のゴールのうち、手元で決まる 82（`scripts/goals.sh` の 80 と、`G-CORE-FUZZ`・`G-PROTO-FUZZ`）を回した。1 回目は 3 つが落ちた。`G-PROTO-README-EXAMPLE` は README の束ねる例の `soup` がモジュール名として読まれたので `--entry soup` に直した。`G-PROTO-REPORT` は報告書の試作スクリプトの行数が古かったので 1,283 に直した。`G-REND-HTML` は、わざと壊す確認で残った古い本の形の HTML を読んでいたので `render-all.mjs` で作り直した。どれも直した後に合格し、82 がすべて合格。部分ごとの数字:
+  - A（表）: `G-VOCAB-*` の 6 つ（FCT・FCT-STABLE・LISTS・LISTS-COPY・PRIORWORK・SOURCES）と `G-STD-*` が合格
+  - B・C（試作）: golden・単体・OOM（109 files）・決定性・WASM と Worker・`G-PROTO-COMPILERS`・ファズ（`fuzz: 778144 execs in 601 s, 0 crashes, 0 leaks, 0 timeouts`）が合格
+  - D〜G（コア・API・CLI）: golden 363 件、OOM 329 files / 4398 points、SARIF 193 files、JSON 361 files、CLI 23 cases、性質のテスト（`bundle_roundtrip` 24 cases を含む）が合格。ファズは 6 つの対象で各 600 秒、どれも `0 crashes, 0 leaks, 0 timeouts`（bundle 20740・expand 30946・kitchen 38534・parse 71124・schedule 36109・typecheck 25422 execs）
+  - H（環境）: Linux（`G-PLAT-LINUX`）と WASM（`G-PLAT-WASM`。先に `scripts/build-wasm.sh` で `build/core-wasm` を作り直した）が手元で合格。iOS・Android と CI のゴール（`G-PLAT-IOS`・`G-PLAT-ANDROID`・`G-PLAT-CI`・`G-REPO-TOOLS-CI`・`G-PROTO-IOS`）は push した後の CI で確かめる
+  - I・J（サンプル）: 11 のサンプルで 236 の検査、段取りの検査 65 件が合格
+  - K（レンダラー）: ブラウザと node の比較 26 件、描画の言い回しの検査（`0 unresolved, 0 identifiers`）、自己完結と HTML の検査が合格
+  - L（bundle）: `G-BUNDLE-STABLE` が合格
 - 計画の作成時の独立した監査（2026-10-25、§13-1〜§13-3 の版に対して）: 指摘 54 件、取り込み 54 件（内容は §5.3 の末尾）
 - `scripts/red-first-exceptions.txt` に足したコミットと理由（期待値の手計算の誤りの直し、P16-3 で後から足したテスト）
 - 計画の書き直しの後の独立した監査（2026-10-25、§13-1〜§13-12 の版の D〜L の部分に対して）: 指摘 72 件、取り込み 72 件（主なものは §5.3 の末尾）
