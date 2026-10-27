@@ -1,0 +1,13 @@
+// args: debug steps
+recipe r() {
+  ingredients {
+    buri: 1000 g
+  }
+  let (head, collar, back, belly, frame, skin, guts, scales) = fillet(buri)
+  let sliced = cut(back, slice, 10 mm)
+  store(head)
+  store(collar)
+  store(belly)
+  store(frame)
+  store(skin)
+}

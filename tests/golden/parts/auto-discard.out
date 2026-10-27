@@ -1,6 +1,6 @@
 recipe r
   buri : Buri 2000 g
-  %1 = gut(buri) : (Buri<back> 0..2000 g, Buri<guts> 0..2000 g, Buri<scales> 0..2000 g)
-  %2 = cut(%1.1, style: slice) : Buri<back, shape: cut(slice, 3 mm)> 0..2000 g
+  %1 = gut(buri) : (Buri<back> 500..600 g, Buri<guts> 160..240 g, Buri<scales> 20..40 g)
+  %2 = cut(%1.1, style: slice) : Buri<back, shape: cut(slice, 3 mm)> 500..600 g
 result ok errors=0 warnings=0 infos=0
 exit 0

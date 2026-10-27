@@ -2,8 +2,8 @@ recipe filletBuri
   %1 = fillet3(fish) : (Buri<back>, Buri<collar>, Buri<frame>)
 menu dinner
   %1 = buy Buri 3000 g : Buri 3000 g
-  %2 = make filletBuri(fish: %1) : (Buri<back> 0..3000 g, Buri<collar> 0..3000 g, Buri<frame> 0..3000 g)
-  %3 = cut(%2.1, style: slice) : Buri<back, shape: cut(slice, 3 mm)> 0..3000 g
+  %2 = make filletBuri(fish: %1) : (Buri<back> 750..900 g, Buri<collar> 150..240 g, Buri<frame> 300..450 g)
+  %3 = cut(%2.1, style: slice) : Buri<back, shape: cut(slice, 3 mm)> 750..900 g
   %4 = store(%2.2)
   %5 = discard(%2.3)
 result ok errors=0 warnings=0 infos=0
