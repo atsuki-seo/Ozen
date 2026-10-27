@@ -3520,6 +3520,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 ### 9.10 K（レンダラー）
 
 - P14-0（2026-10-26）: §4.28.1 にレンダラーの置き場所・入力・名前と言い回し・レシピの文章・段取り表・ガント図・買い物リスト・HTML・本の形・golden の作り方を書いた。結果の JSON に表示の情報（値の型・書いた順・`@group`）が無いことが分かり、D36 として確認を取った。Fluent の取得（`@fluent/bundle` 0.19.1）も確認を取った。新しい S は無い
+- P14-0 の補足（2）: S391 の曖昧な時間の言葉のため、D36 と同じ表示の情報として、IR の盛り付けの節に `notes`（注釈の名前と引数の文字列、`api/plate-notes`）を足した
 - P14-0 の補足: D36 のとおり、IR の節に `type`・`part`・`group`、料理ごとに `ingredients`（書いた順。まだ使っていない材料の `node` は null）を足した（`api/ir-display` と `api/ir-allergens-choices` の期待値を先にコミット）。`group` は注釈の範囲で作られた作業（`op`・`choose`）に付ける
 - P14-1（2026-10-27）: 確認を取って `@fluent/bundle` 0.19.1 を取り込み（下の記録）、`G-REND-VENDOR` が合格。先に `rtest` 8 つ（`fluent-keys`・`phrase-layering`・`phrase-fallback`・`name-by-stage-dialect`・`part-names`・`phrases-check`・`diag-text`・`wash-vs-togu`）をコミットし、`renderers/lib/phrases.mjs`（キー、重ね方、利用者の言語 → 英語 → 識別子の代わり、代わり・Fluent の誤り・解決されない変数の数え方。`useIsolating: false`）と `renderers/lib/names.mjs`（値の名前、部位の組み合わせのキーと `name-with-part`、動作の文と `$x-kind`、診断の文面）を書いた。言い回しにブリの段階と地域の選択子、`ingredient-buri-collar`・`ingredient-pork-belly`、`name-with-part`、穀物の「研ぐ」を足し、言い回しの検査は動作の引数の `-kind` を許すようにした。`G-REND-TESTS`（`# pass 13`、`# fail 0`）・`G-STD-PHRASES` が合格
   - わざと壊す確認: S384（キーをキャメルケースにする）・S385（重ねる順を逆にする）・S386（英語への代わりを飛ばす）・S387（`$dialect` を渡さない）・S388（固有のキーを使わない）・S389（引数の照合を外す）・S446（診断の文面を英語の固定の文にする）・S447（米にも「洗う」を使う）のそれぞれで、対応する `rtest` が落ちた。戻して合格
