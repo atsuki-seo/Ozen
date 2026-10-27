@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: CC-BY-4.0
+runs:
+  - name: curry-rice-dishwasher
+    entry: curryRice
+    kitchen: withDishwasher
+    args: [--cleanup, afterMeal]
+    expect:
+      errors: 0
+      level: 2
+      schedule:
+        tasks: [run]
+        usesKind: [[run, Dishwasher]]
+        order: [[plate, run]]
+  - name: stir-fry-dinner-dishwasher
+    entry: dinner
+    kitchen: withDishwasher
+    args: [--cleanup, afterMeal]
+    expect:
+      errors: 0
+      level: 2
+      schedule:
+        tasks: [run]
+        usesKind: [[run, Dishwasher], [wash@Rice, Sink]]
+        order: [[plate, run]]

@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: CC-BY-4.0
+entry: buriDinner
+runs:
+  - name: kitchen
+    kitchen: home
+    expect:
+      errors: 0
+      level: 2
+      diagnostics:
+        include:
+          - {name: leftoverPart, args: [head]}
+          - {name: leftoverPart, args: [skin]}
+          - {name: washInserted, args: [board#1, rawFish]}
+        exclude: [undercooked, unwashedHazard]
+      ir:
+        labels: [fillet, Buri]
+        reaches:
+          - {to: plate, from: [Buri, cabbage, salt, water, sugar, miso]}
+      schedule:
+        tasks: [fillet, store]
+        order: [[fillet, cut@Cabbage]]

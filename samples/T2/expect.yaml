@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: CC-BY-4.0
+entry: dinner
+runs:
+  - name: family
+    kitchen: home
+    options: family
+    expect:
+      errors: 0
+      level: 2
+      diagnostics:
+        exclude: [allergen]
+      ir:
+        choices: {oyakodon: 3, toriDon: 1}
+        allergens: {mix: [egg]}
+  - name: mixed-up
+    kitchen: home
+    options: mixedUp
+    expect:
+      diagnostics:
+        include:
+          - {name: allergen, args: [egg]}
