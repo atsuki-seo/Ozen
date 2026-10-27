@@ -548,6 +548,28 @@
         "label": {
           "type": "string"
         },
+        "notes": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "args": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "args",
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
         "part": {
           "oneOf": [
             {
@@ -641,6 +663,7 @@
         "inputs",
         "kind",
         "label",
+        "notes",
         "part",
         "quantity",
         "requires",

@@ -6547,7 +6547,27 @@ static void ir_json(sema *s, ozni_index name) {
     }
     ozni_buf_puts(b, ",\"group\":");
     put_json_name(s, b, key);
-    ozni_buf_puts(b, "}");
+    ozni_buf_puts(b, ",\"notes\":[");
+    bool first_note = true;
+    for (ozni_index c = node->kind == OZNI_IR_PLATE && node->src != 0 ? nd(s, node->file, node->src)->first : 0;
+         c != 0 && nd(s, node->file, node->src)->kind == OZNI_N_Plate; c = nd(s, node->file, c)->next) {
+      const ozni_node *an = nd(s, node->file, c);
+      if (an->kind != OZNI_N_Annotation) {
+        continue;
+      }
+      ozni_str note = S(s, an->text);
+      ozni_buf_puts(b, first_note ? "{\"name\":" : ",{\"name\":");
+      first_note = false;
+      ozni_buf_json(b, note.p, note.len);
+      ozni_buf_puts(b, ",\"args\":[");
+      for (ozni_index a = an->first; a != 0; a = nd(s, node->file, a)->next) {
+        ozni_str at = src_text(s, node->file, nd(s, node->file, a));
+        ozni_buf_puts(b, a == an->first ? "" : ",");
+        ozni_buf_json(b, at.p, at.len);
+      }
+      ozni_buf_puts(b, "]}");
+    }
+    ozni_buf_puts(b, "]}");
   }
   ozni_buf_puts(b, "],\"waves\":[");
   first = true;
