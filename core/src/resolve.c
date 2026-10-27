@@ -222,7 +222,7 @@ static void load_manifest(ozni_project *pr, ozni_index file, const char *prefix,
     return;
   }
   const ozni_node *d = node(pr, file, decl);
-  ozni_package pkg = {d->text, 0, file, decl, prefix, prefix_len, is_std};
+  ozni_package pkg = {d->text, 0, file, decl, prefix, prefix_len, is_std, false};
   if (!is_std && str_eq(str_of(c, d->text), "std")) {
     ozni_str arg = str_of(c, d->text);
     diag_node(pr, OZNI_D_PKG_stdReserved, file, d, &arg, 1);
@@ -257,6 +257,100 @@ static void load_manifest(ozni_project *pr, ozni_index file, const char *prefix,
   if (!ozni_table_push(pr->packages, &pkg, nullptr)) {
     c->oom = true;
   }
+}
+
+/* Packages named by a bundle's `from` own no folder, so their prefix starts with a byte no path has. */
+static const char bundle_prefix[] = "\x01bundle/";
+
+static void check_std_version(ozni_project *pr, ozni_index file, const ozni_node *at, ozni_index want_text) {
+  ozni_ctx *c = pr->c;
+  ozni_str want = str_of(c, want_text);
+  version wv, hv;
+  if (!parse_version(want, &wv, 2, 3)) {
+    diag_node(pr, OZNI_D_PKG_badVersion, file, at, &want, 1);
+    return;
+  }
+  if (pr->std_pkg == NONE) {
+    return;
+  }
+  const ozni_package *sp = ozni_table_get(pr->packages, pr->std_pkg);
+  ozni_str have = sp->version != 0 ? str_of(c, sp->version) : (ozni_str){"", 0};
+  if (sp->version == 0 || !parse_version(have, &hv, 3, 3)) {
+    return;
+  }
+  ozni_str args[3] = {{"std", 3}, want, have};
+  if (wv.part[0] != hv.part[0]) {
+    diag_node(pr, OZNI_D_PKG_requiresIncompatible, file, at, args, 3);
+  } else if (version_cmp(&wv, &hv) > 0) {
+    diag_node(pr, OZNI_D_PKG_requiresNewer, file, at, args, 3);
+  }
+}
+
+static void load_bundle(ozni_project *pr, ozni_index file) {
+  ozni_ctx *c = pr->c;
+  const ozni_node *root = node(pr, file, pr->asts[file].root);
+  for (ozni_index i = root->first; i != 0; i = node(pr, file, i)->next) {
+    const ozni_node *b = node(pr, file, i);
+    if (b->kind != OZNI_N_Bundle) {
+      continue;
+    }
+    for (ozni_index k = b->first; k != 0; k = node(pr, file, k)->next) {
+      const ozni_node *f = node(pr, file, k);
+      ozni_str name = str_of(c, f->text);
+      if (f->kind == OZNI_N_BundleFrom) {
+        version v;
+        ozni_str ver = f->text2 != 0 ? str_of(c, f->text2) : (ozni_str){"", 0};
+        bool ok = f->text2 != 0 && parse_version(ver, &v, 3, 3);
+        if (!ok) {
+          diag_node(pr, OZNI_D_PKG_badVersion, file, f, &ver, 1);
+        }
+        ozni_package pkg = {f->text, ok ? f->text2 : 0, file, k, bundle_prefix, sizeof bundle_prefix - 1, false, true};
+        if (!ozni_table_push(pr->packages, &pkg, nullptr)) {
+          c->oom = true;
+        }
+      } else if (f->kind == OZNI_N_Field && str_eq(name, "std")) {
+        ozni_index want = string_value(pr, file, k);
+        if (want == 0) {
+          ozni_str none = {"", 0};
+          diag_node(pr, OZNI_D_PKG_badVersion, file, f, &none, 1);
+        } else {
+          check_std_version(pr, file, f, want);
+        }
+      } else if (f->kind == OZNI_N_Field && str_eq(name, "entry")) {
+        const ozni_node *v = f->first != 0 ? node(pr, file, f->first) : nullptr;
+        if (v != nullptr && v->text != 0 && pr->root_pkg == NONE && c->set.entry == nullptr) {
+          ozni_str e = str_of(c, v->text);
+          char *copy = ozni_arena_alloc(c->arena, e.len + 1);
+          if (copy == nullptr) {
+            c->oom = true;
+            return;
+          }
+          ozni_copy(copy, e.p, e.len);
+          copy[e.len] = '\0';
+          c->set.entry = copy;
+        }
+      } else if (!(f->kind == OZNI_N_Field && str_eq(name, "license"))) {
+        diag_node(pr, OZNI_D_PKG_unknownPackageField, file, f, &name, 1);
+      }
+    }
+  }
+}
+
+static ozni_index bundle_package(const ozni_project *pr, ozni_index file, ozni_str module) {
+  size_t head = 0;
+  while (head < module.len && module.p[head] != '.') {
+    head++;
+  }
+  for (ozni_index i = 0; i < ozni_table_count(pr->packages); i++) {
+    const ozni_package *p = ozni_table_get(pr->packages, i);
+    if (p->bundle && p->file == file) {
+      ozni_str pn = str_of(pr->c, p->name);
+      if (pn.len == head && memcmp(pn.p, module.p, head) == 0) {
+        return i;
+      }
+    }
+  }
+  return NONE;
 }
 
 static ozni_index package_of(const ozni_project *pr, const char *path) {
@@ -368,7 +462,8 @@ static void collect_item(ozni_project *pr, ozni_index mi, ozni_index file, ozni_
       diag_node(pr, OZNI_D_PKG_stdReserved, file, n, &name, 1);
       return;
     }
-    ozni_index inner = add_module(pr, n->text, file, M(pr, mi)->pkg, item, M(pr, mi)->is_std);
+    ozni_index pkg = bundle_package(pr, file, name);
+    ozni_index inner = add_module(pr, n->text, file, pkg != NONE ? pkg : M(pr, mi)->pkg, item, M(pr, mi)->is_std);
     if (inner != NONE) {
       collect_items(pr, inner, file, item);
     }
@@ -663,7 +758,7 @@ static ozni_index requires_field(ozni_project *pr, const ozni_package *p) {
 static ozni_index package_named(const ozni_project *pr, ozni_index name, bool want_std) {
   for (ozni_index i = 0; i < ozni_table_count(pr->packages); i++) {
     const ozni_package *p = ozni_table_get(pr->packages, i);
-    if (p->name == name && p->is_std == want_std && i != pr->root_pkg) {
+    if (p->name == name && p->is_std == want_std && !p->bundle && i != pr->root_pkg) {
       return i;
     }
   }
@@ -724,6 +819,9 @@ static void check_requires(ozni_project *pr) {
     for (ozni_index j = 0; j < i; j++) {
       const ozni_package *q = P(pr, j);
       if (q->is_std || j == pr->root_pkg || q->name != p->name) {
+        continue;
+      }
+      if ((p->bundle || q->bundle) && p->version == q->version) {
         continue;
       }
       version a, b;
@@ -1391,6 +1489,11 @@ bool ozni_project_load(ozni_ctx *c, const ozni_source *user, size_t nuser, ozni_
       if (slash != nullptr && ozni_strcmp(slash, "/package.ozen") == 0) {
         load_manifest(pr, f, path, (size_t)(slash - path) + 1, false);
       }
+    }
+  }
+  for (ozni_index f = 0; f < nuser && !c->oom; f++) {
+    if (parsed[f]) {
+      load_bundle(pr, f);
     }
   }
   for (ozni_index f = 0; f < total && !c->oom; f++) {

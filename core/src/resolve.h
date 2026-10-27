@@ -33,6 +33,7 @@ typedef struct ozni_package {
   const char *prefix;
   size_t prefix_len;
   bool is_std;
+  bool bundle;
 } ozni_package;
 
 typedef struct ozni_project {
