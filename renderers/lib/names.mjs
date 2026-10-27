@@ -49,7 +49,63 @@ export function foodName(ph, food, opts = {}) {
     }
     return ph.format(combined, args, mechanical);
   }
+  if (!ph.has(keyFor('ingredient', food.type))) {
+    for (const kind of ['alias', 'dish']) {
+      if (ph.has(keyFor(kind, food.type))) {
+        return ph.format(keyFor(kind, food.type), args);
+      }
+    }
+  }
   return ph.format(keyFor('ingredient', food.type), args, mechanical);
+}
+
+function number(r) {
+  if (r.den === 1) {
+    return String(r.num);
+  }
+  let den = r.den;
+  for (const p of [2, 5]) {
+    while (den % p === 0) {
+      den /= p;
+    }
+  }
+  return den === 1 ? String(r.num / r.den) : `${r.num}/${r.den}`;
+}
+
+export function numberText(ph, value) {
+  if (value.lo) {
+    return ph.format('range', { lo: number(value.lo), hi: number(value.hi) }, `${number(value.lo)}..${number(value.hi)}`);
+  }
+  return number(value);
+}
+
+export function quantityText(ph, quantity, type) {
+  if (!quantity) {
+    return ph.format('amount-any');
+  }
+  const n = numberText(ph, quantity.value);
+  if (quantity.unit === 'pcs' || quantity.unit === '1') {
+    const key = type && ph.has(keyFor('counter', type)) ? keyFor('counter', type) : 'counter-default';
+    return ph.format('amount-count', { n, counter: ph.format(key) });
+  }
+  return ph.format('amount-unit', { n, unit: quantity.unit });
+}
+
+export function durationText(ph, text) {
+  const m = /^(\d+(?:\.\d+)?)(?:\.\.(\d+(?:\.\d+)?))? s$/.exec(text);
+  if (!m) {
+    return text;
+  }
+  const lo = Number(m[1]);
+  const hi = m[2] ? Number(m[2]) : lo;
+  const unit = hi % 3600 === 0 && lo % 3600 === 0 ? 'h' : hi % 60 === 0 && lo % 60 === 0 ? 'min' : 's';
+  const div = unit === 'h' ? 3600 : unit === 'min' ? 60 : 1;
+  const n = lo === hi ? String(lo / div) : ph.format('range', { lo: String(lo / div), hi: String(hi / div) });
+  return ph.format('duration', { n, unit });
+}
+
+export function joinList(ph, items) {
+  return items.reduce((acc, item) => (acc === null ? item : ph.format('list-join', { first: acc, rest: item })), null) ?? '';
 }
 
 export function actionText(ph, defs, action, args, opts = {}) {

@@ -35,6 +35,30 @@ export class Phrases {
     return [...this.bundles.values()].some((b) => b.getMessage(key)?.value);
   }
 
+  formatAttr(key, attr, args = {}) {
+    for (const l of [this.lang, 'en']) {
+      const bundle = this.bundles.get(l);
+      const pattern = bundle?.getMessage(key)?.attributes?.[attr];
+      if (pattern) {
+        return this.resolve(bundle, pattern, args);
+      }
+    }
+    return null;
+  }
+
+  resolve(bundle, pattern, args) {
+    const errors = [];
+    const text = bundle.formatPattern(pattern, args, errors);
+    for (const e of errors) {
+      if (e instanceof ReferenceError && /Unknown variable/.test(e.message)) {
+        this.stats.unresolved++;
+      } else {
+        this.stats.errors++;
+      }
+    }
+    return text;
+  }
+
   format(key, args = {}, fallback = null) {
     for (const l of [this.lang, 'en']) {
       const bundle = this.bundles.get(l);
@@ -42,16 +66,7 @@ export class Phrases {
       if (!message?.value) {
         continue;
       }
-      const errors = [];
-      const text = bundle.formatPattern(message.value, args, errors);
-      for (const e of errors) {
-        if (e instanceof ReferenceError && /Unknown variable/.test(e.message)) {
-          this.stats.unresolved++;
-        } else {
-          this.stats.errors++;
-        }
-      }
-      return text;
+      return this.resolve(bundle, message.value, args);
     }
     this.stats.fallbacks++;
     return fallback ?? key;
