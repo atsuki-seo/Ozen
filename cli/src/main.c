@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 #include "../../core/include/ozen.h"
 #include "ozni.h"
@@ -38,7 +39,7 @@ static void heap_release(void *ctx, void *ptr, size_t size) {
 static int usage(void) {
   fputs("usage: ozen check [OPTIONS] [ENTRY|FILE]\n"
         "       ozen build [OPTIONS] [ENTRY|FILE...]\n"
-        "       ozen render [OPTIONS]\n"
+        "       ozen render [OPTIONS] [ENTRY|FILE]\n"
         "       ozen bundle [OPTIONS]\n"
         "       ozen unbundle [OPTIONS]\n"
         "       ozen debug ast [--no-spans] [--rules] FILE\n"
@@ -52,7 +53,8 @@ static int usage(void) {
         "options: -k/--kitchen NAME|FILE --options NAME|FILE --entry NAME -s/--servings N -c/--cooks N\n"
         "         -t/--serve-at TIME --cleanup MODE --prefer A,B --strict --allow NAME --warn NAME --deny NAME\n"
         "         --format text|json|sarif --emit LIST --fixes --max-input-bytes N --max-depth N --max-nodes N\n"
-        "         --max-steps N --fail-alloc-at N\n",
+        "         --max-steps N --fail-alloc-at N\n"
+        "render:  --kind recipe|schedule|shopping|html|settings --lang ja|en --dialect NAME -o/--output FILE\n",
         stderr);
   return 2;
 }
@@ -184,6 +186,10 @@ typedef struct cli_options {
   const char *cleanup;
   const char *prefer;
   const char *format;
+  const char *kind;
+  const char *lang;
+  const char *dialect;
+  const char *output;
   bool strict;
   bool no_spans;
   bool rules;
@@ -229,6 +235,8 @@ static int take_options(int argc, char **argv, heap *h) {
         {"--kitchen", "-k", &opt.kitchen},   {"--options", nullptr, &opt.options}, {"--entry", nullptr, &opt.entry},
         {"--servings", "-s", &opt.servings}, {"--cooks", "-c", &opt.cooks},        {"--serve-at", "-t", &opt.serve_at},
         {"--cleanup", nullptr, &opt.cleanup}, {"--prefer", nullptr, &opt.prefer}, {"--format", nullptr, &opt.format},
+        {"--kind", nullptr, &opt.kind},       {"--lang", nullptr, &opt.lang},     {"--dialect", nullptr, &opt.dialect},
+        {"--output", "-o", &opt.output},
     };
     bool done = false;
     for (size_t k = 0; k < sizeof with_value / sizeof with_value[0] && !done; k++) {
@@ -1072,6 +1080,136 @@ static int build(const ozni_allocator *a, int nargs, char **args) {
   return passed == total ? 0 : 1;
 }
 
+static void append_quoted(char **buf, size_t *len, size_t *cap, const char *s) {
+  appends(buf, len, cap, " '");
+  for (; *s != '\0'; s++) {
+    if (*s == '\'') {
+      appends(buf, len, cap, "'\\''");
+    } else {
+      append(buf, len, cap, s, 1);
+    }
+  }
+  appends(buf, len, cap, "'");
+}
+
+static char *sibling(const char *path, const char *rel) {
+  const char *slash = strrchr(path, '/');
+  size_t dir = slash == nullptr ? 0 : (size_t)(slash - path) + 1;
+  char *out = malloc(dir + strlen(rel) + 1);
+  if (out != nullptr) {
+    memcpy(out, path, dir);
+    strcpy(out + dir, rel);
+  }
+  return out;
+}
+
+/* The renderer is JavaScript next to the source tree, so it is found from the executable's real path
+   (build/<dir>/ozen); OZEN_RENDERER overrides that for installs elsewhere. */
+static char *find_renderer(const char *argv0) {
+  const char *env = getenv("OZEN_RENDERER");
+  if (env != nullptr) {
+    if (stat_file(env)) {
+      return realpath(env, nullptr);
+    }
+    fprintf(stderr, "cli: renderer not found: %s\n", env);
+    return nullptr;
+  }
+  static const char *const rels[] = {"../../renderers/cli.mjs", "../renderers/cli.mjs"};
+  const char *exes[] = {"/proc/self/exe", argv0};
+  for (size_t e = 0; e < 2; e++) {
+    char *exe = realpath(exes[e], nullptr);
+    for (size_t r = 0; exe != nullptr && r < 2; r++) {
+      char *cand = sibling(exe, rels[r]);
+      char *real = cand != nullptr ? realpath(cand, nullptr) : nullptr;
+      free(cand);
+      if (real != nullptr && stat_file(real)) {
+        free(exe);
+        return real;
+      }
+      free(real);
+    }
+    free(exe);
+  }
+  fputs("cli: renderer not found; set OZEN_RENDERER to renderers/cli.mjs\n", stderr);
+  return nullptr;
+}
+
+static int render(int nargs, char **args, const char *argv0) {
+  if (nargs > 1) {
+    return usage();
+  }
+  char *renderer = find_renderer(argv0);
+  if (renderer == nullptr) {
+    return 2;
+  }
+  const char *target = nargs == 1 ? args[0] : nullptr;
+  project p = {0};
+  const char *entry = opt.entry;
+  char module[1024] = "", name[256] = "";
+  int rc = load_project(&p, target, false);
+  if (rc == 0 && target != nullptr && !stat_file(target) &&
+      split_target(&p, target, module, sizeof module, name, sizeof name) && name[0] != '\0') {
+    entry = name;
+  }
+  api_inputs in = {0};
+  if (rc == 0) {
+    rc = api_prepare(&p, &in);
+  }
+  char *json = nullptr;
+  recipe_config cfg;
+  if (rc == 0) {
+    static const unsigned emit = 1u << 0 | 1u << 1 | 1u << 2 | 1u << 4 | 1u << 5;
+    json = api_build(&p, &in, entry, emit, &cfg);
+    rc = json == nullptr ? 2 : 0;
+  }
+  char *cmd = nullptr;
+  size_t len = 0, cap = 0;
+  if (rc == 0) {
+    const char *node = getenv("OZEN_NODE");
+    char *std = sibling(renderer, "../phrases");
+    struct stat st;
+    appends(&cmd, &len, &cap, "exec");
+    append_quoted(&cmd, &len, &cap, node != nullptr ? node : "node");
+    append_quoted(&cmd, &len, &cap, renderer);
+    const char *pairs[][2] = {{"--kind", opt.kind},
+                              {"--lang", opt.lang},
+                              {"--dialect", opt.dialect},
+                              {"--output", opt.output},
+                              {"--std", std},
+                              {"--project", stat("phrases", &st) == 0 && S_ISDIR(st.st_mode) ? "phrases" : nullptr}};
+    for (size_t k = 0; k < sizeof pairs / sizeof pairs[0]; k++) {
+      if (pairs[k][1] != nullptr) {
+        append_quoted(&cmd, &len, &cap, pairs[k][0]);
+        append_quoted(&cmd, &len, &cap, pairs[k][1]);
+      }
+    }
+    free(std);
+  }
+  if (rc == 0 && cmd != nullptr) {
+    fflush(stdout);
+    FILE *pipe = popen(cmd, "w");
+    if (pipe == nullptr) {
+      fputs("cli: cannot start the renderer\n", stderr);
+      rc = 2;
+    } else {
+      fputs(json, pipe);
+      int status = pclose(pipe);
+      int code = status == -1 || !WIFEXITED(status) ? 2 : WEXITSTATUS(status);
+      rc = code != 0 ? code : result_failed(json) ? 1 : 0;
+    }
+  } else if (rc == 0) {
+    rc = 2;
+  }
+  free(cmd);
+  if (json != nullptr) {
+    recipe_free_string(&cfg, json);
+  }
+  api_free(&in);
+  free_project(&p);
+  free(renderer);
+  return rc;
+}
+
 static int check(const ozni_allocator *a, int nargs, char **args, ozni_mode mode) {
   if (nargs > 1) {
     return usage();
@@ -1185,7 +1323,10 @@ int main(int argc, char **argv) {
   if (strcmp(cmd, "build") == 0) {
     return build(&a, n - 2, argv + 2);
   }
-  if (strcmp(cmd, "render") == 0 || strcmp(cmd, "bundle") == 0 || strcmp(cmd, "unbundle") == 0) {
+  if (strcmp(cmd, "render") == 0) {
+    return render(n - 2, argv + 2, argv[0]);
+  }
+  if (strcmp(cmd, "bundle") == 0 || strcmp(cmd, "unbundle") == 0) {
     fprintf(stderr, "cli: %s is not available yet\n", cmd);
     return 2;
   }
