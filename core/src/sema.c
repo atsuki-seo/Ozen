@@ -1867,6 +1867,14 @@ static value combine(sema *s, const value *items, uint32_t n, ozni_index file, c
       }
     }
   }
+  ozni_index raw_edible = intern(s, "RawEdible", 9);
+  bool all_raw = n > 0;
+  for (uint32_t k = 0; k < n; k++) {
+    all_raw = all_raw && items[k].kind == V_FOOD && items[k].f != nullptr && food_has(s, items[k].f, raw_edible);
+  }
+  if (all_raw) {
+    add_derived(s, mix, raw_edible);
+  }
   ozni_index item_node = at->kind == OZNI_N_List ? at->first : 0;
   for (uint32_t k = 0; k < n; k++) {
     while (item_node != 0 && nd(s, file, item_node)->kind == OZNI_N_Annotation) {
