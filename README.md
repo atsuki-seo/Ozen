@@ -256,9 +256,9 @@ recipe tea() {
 }
 ```
 
-`ozen bundle soup` leaves out `tea`, which the entry does not use:
+`ozen bundle --entry soup` leaves out `tea`, which the entry does not use:
 
-<!-- run: ozen bundle soup -->
+<!-- run: ozen bundle --entry soup -->
 ```text
 bundle {
   std: "0.1.0"
