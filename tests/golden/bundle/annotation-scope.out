@@ -1,3 +1,4 @@
 warning PKG012 deprecated annotation-scope.ozen:22:12-22:18 args=["cc"]: deprecated
-result ok errors=0 warnings=1 infos=0
+info ASM004 unlimitedEquipment annotation-scope.ozen:32:6-32:12: unlimited equipment
+result ok errors=0 warnings=1 infos=1
 exit 0

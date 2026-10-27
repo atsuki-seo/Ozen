@@ -1,3 +1,5 @@
 error PKG006 requiresNewer std-version-check.ozen:2:3-2:15 args=["std", "0.2.0", "{{STD_VERSION}}"]: requires newer
-result error errors=1 warnings=0 infos=0
+info ASM002 noPlating std-version-check.ozen:8:8-8:12 args=["soup"]: no plating
+info ASM004 unlimitedEquipment std-version-check.ozen:8:8-8:12: unlimited equipment
+result error errors=1 warnings=0 infos=2
 exit 1

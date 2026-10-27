@@ -1,3 +1,5 @@
 error PKG005 stdReserved std-module-rejected.ozen:7:1-9:2 args=["std.prelude"]: std reserved
-result error errors=1 warnings=0 infos=0
+info ASM002 noPlating std-module-rejected.ozen:12:8-12:12 args=["soup"]: no plating
+info ASM004 unlimitedEquipment std-module-rejected.ozen:12:8-12:12: unlimited equipment
+result error errors=1 warnings=0 infos=2
 exit 1
