@@ -2855,6 +2855,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `sh/test-check-red-first.sh`（D20・時間と順序）— 使い捨てのリポジトリで、実装を先に入れ、次のコミットで `renderers/test/a.test.mjs` を足すと落ちた（`red-first: 1 commits, 1 not red`、終了コード 1）。リポジトリは消した
 - CI のジョブの名前の一覧（P11-5）
 - 版: 0.1.0（D30。P7-4 で `VERSION` に書き、本計画の中では上げない）
+- P16-1（2026-10-27）: README の「Core and CLI」「Standard library」「Platforms」「Renderer」「Bundles」の節と「Credits」（成分表・Fluent・SARIF のスキーマ）を書き、「Status」を 0.1.0 の状態に直した。`proto/scripts/check-readme-example.sh` を全節の例に広げた（`<!-- file: NAME -->` で ozen の塊のファイル名、`<!-- run: CMD -->` で出力の塊を作るコマンド（`ozen` はコアの CLI、`ozenproto` は試作）を指定し、ファイルは新しい ozen の塊が来るまで後の出力の例に引き継ぐ。自己テストを 3 件から 6 件に）。NOTICE に Fluent と SARIF のスキーマを足した。`G-PROTO-README-EXAMPLE`（`readme: 4 examples, 0 mismatches`）・`G-REPO-README-LICENSE`・`G-REPO-NOTICE`・`G-REPO-SELFTESTS`・`G-REPO-LICENSE-TEXT`・`G-REPO-CLAUDEMD` が合格
+- P16-2（2026-10-27）: `VERSION`・`ozen --version`・`stdlib/package.ozen`・本計画の版がすべて 0.1.0 のまま。`G-REPO-VERSION` が合格
 - 網羅の監査（P16-3）: 指摘 <k> 件、取り込み <m> 件
 - 計画の作成時の独立した監査（2026-10-25、§13-1〜§13-3 の版に対して）: 指摘 54 件、取り込み 54 件（内容は §5.3 の末尾）
 - `scripts/red-first-exceptions.txt` に足したコミットと理由（期待値の手計算の誤りの直し、P16-3 で後から足したテスト）
