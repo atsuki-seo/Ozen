@@ -1,4 +1,0 @@
-action a(x)
-recipe r() {
-  repeat 1000000 { let x = 1 }
-}

@@ -1,3 +1,0 @@
-error TYP001 dimension 2:28-2:38 args=["Mass", "Time"] via 4:3-4:13
-result error steps=0 diagnostics=1
-exit 1

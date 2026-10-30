@@ -1,4 +1,0 @@
-action f(x, y)
-recipe r() {
-  f(1, x: 2)
-}

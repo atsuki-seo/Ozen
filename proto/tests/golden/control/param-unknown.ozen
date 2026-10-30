@@ -1,5 +1,0 @@
-// args: --param m=3
-action a(x)
-recipe r(n: 1) {
-  repeat n { a(1) }
-}

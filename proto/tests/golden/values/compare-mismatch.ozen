@@ -1,6 +1,0 @@
-action a(x)
-recipe r() {
-  if 1 g < 2 min { a(1) }
-  if "a" < "b" { a(2) }
-  if true == 1 { a(3) }
-}

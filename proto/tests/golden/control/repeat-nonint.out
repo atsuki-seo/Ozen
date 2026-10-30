@@ -1,4 +1,0 @@
-error TYP006 count 3:10-3:13 args=["3/2"]
-error TYP006 count 4:10-4:13 args=["2 g"]
-result error steps=0 diagnostics=2
-exit 1

@@ -1,3 +1,0 @@
-error MAC003 fuelExhausted 3:20-3:29 args=["1000000"]
-result error steps=0 diagnostics=1
-exit 1

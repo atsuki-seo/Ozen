@@ -1,5 +1,0 @@
-error SYN003 unexpectedToken 3:11-3:12 args=["="]
-error SYN003 unexpectedToken 4:10-4:11 args=["3"]
-error SYN003 unexpectedToken 5:7-5:8 args=["="]
-result error steps=0 diagnostics=3
-exit 1

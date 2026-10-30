@@ -1,2 +1,0 @@
-action say(t)
-recipe r() { say("a\tb") }

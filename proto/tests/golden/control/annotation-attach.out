@@ -1,6 +1,0 @@
-%1 = peel(o)
-%2 = cook(%1) @unattended
-%3 = fry(%2) @serveWithin(300 s)
-%4 = a(1) @x @y(2)
-result ok steps=4 diagnostics=0
-exit 0

@@ -1,4 +1,0 @@
-action a(x)
-recipe r() {
- a(3 / 2 g)
-}

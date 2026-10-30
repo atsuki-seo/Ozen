@@ -1,4 +1,0 @@
-%1 = peel(o)
-error TYP001 dimension 7:14-7:25 args=["Mass", "Time"]
-result error steps=1 diagnostics=1
-exit 1

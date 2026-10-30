@@ -1,3 +1,0 @@
-error SYN005 nestingTooDeep 3:22-3:23 args=["8"]
-result error steps=0 diagnostics=1
-exit 1

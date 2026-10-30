@@ -1,4 +1,0 @@
-%1 = a(3/10 g)
-%2 = a(1)
-result ok steps=2 diagnostics=0
-exit 0

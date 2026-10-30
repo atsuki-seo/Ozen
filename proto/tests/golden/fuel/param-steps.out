@@ -1,9 +1,0 @@
-%1 = a()
-%2 = a()
-%3 = a()
-%4 = a()
-%5 = a()
-%6 = a()
-result ok steps=6 diagnostics=0
-stats steps=18/1000000 depth=4/256 nodes=6/100000
-exit 0

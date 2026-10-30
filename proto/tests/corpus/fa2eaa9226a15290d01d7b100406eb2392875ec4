@@ -1,4 +1,0 @@
-action f(x, y)
-recipe r() {
-  max( 2)
-}

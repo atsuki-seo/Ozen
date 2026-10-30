@@ -1,5 +1,0 @@
-error TYP001 dimension 3:6-3:17 args=["Mass", "Time"]
-error TYP004 type 4:6-4:15 args=["Quantity", "String"]
-error TYP004 type 5:6-5:15 args=["Bool", "Quantity"]
-result error steps=0 diagnostics=3
-exit 1

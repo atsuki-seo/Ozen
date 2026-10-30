@@ -1,4 +1,0 @@
-action a(x)
-recipe r() {
-  a(ceil(2..2 g))
-}

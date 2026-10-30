@@ -1,5 +1,0 @@
-action a(x)
-recipe r() {
-  repeat 2 { let y = 1 g; a(y) }
-  for z in [1, 2] { let y = z; a(y) }
-}

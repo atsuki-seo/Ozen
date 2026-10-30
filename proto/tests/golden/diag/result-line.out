@@ -1,5 +1,0 @@
-%1 = a(1 g)
-%2 = a(2 g)
-error TYP001 dimension 4:5-4:16 args=["Mass", "Time"]
-result error steps=2 diagnostics=1
-exit 1

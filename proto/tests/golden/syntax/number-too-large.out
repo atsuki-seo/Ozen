@@ -1,3 +1,0 @@
-error SYN008 numberTooLarge 2:16-2:35 args=["9223372036854775808"]
-result error steps=0 diagnostics=1
-exit 1

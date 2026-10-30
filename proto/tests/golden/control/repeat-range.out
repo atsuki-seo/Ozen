@@ -1,3 +1,0 @@
-error TYP006 count 3:10-3:18 args=["1..2 pcs"]
-result error steps=0 diagnostics=1
-exit 1

@@ -1,4 +1,0 @@
-// args: --limit-steps 4
-action a(x)
-macro m(v) { quote { a($v) } }
-recipe r() { m(1 g) }

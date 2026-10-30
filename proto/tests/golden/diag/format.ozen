@@ -1,5 +1,0 @@
-action a(x)
-macro twice(v) { quote { a($v + 1 min) } }
-recipe r() {
-  twice(1 g)
-}

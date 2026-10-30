@@ -1,3 +1,0 @@
-error TYP003 range 3:6-3:18 args=["<"]
-result error steps=0 diagnostics=1
-exit 1

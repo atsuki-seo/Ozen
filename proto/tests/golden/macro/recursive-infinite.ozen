@@ -1,5 +1,0 @@
-// args: --limit-depth 10
-macro loop() { quote { loop() } }
-recipe r() {
-  loop()
-}

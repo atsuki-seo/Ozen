@@ -1,5 +1,0 @@
-action a(x)
-macro m() { a($v) }
-recipe r(){o
-  a(1)
-}

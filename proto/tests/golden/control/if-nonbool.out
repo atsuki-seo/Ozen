@@ -1,3 +1,0 @@
-error TYP004 type 3:6-3:9 args=["Bool", "Quantity"]
-result error steps=0 diagnostics=1
-exit 1

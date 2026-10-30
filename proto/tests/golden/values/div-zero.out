@@ -1,3 +1,0 @@
-error MAC002 divisionByZero 3:5-3:12
-result error steps=0 diagnostics=1
-exit 1

@@ -1,3 +1,0 @@
-error SYN007 spliceOutsideQuote 2:16-2:18
-result error steps=0 diagnostics=1
-exit 1

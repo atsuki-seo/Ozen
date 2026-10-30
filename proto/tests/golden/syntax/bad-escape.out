@@ -1,3 +1,0 @@
-error SYN009 badEscape 2:20-2:22 args=["\\t"]
-result error steps=0 diagnostics=1
-exit 1

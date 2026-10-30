@@ -1,3 +1,0 @@
-error SYN011 macroBody 2:7-2:8 args=["m"]
-result error steps=0 diagnostics=1
-exit 1

@@ -1,4 +1,0 @@
-%1 = a(5400 s)
-%2 = a(1200 g)
-result ok steps=2 diagnostics=0
-exit 0

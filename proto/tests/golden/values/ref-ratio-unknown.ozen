@@ -1,9 +1,0 @@
-action peel(x)
-action a(x)
-recipe r() {
-  ingredients {
-    meat: Pork 300 g
-  }
-  let p = peel(meat)
-  a(p / 100 g)
-}

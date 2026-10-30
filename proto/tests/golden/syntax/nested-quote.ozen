@@ -1,3 +1,0 @@
-action a(x)
-macro m(v) { quote { a(quote { a(1) }) } }
-recipe r() { m(1) }

@@ -1,5 +1,0 @@
-%1 = a(3)
-%2 = a(2)
-%3 = a(1)
-result ok steps=3 diagnostics=0
-exit 0

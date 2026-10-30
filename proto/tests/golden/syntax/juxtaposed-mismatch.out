@@ -1,3 +1,0 @@
-error TYP001 dimension 3:5-3:13 args=["Time", "Mass"]
-result error steps=0 diagnostics=1
-exit 1

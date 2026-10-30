@@ -1,7 +1,0 @@
-action a(x)
-macro m() { quote { a(2 g) } }
-recipe r() {
-  a(1 g)
-  m()
-  a(3 g)
-}

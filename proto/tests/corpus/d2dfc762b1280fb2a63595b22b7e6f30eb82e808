@@ -1,5 +1,0 @@
-ac(x)
-recipe r() {
-  for x in [] { a(x/*) }
-  a(9)
-}

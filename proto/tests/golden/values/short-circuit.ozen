@@ -1,6 +1,0 @@
-// args: --stats
-action a(x)
-recipe r() {
-  if false and 1 g + 1 min == 2 g { a(1) }
-  if true or 1 g + 1 min == 2 g { a(2) }
-}

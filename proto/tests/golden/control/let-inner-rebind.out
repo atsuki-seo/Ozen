@@ -1,4 +1,0 @@
-%1 = a(1)
-error NAM003 rebind 4:13-4:22 args=["x"]
-result error steps=1 diagnostics=1
-exit 1

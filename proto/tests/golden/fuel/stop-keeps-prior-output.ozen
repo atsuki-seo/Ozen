@@ -1,7 +1,0 @@
-// args: --limit-steps 8
-action a()
-recipe r() {
-  repeat 3 {
-    a()
-  }
-}

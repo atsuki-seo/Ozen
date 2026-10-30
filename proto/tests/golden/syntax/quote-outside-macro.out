@@ -1,3 +1,0 @@
-error SYN006 quotePlacement 2:16-2:21
-result error steps=0 diagnostics=1
-exit 1

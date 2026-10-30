@@ -1,6 +1,0 @@
-action a(x)
-macro inner(v) { quote { a($v + 1 min) } }
-macro outer(v) { quote { inner($v) } }
-recipe r() {
-  outer(1 g)
-}

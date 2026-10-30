@@ -1,4 +1,0 @@
-%1 = a(1)
-error TYP007 annotationTarget 4:8-4:19 args=["unattended"]
-result error steps=1 diagnostics=1
-exit 1

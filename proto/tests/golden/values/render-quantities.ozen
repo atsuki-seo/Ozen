@@ -1,8 +1,0 @@
-action a(x)
-recipe r() {
-  a(1 h 30 min)
-  a(0.3 g)
-  a(-0.5 kg)
-  a(2..3 L)
-  a(1.5 / 3)
-}

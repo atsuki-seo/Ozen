@@ -1,9 +1,0 @@
-%1 = a(3 g)
-%2 = a(2 g)
-%3 = a(-2 g)
-%4 = a(-3 g)
-%5 = a(2 g)
-%6 = a(3 g)
-%7 = a(3)
-result ok steps=7 diagnostics=0
-exit 0

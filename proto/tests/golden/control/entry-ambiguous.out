@@ -1,3 +1,0 @@
-error NAM004 ambiguousEntry 0:0-0:0 args=["zeta", "alpha"]
-result error steps=0 diagnostics=1
-exit 1

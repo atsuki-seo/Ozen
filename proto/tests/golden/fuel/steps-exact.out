@@ -1,4 +1,0 @@
-%1 = a(1 g)
-result ok steps=1 diagnostics=0
-stats steps=5/5 depth=5/256 nodes=4/100000
-exit 0

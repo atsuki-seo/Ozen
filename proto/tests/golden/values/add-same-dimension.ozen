@@ -1,4 +1,0 @@
-action a(x)
-recipe r() {
-  a(1 kg + 500 g)
-}

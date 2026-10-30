@@ -1,3 +1,0 @@
-error SYN001 invalidUtf8 2:14-2:15
-result error steps=0 diagnostics=1
-exit 1

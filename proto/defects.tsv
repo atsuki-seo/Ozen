@@ -1,7 +1,0 @@
-date	method	category	summary	commit
-2026-10-26	unit	test	the test expected the sum (2^63-2)/2 + 1/2 to be an integer; the expectation was wrong, not the code	8fa8ee1
-2026-10-26	golden	diagnostic	SYN:nonAsciiIdent printed an empty argument list	2ee8783
-2026-10-26	golden	semantics	after NAM:rebind the new value was not bound, so later uses saw the old value	f12b985
-2026-10-26	measurement	memory	bindings were reallocated in the arena for every scope; repeat 1000000 used 420 MB	d95b804
-2026-10-26	golden	diagnostic	after an allocation failure the arena refused every later request, so MAC:outOfMemory could never be reported	3ab849b
-2026-10-26	goal	purity	the core called strlen, which is outside the allowed C library symbols	2bf69cf

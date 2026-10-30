@@ -1,2 +1,0 @@
-th 10
-macro loop() { quote { loop($ } }

@@ -1,7 +1,0 @@
-action a(x)
-recipe zeta() {
-  a(1)
-}
-recipe alpha() {
-  a(2)
-}

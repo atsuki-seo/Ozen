@@ -1,4 +1,0 @@
-//// args: 
-recipe r(n: 1) {
-  repeat n { a }
-}

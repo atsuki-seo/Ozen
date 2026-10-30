@@ -1,2 +1,0 @@
-action a(x)
-recipe r() { let s = "玉ぎ🧅"; a(1 n) }

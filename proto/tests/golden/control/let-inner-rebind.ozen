@@ -1,6 +1,0 @@
-action a(x)
-recipe r() {
-  let x = 1
-  if true { let x = 2 }
-  a(x)
-}

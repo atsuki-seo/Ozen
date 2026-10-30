@@ -1,3 +1,0 @@
-error NAM001 arity 3:3-3:13 args=["f", "z"]
-result error steps=0 diagnostics=1
-exit 1

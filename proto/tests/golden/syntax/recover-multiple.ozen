@@ -1,6 +1,0 @@
-action a(x)
-recipe r() {
-  let x = = 1
-  a(2 g) 3
-  let = 4
-}

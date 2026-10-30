@@ -1,6 +1,0 @@
-%1 = a(1 g)
-%2 = a(1 g)
-%3 = a(1 g)
-result ok steps=3 diagnostics=0
-stats steps=12/1000000 depth=5/256 nodes=3/100000
-exit 0

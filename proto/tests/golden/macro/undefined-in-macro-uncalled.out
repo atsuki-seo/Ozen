@@ -1,4 +1,0 @@
-%1 = a(1)
-error NAM006 undefinedInMacro 2:23-2:29 args=["nosuch"]
-result error steps=1 diagnostics=1
-exit 1

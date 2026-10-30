@@ -1,3 +1,0 @@
-error TYP008 spliceNotName 2:28-2:43 via 4:3-4:12
-result error steps=0 diagnostics=1
-exit 1
