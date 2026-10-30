@@ -715,7 +715,7 @@ golden の入口は、着手点の N0 = 363（§9）から 68 増える（`quant
 | S521 | データの完全性 | `G-RF-FUZZ-DICT` | 辞書から `"\|>"` を消す | P3-1 |
 | S522 | 正常系 | `cgolden/syntax/omit-parens` | `recipe`・`menu` の `()` を必須にする | P3-2 |
 | S523 | データの完全性 | `G-RF-NO-EMPTY-PARENS`、`sh/test-check-test-names.sh` | `tests/` に `recipe salad() {` を 1 つ戻す | P3-2・P5-7 |
-| S524 | 文書との一致 | `G-RF-CONCEPT-PARENS` | concept の例に `make cookedRice()` を戻す | P9-1 |
+| S524 | 文書との一致 | `G-RF-CONCEPT-PARENS` | concept のコードの例の `make curry` に `()` を付ける | P9-1 |
 | S525 | 正常系 | `cgolden/quantity/per-serving` | 人数を掛けない | P4-1 |
 | S526 | 効かない条件 | `cgolden/quantity/fixed-amount` | 印の無い量にも人数を掛ける | P4-1 |
 | S527 | 正常系 | `cgolden/quantity/per-serving-param` | 料理の引数を見ない | P4-1 |
@@ -1368,6 +1368,16 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - `use-within-*` の期待値（P8-1、2026-10-30）: 段取りは手で組み、注釈を読まない前の実行ファイルの段取りとの差（作る作業の release だけ）で確かめた。`use-within-backward` は、2 人だと後ろ向きの段取りがもともと期限を守るので、1 人にした。`use-within-two-consumers` は、最初の形では同点の並べ替えで期限が自然に守られたので、切る時間を 25 分にした
 - `G-RF-GOLDEN-COUNT`（P8、2026-10-30）: P3-1 でパイプの golden を 15 個にした（13 個の予定から 2 つ足した）ので、増える数を 66 から 68 に直した（§5 の表と判定のコマンド、`goals.sh`）
 - Phase 7 のゲート（P7-5、2026-10-30）: ファズの前までの 56 本は合格した。ファズはコアを組み直しながら 1 時間かかり、その間は Phase 8 を本線に入れられないので止めた。P7-5 は P8-4 のゲートとまとめて回す
+- わざと壊す確認: S524・文書との一致・`G-RF-CONCEPT-PARENS`（P9-1、2026-10-30）。concept のコードの例の `make curry` に `()` を付けると「got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S604・文書との一致・`G-RF-CONCEPT`（P9-1、2026-10-30）。concept §4.4 から `|>` と `per serving` を消すと落ちた。戻すと合格した
+- わざと壊す確認: S605・文書との一致・`G-RF-CONCEPT`（P9-1、2026-10-30）。concept §4.1 から `unusedValue` を消すと落ちた。戻すと合格した
+- わざと壊す確認: S606・文書との一致・`G-RF-CONCEPT`（P9-1、2026-10-30）。concept §4.2 から `preheat` を消すと落ちた。戻すと合格した
+- わざと壊す確認: S607・文書との一致・`G-RF-CONCEPT`（P9-1、2026-10-30）。concept §4.5 から `useWithin` を消すと落ちた。戻すと合格した
+- わざと壊す確認: S608・文書との一致・`G-RF-CONCEPT`（P9-1、2026-10-30）。concept §6.1 から `useWithinMissed` と `servingsUnknown` を消すと落ちた。戻すと合格した
+- わざと壊す確認: S609・文書との一致・`G-RF-README-EXAMPLE`（P9-2、2026-10-30）。README の段取りの期待の出力の盛り付けの行を `(1518)` から `(1519)` にすると「1 mismatches」で落ちた。戻すと合格した
+- わざと壊す確認: S610・前提の固定・`G-REPO-VERSION`（P9-3、2026-10-30）。`VERSION` だけを `0.2.0` にすると 3 つの検査が落ちた。戻すと合格した
+- README の例（P9-2、2026-10-30）: 例の献立の `let s = make soup` は 1 文字の名前だったので `soupPot` にし、スープの材料を `per serving`（`servings: 2` の既定値）、切る手順をパイプにした。量の総量は前と同じ。診断の位置は手で数え直し、例の検査で一致を確かめた
+- concept（P9-1、2026-10-30）: §4.1 に使われない値、§4.2 に予熱、§4.4 にパイプ・`()` の省略・`per serving`、§4.5 に `@useWithin`、§6.1 の重さの表に `unusedValue`・`useWithinMissed`（警告）と `servingsUnknown`（エラー）を足した。本文の `make homemadeNaan()`・`make cookedRice()` の空の `()` も消した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
