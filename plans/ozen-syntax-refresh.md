@@ -1114,6 +1114,44 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S543・境界・上限・`G-RF-LIMIT-PAIRS`（P5-2、2026-10-30）。`limits/nodes-exact` の入力を `property cups = 1` にしてノードを減らすと、「--max-nodes 4 gives no MAC003」で「8 pairs, 1 not exact」になって落ちた。戻すと 0 not exact で合格した
 - わざと壊す確認: S548・前提の固定・`G-CORE-OOM`（P5-2、2026-10-30）。`check.c` で確保に失敗したときの `MAC004` を出さないと、「363 files, 4865 points, 3014 failures」で落ちた。戻すと合格した
 - S548 の壊し方（P5-2、2026-10-30）: 網羅表は「`diag/out-of-memory` の確保の番号を 1 増やす」としたが、確保の失敗はどの番号でも同じ `MAC004`（位置 1:1）になり、`--fail-alloc-at 4` にしても golden も `G-CORE-OOM` も合格した。`sema.c` の `bind` で確保の失敗を見落とす壊し方も、`check.c` が領域の失敗の数を別に数えているので落ちなかった。`G-CORE-OOM` は確保の失敗ごとに `MAC004` が出ることを確かめる検査なので、壊し方を「確保に失敗したときの `MAC004` を出さない」に直した
+- 書き直しのわざと壊す確認: S474・正常系・`cgolden/state/blend-*`（P5-3、2026-10-30）。std の `blend` の出力を `cut(slice, 3 mm)` にすると、`blend-single` と `blend-after-pureed` が落ちた。`blend-list` は混ぜた値の形を持たないので落ちず、S212 の壊し方（混ぜたもののトレイトの和を外す）で落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S196・効かない条件・`cgolden/state/peel-missing`（P5-3、2026-10-30）。引数の状態の要求の検査を外すと、`peel-missing` を含む 10 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S197・正常系・`cgolden/state/boil-then-peel`（P5-3、2026-10-30）。効果を当てるたびにほかの軸の値を消して 1 本の遷移にすると、`boil-then-peel` と `grill-then-cut`（`cgolden/state/grill-then-cut`）を含む 67 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S198・境界・上限・`cgolden/state/ordered-no-regress`（P5-3、2026-10-30）。順序のある軸の値を常に代入にすると、`ordered-no-regress` だけが落ちた。`ordered-ge`（`cgolden/state/ordered-ge`）は、`>=` の比較を逆にする壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S199・境界・上限・`cgolden/state/cut-finer`（P5-3、2026-10-30）。細かさの関係を逆に辿ると、`cut-finer` と `cut-coarser`（`cgolden/state/cut-coarser`）が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S200・正常系・`cgolden/state/prep-set-args`（P5-3、2026-10-30）。集合の軸に足すとき中身を置き換えると、`prep-set-args` を含む 13 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S201・正常系・`cgolden/state/user-axis`（P5-3、2026-10-30）。書き手のソースで定義した軸の要求を検査しないと、`user-axis` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S202・正常系・`cgolden/state/omit-axis`（P5-3、2026-10-30）。食材に無い軸の効果を `TYP006` にすると、`omit-axis` を含む 10 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S203・正常系・`cgolden/state/doneness-browning-independent`（P5-3、2026-10-30）。焼き色の効果で火の通りも `done` にすると、`doneness-browning-independent` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S204・正常系・`cgolden/state/unwritten-axis-inherit`（P5-3、2026-10-30）。効果を当てるたびに書かなかった集合の軸を空にすると、`unwritten-axis-inherit` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S206・効かない条件・`cgolden/safety/undercooked-pork`（P5-3、2026-10-30）。`SAF001` の検査を外すと、`undercooked-pork` を含む 8 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S207・効かない条件・`cgolden/safety/raw-edible-exception`（P5-3、2026-10-30）。生で食べられるものの例外を外すと、`raw-edible-exception` を含む 6 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S208・効かない条件・`cgolden/safety/allow-saf-stays-error`（P5-3、2026-10-30）。`SAF` を `@allow` やビルド時の指定で下げられるようにすると、`allow-saf-stays-error` と `cli-allow-saf`（`cgolden/safety/cli-allow-saf`）が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S209・実際の経路・`cgolden/safety/allergen-bowl`（P5-3、2026-10-30）。アレルゲンの汚れを道具に記録しないと、`allergen-bowl` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S210・正常系・`cgolden/mix/new-value`（P5-3、2026-10-30）。混ぜたものの型を最初の材料の型のままにすると、`new-value` を含む 20 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S211・正常系・`cgolden/mix/amount-sum`（P5-3、2026-10-30）。混ぜたものの量を足さないと、`amount-sum` を含む 20 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S212・正常系・`cgolden/mix/mixture-hazard-allergen`（P5-3、2026-10-30）。混ぜたものに材料のトレイトを引き継がないと、`mixture-hazard-allergen` と `state/blend-list` を含む 11 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S213・効かない条件・`cgolden/linear/double-use`（P5-3、2026-10-30）。消費の記録を外すと、`double-use` を含む 21 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S214・境界・上限・`cgolden/linear/exact-amount`（P5-3、2026-10-30）。量の比較を `>=` にすると `exact-amount` だけが落ちた。`shortage`（`cgolden/linear/shortage`）は、足りないことを報告しない壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S215・正常系・`cgolden/linear/leftover-part`（P5-3、2026-10-30）。部位の残りの `LIN003` を出さないと、`leftover-part` を含む 10 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S216・効かない条件・`cgolden/linear/store-discard-silent`（P5-3、2026-10-30）。消費した部位も残りとして報告すると、`store-discard-silent` を含む 18 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S217・効かない条件・`cgolden/linear/parallel-double-use`（P5-3、2026-10-30）。枝をまたいだ消費を区別しないと、`parallel-double-use` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S218・正常系・`cgolden/parts/inherit-trait`（P5-3、2026-10-30）。部位の `extends` を辿らないと、`inherit-trait` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S219・境界・上限・`cgolden/parts/alias-one-not-fatty`（P5-3、2026-10-30）。別名の候補を先頭だけで判定すると `alias-one-not-fatty` だけが落ちた。`alias-all-fatty`（`cgolden/parts/alias-all-fatty`）は Hazard 以外のトレイトを候補が持たないとする壊し方、`alias-hazard-any`（`cgolden/parts/alias-hazard-any`）は Hazard もすべての候補に求める壊し方、`alias-widest-range`（`cgolden/parts/alias-widest-range`）は性質の幅を最初の候補だけにする壊し方を足して、それぞれ落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S220・正常系・`cgolden/parts/alias-name-in-diag`（P5-3、2026-10-30）。診断に別名を展開した型の名前を出すと、`alias-name-in-diag` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S221・正常系・`cgolden/parts/aibiki-contains`（P5-3、2026-10-30）。`contains` の割合を下限の 1 点にすると、`aibiki-contains` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S222・正常系・`cgolden/parts/fillet-yield`（P5-3、2026-10-30）。歩留まりで求めた部位の量を残さないと、`fillet-yield` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S224・正常系・`cgolden/actions/uses-capability`（P5-3、2026-10-30）。台所の種類を能力でなく名前だけで照合すると、`uses-capability` を含む 49 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S225・境界・上限・`cgolden/actions/capacity-from-amount`（P5-3、2026-10-30）。量に数を掛ける掛け算で数を無視すると（係数 1.2 を掛けない）、`capacity-from-amount` を含む 6 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S227・時間と順序・`cgolden/actions/extend-order`（P5-3、2026-10-30）。`extend` で足した変種を元の変種より前に並べると、`extend-order` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S228・正常系・`cgolden/actions/requires-auto`（P5-3、2026-10-30）。動作の `uses` から要件を集めないと、`requires-auto` を含む 3 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S417・効かない条件・`cgolden/parts/part-on-partless`（P5-3、2026-10-30）。部位の無い食材に部位を付けたときの `TYP009` を出さないと、`part-on-partless` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S418・効かない条件・`cgolden/actions/where-constraint`（P5-3、2026-10-30）。`where` の検査を外すと、`where-constraint` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S419・正常系・`cgolden/parts/trait-defined-parts`（P5-3、2026-10-30）。トレイトで定義した部位を引き継がないと、`trait-defined-parts` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S420・正常系・`cgolden/parts/auto-discard`（P5-3、2026-10-30）。捨てる部位（内臓・うろこ）の印を付けないと、残りとして報告され `auto-discard` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S424・正常系・`cgolden/actions/extend-in-assumptions`（P5-3、2026-10-30）。`ASM006` の候補の一覧から `extend` で足した変種を外すと、`extend-in-assumptions` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S434・正常系・`cgolden/actions/composite-*`（P5-3、2026-10-30）。合成した動作の `steps` を展開しないと、`composite-expand`・`composite-schedule`・`composite-types` が落ちた。戻すと合格した
+- P5-3 の範囲（2026-10-30）: `state` 15 本、`mix` 4 本、`parts` 11 本、`linear` 6 本、`safety` 7 本、`actions` 9 本を書き直した。続けて当てる動作はパイプにした（`state` の 8 本、`actions/requires-auto`・`uses-capability`）。パイプにしたものは、診断の位置が呼び出しの span に当たらないものに限った。`state/axis-*`・`parts/part-trait-clash`・`actions/error-in-unused-variant`・`no-overload`・`safety/plate-raw-buy` は料理名や 1 文字の名前を持たないので変えていない
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
