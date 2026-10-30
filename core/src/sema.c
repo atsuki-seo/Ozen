@@ -5225,7 +5225,20 @@ static void use_within(sema *s, ozni_index holder, ozni_index name, const value 
     const ozni_node *an = nd(s, s->file, c);
     ozni_qty q;
     if (an->kind != OZNI_N_Annotation || !str_is(S(s, an->text), "useWithin") || an->first == 0 ||
-        !qty_of(s, s->mod, s->file, an->first, &q, false) || v->kind != V_FOOD || v->f == nullptr) {
+        !qty_of(s, s->mod, s->file, an->first, &q, false)) {
+      continue;
+    }
+    ozni_dimvec time = {{0}};
+    int dim = dim_index(s, intern(s, "Time", 4));
+    if (dim >= 0) {
+      time.e[dim] = 1;
+    }
+    if (!dims_equal(q.d, time)) {
+      ozni_str args[2] = {S(s, dim_name_text(s, q.d)), S(s, intern(s, "Time", 4))};
+      diag_node(s, OZNI_D_TYP_dimension, s->file, nd(s, s->file, an->first), args, 2);
+      continue;
+    }
+    if (v->kind != V_FOOD || v->f == nullptr) {
       continue;
     }
     if (v->f->in_label != 0) {
