@@ -1,4 +1,5 @@
+warning LIN005 unusedValue annotation-scope.ozen:14:7-14:13 args=["boiled", "Rice<prep has washed>"]: unused value
 warning PKG012 deprecated annotation-scope.ozen:22:12-22:18 args=["cc"]: deprecated
 info ASM004 unlimitedEquipment annotation-scope.ozen:32:6-32:12: unlimited equipment
-result ok errors=0 warnings=1 infos=1
+result ok errors=0 warnings=2 infos=1
 exit 0

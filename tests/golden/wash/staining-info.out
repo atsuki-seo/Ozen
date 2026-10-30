@@ -2,6 +2,8 @@ schedule prepBoard level=2 cooks=1
   0..60 (60) %2 mark by cook1 [board#1]
   60..120 (120) %4 touch by cook1 [board#1]
   total 120
+warning LIN005 unusedValue staining-info.ozen:21:11-21:17 args=["marked", "Tomato"]: unused value
 info SCH007 stainLeft staining-info.ozen:21:20-21:32 args=["board#1", "stain"]: stain left
-result ok errors=0 warnings=0 infos=1
+warning LIN005 unusedValue staining-info.ozen:22:11-22:18 args=["touched", "Cabbage"]: unused value
+result ok errors=0 warnings=2 infos=1
 exit 0

@@ -2,5 +2,7 @@ schedule prepBoard level=2 cooks=1
   0..60 (60) %2 mark by cook1 [board#1]
   60..120 (120) %4 touch by cook1 [board#1]
   total 120
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue rule-override.ozen:22:11-22:17 args=["marked", "Carrot"]: unused value
+warning LIN005 unusedValue rule-override.ozen:23:11-23:18 args=["touched", "Cabbage"]: unused value
+result ok errors=0 warnings=2 infos=0
 exit 0

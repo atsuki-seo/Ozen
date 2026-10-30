@@ -1,3 +1,4 @@
+warning LIN005 unusedValue severity-override.ozen:5:5-5:9 args=["salt", "Salt"]: unused value
 error LIN003 leftoverPart severity-override.ozen:7:17-7:21 args=["rest", "200 g"]: leftover part
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=1 infos=0
 exit 1

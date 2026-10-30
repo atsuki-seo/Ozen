@@ -1,3 +1,4 @@
+warning LIN005 unusedValue ordered-ge.ozen:7:7-7:16 args=["servedRaw", "Onion"]: unused value
 error TYP006 stateRequired ordered-ge.ozen:7:28-7:33 args=["plateHot", "x", "onion"]: state required
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=1 infos=0
 exit 1

@@ -7,5 +7,8 @@ schedule teishoku level=2 cooks=2
   240..300 (300) %6 fold by cook1
   600..660 (660) %9 fold by cook1
   total 660
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue prefer-steady-pace.ozen:24:7-24:14 args=["carrot1", "Carrot<doneness: done>"]: unused value
+warning LIN005 unusedValue prefer-steady-pace.ozen:26:7-26:15 args=["lettuce1", "Lettuce"]: unused value
+warning LIN005 unusedValue prefer-steady-pace.ozen:28:7-28:15 args=["cabbage1", "Cabbage<doneness: done>"]: unused value
+result ok errors=0 warnings=3 infos=0
 exit 0

@@ -2,5 +2,6 @@ schedule teishoku level=1 cooks=1
   0..1800 (1800) %2 soak unattended
   0..120 (60) %4 peel by cook1
   total 1800
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue unattended-frees-hands.ozen:7:7-7:13 args=["soaked", "Rice<prep has soaked(1800 s)>"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

@@ -9,6 +9,12 @@ schedule washes level=2 cooks=2
   60..180 (120) wash board#2 after rawMeat by cook2 [sink#1, board#2]
   180..240 (240) %4 touch by cook2 [board#2]
   total 300
+warning LIN005 unusedValue wait-or-wash.ozen:31:11-31:17 args=["marked", "Pork"]: unused value
+warning LIN005 unusedValue wait-or-wash.ozen:32:11-32:18 args=["touched", "Cabbage"]: unused value
+warning LIN005 unusedValue wait-or-wash.ozen:35:11-35:19 args=["finished", "Cabbage"]: unused value
+warning LIN005 unusedValue wait-or-wash.ozen:47:11-47:17 args=["marked", "Pork"]: unused value
+warning LIN005 unusedValue wait-or-wash.ozen:48:11-48:18 args=["touched", "Cabbage"]: unused value
 info SCH006 washInserted wait-or-wash.ozen:48:21-48:30 args=["board#2", "rawMeat"]: wash inserted
-result ok errors=0 warnings=0 infos=1
+warning LIN005 unusedValue wait-or-wash.ozen:51:11-51:19 args=["finished", "Cabbage"]: unused value
+result ok errors=0 warnings=6 infos=1
 exit 0

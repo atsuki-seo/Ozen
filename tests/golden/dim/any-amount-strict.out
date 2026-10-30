@@ -1,3 +1,4 @@
+warning LIN005 unusedValue any-amount-strict.ozen:4:5-4:9 args=["salt", "Salt"]: unused value
 error TYP003 vagueAmount any-amount-strict.ozen:4:11-4:23 args=["salt"]: vague amount
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=1 infos=0
 exit 1

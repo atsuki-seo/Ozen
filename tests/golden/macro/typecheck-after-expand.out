@@ -1,3 +1,4 @@
+warning LIN005 unusedValue typecheck-after-expand.ozen:3:9-3:15 args=["peeled", "Onion<shape: peeled>"] via typecheck-after-expand.ozen:11:3-11:16: unused value
 error TYP006 stateRequired typecheck-after-expand.ozen:12:10-12:15 args=["peel", "x", "water"]: state required
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=1 infos=0
 exit 1

@@ -1,3 +1,5 @@
+warning LIN005 unusedValue parallel-double-use.ozen:5:11-5:17 args=["washed", "Rice<prep has washed>"]: unused value
+warning LIN005 unusedValue parallel-double-use.ozen:8:11-8:17 args=["soaked", "Rice<prep has soaked(600 s)>"]: unused value
 error LIN004 parallelConsume parallel-double-use.ozen:8:25-8:29 args=["rice"]: parallel consume
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=2 infos=0
 exit 1

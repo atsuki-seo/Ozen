@@ -1,3 +1,4 @@
+warning LIN005 unusedValue main.ozen:4:17-4:21 args=["rice", "Rice"]: unused value
 error NAM002 ambiguous main.ozen:5:17-5:21 args=["stir", "book.a", "book.b"]: ambiguous
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=1 infos=0
 exit 1

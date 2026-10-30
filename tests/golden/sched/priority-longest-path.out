@@ -3,5 +3,6 @@ schedule teishoku level=1 cooks=1
   180..300 (240) %2 peel by cook1
   180..1980 (1980) %5 soak unattended
   total 1980
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue priority-longest-path.ozen:7:7-7:13 args=["peeled", "Onion<shape: peeled>"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

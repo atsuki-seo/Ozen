@@ -5,5 +5,6 @@ schedule teishoku level=1 cooks=1
   180..240 (198) %3 store by cook1
   240..270 (246) %7 discard by cook1
   total 270
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue store-discard-in-schedule.ozen:9:7-9:13 args=["washed", "Rice<prep has washed>"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

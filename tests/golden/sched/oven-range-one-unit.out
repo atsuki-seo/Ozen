@@ -2,5 +2,6 @@ schedule sideDishes level=2 cooks=1
   0..1200 (1200) %2 bake unattended [range#1]
   1200..1500 (1500) %4 zap unattended [range#1]
   total 1500
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue oven-range-one-unit.ozen:18:7-18:12 args=["baked", "Potato<doneness: done>"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

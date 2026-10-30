@@ -1,3 +1,4 @@
+warning LIN005 unusedValue double-use.ozen:3:7-3:13 args=["washed", "Rice<prep has washed>"]: unused value
 error LIN001 doubleUse double-use.ozen:4:26-4:30 args=["rice"]: double use
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=1 infos=0
 exit 1

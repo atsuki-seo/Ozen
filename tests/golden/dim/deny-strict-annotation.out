@@ -1,4 +1,6 @@
+warning LIN005 unusedValue deny-strict-annotation.ozen:2:17-2:21 args=["salt", "Salt"]: unused value
 error TYP003 vagueAmount deny-strict-annotation.ozen:2:23-2:35 args=["salt"]: vague amount
+warning LIN005 unusedValue deny-strict-annotation.ozen:5:17-5:23 args=["pepper", "Pepper"]: unused value
 warning TYP003 vagueAmount deny-strict-annotation.ozen:5:25-5:37 args=["pepper"]: vague amount
-result error errors=1 warnings=1 infos=0
+result error errors=1 warnings=3 infos=0
 exit 1

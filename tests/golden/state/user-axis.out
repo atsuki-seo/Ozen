@@ -1,3 +1,4 @@
+warning LIN005 unusedValue user-axis.ozen:12:7-12:10 args=["bad", "Kinugoshi"]: unused value
 error TYP006 stateRequired user-axis.ozen:12:18-12:26 args=["slab", "x", "softTofu"]: state required
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=1 infos=0
 exit 1

@@ -7,5 +7,8 @@ schedule teishoku level=2 cooks=2
   480..720 (720) %3 trim by cook1 [board#2]
   1440..1620 (1620) %8 sear by cook1 [stove#1, pan#1]
   total 1620
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue prefer-fewer-washes.ozen:24:7-24:15 args=["lettuce1", "Lettuce"]: unused value
+warning LIN005 unusedValue prefer-fewer-washes.ozen:26:7-26:15 args=["cabbage1", "Cabbage"]: unused value
+warning LIN005 unusedValue prefer-fewer-washes.ozen:27:7-27:12 args=["tofu0", "Tofu<doneness: done>"]: unused value
+result ok errors=0 warnings=3 infos=0
 exit 0

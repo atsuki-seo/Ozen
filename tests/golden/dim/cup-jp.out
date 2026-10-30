@@ -1,4 +1,5 @@
 recipe hotMilk
   milk : Milk 200 ml
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue cup-jp.ozen:4:17-4:21 args=["milk", "Milk"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

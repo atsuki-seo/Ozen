@@ -8,5 +8,7 @@ recipe onionMilkSoup
   %4 = peel(onion) : Onion<shape: peeled> 2 pcs
   %5 = cut(%4, slice) : Onion<shape: cut(slice, 3 mm)> 2 pcs
   %6 = simmer(milk, 300 s) : Milk<doneness: done> 200 ml
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue ingredient-dimension-ok.ozen:10:7-10:13 args=["cooked", "CookedRice"]: unused value
+warning LIN005 unusedValue ingredient-dimension-ok.ozen:11:7-11:13 args=["sliced", "Onion<shape: cut(slice, 3 mm)>"]: unused value
+result ok errors=0 warnings=2 infos=0
 exit 0

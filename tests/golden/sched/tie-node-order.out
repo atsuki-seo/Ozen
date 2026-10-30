@@ -2,5 +2,6 @@ schedule vegetablePrep level=1 cooks=1
   0..120 (60) %2 peel by cook1
   120..240 (180) %4 peel by cook1
   total 240
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue tie-node-order.ozen:7:7-7:19 args=["peeledCarrot", "Carrot<shape: peeled>"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

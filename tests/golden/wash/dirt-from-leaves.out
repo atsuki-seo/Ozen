@@ -6,7 +6,8 @@ schedule porkAndCabbage level=2 cooks=1
   540..720 (600) wash pan#1 after oil by cook1 [sink#1, pan#1]
   720..780 (780) %6 warmUp by cook1 [pan#1]
   total 780
+warning LIN005 unusedValue dirt-from-leaves.ozen:25:7-25:13 args=["seared", "Pork"]: unused value
 info SCH006 washInserted dirt-from-leaves.ozen:26:24-26:37 args=["board#1", "rawMeat"]: wash inserted
 info SCH006 washInserted dirt-from-leaves.ozen:27:16-27:38 args=["pan#1", "oil"]: wash inserted
-result ok errors=0 warnings=0 infos=2
+result ok errors=0 warnings=1 infos=2
 exit 0

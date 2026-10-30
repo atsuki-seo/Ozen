@@ -1,3 +1,4 @@
 error SAF001 undercooked deps/dashi/stock.ozen:4:16-4:39 args=["Pork", "raw"]: undercooked
-result error errors=1 warnings=0 infos=0
+warning LIN005 unusedValue soup.ozen:3:17-3:23 args=["bonito", "Katsuobushi"]: unused value
+result error errors=1 warnings=1 infos=0
 exit 1

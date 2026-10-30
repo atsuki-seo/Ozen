@@ -1,3 +1,6 @@
+warning LIN005 unusedValue ingredient-type-omitted.ozen:3:5-3:11 args=["potato", "Potato"]: unused value
+warning LIN005 unusedValue ingredient-type-omitted.ozen:4:5-4:10 args=["onion", "Onion"]: unused value
+warning LIN005 unusedValue ingredient-type-omitted.ozen:5:5-5:11 args=["myRoot", "MyRoot"]: unused value
 error NAM001 undefined ingredient-type-omitted.ozen:5:5-5:11 args=["MyRoot"]: undefined
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=3 infos=0
 exit 1

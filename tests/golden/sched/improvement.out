@@ -7,6 +7,8 @@ schedule teishoku level=2 cooks=2
   600..840 (840) %8 trim by cook1 [board#1]
   840..1140 (1140) %9 sear by cook1 [stove#1, pan#1]
   total 1140
+warning LIN005 unusedValue improvement.ozen:23:7-23:15 args=["cabbage1", "Cabbage<doneness: done>"]: unused value
+warning LIN005 unusedValue improvement.ozen:25:7-25:13 args=["onion1", "Onion"]: unused value
 info SCH006 washInserted improvement.ozen:26:15-26:25 args=["board#1", "odor"]: wash inserted
-result ok errors=0 warnings=0 infos=1
+result ok errors=0 warnings=2 infos=1
 exit 0

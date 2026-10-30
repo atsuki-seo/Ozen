@@ -7,5 +7,8 @@ schedule teishoku level=2 cooks=2
   600..720 (720) %11 trim by cook1 [board#1]
   720..840 (840) %6 trim by cook1 [board#1]
   total 840
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue prefer-fewer-tools.ozen:24:7-24:15 args=["cabbage1", "Cabbage"]: unused value
+warning LIN005 unusedValue prefer-fewer-tools.ozen:26:7-26:14 args=["carrot1", "Carrot"]: unused value
+warning LIN005 unusedValue prefer-fewer-tools.ozen:28:7-28:12 args=["tofu1", "Tofu"]: unused value
+result ok errors=0 warnings=3 infos=0
 exit 0

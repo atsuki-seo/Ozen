@@ -8,5 +8,7 @@ ir stewTrial
   %7 = in c : Carrot 1 pcs
   %8 = op cut %7 style=roughChop size=10 mm : Carrot -> Carrot<shape: cut(roughChop, 10 mm)> 1 pcs [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
   %9 = op stew %8 : Carrot<shape: cut(roughChop, 10 mm)> -> Carrot<doneness: done, shape: cut(roughChop, 10 mm)> 1 pcs [HeatSource<stovetop>, Pot; 1020..1530 s; unattended]
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue heat-thickness-by-cut.ozen:12:7-12:16 args=["sliceStew", "Carrot<doneness: done, shape: cut(slice, 10 mm)>"]: unused value
+warning LIN005 unusedValue heat-thickness-by-cut.ozen:13:7-13:15 args=["diceStew", "Carrot<doneness: done, shape: cut(dice, 10 mm)>"]: unused value
+result ok errors=0 warnings=2 infos=0
 exit 0

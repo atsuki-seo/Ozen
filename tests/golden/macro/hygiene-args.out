@@ -5,6 +5,8 @@ recipe kinpira
   %2 = wash(%1) : Carrot<shape: peeled, prep has washed> 1 pcs
   %3 = peel(carrot) : Carrot<shape: peeled> 1 pcs
   %4 = wash(%3) : Carrot<shape: peeled, prep has washed> 1 pcs
+warning LIN005 unusedValue hygiene-args.ozen:4:9-4:14 args=["first", "Carrot<shape: peeled, prep has washed>"] via hygiene-args.ozen:18:3-18:26: unused value
+warning LIN005 unusedValue hygiene-args.ozen:16:5-16:10 args=["onion", "Onion"]: unused value
 error LIN001 doubleUse hygiene-args.ozen:18:18-18:24 args=["carrot"]: double use
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=2 infos=0
 exit 1

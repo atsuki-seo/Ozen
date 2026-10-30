@@ -30,13 +30,34 @@ schedule prepBoard level=2 cooks=1
   5580..5640 (5640) %40 mark by cook1 [board#1]
   5640..5700 (5700) %42 touch by cook1 [board#1]
   total 5700
+warning LIN005 unusedValue compat-rules.ozen:44:11-44:13 args=["a1", "Pork"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:45:11-45:13 args=["b1", "Cabbage"]: unused value
 info SCH006 washInserted compat-rules.ozen:45:16-45:25 args=["board#1", "rawMeat"]: wash inserted
+warning LIN005 unusedValue compat-rules.ozen:46:11-46:13 args=["a2", "Naan"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:47:11-47:13 args=["b2", "Cabbage"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:48:11-48:13 args=["a3", "Carrot"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:49:11-49:13 args=["b3", "Cabbage"]: unused value
 info SCH006 washInserted compat-rules.ozen:49:16-49:25 args=["board#1", "soil"]: wash inserted
+warning LIN005 unusedValue compat-rules.ozen:50:11-50:13 args=["a4", "Carrot"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:51:11-51:13 args=["b4", "Potato"]: unused value
 info SCH006 washInserted compat-rules.ozen:51:16-51:25 args=["board#1", "soil"]: wash inserted
+warning LIN005 unusedValue compat-rules.ozen:52:11-52:13 args=["a5", "Onion"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:53:11-53:13 args=["b5", "Potato"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:54:11-54:13 args=["b6", "Cabbage"]: unused value
 info SCH006 washInserted compat-rules.ozen:54:16-54:25 args=["board#1", "odor"]: wash inserted
+warning LIN005 unusedValue compat-rules.ozen:55:11-55:13 args=["a7", "Dressing"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:56:11-56:13 args=["b7", "Cabbage"]: unused value
 info SCH006 washInserted compat-rules.ozen:56:16-56:25 args=["board#1", "oil"]: wash inserted
+warning LIN005 unusedValue compat-rules.ozen:57:11-57:13 args=["a8", "Sugar"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:58:11-58:13 args=["b8", "Cabbage"]: unused value
 info SCH006 washInserted compat-rules.ozen:58:16-58:25 args=["board#1", "starch"]: wash inserted
+warning LIN005 unusedValue compat-rules.ozen:59:11-59:13 args=["a9", "Cabbage"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:60:11-60:13 args=["b9", "Cabbage"]: unused value
 info SCH006 washInserted compat-rules.ozen:60:16-60:25 args=["board#1", "scorch"]: wash inserted
+warning LIN005 unusedValue compat-rules.ozen:61:11-61:14 args=["a10", "Tomato"]: unused value
 info SCH007 stainLeft compat-rules.ozen:61:17-61:29 args=["board#1", "stain"]: stain left
-result ok errors=0 warnings=0 infos=8
+warning LIN005 unusedValue compat-rules.ozen:62:11-62:14 args=["b10", "Cabbage"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:63:11-63:14 args=["a11", "Cabbage"]: unused value
+warning LIN005 unusedValue compat-rules.ozen:64:11-64:14 args=["b11", "Potato"]: unused value
+result ok errors=0 warnings=21 infos=8
 exit 0

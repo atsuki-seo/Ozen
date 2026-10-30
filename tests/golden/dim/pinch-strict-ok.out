@@ -1,2 +1,3 @@
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue pinch-strict-ok.ozen:4:5-4:9 args=["salt", "Salt"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

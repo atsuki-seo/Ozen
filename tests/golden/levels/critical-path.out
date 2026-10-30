@@ -4,5 +4,6 @@ schedule gohanPrep level=0
   180..1980 (1980) %3 soak
   total 1980
 info SCH009 criticalPath critical-path.ozen:2:8-2:17 args=["1980 s"]: critical path
-result ok errors=0 warnings=0 infos=1
+warning LIN005 unusedValue critical-path.ozen:8:7-8:13 args=["soaked", "Rice<prep has washed, prep has soaked(1800 s)>"]: unused value
+result ok errors=0 warnings=1 infos=1
 exit 0

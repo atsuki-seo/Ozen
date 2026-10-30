@@ -3,5 +3,7 @@ schedule teishoku level=1 cooks=2
   0..120 (60) %4 peel by cook2
   180..300 (240) %6 peel by cook1
   total 300
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue parallel-join.ozen:10:11-10:17 args=["washed", "Rice<prep has washed>"]: unused value
+warning LIN005 unusedValue parallel-join.ozen:13:11-13:17 args=["peeled", "Onion<shape: peeled>"]: unused value
+result ok errors=0 warnings=2 infos=0
 exit 0

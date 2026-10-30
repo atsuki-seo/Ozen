@@ -2,5 +2,6 @@ schedule teishoku level=1 cooks=1
   3300..3420 (3360) %4 peel by cook1
   3420..3600 (3480) %2 wash by cook1
   total 3600
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue backward-serve-at.ozen:7:7-7:13 args=["washed", "Rice<prep has washed>"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

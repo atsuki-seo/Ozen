@@ -1,3 +1,4 @@
+warning LIN005 unusedValue runtime-value-in-if.ozen:2:17-2:22 args=["onion", "Onion"]: unused value
 error TYP015 type runtime-value-in-if.ozen:4:6-4:25 args=["Bool", "Range"]: type
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=1 infos=0
 exit 1

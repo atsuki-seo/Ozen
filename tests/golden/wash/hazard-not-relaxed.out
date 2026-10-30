@@ -4,6 +4,8 @@ schedule prepBoard level=2 cooks=1
   180..240 (240) %4 touch by cook1 [board#1]
   total 240
 error SAF003 unwashedHazard hazard-not-relaxed.ozen:9:12-9:18 args=["Hazard"]: unwashed hazard
+warning LIN005 unusedValue hazard-not-relaxed.ozen:22:11-22:17 args=["marked", "Pork"]: unused value
+warning LIN005 unusedValue hazard-not-relaxed.ozen:23:11-23:18 args=["touched", "Cabbage"]: unused value
 info SCH006 washInserted hazard-not-relaxed.ozen:23:21-23:30 args=["board#1", "rawMeat"]: wash inserted
-result error errors=1 warnings=0 infos=1
+result error errors=1 warnings=2 infos=1
 exit 1

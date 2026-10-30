@@ -9,6 +9,9 @@ schedule teishoku level=2 cooks=1
   780..900 (900) %9 fold by cook1
   900..1020 (1020) %12 fold by cook1
   total 1020
+warning LIN005 unusedValue prefer-tools-then-pace.ozen:24:7-24:12 args=["pork1", "Pork<doneness: done>"]: unused value
+warning LIN005 unusedValue prefer-tools-then-pace.ozen:26:7-26:14 args=["carrot1", "Carrot<doneness: done>"]: unused value
+warning LIN005 unusedValue prefer-tools-then-pace.ozen:28:7-28:12 args=["tofu1", "Tofu<doneness: done>"]: unused value
 info SCH006 washInserted prefer-tools-then-pace.ozen:29:18-29:31 args=["board#1", "rawMeat"]: wash inserted
-result ok errors=0 warnings=0 infos=1
+result ok errors=0 warnings=3 infos=1
 exit 0

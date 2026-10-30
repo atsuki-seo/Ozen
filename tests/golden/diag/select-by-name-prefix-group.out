@@ -1,4 +1,5 @@
+warning LIN005 unusedValue select-by-name-prefix-group.ozen:5:5-5:9 args=["salt", "Salt"]: unused value
 error TYP003 vagueAmount select-by-name-prefix-group.ozen:5:11-5:23 args=["salt"]: vague amount
 warning LIN003 leftoverPart select-by-name-prefix-group.ozen:7:17-7:21 args=["rest", "200 g"]: leftover part
-result error errors=1 warnings=1 infos=0
+result error errors=1 warnings=2 infos=0
 exit 1

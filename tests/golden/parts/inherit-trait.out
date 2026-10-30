@@ -3,5 +3,6 @@ recipe porkRoast
   braiseCut : Pork<shoulderLoin> 200 g
   %1 = roastLoin(roastCut) : Pork<shoulderLoin, doneness: done> 300 g
   %2 = braise(braiseCut) : Pork<shoulderLoin, doneness: done> 200 g
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue inherit-trait.ozen:9:7-9:14 args=["roasted", "Pork<shoulderLoin, doneness: done>"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

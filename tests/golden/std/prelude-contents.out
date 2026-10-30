@@ -15,5 +15,6 @@ recipe basics
   %7 = fry(%6, 300 s) : Mixture<doneness: done> 350..450 g with Hazard
   %8 = combine([%7, water, salt, oil, sugar]) : Mixture 1356.8..1468.7 g with Hazard
   %9 = simmer(%8, 3600 s) : Mixture<doneness: done> 1356.8..1468.7 g with Hazard
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue prelude-contents.ozen:13:7-13:13 args=["cooked", "CookedRice"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

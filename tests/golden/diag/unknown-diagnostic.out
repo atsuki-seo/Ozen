@@ -1,3 +1,4 @@
 error NAM017 unknownDiagnostic unknown-diagnostic.ozen:1:21-1:32 args=["nosuchThing"]: unknown diagnostic
-result error errors=1 warnings=0 infos=0
+warning LIN005 unusedValue unknown-diagnostic.ozen:2:17-2:21 args=["rice", "Rice"]: unused value
+result error errors=1 warnings=1 infos=0
 exit 1

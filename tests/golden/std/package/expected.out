@@ -1,2 +1,3 @@
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue main.ozen:3:17-3:21 args=["milk", "Milk"]: unused value
+result ok errors=0 warnings=1 infos=0
 exit 0

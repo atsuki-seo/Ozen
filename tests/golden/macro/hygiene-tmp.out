@@ -5,5 +5,7 @@ recipe namul
   %1 = wash(rice) : Rice<prep has washed> 300 g
   %2 = wash(beans) : BeanSprouts<prep has washed> 100 g
   %3 = cut(tmp, style: slice) : Carrot<shape: cut(slice, 3 mm)> 1 pcs
-result ok errors=0 warnings=0 infos=0
+warning LIN005 unusedValue hygiene-tmp.ozen:4:9-4:12 args=["tmp", "BeanSprouts<prep has washed>"] via hygiene-tmp.ozen:14:3-14:15: unused value
+warning LIN005 unusedValue hygiene-tmp.ozen:4:9-4:12 args=["tmp", "Rice<prep has washed>"] via hygiene-tmp.ozen:13:3-13:14: unused value
+result ok errors=0 warnings=2 infos=0
 exit 0
