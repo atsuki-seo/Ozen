@@ -570,10 +570,10 @@ goal_G_RF_PROTO_GONE() {
   want_eq "tracked prototype files" 0 "$(git ls-files proto .github/workflows/ios-proto.yml | wc -l)"
   want_eq "proto-final is the parent of the deletion" same \
     "$([ "$(git rev-parse -q --verify proto-final^{commit})" = "$(git rev-parse -q --verify "$(git log --diff-filter=D --format=%H -1 -- proto)^")" ] && echo same)"
-  want_eq "proto/ in moved goals" 0 \
+  want_eq "prototype paths in moved goals" 0 \
     "$(sed -n '/^goal_G_CORE_\(FLAGS\|PURE\|NOGLOBAL\|DIAG_REGISTRY\)()/,/^}/p' scripts/goals.sh | grep -c 'prot[o]/')"
   want_ge1 "proto-final in report header" "$(sed -n '1,10p' docs/prototype-report.md | grep -c 'proto-final')"
-  want_eq "proto/ in scripts and .github" 0 \
+  want_eq "prototype paths in scripts and .github" 0 \
     "$(git grep -nE '(^|[^-a-z])prot[o]/' -- scripts .github ':!scripts/check-red-first.sh' | wc -l)"
 }
 
