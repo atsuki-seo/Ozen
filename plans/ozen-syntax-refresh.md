@@ -994,6 +994,12 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - README の例の検査の `--bin`（P1-2、2026-10-30）: 試作の節と一緒に、`--bin` と `ozenproto` の対応を外した。S489 は、`run:` の無い塊を `--ozen` で走らせる `match` などの場合で確かめ続ける
 - 試作の削除（P1-2、2026-10-30）: `proto/` のファイルは 565（574 から `scripts/` に移した 10 を引き、`ios-proto.yml` の 1 を足した数）。手元の試作のビルド `build/gcc-*`・`build/clang-*` の 4 つは、`CMakeCache.txt` の元が `proto` であることを確かめてから消した。`build/wasm`・`build/wasm-web`・`build/fuzz` も試作のものだが、D52 は消すものに挙げていないので残した
 - `G-RF-PROTO-GONE` の見出しの語（P1-2、2026-10-30）: 判定の見出しの文字列「proto/ in …」も grep に数えられたので、「prototype paths in …」に直した
+- Count の表示が変わった既存の golden（P2-1、2026-10-30）: 0。`typed_qty` で Count の型の値を無次元にし、`check_value` が Count の型に無次元を求めるようにした後、既存の 363 本はすべてそのまま合格した。Count の型の値を表示する既存の golden は無く、期待値の書き直しのコミットは要らなかった（R7 は起きなかった）
+- わざと壊す確認: S492・`cgolden/quantity/count-times-mass`（P2-1、2026-10-30）。`typed_qty` で無次元の値に Count の次元を付ける元の処理に戻すと、`count-times-mass` が `rice: 150 g * servings` の次元の食い違いで落ちた（`check_value` は無次元を求めるので、Count の型の引数を持つ既存の golden 79 本も一緒に落ちた）。戻すと合格した
+- わざと壊す確認: S493・`cgolden/quantity/count-options`（P2-1、2026-10-30）。`eval_param` で、条件（`-s 2`）から来た無次元の値にだけ Count の次元を付けると、`count-options` だけが落ちた。戻すと合格した
+- わざと壊す確認: S494・`cgolden/quantity/count-kitchen`（P2-1、2026-10-30）。`entry_field` で台所の項目の無次元の値にだけ Count の次元を付けると、`count-kitchen` だけが落ちた。戻すと合格した
+- わざと壊す確認: S495・`cgolden/quantity/count-compare`（P2-1、2026-10-30）。比較の評価で、左辺が名前の無次元の値に Count の次元を付け直すと、`count-compare` だけが落ちた。戻すと合格した
+- わざと壊す確認: S496・`cgolden/quantity/count-with-pcs`（P2-1、2026-10-30）。`typed_qty` で `pcs` の次元を外す処理を消すと、`count-with-pcs` だけが落ちた。戻すと合格した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
