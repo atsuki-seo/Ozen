@@ -4,11 +4,11 @@
 #include "../../include/ozen.h"
 #include "check.h"
 
-static const char recipe_text[] = "recipe r() {\n"
+static const char recipe_text[] = "recipe gohan {\n"
                                   "  ingredients {\n"
                                   "    rice: 300 g\n"
                                   "  }\n"
-                                  "  let w = wash(rice)\n"
+                                  "  let washed = wash(rice)\n"
                                   "}\n";
 static const char kitchen_text[] = "kitchen home {\n"
                                    "  places {\n"

@@ -4,14 +4,14 @@
 #include "check.h"
 #include "sema.h"
 
-static const char recipe_text[] = "recipe r() {\n"
+static const char recipe_text[] = "recipe gohanAndOnion {\n"
                                   "  ingredients {\n"
                                   "    onion: 1 pcs\n"
                                   "    rice: 300 g\n"
                                   "  }\n"
-                                  "  let p = peel(onion)\n"
-                                  "  let s = soak(rice)\n"
-                                  "  let c = cookRice(s)\n"
+                                  "  let peeled = peel(onion)\n"
+                                  "  let soaked = soak(rice)\n"
+                                  "  let cooked = cookRice(soaked)\n"
                                   "}\n";
 
 typedef struct built {
