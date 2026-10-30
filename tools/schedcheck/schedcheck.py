@@ -80,6 +80,17 @@ def check(doc):
             if dish.get("missed") and not late:
                 out.append(("serving", f"dish {dish['id']} is marked missed but is served in time"))
 
+    for limit in doc.get("limits", []):
+        producer, consumer = tasks.get(limit["producer"]), tasks.get(limit["consumer"])
+        if producer is None or consumer is None:
+            out.append(("use", f"limit refers to unknown task {limit['producer']} or {limit['consumer']}"))
+            continue
+        late = consumer["start"] - producer["endHi"] > num(limit["within"])
+        if late and not limit.get("missed"):
+            out.append(("use", f"task {consumer['id']} uses the value of task {producer['id']} too late"))
+        if limit.get("missed") and not late:
+            out.append(("use", f"task {consumer['id']} is marked missed but uses the value in time"))
+
     rules = {r["dirt"]: r["cases"] for r in doc.get("rules", [])}
 
     def need(mark, later, rid):
