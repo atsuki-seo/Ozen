@@ -1,11 +1,11 @@
 // args: debug steps
-macro peelIt(v) {
+macro peelIt(veg) {
   quote {
     let onion = 1
-    let p = peel($v)
+    let peeled = peel($veg)
   }
 }
-recipe r() {
+recipe onionSoup {
   ingredients { onion: 1 pcs }
   peelIt(onion)
 }

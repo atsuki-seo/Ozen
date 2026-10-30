@@ -1,14 +1,14 @@
-macro bad() {
+macro washMissing() {
   quote {
-    let x = wash(nosuch)
+    let washed = wash(nosuch)
   }
 }
-macro typed() {
+macro mixUnits() {
   quote {
-    let y = 1 g + 1 min
+    let total = 1 g + 1 min
   }
 }
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let w = wash(rice)
+  let washed = wash(rice)
 }

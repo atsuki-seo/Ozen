@@ -1,5 +1,5 @@
 macro outer() {
   quote {
-    let m = quote { 1 }
+    let inner = quote { 1 }
   }
 }

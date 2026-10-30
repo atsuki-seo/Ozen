@@ -1,4 +1,4 @@
-recipe r
+recipe namul
   rice : Rice 300 g
   beans : BeanSprouts 100 g
   tmp : Carrot 1 pcs

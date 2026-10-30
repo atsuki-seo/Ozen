@@ -1,9 +1,9 @@
-macro marinate(x, into) {
+macro marinate(veg, into) {
   quote {
-    let $into = wash($x)
+    let $into = wash($veg)
   }
 }
-recipe r() {
+recipe kinpira {
   ingredients { carrot: 1 pcs }
   marinate(carrot, 1 g)
 }

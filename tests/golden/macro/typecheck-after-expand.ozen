@@ -1,9 +1,9 @@
-macro peelIt(v) {
+macro peelIt(veg) {
   quote {
-    let p = peel($v)
+    let peeled = peel($veg)
   }
 }
-recipe r() {
+recipe misoSoup {
   ingredients {
     onion: 1 pcs
     water: 200 ml

@@ -1,20 +1,20 @@
 // args: debug steps
-macro twice(v) {
+macro washTwice(veg) {
   quote {
-    let a = wash($v)
-    let b = wash($v)
+    let first = wash($veg)
+    let second = wash($veg)
   }
 }
-macro never(v) {
+macro never(veg) {
   quote {
-    let n = 1
+    let unused = 1
   }
 }
-recipe r() {
+recipe kinpira {
   ingredients {
     carrot: 1 pcs
     onion: 1 pcs
   }
-  twice(peel(carrot))
+  washTwice(peel(carrot))
   never(peel(onion))
 }

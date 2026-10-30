@@ -1,13 +1,13 @@
-macro inner(v) {
+macro inner(amount) {
   quote {
-    let y = $v + 1 min
+    let total = $amount + 1 min
   }
 }
-macro outer(v) {
+macro outer(amount) {
   quote {
-    inner($v)
+    inner($amount)
   }
 }
-recipe r() {
+recipe gohan {
   outer(1 g)
 }
