@@ -1,0 +1,26 @@
+ir misoSoupWritten
+  %1 = in tofu : Tofu 150 g
+  %2 = op cut %1 style=dice size=15 mm : Tofu -> Tofu<shape: cut(dice, 15 mm)> 150 g [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
+  %3 = in dashi : Dashi 400 ml
+  %4 = op combine %3, %2 : Dashi, Tofu<shape: cut(dice, 15 mm)> -> Mixture 550..554 g [0 s]
+  %5 = op simmer %4 time=300 s heat=low : Mixture -> Mixture<doneness: done> 550..554 g [HeatSource<stovetop>, Pot; 300 s; unattended]
+ir misoSoupOmitted
+  %1 = in tofu : Tofu 150 g
+  %2 = op cut %1 style=dice size=15 mm : Tofu -> Tofu<shape: cut(dice, 15 mm)> 150 g [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
+  %3 = in dashi : Dashi 400 ml
+  %4 = op combine %3, %2 : Dashi, Tofu<shape: cut(dice, 15 mm)> -> Mixture 550..554 g [0 s]
+  %5 = op simmer %4 time=300 s heat=low : Mixture -> Mixture<doneness: done> 550..554 g [HeatSource<stovetop>, Pot; 300 s; unattended]
+ir lunchWritten
+  %1 = in tofu : Tofu 150 g
+  %2 = op cut %1 style=dice size=15 mm : Tofu -> Tofu<shape: cut(dice, 15 mm)> 150 g [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
+  %3 = in dashi : Dashi 400 ml
+  %4 = op combine %3, %2 : Dashi, Tofu<shape: cut(dice, 15 mm)> -> Mixture 550..554 g [0 s]
+  %5 = op simmer %4 time=300 s heat=low : Mixture -> Mixture<doneness: done> 550..554 g [HeatSource<stovetop>, Pot; 300 s; unattended]
+ir lunchOmitted
+  %1 = in tofu : Tofu 150 g
+  %2 = op cut %1 style=dice size=15 mm : Tofu -> Tofu<shape: cut(dice, 15 mm)> 150 g [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
+  %3 = in dashi : Dashi 400 ml
+  %4 = op combine %3, %2 : Dashi, Tofu<shape: cut(dice, 15 mm)> -> Mixture 550..554 g [0 s]
+  %5 = op simmer %4 time=300 s heat=low : Mixture -> Mixture<doneness: done> 550..554 g [HeatSource<stovetop>, Pot; 300 s; unattended]
+result ok errors=0 warnings=0 infos=0
+exit 0

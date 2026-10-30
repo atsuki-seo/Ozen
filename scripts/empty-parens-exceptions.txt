@@ -1,1 +1,2 @@
 # Sources that keep empty parentheses on a recipe, a menu or make, with the reason.
+tests/golden/syntax/omit-parens.ozen compares declarations and make written with and without empty parentheses (S522)

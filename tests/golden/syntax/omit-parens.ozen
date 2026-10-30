@@ -1,0 +1,23 @@
+// args: debug ir
+recipe misoSoupWritten() {
+  ingredients {
+    dashi: 400 ml
+    tofu: 150 g
+  }
+  let cubed = tofu |> cut(dice, size: 15 mm)
+  let soup = simmer([dashi, cubed], 5 min)
+}
+recipe misoSoupOmitted {
+  ingredients {
+    dashi: 400 ml
+    tofu: 150 g
+  }
+  let cubed = tofu |> cut(dice, size: 15 mm)
+  let soup = simmer([dashi, cubed], 5 min)
+}
+menu lunchWritten() {
+  let soup = make misoSoupWritten()
+}
+menu lunchOmitted {
+  let soup = make misoSoupOmitted
+}
