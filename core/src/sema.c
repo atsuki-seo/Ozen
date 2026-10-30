@@ -4888,6 +4888,23 @@ static bool amount_dims(sema *s, ozni_dimvec d) {
   return false;
 }
 
+static bool serving_count(sema *s, ozni_qty *out) {
+  ozni_qty q = s->servings;
+  ozni_index sv = s->onode != 0 ? options_value(s, intern(s, "servings", 8)) : 0;
+  if (!q.known && (sv == 0 || !value_qty(s, s->ofile, sv, &q) || !q.known)) {
+    return false;
+  }
+  int count = dim_named(s, "Count");
+  if (count >= 0 && q.d.e[count] == 1) {
+    q.d.e[count] = 0;
+  }
+  if (!dimensionless(q.d)) {
+    return false;
+  }
+  *out = q;
+  return true;
+}
+
 static void eval_ingredients(sema *s, const ozni_node *n) {
   for (ozni_index it = n->first; it != 0 && !s->c->limit_hit; it = nd(s, s->file, it)->next) {
     const ozni_node *item = nd(s, s->file, it);
@@ -4924,12 +4941,21 @@ static void eval_ingredients(sema *s, const ozni_node *n) {
       add_contains_traits(s, f, f->file, f->node, 0);
     }
     collect_allergens(s, f);
-    if (amount != 0 && nd(s, s->file, amount)->kind == OZNI_N_Vague) {
+    bool per = amount != 0 && nd(s, s->file, amount)->kind == OZNI_N_PerServing;
+    ozni_index expr = per ? nd(s, s->file, amount)->first : amount;
+    if (expr != 0 && nd(s, s->file, expr)->kind == OZNI_N_Vague) {
       f->vague = true;
       ozni_str arg = S(s, item->text);
-      diag_node(s, OZNI_D_TYP_vagueAmount, s->file, nd(s, s->file, amount), &arg, 1);
-    } else if (amount != 0) {
-      value v = eval(s, amount);
+      diag_node(s, OZNI_D_TYP_vagueAmount, s->file, nd(s, s->file, expr), &arg, 1);
+    } else if (expr != 0) {
+      value v = eval(s, expr);
+      ozni_qty servings;
+      if (per && v.kind == V_QTY && v.q.known && !serving_count(s, &servings)) {
+        diag_node(s, OZNI_D_TYP_servingsUnknown, s->file, nd(s, s->file, amount), nullptr, 0);
+        v = unknown();
+      } else if (per && v.kind == V_QTY && v.q.known && !ival_mul(v.q.v, servings.v, &v.q.v)) {
+        v = unknown();
+      }
       if (v.kind == V_QTY && v.q.known && !amount_dims(s, v.q.d)) {
         ozni_str args[2] = {S(s, dim_name_text(s, v.q.d)), S(s, intern(s, "Mass", 4))};
         diag_node(s, OZNI_D_TYP_dimension, s->file, nd(s, s->file, amount), args, 2);
