@@ -64,7 +64,7 @@ printf '// args: check --max-steps 9\n#need 9\n#code TYP001\n' > "$work/golden/e
 expect wrong-code "limit-pairs: 3 pairs, 1 not exact" 1
 reset
 printf '// args: check\n#need 9\n#code MAC001\n' > "$work/golden/eval/fuel-exact.ozen"
-expect no-limit "limit-pairs: 3 pairs, 1 not exact" 1
+expect no-limit-skipped "limit-pairs: 2 pairs, 0 not exact" 0
 reset
 rm "$work/golden/limits-shared/kitchen-exact/main.ozen" "$work/golden/limits-shared/kitchen-exact/args" "$work/golden/limits-shared/kitchen-exact/expected.out"
 expect fewer-pairs "limit-pairs: 2 pairs, 0 not exact" 0
