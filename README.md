@@ -63,7 +63,7 @@ For example, with these two files:
 
 <!-- file: soup.ozen -->
 ```ozen
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
     onion: 1 pcs
@@ -75,7 +75,7 @@ recipe soup() {
 }
 
 menu lunch(people: 2) {
-  let s = make soup()
+  let s = make soup
   serve main {
     plate perPerson on SoupBowl { s }
   }
@@ -190,14 +190,14 @@ package kitchenBook {
 
 <!-- file: soup.ozen -->
 ```ozen
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
   }
   let soup = simmer(water, 15 min)
 }
 
-recipe tea() {
+recipe tea {
   ingredients {
     water: 300 ml
   }
@@ -216,7 +216,7 @@ bundle {
 }
 
 module kitchenBook.soup {
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
   }
