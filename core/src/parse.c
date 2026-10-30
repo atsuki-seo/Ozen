@@ -629,6 +629,7 @@ static ozni_index primary(parser *p) {
   case OZNI_T_PERCENT:
   case OZNI_T_ARROW:
   case OZNI_T_LINK:
+  case OZNI_T_PIPE_GT:
     break;
   }
   unexpected(p);
@@ -762,6 +763,7 @@ static bool sum_start(const parser *p) {
   case OZNI_T_PERCENT:
   case OZNI_T_ARROW:
   case OZNI_T_LINK:
+  case OZNI_T_PIPE_GT:
     return false;
   }
   return false;
@@ -844,11 +846,7 @@ static ozni_index logic(parser *p, const char *word, ozni_rule rule, ozni_index 
 static ozni_index and_expr(parser *p) { return logic(p, "and", OZNI_R_and_expr, not_expr); }
 static ozni_index or_expr(parser *p) { return logic(p, "or", OZNI_R_or_expr, and_expr); }
 
-static ozni_index expr(parser *p) {
-  if (p->failed) {
-    return 0;
-  }
-  mark(p, OZNI_R_expr);
+static ozni_index link(parser *p) {
   mark(p, OZNI_R_link);
   uint32_t start = cur(p)->start;
   ozni_index e = or_expr(p);
@@ -859,6 +857,59 @@ static ozni_index expr(parser *p) {
       return 0;
     }
     e = binary(p, start, "<->", e, r);
+  }
+  return p->failed ? 0 : e;
+}
+
+static void unexpected_token(parser *p, ozni_token t) {
+  const char *s = p->c->srcs[p->file].text;
+  ozni_str arg = {s + t.start, t.end - t.start};
+  diag_at(p, OZNI_D_SYN_unexpectedToken, t.start, t.end, &arg, 1);
+  p->failed = true;
+}
+
+static ozni_index pipe_into(parser *p, uint32_t start, ozni_index left) {
+  ozni_token first = *cur(p);
+  if (first.kind != OZNI_T_IDENT) {
+    unexpected_token(p, first);
+    return 0;
+  }
+  ozni_index r = postfix(p);
+  if (r == 0) {
+    return 0;
+  }
+  if (N(p, r)->kind == OZNI_N_Name) {
+    ozni_index n = node(p, OZNI_N_Call, start);
+    add(p, n, r);
+    add(p, n, left);
+    return finish(p, n);
+  }
+  ozni_node *call = N(p, r);
+  if (call->kind != OZNI_N_Call || N(p, call->first)->kind != OZNI_N_Name) {
+    unexpected_token(p, first);
+    return 0;
+  }
+  ozni_index callee = call->first;
+  N(p, left)->next = N(p, callee)->next;
+  N(p, callee)->next = left;
+  if (call->last == callee) {
+    call->last = left;
+  }
+  call->span.start = start;
+  return r;
+}
+
+static ozni_index expr(parser *p) {
+  if (p->failed) {
+    return 0;
+  }
+  mark(p, OZNI_R_expr);
+  mark(p, OZNI_R_pipe);
+  uint32_t start = cur(p)->start;
+  ozni_index e = link(p);
+  while (e != 0 && at(p, OZNI_T_PIPE_GT)) {
+    advance(p);
+    e = pipe_into(p, start, e);
   }
   return p->failed ? 0 : e;
 }

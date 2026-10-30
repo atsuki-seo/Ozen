@@ -130,7 +130,8 @@ item_expr     := expr annotations ;
 annotations   := { annotation } ;
 annotation    := '@' IDENT [ '(' args ')' ] ;
 
-expr          := link ;
+expr          := pipe ;
+pipe          := link { '|>' postfix } ;
 link          := or_expr { '<->' or_expr } ;
 or_expr       := and_expr { 'or' and_expr } ;
 and_expr      := not_expr { 'and' not_expr } ;

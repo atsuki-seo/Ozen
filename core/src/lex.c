@@ -235,7 +235,7 @@ typedef struct punct {
 } punct;
 
 static const punct puncts[] = {
-    {"<->", OZNI_T_LINK}, {"->", OZNI_T_ARROW}, {"<=", OZNI_T_LE},   {">=", OZNI_T_GE},     {"==", OZNI_T_EQEQ},
+    {"<->", OZNI_T_LINK}, {"|>", OZNI_T_PIPE_GT}, {"->", OZNI_T_ARROW}, {"<=", OZNI_T_LE},   {">=", OZNI_T_GE},     {"==", OZNI_T_EQEQ},
     {"!=", OZNI_T_NE},    {"..", OZNI_T_DOTDOT}, {"(", OZNI_T_LPAREN}, {")", OZNI_T_RPAREN}, {"{", OZNI_T_LBRACE},
     {"}", OZNI_T_RBRACE}, {"[", OZNI_T_LBRACKET}, {"]", OZNI_T_RBRACKET}, {"<", OZNI_T_LT},   {">", OZNI_T_GT},
     {"=", OZNI_T_EQ},     {":", OZNI_T_COLON},  {",", OZNI_T_COMMA},  {".", OZNI_T_DOT},    {"+", OZNI_T_PLUS},

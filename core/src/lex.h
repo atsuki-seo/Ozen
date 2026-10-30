@@ -41,6 +41,7 @@ typedef enum ozni_tok_kind : uint8_t {
   OZNI_T_PERCENT,
   OZNI_T_ARROW,
   OZNI_T_LINK,
+  OZNI_T_PIPE_GT,
 } ozni_tok_kind;
 
 typedef struct ozni_token {
