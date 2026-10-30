@@ -143,6 +143,7 @@ kind IHStove : Place, Stove, HeatSource<stovetop>
 kind Oven : Place, HeatSource<oven> {
   props {
     wipeTime: 1..3 min @source(provisional)
+    preheatTime: 10..20 min @source(provisional)
   }
 }
 kind Microwave : Place, HeatSource<microwave> {
@@ -158,6 +159,7 @@ kind Toaster : Place, HeatSource<toaster> {
 kind OvenRange : Place, HeatSource<oven>, HeatSource<microwave> {
   props {
     wipeTime: 1..3 min @source(provisional)
+    preheatTime: 10..20 min @source(provisional)
   }
 }
 kind Fridge : Place, Chilling

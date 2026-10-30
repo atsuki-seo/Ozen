@@ -206,3 +206,14 @@ searches:
     reason: "鶏卵の重量区分の一次情報（要綱の別表）は確かめられなかった。二次情報の M の区分を暫定の値にした"
     covers:
       - ingredients.Egg.props.unitWeight
+  - date: "2026-10-30"
+    queries:
+      - "オーブンレンジ 予熱時間 200℃ 約 分 取扱説明書 パナソニック"
+      - "electric oven preheat time 350°F how long minutes manufacturer"
+    consulted:
+      - "パナソニック オーブンレンジの仕様と取扱説明書（NE-SA1・NE-M264。予熱にかかる時間の記載は見つからなかった）"
+      - "Whirlpool 製品サポート Long Pre-Heat Times for Oven producthelp.whirlpool.com（350°F まで、見えるヒーターの機種で約 12〜15 分 ±5 分、隠れたヒーターの機種で約 20 分 ±5 分）"
+    reason: "見つかった値は 1 つのメーカーの系列の、1 つの温度（350°F）での目安で、機種と温度によらない範囲として使えない。暫定の範囲のままにする"
+    covers:
+      - kinds.Oven.props.preheatTime
+      - kinds.OvenRange.props.preheatTime
