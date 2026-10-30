@@ -76,6 +76,7 @@ recipe salad() {
 
 prints:
 
+<!-- run: ozenproto example0.ozen -->
 ```text
 %1 = peel(onion)
 %2 = cut(%1, 3 mm)

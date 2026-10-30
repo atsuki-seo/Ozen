@@ -18,7 +18,7 @@ done
 
 exec python3 -B - "$readme" "$bin" "$ozen" <<'PY'
 import os, re, shlex, subprocess, sys, tempfile
-readme, proto, ozen = sys.argv[1:4]
+readme, proto, ozen = (os.path.abspath(a) if os.sep in a else a for a in sys.argv[1:4])
 lines = open(readme, encoding="utf-8").read().split("\n")
 examples, files, name, run, fresh = [], [], None, None, False
 i = 0
@@ -52,7 +52,7 @@ for k, (group, run, want) in enumerate(examples):
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w", encoding="utf-8") as f:
                 f.write(body)
-        words = shlex.split(run) if run else ["ozenproto", group[-1][0]]
+        words = shlex.split(run) if run else ["ozen", group[-1][0]]
         words[0] = {"ozenproto": proto, "ozen": ozen}.get(words[0], words[0])
         got = subprocess.run(words, cwd=tmp, capture_output=True, text=True).stdout
         if got != want:
