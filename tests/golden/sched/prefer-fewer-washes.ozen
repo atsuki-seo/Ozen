@@ -13,7 +13,7 @@ action stew(x: T) -> T<doneness: done> {
 action fold(x: T) -> T {
   uses hands for 4 min
 }
-recipe r() {
+recipe teishoku {
   ingredients {
     lettuce: Lettuce 100 g
     cabbage: Cabbage 100 g

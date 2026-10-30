@@ -1,4 +1,4 @@
-schedule r level=2 cooks=2
+schedule teishoku level=2 cooks=2
   0..240 (240) %2 trim by cook1 [board#1]
   240..540 (540) %3 stew unattended [stove#1, pot#1]
   240..480 (480) %5 trim by cook1 [board#1]

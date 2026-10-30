@@ -1,4 +1,4 @@
-schedule r level=1 cooks=2
+schedule teishoku level=1 cooks=2
   0..180 (60) %2 wash by cook1
   0..120 (60) %4 peel by cook2
   180..300 (240) %6 peel by cook1

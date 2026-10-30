@@ -1,4 +1,4 @@
-schedule r level=2 cooks=2
+schedule teishoku level=2 cooks=2
   0..240 (240) %5 trim by cook2 [board#2]
   0..240 (240) %10 trim by cook1 [board#1]
   240..480 (480) %2 fold by cook1

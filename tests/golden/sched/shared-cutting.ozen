@@ -2,21 +2,21 @@
 action slice2(x: T) -> T {
   uses hands, CuttingSurface for 2 min
 }
-recipe ramen() {
+recipe ramen {
   ingredients {
     negi: Cabbage 50 g
   }
-  let s = slice2(negi)
+  let sliced = slice2(negi)
 }
-recipe friedRice() {
+recipe friedRice {
   ingredients {
     negi: Cabbage 50 g
   }
-  let s = slice2(negi)
+  let sliced = slice2(negi)
 }
-menu dinner() {
-  let a = make ramen()
-  let b = make friedRice()
+menu dinner {
+  let ramenBowl = make ramen
+  let friedRicePlate = make friedRice
 }
 kitchen today : Options {
   cooks: 1

@@ -1,4 +1,4 @@
-schedule r level=2 cooks=1
+schedule porkStirFry level=2 cooks=1
   0..60 (60) %4 trim by cook1 [counter#1, board#1]
   60..120 (120) %2 trim by cook1 [counter#1, board#1]
   total 120

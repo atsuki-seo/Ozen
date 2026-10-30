@@ -8,13 +8,13 @@ kitchen home {
     board: CuttingBoard
   }
 }
-recipe r() {
+recipe porkStirFry {
   ingredients {
     pork: 200 g
     cabbage: 100 g
   }
-  let a = trim(pork)
-  let b = trim(cabbage)
+  let trimmedPork = trim(pork)
+  let trimmedCabbage = trim(cabbage)
 }
 kitchen today : Options {
   cooks: 1

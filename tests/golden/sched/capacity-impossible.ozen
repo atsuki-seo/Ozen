@@ -10,7 +10,7 @@ kitchen home {
     pot: Pot
   }
 }
-recipe r() {
+recipe boiledPotato {
   ingredients { potato: 1 pcs }
-  let a = twoPots(potato)
+  let boiled = twoPots(potato)
 }

@@ -1,5 +1,5 @@
 // args: debug schedule --options today
-recipe r() {
+recipe teishoku {
   ingredients {
     rice: 300 g
     onion: 1 pcs
@@ -7,13 +7,13 @@ recipe r() {
   }
   parallel {
     branch a {
-      let w = wash(rice)
+      let washed = wash(rice)
     }
     branch b {
-      let p = peel(onion)
+      let peeled = peel(onion)
     }
   }
-  let c = peel(carrot)
+  let combined = peel(carrot)
 }
 kitchen today : Options {
   cooks: 2

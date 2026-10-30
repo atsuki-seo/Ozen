@@ -1,19 +1,19 @@
 // args: debug ir
-action stew(x: T) -> T<doneness: done> {
+action stew(smallStew: T) -> T<doneness: done> {
   uses HeatSource<stovetop>, Pot @unattended
-  takes heating(x, simmer, 2)
+  takes heating(smallStew, simmer, 2)
 }
-action stewWide(x: T) -> T<doneness: done> {
+action stewWide(smallStew: T) -> T<doneness: done> {
   uses HeatSource<stovetop>, Pot @unattended
-  takes heating(x, simmer, 1..2)
+  takes heating(smallStew, simmer, 1..2)
 }
-recipe r() {
+recipe stewTrial {
   ingredients {
     a: Carrot 1 pcs
     b: Carrot 1 pcs
     c: Carrot 1 pcs
   }
-  let x = stew(cut(a, style: dice, size: 20 mm))
-  let y = stew(cut(b, style: dice, size: 40 mm))
-  let z = stewWide(cut(c, style: dice, size: 40 mm))
+  let smallStew = stew(cut(a, style: dice, size: 20 mm))
+  let largeStew = stew(cut(b, style: dice, size: 40 mm))
+  let wideStew = stewWide(cut(c, style: dice, size: 40 mm))
 }

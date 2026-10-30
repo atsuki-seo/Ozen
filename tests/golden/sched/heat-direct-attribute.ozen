@@ -1,9 +1,9 @@
 // args: debug ir
-action stew(x: T) -> T<doneness: done> {
+action stew(stewed: T) -> T<doneness: done> {
   uses HeatSource<stovetop>, Pot @unattended
-  takes heating(x, simmer, 2)
+  takes heating(stewed, simmer, 2)
 }
-recipe r() {
+recipe cabbageStew {
   ingredients { cabbage: 200 g }
-  let x = stew(cut(cabbage, style: roughChop, size: 40 mm))
+  let stewed = stew(cut(cabbage, style: roughChop, size: 40 mm))
 }

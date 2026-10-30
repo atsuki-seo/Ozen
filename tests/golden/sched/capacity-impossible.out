@@ -1,6 +1,6 @@
-schedule r level=2 cooks=1
+schedule boiledPotato level=2 cooks=1
   0..600 (600) %2 twoPots unattended [stove#1, pot#1]
   total 600
-error SCH005 capacityShortage capacity-impossible.ozen:15:11-15:26 args=["Pot", "2", "1"]: capacity shortage
+error SCH005 capacityShortage capacity-impossible.ozen:15:16-15:31 args=["Pot", "2", "1"]: capacity shortage
 result error errors=1 warnings=0 infos=0
 exit 1

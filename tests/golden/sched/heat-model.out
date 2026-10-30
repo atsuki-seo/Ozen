@@ -1,4 +1,4 @@
-ir r
+ir stewTrial
   %1 = in a : Carrot 1 pcs
   %2 = op cut %1 style=dice size=20 mm : Carrot -> Carrot<shape: cut(dice, 20 mm)> 1 pcs [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]
   %3 = op stew %2 : Carrot<shape: cut(dice, 20 mm)> -> Carrot<doneness: done, shape: cut(dice, 20 mm)> 1 pcs [HeatSource<stovetop>, Pot; 720..1080 s; unattended]

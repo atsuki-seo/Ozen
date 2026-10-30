@@ -8,6 +8,6 @@ schedule dinner level=1 cooks=1
   serve sweets at 2220
   total 2220
 info ASM004 unlimitedEquipment meal-blocks-hands.ozen:21:6-21:12: unlimited equipment
-info ASM007 provisionalValue meal-blocks-hands.ozen:25:5-25:39 args=["plate"]: provisional value
+info ASM007 provisionalValue meal-blocks-hands.ozen:25:5-25:48 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=2
 exit 0

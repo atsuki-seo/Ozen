@@ -16,9 +16,9 @@ kitchen home {
     pot: Pot
   }
 }
-recipe r() {
+recipe gohan {
   ingredients { potato: 1 pcs }
-  let s = steam(potato)
+  let soaked = steam(potato)
 }
 kitchen today : Options {
   cooks: 1

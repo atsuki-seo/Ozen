@@ -8,6 +8,6 @@ schedule dinner level=1 cooks=1
   serve sweets at 1620
   total 1620
 info ASM004 unlimitedEquipment meal-duration-from-interval.ozen:21:6-21:12: unlimited equipment
-info ASM007 provisionalValue meal-duration-from-interval.ozen:25:5-25:39 args=["plate"]: provisional value
+info ASM007 provisionalValue meal-duration-from-interval.ozen:25:5-25:48 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=2
 exit 0

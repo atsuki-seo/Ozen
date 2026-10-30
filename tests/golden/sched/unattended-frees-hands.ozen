@@ -1,11 +1,11 @@
 // args: debug schedule --options today
-recipe r() {
+recipe teishoku {
   ingredients {
     rice: 300 g
     onion: 1 pcs
   }
-  let s = soak(rice)
-  let p = peel(onion)
+  let soaked = soak(rice)
+  let peeled = peel(onion)
 }
 kitchen today : Options {
   cooks: 1

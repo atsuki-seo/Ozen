@@ -1,4 +1,4 @@
-schedule r level=1 cooks=1
+schedule teishoku level=1 cooks=1
   0..1800 (1800) %2 soak unattended
   0..120 (60) %4 peel by cook1
   total 1800

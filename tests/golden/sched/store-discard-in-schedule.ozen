@@ -1,14 +1,14 @@
 // args: debug schedule --options today
-recipe r() {
+recipe teishoku {
   ingredients {
     rice: 300 g
     carrot: 2 pcs
   }
-  let (a, b) = split(rice, 200 g)
-  store(b)
-  let w = wash(a)
-  let (c, d) = split(carrot, 1 pcs)
-  discard(d)
+  let (portion, rest) = split(rice, 200 g)
+  store(rest)
+  let washed = wash(portion)
+  let (carrotPortion, carrotRest) = split(carrot, 1 pcs)
+  discard(carrotRest)
 }
 kitchen today : Options {
   cooks: 1

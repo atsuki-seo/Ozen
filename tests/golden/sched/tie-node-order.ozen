@@ -1,11 +1,11 @@
 // args: debug schedule --options today
-recipe r() {
+recipe vegetablePrep {
   ingredients {
     onion: 1 pcs
     carrot: 1 pcs
   }
-  let a = peel(carrot)
-  let b = peel(onion)
+  let peeledCarrot = peel(carrot)
+  let peeledOnion = peel(onion)
 }
 kitchen today : Options {
   cooks: 1

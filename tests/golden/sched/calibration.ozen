@@ -10,9 +10,9 @@ kitchen home {
     oven: 1.1
   }
 }
-recipe r() {
+recipe bakedPotato {
   ingredients { potato: 1 pcs }
-  let a = bake(potato)
+  let baked = bake(potato)
 }
 kitchen today : Options {
   cooks: 1

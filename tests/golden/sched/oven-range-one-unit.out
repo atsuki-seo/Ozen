@@ -1,4 +1,4 @@
-schedule r level=2 cooks=1
+schedule sideDishes level=2 cooks=1
   0..1200 (1200) %2 bake unattended [range#1]
   1200..1500 (1500) %4 zap unattended [range#1]
   total 1500

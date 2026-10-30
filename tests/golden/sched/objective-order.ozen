@@ -5,30 +5,30 @@ action h1(x: T) -> T<doneness: done> {
 action h2(x: T) -> T<doneness: done> {
   uses hands for 5 min
 }
-recipe a() {
+recipe applePie {
   ingredients {
     pork: 200 g
   }
   let s0 = h1(pork)
 }
-recipe b() {
+recipe beefStew {
   ingredients {
     dashi: 300 ml
   }
   let s0 = rest(dashi, 10 min)
   let s1 = h1(s0)
 }
-recipe c() {
+recipe carrotSalad {
   ingredients {
     lettuce: 100 g
   }
   let s0 = rest(lettuce, 30 min)
   let s1 = h1(s0)
 }
-menu dinner() {
-  let a1 = make a()
-  let b1 = make b()
-  let c1 = make c()
+menu dinner {
+  let a1 = make applePie
+  let b1 = make beefStew
+  let c1 = make carrotSalad
   serve main {
     plate perPerson on DeepPlate { a1 } @serveWithin(1 min)
     plate perPerson on DeepPlate { b1 } @serveWithin(1 min)

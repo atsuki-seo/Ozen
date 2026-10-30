@@ -1,4 +1,4 @@
-schedule r level=1 cooks=1
+schedule teishoku level=1 cooks=1
   0..0 (0) %2 split unattended
   0..180 (60) %4 wash by cook1
   0..0 (0) %6 split unattended
