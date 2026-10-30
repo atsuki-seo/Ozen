@@ -1302,6 +1302,26 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - S545 の壊し方（P5-9、2026-10-30）: 登録簿の検査は `.out` の中の「コード 名前」の並びを探すので、golden の入力を変えても `.out` が変わらなければ落ちない。`.out` から診断の行を消す壊し方にした（`api/local-not-listed.out` の一覧は JSON の書式なので数えられない）
 - S538 の前提の固定（P5-9、2026-10-30）: 比べる実行ファイルを HEAD のものにする壊し方は、Phase 6 で LIN005 が入るまで出力が変わらないので、今は落ちない。Phase 6 のゲートで確かめて記録する
 - 1 文字の名前の残り（P5-9、2026-10-30）: `decl/recipe.ozen` の繰り返しの変数 `x` を `dish` に直した（`rewrite-end` はこの後に打ち直した）。golden の中で定義する動作の仮引数 `x`・`p`（152 か所）は、標準ライブラリ（`stdlib/*.ozen`）の書き方をそのまま写したもので、S540 の範囲（宣言と `let` の束縛）の外なので残した
+- わざと壊す確認: S553・正常系・`cgolden/linear/unused-let`（P6-2、2026-10-30）。判定を外す（使われない値を 1 つも報告しない）と`unused-let` を含む 79 本が落ちた。戻すと合格した
+- わざと壊す確認: S554・データの完全性・`cgolden/linear/unused-let`（P6-2、2026-10-30）。登録簿の `LIN005` の重さを情報にすると`unused-let` を含む 78 本が落ちた。戻すと合格した
+- わざと壊す確認: S555・データの完全性・`cgolden/linear/unused-let`（P6-2、2026-10-30）。`let` の位置を束縛の名前でなく式にすると`unused-let` を含む 55 本が落ちた。戻すと合格した
+- わざと壊す確認: S556・正常系・`cgolden/linear/unused-expr`（P6-2、2026-10-30）。束縛の無い式の文を追跡に入れないと`unused-expr` だけが落ちた。戻すと合格した
+- わざと壊す確認: S557・正常系・`cgolden/linear/unused-ingredient`（P6-2、2026-10-30）。材料を追跡に入れないと`unused-ingredient` を含む 24 本が落ちた。戻すと合格した
+- わざと壊す確認: S558・効かない条件・`cgolden/linear/unused-store-discard`（P6-2、2026-10-30）。`store`・`discard` が引数を消費しないようにすると`unused-store-discard` を含む 9 本が落ちた。戻すと合格した
+- わざと壊す確認: S559・効かない条件・`cgolden/linear/unused-part`（P6-2、2026-10-30）。組の束縛の部位を追跡に入れ、部位を除く判定を外すと`unused-part` を含む 13 本が落ちた。戻すと合格した
+- わざと壊す確認: S560・効かない条件・`cgolden/linear/unused-last-tuple`（P6-2、2026-10-30）。最後の値が組のときに出力とみなさない（`LIN003` と共有の判定）と`unused-last-tuple`・`menus/multiple-outputs`・`sched/store-discard-in-schedule` が落ちた。戻すと合格した
+- わざと壊す確認: S561・効かない条件・`cgolden/linear/unused-in-make`（P6-2、2026-10-30）。`make` の中でも追跡し、評価の終わりに `quiet` を外して報告すると`unused-in-make`・`unused-in-make-alone`・`bundle/annotation-scope` が落ちた。戻すと合格した
+- わざと壊す確認: S562・正常系・`cgolden/linear/unused-in-make-alone`（P6-2、2026-10-30）。献立から作る料理（`cookedRice`）を単体で評価したときに報告しないと`unused-in-make-alone`・`unused-in-make` が落ちた。戻すと合格した
+- わざと壊す確認: S563・効かない条件・`cgolden/linear/unused-composite`（P6-2、2026-10-30）。合成した動作の `steps` の中も追跡すると`unused-composite` だけが落ちた。戻すと合格した
+- わざと壊す確認: S564・効かない条件・`cgolden/linear/unused-divided`（P6-2、2026-10-30）。割り算で一部を取り出した食材を除く判定を外すと`unused-divided` だけが落ちた。戻すと合格した
+- わざと壊す確認: S565・正常系・`cgolden/linear/unused-allow`（P6-2、2026-10-30）。重さの指定（`levels.c` の注釈）を `LIN005` に当てないと`unused-allow` だけが落ちた。戻すと合格した
+- わざと壊す確認: S566・データの完全性・`G-STD-PHRASES`（P6-3、2026-10-30）。`phrases/en.ftl` から `diag-unused-value` を消すと「1 missing in en」で落ちた。`G-CORE-DIAG-REGISTRY`・`G-CORE-DIAG-APPEND` は言い回しを見ないので合格のままだった。戻すと合格した
+- わざと壊す確認: S567・前提の固定・`G-RF-SAMPLES-UNUSED`（P6-3、2026-10-30）。`LIN005` を最後の値にも出すと「unusedValue in samples: got '30'」で落ちた。戻すと合格した
+- わざと壊す確認: S538・前提の固定・`G-RF-EQUIVALENCE`（P6-4、2026-10-30）。後の時点の golden を HEAD（LIN005 の入った）実行ファイルで走らせると「291 rewritten, 73 changed results」で落ちた。戻すと合格した
+- P6-1 の数（2026-10-30）: `LIN005` が出る既存の golden は 75 本（文字の出力 71 本で 133 件、`api/` の 4 本は JSON・SARIF の 6 件と登録簿の一覧の 1 行）。書き直しの前の見積もり（131）とほぼ同じで、動作の並びを保った書き直し（D50）では、使われない値はほとんど減らなかった。期待値は、実装とは別に Ozen のソースの文字だけから使われない束縛・材料・式の文を探す使い捨ての検査で位置と名前を出し、実際の出力と突き合わせて直した。食い違った 57 件（実装だけが出した 21 件、検査だけが出した 36 件）は 1 件ずつ読んで、検査の側の限界（`store`・`discard` は値を返さない、マクロの展開、`debug ast` は評価しない、依存のパッケージの診断は隠れる、など）だと確かめた
+- LIN005 の実装で決めたこと（P6-2、2026-10-30）: (1) `repeat`・`for` の本体で作った値は追跡しない。`repeat batches { let fried = fry(pork / batches, 8 min) }` のように、繰り返しの各回の値が料理の一部で、言語にそれを集める書き方が無いため。(2) `parallel` の枝の中の値は最後の値にならない（今の評価は枝の中で最後の値を更新しない）。料理が `parallel` で終わると、枝の値はすべて報告される（`wash/*`・`sched/*` の多く）。(3) 呼び出しが誤り（`NAM002` など）で評価されないと、その引数は消費されずに報告される（`modules/ambiguous-on-use`・`eval/runtime-value-in-if`）。(4) マクロの展開の中の束縛は、マクロの定義の位置に、展開した呼び出しを `via` として付けて報告する。(5) 同じ食材の値を 2 つの名前で束縛したときは、最初の名前だけを報告する
+- `G-RF-SAMPLES-UNUSED` の判定コマンドの誤り（P6-3、2026-10-30）: リポジトリの根から `ozen check --format json samples/T4/` を走らせていたが、`package.ozen` の無いフォルダでは「no FILE given」で失敗し、標準エラーを捨てていたので常に 0 になっていた。サンプルのフォルダに入って走らせ、走ったサンプルの数も数えるように直した（§5 のコマンドも直した）
+- サンプルの LIN005（P6-3、2026-10-30）: 直した判定で `samples/T4/karubiTopping.ozen` の `sugar` が 1 件出た。`refresh-start` の時点から材料に書いただけで使っていなかった（サンプルの誤り）。`|> season(sugar)` を足して直した。`G-SAMPLE-CHECK`・レンダラーのテストは変わらず合格した。書き直した golden の LIN005 は上の 133 件に含まれる
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
