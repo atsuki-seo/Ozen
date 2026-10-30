@@ -739,7 +739,7 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 | S545 | 前提の固定 | `G-CORE-DIAG-REGISTRY` | `LIN004` を出す唯一の golden からその診断を消す | P5-9 |
 | S546 | 前提の固定 | `G-CORE-GOLDEN` | 書き直した 1 つの `.out` の位置を 1 列ずらす | P5-1〜P5-7 |
 | S547 | 前提の固定 | `G-CORE-UNIT` | `core/tests/unit` の C の文字列の宣言の名前と、期待する名前を食い違わせる | P5-7 |
-| S548 | 前提の固定 | `G-CORE-OOM` | `diag/out-of-memory` の確保の番号を 1 増やす | P5-2 |
+| S548 | 前提の固定 | `G-CORE-OOM` | 確保に失敗したときの `MAC004` を出さない（`check.c`） | P5-2 |
 | S549 | 前提の固定 | `G-CORE-PROPS` | 書き直した golden に `propsOptions` という名前の宣言を足す（`monotonic` とぶつかる） | P5-9 |
 | S550 | 前提の固定 | `G-SCHED-CHECK` | 書き直した段取りの golden で、洗いの行を 1 つ消す | P5-5 |
 | S551 | プラットフォームの経路 | `G-PLAT-LINUX`・`G-PLAT-WASM` | `bindings/inputs.txt` の 1 件の期待を変える | P5-7 |
@@ -1084,6 +1084,36 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S539・データの完全性・`G-RF-EQUIVALENCE`（P5-1、2026-10-30）。§9 から `S413`（`names/let-rebind`）の書き直しの記録を 1 行消すと「records: 23 roadmap rows, 1 missing」で落ちた。戻すと 0 missing で合格した
 - わざと壊す確認: S540・データの完全性・`G-RF-NAMES`（P5-1、2026-10-30）。`names/let-rebind.ozen` の料理名を `recipe r` に戻すと、P5-1 の 7 フォルダで「1 one-letter」になった。戻すと 0 one-letter に戻った
 - わざと壊す確認: S546・前提の固定・`G-CORE-GOLDEN`（P5-1、2026-10-30）。書き直した `names/let-rebind.out` の位置を 1 列ずらすと、4 つの構成すべてで「397 passed, 1 failed」になって落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S155・正常系・`cgolden/macro/trail-nested`（P5-2、2026-10-30）。`diag` で展開履歴を付けないと、`trail-nested` と `splice-not-name`・API の 2 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S180・境界・上限・`cgolden/limits/*`（P5-2、2026-10-30）。ノード・深さ・手数・入力の大きさの上限の比較を `>=` にすると、`limits` の「ちょうど」4 本と、燃料と束ねるものの「ちょうど」が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S186・効かない条件・`cgolden/dim/add-mismatch`（P5-2、2026-10-30）。足し算・引き算の次元の検査を外すと、`add-mismatch` と `macro/trail-nested` などが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S187・境界・上限・`cgolden/dim/density-missing`（P5-2、2026-10-30）。密度が無いとき体積を質量として 1 g/ml とみなすと、`density-missing` が落ちた。通る側の `density-convert`（`cgolden/dim/density-convert`）は、水の密度を 2 倍にする壊し方を足すと落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S188・境界・上限・`cgolden/dim/any-amount-strict`（P5-2、2026-10-30）。`--strict` を無視すると、`any-amount-strict` と `strict-group-extended` が落ちた。`--strict` が無くても厳しくする壊し方を足すと、`any-amount-warn`（`cgolden/dim/any-amount-warn`）が落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S189・効かない条件・`cgolden/dim/pinch-strict-ok`（P5-2、2026-10-30）。幅のある量を曖昧な量とみなして `TYP003` を出すと、`pinch-strict-ok` と `std/prelude-contents` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S190・正常系・`cgolden/dim/deny-strict-annotation`（P5-2、2026-10-30）。宣言に付けた重さの注釈を無視すると、`deny-strict-annotation` と `diag` の注釈の golden などが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S191・正常系・`cgolden/dim/strict-group-extended`（P5-2、2026-10-30）。書き手のソースの `diagnostics(…)` でまとまりを広げられないようにすると、`strict-group-extended` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S192・効かない条件・`cgolden/dim/asm-strict-info`（P5-2、2026-10-30）。`--strict` のとき `ASM` もエラーに上げると、`asm-strict-info` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S193・正常系・`cgolden/dim/rational-quarter`（P5-2、2026-10-30）。割り切れない量を整数に丸めて表示すると、`rational-quarter` と `ir/rational-amounts` が落ちた。`count-unit-weight`（`cgolden/dim/count-unit-weight`）は、玉ねぎの 1 個の重さの下限を変える壊し方を足すと落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S195・正常系・`cgolden/dim/cup-us`（P5-2、2026-10-30）。米国のカップを 200 ml にすると、`cup-us` が落ちた。日本のカップを 180 ml にする壊し方を足すと、`cup-jp`（`cgolden/dim/cup-jp`）が落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S253・効かない条件・`cgolden/eval/runtime-value-in-if`（P5-2、2026-10-30）。`if` の条件の型の検査を外すと、`runtime-value-in-if` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S254・正常系・`cgolden/macro/hygiene-*`（P5-2、2026-10-30）。マクロの本体を呼び出し側の範囲で評価すると、`hygiene-splice` と `hygiene-tmp` が落ちた。残りの 3 本は、差し込んだ名前に束縛しない（`hygiene-bind`）、差し込みを 1 回しか評価しない（`hygiene-args`）、呼び出し側の範囲で評価して呼び出しの名前も局所を先に見る（`hygiene-free-name`）壊し方を足して、それぞれ落ちた。どれも戻すと合格した
+- 書き直しのわざと壊す確認: S255・正常系・`cgolden/macro/definition-checks`（P5-2、2026-10-30）。マクロの定義の時点で `+` を次元の誤りとして報告すると、`definition-checks` と `trail-nested` などが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S256・正常系・`cgolden/macro/typecheck-after-expand`（P5-2、2026-10-30）。差し込みの誤りの位置を呼び出し側に写さず、マクロの本体のまま報告すると、`typecheck-after-expand` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S257・正常系・`cgolden/macro/trail-nested`（P5-2、2026-10-30）。展開履歴を外側から並べると、`trail-nested` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S258・境界・上限・`cgolden/eval/fuel-*`（P5-2、2026-10-30）。評価の手数を数えないと、`fuel-short` と `kitchen/check-fuel` が落ちた。手数を 2 ずつ数える壊し方を足すと、`fuel-exact` が落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S259・効かない条件・`cgolden/macro/no-macro-defining-macro`（P5-2、2026-10-30）。入れ子の `quote` を受け付けると、`no-macro-defining-macro` と `syntax/quote-placement` が落ちた。マクロの本体の自由な名前を検査しない壊し方を足すと、`no-capture`（`cgolden/macro/no-capture`）が落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S260・正常系・`cgolden/diag/code-and-name`（P5-2、2026-10-30）。診断の行に名前を出さないと、`code-and-name` を含む 208 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S261・正常系・`cgolden/diag/severity-override`（P5-2、2026-10-30）。ビルド時の重さの指定を無視すると、`severity-override` と `precedence`・`select-by-name-prefix-group` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S262・正常系・`cgolden/diag/select-by-name-prefix-group`（P5-2、2026-10-30）。分類の接頭辞（`LIN`）での指定を無視すると、`select-by-name-prefix-group` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S263・境界・上限・`cgolden/diag/annotation-scope`（P5-2、2026-10-30）。注釈の範囲の終わりを見ないと、`annotation-scope` と `nested-annotations` などが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S264・正常系・`cgolden/diag/expect-unfulfilled`（P5-2、2026-10-30）。`@expect` が満たされないときの `NAM018` を出さないと、`expect-unfulfilled` だけが落ちた。`@expect` で抑えない壊し方を足すと、`expect-suppresses`（`cgolden/diag/expect-suppresses`）が落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S265・時間と順序・`cgolden/diag/precedence`（P5-2、2026-10-30）。ビルド時の指定があるとき注釈を無視すると `precedence` だけが落ち、外側の注釈を優先すると `nested-annotations`（`cgolden/diag/nested-annotations`）だけが落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S267・正常系・`cgolden/diag/fix-suggestion`（P5-2、2026-10-30）。直し方の候補を出さないと、`fix-suggestion` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S408・境界・上限・`cgolden/limits-shared/*`（P5-2、2026-10-30）。台所の引数に入力の大きさの上限を当てないと、`kitchen-over` だけが落ちた。最初のファイル（束ねたファイル）に上限を当てない壊し方を足すと、`bundle-over` と `limits/input-over` が落ちた。「ちょうど」の 2 本は S180 の壊し方で落ちた。どれも戻すと合格した
+- P5-2 の範囲（2026-10-30）: `dim` 14 本、`eval` 3 本、`macro` 11 本、`limits` 8 本、`limits-shared` 4 本、`diag` 12 本を書き直した。上限の golden は入力の大きさを数え直した（`limits/input-*` は 54、`limits-shared/bundle-*` は 212。手で数え、`check-limit-pairs.py` で「ちょうど」を確かめた）。手数・ノード・深さは名前を変えても変わらないので、上限の値はそのまま。`diag/out-of-memory` の確保の失敗の位置（3 回目）も料理名で変わらない
+- わざと壊す確認: S543・境界・上限・`G-RF-LIMIT-PAIRS`（P5-2、2026-10-30）。`limits/nodes-exact` の入力を `property cups = 1` にしてノードを減らすと、「--max-nodes 4 gives no MAC003」で「8 pairs, 1 not exact」になって落ちた。戻すと 0 not exact で合格した
+- わざと壊す確認: S548・前提の固定・`G-CORE-OOM`（P5-2、2026-10-30）。`check.c` で確保に失敗したときの `MAC004` を出さないと、「363 files, 4865 points, 3014 failures」で落ちた。戻すと合格した
+- S548 の壊し方（P5-2、2026-10-30）: 網羅表は「`diag/out-of-memory` の確保の番号を 1 増やす」としたが、確保の失敗はどの番号でも同じ `MAC004`（位置 1:1）になり、`--fail-alloc-at 4` にしても golden も `G-CORE-OOM` も合格した。`sema.c` の `bind` で確保の失敗を見落とす壊し方も、`check.c` が領域の失敗の数を別に数えているので落ちなかった。`G-CORE-OOM` は確保の失敗ごとに `MAC004` が出ることを確かめる検査なので、壊し方を「確保に失敗したときの `MAC004` を出さない」に直した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
