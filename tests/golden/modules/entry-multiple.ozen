@@ -1,5 +1,5 @@
 // args: debug entry
-menu lunch() {
+menu lunch {
 }
-menu dinner() {
+menu dinner {
 }

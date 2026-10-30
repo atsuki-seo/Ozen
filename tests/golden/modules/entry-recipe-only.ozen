@@ -1,4 +1,4 @@
 // args: debug entry
-recipe curry() {
+recipe curry {
 }
 action stir(x: T) -> T

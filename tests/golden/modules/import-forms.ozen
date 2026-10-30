@@ -1,8 +1,8 @@
 import std.units.jp
 import std.units.us.{cup}
 import std.units.jp as japan
-recipe r() {
-  let a = jp.cup
-  let b = cup
-  let c = japan.cup
+recipe gohan {
+  let jpCup = jp.cup
+  let usCup = cup
+  let japanCup = japan.cup
 }

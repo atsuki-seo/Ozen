@@ -1,6 +1,6 @@
 import a.{stir}
 import b.{stir}
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let s = stir(rice)
+  let stirred = stir(rice)
 }

@@ -1,7 +1,7 @@
-menu dinner() {
-  let c = make curry()
+menu dinner {
+  let curryPlate = make curry
 }
-recipe curry() {
+recipe curry {
   ingredients { rice: 300 g }
-  let r = wash(rice)
+  let washed = wash(rice)
 }
