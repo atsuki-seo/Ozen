@@ -593,7 +593,8 @@ for w in '"|>"' '"per"' '"serving"'; do grep -cxF "$w" core/fuzz/ozen.dict; done
 # G-RF-STD-PREHEAT（P7-1 で新設）
 python3 scripts/check-std-preheat.py --ozen build/core-gcc-release/ozen   # → oven kinds: <k>, with preheatTime: <k>（k ≥ 1）
 # G-RF-SAMPLES-UNUSED（P6-3 から）
-for s in samples/*/; do build/core-gcc-release/ozen check --format json "$s" 2>/dev/null; done | grep -o '"name":"unusedValue"' | wc -l   # → 0
+for s in samples/*/; do (cd "$s" && ../../build/core-gcc-release/ozen check --format json 2>/dev/null); echo; done | grep -c '"schemaVersion"'   # → サンプルの数
+for s in samples/*/; do (cd "$s" && ../../build/core-gcc-release/ozen check --format json 2>/dev/null); echo; done | grep -o '"name":"unusedValue"' | wc -l   # → 0
 # G-RF-NAMES（P5-0 で新設）
 python3 scripts/check-test-names.py --exceptions scripts/test-names-exceptions.txt tests core/tests/unit bindings/inputs
 # G-RF-PATHS（P5-9 から）

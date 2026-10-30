@@ -617,9 +617,10 @@ goal_G_RF_STD_PREHEAT() {
 }
 
 goal_G_RF_SAMPLES_UNUSED() {
-  local s
-  want_eq "unusedValue in samples" 0 \
-    "$(for s in samples/*/; do build/core-gcc-release/ozen check --format json "$s" 2>/dev/null; done | grep -o '"name":"unusedValue"' | wc -l)"
+  local s out ozen=$PWD/build/core-gcc-release/ozen
+  out=$(for s in samples/*/; do (cd "$s" && "$ozen" check --format json 2>/dev/null); echo; done)
+  want_eq "samples checked" "$(ls -d samples/*/ | wc -l)" "$(grep -c '"schemaVersion"' <<< "$out")"
+  want_eq "unusedValue in samples" 0 "$(grep -o '"name":"unusedValue"' <<< "$out" | wc -l)"
 }
 
 goal_G_RF_NAMES() {
