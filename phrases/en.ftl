@@ -286,6 +286,7 @@ diag-long-wait = { $arg1 } waits { $arg2 } before serving
 diag-critical-path = The critical path is { $arg1 }
 diag-serve-within-missed = { $arg1 } waits { $arg2 } before serving, over its limit of { $arg3 }
 diag-servings-unknown = The servings are not known, so an amount per serving has no total
+diag-unused-value = { $arg1 } ({ $arg2 }) is never used
 
 ## Text parts
 heading-ingredients = Ingredients

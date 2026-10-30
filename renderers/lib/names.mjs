@@ -137,6 +137,7 @@ const ARG_KINDS = {
   evenChoice: ['value'],
   criticalPath: ['duration'],
   noPlating: ['name'],
+  unusedValue: ['name'],
 };
 
 export function termText(ph, kind, x, opts = {}) {
