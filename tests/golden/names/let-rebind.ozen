@@ -1,5 +1,5 @@
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let x = wash(rice)
-  let x = soak(x)
+  let washed = wash(rice)
+  let washed = soak(washed)
 }

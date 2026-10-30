@@ -1,7 +1,7 @@
-recipe r() {
+recipe nikujaga {
   ingredients {
-    rice: 300 g
-    potato: 2 pcs
+    potato: 3 pcs
+    onion: 1 pcs
     myRoot: 1 pcs
   }
 }

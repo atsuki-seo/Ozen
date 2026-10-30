@@ -1,3 +1,3 @@
-error NAM012 arity arity-missing.ozen:3:11-3:21 args=["fry", "time"]: arity
+error NAM012 arity arity-missing.ozen:3:15-3:25 args=["fry", "time"]: arity
 result error errors=1 warnings=0 infos=0
 exit 1

@@ -1,3 +1,3 @@
-error NAM014 duplicateArgument arity-duplicate.ozen:3:40-3:50 args=["fry", "heat"]: duplicate argument
+error NAM014 duplicateArgument arity-duplicate.ozen:3:44-3:54 args=["fry", "heat"]: duplicate argument
 result error errors=1 warnings=0 infos=0
 exit 1

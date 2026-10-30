@@ -1,6 +1,6 @@
 ingredient onion : Vegetable
 action Chop(x: T) -> T
-recipe r() {
-  ingredients { o: onion 1 pcs }
-  let c = Chop(o)
+recipe saute {
+  ingredients { shallot: onion 1 pcs }
+  let chopped = Chop(shallot)
 }
