@@ -1046,7 +1046,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S533・`cgolden/quantity/per-serving-json`（P4-1、2026-10-30）。JSON の `ingredients` の量を人数で割って書くと、`per-serving-json` だけが落ちた。戻すと合格した
 - わざと壊す確認: S534・`cgolden/quantity/per-serving-json`（P4-1、2026-10-30）。掛けた量に Count の次元を 1 つ足すと、`per-serving-json` が落ちた（`per serving` を使うほかの golden も一緒に落ちた）。戻すと合格した
 - わざと壊す確認: S535・`G-STD-PHRASES`（P4-1、2026-10-30）。`phrases/ja.ftl` から `diag-servings-unknown` を消すと「1 missing in ja」で落ちた。戻すと合格した
-- わざと壊す確認: S536・`G-RF-FUZZ-DICT`（P4-1、2026-10-30）。辞書から `"serving"` を消すと「fuzz dict \"serving\": got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S536・`G-RF-FUZZ-DICT`（P4-1、2026-10-30）。辞書から `"serving"` を消すと「fuzz dict "serving": got '0'」で落ちた。戻すと合格した
 - わざと壊す確認: S614・`prop/bundle_roundtrip`（P4-1、2026-10-30）。`ozen bundle` が宣言を書き写すときに `|>` を落とすと、「tests/golden/bundle/new-syntax: unbundle failed」で 1 differences になって落ちた。戻すと合格した
 - `per serving` の作り（P4-1、2026-10-30）: 構文は `ingredient_item := IDENT ':' [ type_ref ] expr [ per_serving ] annotations` と `per_serving := 'per' 'serving'`。量の式を新しいノード `PerServing` で包む（ノードの種類は末尾に足したので、ほかの種類の番号は変わらない）。`TYP020` は引数を持たず、位置は `75 g per serving` 全体。人数は `s->servings`（料理の引数か、`make` で渡した値）、無ければ条件の `servings` から取り、`pcs` が付いていれば外す（D45）
 - 既存の golden の期待値の変更（P4-1、2026-10-30）: `api/local-not-listed` は診断の一覧を出すので、`TYP020` の 1 行を手で足した。実装より先の別のコミットにした
