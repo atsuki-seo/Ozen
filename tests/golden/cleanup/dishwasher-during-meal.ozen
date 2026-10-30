@@ -3,26 +3,26 @@ action trim(x: T) -> T {
   uses hands, WorkSurface, CuttingSurface for 1 min
   leaves: x on CuttingSurface
 }
-recipe salad() {
+recipe salad {
   ingredients {
     lettuce: 100 g
   }
-  let t = trim(lettuce)
+  let trimmed = trim(lettuce)
 }
-recipe sweet() {
+recipe sweet {
   ingredients {
     ice: VanillaIce 100 g
   }
-  let c = rest(ice, 5 min)
+  let rested = rest(ice, 5 min)
 }
-menu dinner() {
-  let s = make salad()
-  let d = make sweet()
+menu dinner {
+  let saladPlate = make salad
+  let sweetPlate = make sweet
   serve main {
-    plate perPerson on FlatPlate { s }
+    plate perPerson on FlatPlate { saladPlate }
   }
   serve sweets after main + 30 min {
-    plate perPerson on Glass { d }
+    plate perPerson on Glass { sweetPlate }
   }
 }
 kitchen home {

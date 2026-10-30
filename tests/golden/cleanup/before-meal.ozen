@@ -14,16 +14,16 @@ kitchen home {
     plates: FlatPlate { count: 2 }
   }
 }
-recipe salad() {
+recipe salad {
   ingredients {
     lettuce: 100 g
   }
-  let p = trim(lettuce)
+  let trimmed = trim(lettuce)
 }
-menu dinner() {
-  let s = make salad()
+menu dinner {
+  let saladPlate = make salad
   serve main {
-    plate perPerson on FlatPlate { s }
+    plate perPerson on FlatPlate { saladPlate }
   }
 }
 kitchen today : Options {

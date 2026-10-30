@@ -8,6 +8,6 @@ schedule dinner level=2 cooks=1
   serve main at 120
   serve sweets at 1980
   total 5520
-info ASM007 provisionalValue dishwasher-during-meal.ozen:22:5-22:39 args=["plate"]: provisional value
+info ASM007 provisionalValue dishwasher-during-meal.ozen:22:5-22:48 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=1
 exit 0

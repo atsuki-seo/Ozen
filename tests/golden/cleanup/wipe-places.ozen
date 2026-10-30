@@ -16,12 +16,12 @@ kitchen home {
     pan: FryingPan
   }
 }
-recipe r() {
+recipe porkSaute {
   ingredients {
     pork: 200 g
   }
-  let a = trim(pork)
-  let b = sear(a)
+  let trimmed = trim(pork)
+  let seared = sear(trimmed)
 }
 kitchen today : Options {
   cleanup: beforeMeal

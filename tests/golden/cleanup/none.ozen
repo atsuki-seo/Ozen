@@ -8,15 +8,15 @@ kitchen home {
     board: CuttingBoard
   }
 }
-recipe r() {
+recipe teishoku {
   ingredients {
     pork: 200 g
     lettuce: 100 g
   }
   parallel {
-    branch a {
-      let a = trim(pork)
-      let b = trim(lettuce)
+    branch trimmedPork {
+      let trimmedPork = trim(pork)
+      let trimmedLettuce = trim(lettuce)
     }
   }
 }

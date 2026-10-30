@@ -1,9 +1,9 @@
 // args: debug schedule --kitchen home --options today
-recipe r() {
+recipe gohan {
   ingredients {
     rice: 300 g
   }
-  let w = wash(rice)
+  let washed = wash(rice)
 }
 kitchen home {
   places {

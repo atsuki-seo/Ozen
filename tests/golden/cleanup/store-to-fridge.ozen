@@ -7,13 +7,13 @@ kitchen home {
     fridge: Fridge
   }
 }
-recipe r() {
+recipe gohan {
   ingredients {
     rice: 300 g
   }
-  let (a, b) = split(rice, 200 g)
-  store(b)
-  let w = steep(a)
+  let (portion, rest) = split(rice, 200 g)
+  store(rest)
+  let steeped = steep(portion)
 }
 kitchen today : Options {
   cleanup: afterMeal
