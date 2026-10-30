@@ -14,9 +14,9 @@ module kitchenBook.menus.dinner {
 import recipes.soup.{soup}
 
 menu dinner(people: 2) {
-  let s = make soup()
+  let simmered = make soup
   serve main {
-    plate perPerson on SoupBowl { s }
+    plate perPerson on SoupBowl { simmered }
   }
 }
 }
@@ -25,12 +25,12 @@ module kitchenBook.recipes.soup {
 import dashi.stock.{Katsuobushi}
 
 // Clear soup with bonito flakes.
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
     bonito: Katsuobushi 10 g
   }
-  let s = simmer([water, bonito], 5 min)
+  let simmered = simmer([water, bonito], 5 min)
 }
 }
 

@@ -1,6 +1,6 @@
-recipe tea() {
+recipe tea {
   ingredients {
     water: 300 ml
   }
-  let t = boil(water, 3 min)
+  let boiled = boil(water, 3 min)
 }

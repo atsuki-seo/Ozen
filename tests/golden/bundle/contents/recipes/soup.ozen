@@ -1,13 +1,13 @@
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
   }
-  let s = simmer(water, 5 min)
+  let simmered = simmer(water, 5 min)
 }
 
-recipe unusedSoup() {
+recipe unusedSoup {
   ingredients {
     water: 200 ml
   }
-  let s = simmer(water, 3 min)
+  let simmered = simmer(water, 3 min)
 }

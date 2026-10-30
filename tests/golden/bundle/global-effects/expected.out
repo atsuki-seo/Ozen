@@ -1,6 +1,6 @@
 bundle {
   std: "{{STD_VERSION}}"
-  entry: r
+  entry: naanPlate
   from: book "1.0.0"
 }
 
@@ -18,9 +18,9 @@ rule afterOily after Greasy: rinse
 }
 
 module book.r {
-recipe r() {
+recipe naanPlate {
   ingredients { naan: 1 pcs }
-  let w = warm(naan)
+  let warmed = warm(naan)
 }
 }
 exit 0

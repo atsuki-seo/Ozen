@@ -8,12 +8,12 @@ bundle {
 module book.recipes.soup {
 import zeta.fish.{Niboshi}
 
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
     fish: Niboshi 10 g
   }
-  let s = simmer([water, fish], 5 min)
+  let simmered = simmer([water, fish], 5 min)
 }
 }
 
@@ -21,9 +21,9 @@ module book.zmenus.dinner {
 import recipes.soup.{soup}
 
 menu dinner(people: 2) {
-  let s = make soup()
+  let simmered = make soup
   serve main {
-    plate perPerson on SoupBowl { s }
+    plate perPerson on SoupBowl { simmered }
   }
 }
 }

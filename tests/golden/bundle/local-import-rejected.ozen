@@ -11,11 +11,11 @@ local ingredient HouseSalt : Seasoning
 module book.soup {
 import book.a.{HouseSalt}
 
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
     salt: HouseSalt 2 g
   }
-  let s = simmer([water, salt], 5 min)
+  let simmered = simmer([water, salt], 5 min)
 }
 }

@@ -9,32 +9,32 @@ module book.menus {
 import book.recipes.{soup, tea}
 
 menu dinner(people: 2) {
-  let s = make soup()
+  let simmered = make soup
   serve main {
-    plate perPerson on SoupBowl { s }
+    plate perPerson on SoupBowl { simmered }
   }
 }
 
 menu lunch(people: 1) {
-  let t = make tea()
+  let boiled = make tea
   serve main {
-    plate perPerson on Glass { t }
+    plate perPerson on Glass { boiled }
   }
 }
 }
 
 module book.recipes {
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
   }
-  let s = simmer(water, 5 min)
+  let simmered = simmer(water, 5 min)
 }
 
-recipe tea() {
+recipe tea {
   ingredients {
     water: 300 ml
   }
-  let t = boil(water, 3 min)
+  let boiled = boil(water, 3 min)
 }
 }

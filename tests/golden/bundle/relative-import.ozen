@@ -8,18 +8,18 @@ module book.menus.dinner {
 import recipes.soup.{soup}
 
 menu dinner(people: 2) {
-  let s = make soup()
+  let simmered = make soup
   serve main {
-    plate perPerson on SoupBowl { s }
+    plate perPerson on SoupBowl { simmered }
   }
 }
 }
 
 module book.recipes.soup {
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
   }
-  let s = simmer(water, 5 min)
+  let simmered = simmer(water, 5 min)
 }
 }

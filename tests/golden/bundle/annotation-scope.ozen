@@ -5,23 +5,23 @@ bundle {
 }
 
 module book.a {
-recipe soupA() {
+recipe soupA {
   ingredients {
     water: 200 cc @allow(deprecated)
     rice: 300 g
   }
-  let (p, q) = split(rice, 100 g) @expect(leftoverPart)
-  let w = wash(p)
-  let s = simmer(water, 3 min)
+  let (sliced, diced) = split(rice, 100 g) @expect(leftoverPart)
+  let boiled = wash(sliced)
+  let simmered = simmer(water, 3 min)
 }
 }
 
 module book.b {
-recipe soupB() {
+recipe soupB {
   ingredients {
     water: 200 cc
   }
-  let s = simmer(water, 3 min)
+  let simmered = simmer(water, 3 min)
 }
 }
 
@@ -30,11 +30,11 @@ import book.a.{soupA}
 import book.b.{soupB}
 
 menu dinner(people: 2) {
-  let a = make soupA()
-  let b = make soupB()
+  let firstBowl = make soupA
+  let secondBowl = make soupB
   serve main {
-    plate perPerson on SoupBowl { a }
-    plate perPerson on Bowl { b }
+    plate perPerson on SoupBowl { firstBowl }
+    plate perPerson on Bowl { secondBowl }
   }
 }
 }

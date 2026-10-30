@@ -1,10 +1,10 @@
 import pantry.a.{Salt2}
 import pantry.b
 
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
     salt: Salt2 2 g
   }
-  let s = simmer([water, salt], 5 min)
+  let simmered = simmer([water, salt], 5 min)
 }
