@@ -972,6 +972,11 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 計画を書いた直後の監査（2026-10-28）: 独立したサブエージェントの指摘 61 件（ゴールが落ちる・判定できないもの 9、壊しても落ちないもの 12、網羅表に無い主張 13、分けるべき項目 22、判定が一意でない完了条件 6、§8 から移せる項目 5、事実の食い違い 4。分類の重なりを含む）。60 件を取り込み、1 件は §5.3 の末尾に取り込まない理由を書いた
 - `G-RF-PROTO-GONE` の grep（P0-3、2026-10-30）: `proto/` をそのまま書くと、`goals.sh` に置いたこのゴール自身の行が数えられて 0 にならない。§5.1 の 2 つの grep を `prot[o]/` に直した。一致する文字列は同じ
 - わざと壊す確認: S613・`G-RF-CLAUDEMD`（P0-3、2026-10-30）。`CLAUDE.md` の `plans/ozen-syntax-refresh.md` を別の名前に置き換えると、数が 0 になり「plan named in CLAUDE.md: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S482・`G-RF-PROTO-GONE`（`goals.sh` の 4 つの関数。P1-1、2026-10-30）。`goal_G_CORE_FLAGS` の道筋を `proto/scripts/check-flags.py` に戻すと「proto/ in moved goals: got '1'」で落ちた。戻すと 0 で合格した
+- わざと壊す確認: S484・`G-REPO-SELFTESTS`（P1-1、2026-10-30）。`selftests.txt` から `scripts/check-pure.sh` の行を消すと「1 without test」で落ちた。戻すと合格した
+- わざと壊す確認: S489・`sh/test-check-readme-example.sh`（P1-1、2026-10-30）。`run:` の無い塊の既定の実行ファイルを `--bin` に戻すと、`default-not-bin` などで「9 cases, 4 failed」になった。戻すと合格した
+- README の例の検査の相対パス（P1-1、2026-10-30）: 検査は例ごとに一時のフォルダで実行ファイルを呼ぶので、`G-RF-README-EXAMPLE` の `--ozen build/core-gcc-release/ozen` が見つからなかった。区切りを含む値を絶対パスに直し、自己テストに `relative-paths` を足した。直す前のスクリプトでは、この場合が落ちることを確かめた
+- README の試作の例（P1-1、2026-10-30）: 既定を `ozen` にしたので、試作の節の例に `<!-- run: ozenproto example0.ozen -->` を足した。節は P1-2 で消す。`--bin` と `ozenproto` の対応も、節と一緒に P1-2 で外す
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
