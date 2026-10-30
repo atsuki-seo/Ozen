@@ -4,9 +4,9 @@
 set -uo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
-registry="$root/proto/src/diag_codes.def"
-names="$root/proto/tests/diag-names.txt"
-outputs="$root/proto/tests/golden"
+registry="$root/core/src/diag_codes.def"
+names="$root/core/tests/diag-names.txt"
+outputs="$root/tests/golden"
 categories="SYN NAM TYP LIN SAF KIT SCH MAC PKG ASM"
 while [ $# -gt 0 ]; do
   case "$1" in

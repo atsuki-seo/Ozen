@@ -265,7 +265,7 @@ goal_G_PROTO_EXPORTS() {
 
 goal_G_PROTO_DIAG_REGISTRY() {
   local out n
-  out=$(scripts/check-diag-registry.sh 2>&1 | tail -n 1)
+  out=$(scripts/check-diag-registry.sh --registry proto/src/diag_codes.def --names proto/tests/diag-names.txt --outputs proto/tests/golden 2>&1 | tail -n 1)
   want_re "diag" '^diag: [0-9]+ codes, 0 duplicate codes, 0 duplicate names, 0 bad codes, 0 unlisted, 0 unused$' "$out"
   n=$(grep -cvE '^[[:space:]]*(#|$)' proto/tests/diag-names.txt)
   want_eq "diag codes = names" "$n" "$(last_num "$out" 1)"
@@ -480,7 +480,7 @@ goal_G_CORE_OOM() {
 
 goal_G_CORE_DIAG_REGISTRY() {
   local out n
-  out=$(scripts/check-diag-registry.sh --registry core/src/diag_codes.def --names core/tests/diag-names.txt --outputs tests/golden 2>&1 | tail -n 1)
+  out=$(scripts/check-diag-registry.sh 2>&1 | tail -n 1)
   want_re "diag" '^diag: [0-9]+ codes, 0 duplicate codes, 0 duplicate names, 0 bad codes, 0 unlisted, 0 unused$' "$out"
   n=$(grep -cvE '^[[:space:]]*(#|$)' core/tests/diag-names.txt)
   want_eq "diag codes = names" "$n" "$(last_num "$out" 1)"
