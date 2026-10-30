@@ -16,15 +16,15 @@ kitchen home {
     pan: FryingPan
   }
 }
-recipe r() {
+recipe porkAndCabbage {
   ingredients {
     pork: 200 g
     cabbage: 100 g
   }
-  let a = chop(pork)
-  let b = sear(a)
-  let c = chop(cabbage)
-  let d = warmUp(c)
+  let chopped = chop(pork)
+  let seared = sear(chopped)
+  let choppedCabbage = chop(cabbage)
+  let warmed = warmUp(choppedCabbage)
 }
 kitchen today : Options {
   cooks: 1

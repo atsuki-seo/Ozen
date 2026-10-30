@@ -14,7 +14,7 @@ kitchen home {
     board: CuttingBoard
   }
 }
-recipe r() {
+recipe prepBoard {
   ingredients {
     pork: 200 g
     c1: Cabbage 50 g
@@ -23,14 +23,14 @@ recipe r() {
     water: 500 ml
   }
   parallel {
-    branch a {
-      let a = mark(pork)
-      let b = touch(c1)
-      let c = mark(sugar)
-      let d = touch(c2)
+    branch markedPork {
+      let markedPork = mark(pork)
+      let touched = touch(c1)
+      let markedSugar = mark(sugar)
+      let touchedAgain = touch(c2)
     }
-    branch b {
-      let w = fill(water)
+    branch touched {
+      let filled = fill(water)
     }
   }
 }

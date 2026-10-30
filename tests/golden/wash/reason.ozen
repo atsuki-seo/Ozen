@@ -11,17 +11,17 @@ kitchen home {
     board: CuttingBoard
   }
 }
-recipe r() {
+recipe prepBoard {
   ingredients {
     onion: 1 pcs
     pork: 200 g
     c1: Cabbage 50 g
   }
   parallel {
-    branch a {
-      let a = mark(onion)
-      let b = mark(pork)
-      let c = touch(c1)
+    branch markedOnion {
+      let markedOnion = mark(onion)
+      let markedPork = mark(pork)
+      let touched = touch(c1)
     }
   }
 }

@@ -20,35 +20,35 @@ kitchen home {
     board: CuttingBoard { count: 2 }
   }
 }
-recipe waits() {
+recipe waits {
   ingredients {
     pork: 200 g
     c1: Cabbage 50 g
     c2: Cabbage 50 g
   }
   parallel {
-    branch a {
-      let a = mark(pork)
-      let b = touch(c1)
+    branch marked {
+      let marked = mark(pork)
+      let touched = touch(c1)
     }
-    branch b {
-      let c = slow(c2)
+    branch touched {
+      let finished = slow(c2)
     }
   }
 }
-recipe washes() {
+recipe washes {
   ingredients {
     pork: 200 g
     c1: Cabbage 50 g
     c2: Cabbage 50 g
   }
   parallel {
-    branch a {
-      let a = mark(pork)
-      let b = touch(c1)
+    branch marked {
+      let marked = mark(pork)
+      let touched = touch(c1)
     }
-    branch b {
-      let c = slower(c2)
+    branch touched {
+      let finished = slower(c2)
     }
   }
 }

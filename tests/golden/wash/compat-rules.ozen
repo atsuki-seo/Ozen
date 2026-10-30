@@ -15,7 +15,7 @@ kitchen home {
     board: CuttingBoard
   }
 }
-recipe r() {
+recipe prepBoard {
   ingredients {
     pork: 200 g
     naan: 1 pcs

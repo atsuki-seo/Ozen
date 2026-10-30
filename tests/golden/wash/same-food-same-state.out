@@ -1,9 +1,9 @@
-schedule r level=2 cooks=1
+schedule prepBoard level=2 cooks=1
   0..60 (60) %2 mark by cook1 [board#1]
   60..120 (120) %4 mark by cook1 [board#1]
   120..240 (180) wash board#1 after rawMeat by cook1 [sink#1, board#1]
   240..300 (300) %6 mark by cook1 [board#1]
   total 300
-info SCH006 washInserted same-food-same-state.ozen:24:15-24:23 args=["board#1", "rawMeat"]: wash inserted
+info SCH006 washInserted same-food-same-state.ozen:24:27-24:35 args=["board#1", "rawMeat"]: wash inserted
 result ok errors=0 warnings=0 infos=1
 exit 0
