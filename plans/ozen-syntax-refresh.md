@@ -796,10 +796,10 @@ golden の入口は、着手点の N0 = 363（§9）から 68 増える（`quant
 | S596 | 時間と順序 | `cgolden/serve/use-within-backward` | 後ろ向きで release を写さない | P8-2 |
 | S597 | 効かない条件 | `cgolden/serve/use-within-on-ingredient` | 材料に付けても通す | P8-2 |
 | S598 | 正常系 | `cgolden/serve/use-within-expr` | 式の文の注釈を読まない | P8-2 |
-| S599 | 効かない条件 | `cgolden/serve/use-within-no-consumer` | 消費の作業が無いとき `SCH011` を出す | P8-2 |
+| S599 | 効かない条件 | `cgolden/serve/use-within-no-consumer` | 消費の作業の有無を見ずに、名前のある期限ごとに `SCH011` を出す | P8-2 |
 | S600 | データの完全性 | `cgolden/serve/use-within-json` | `limits` を出さない | P8-3 |
 | S601 | 前提の固定 | `G-SCHED-CHECK`、`sh/test-schedcheck.sh`（`bad-use-within` の fixture） | `schedcheck` の `limits` の検査を外す | P8-3 |
-| S602 | 前提の固定 | `cgolden/serve/use-within-ir` | 注釈を IR に入れる | P8-2 |
+| S602 | 前提の固定 | `cgolden/serve/use-within-ir` | 注釈の名前を、値を作る作業の IR の名前にする | P8-2 |
 | S603 | データの完全性 | `G-CORE-DIAG-REGISTRY`・`G-CORE-DIAG-APPEND`・`G-STD-PHRASES`・`G-TYPE-SEVERITY-TABLE` | `diag-names.txt` から `SCH:useWithinMissed` を消す | P8-2 |
 | S604 | 文書との一致 | `G-RF-CONCEPT` | concept §4.4 から `per serving` と `\|>` を消す | P9-1 |
 | S605 | 文書との一致 | `G-RF-CONCEPT` | concept §4.1 から `unusedValue` を消す | P9-1 |
@@ -1351,6 +1351,23 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 予熱の時間（P7-1、2026-10-30）: std の `Oven`・`OvenRange` に `preheatTime: 10..20 min @source(provisional)` を足した。Whirlpool の製品サポートの「Long Pre-Heat Times for Oven」に 350°F まで約 12〜15 分（隠れたヒーターは約 20 分）、±5 分とあったが、1 つの系列・1 つの温度の目安なので暫定のままにし、`spec/sources/search-log.yaml` に記録した
 - 決めたこと（P7-2、2026-10-30）: `maxTemp` が要る温度より低い個体は `KIT002` を出すが、段取りの候補からは外していない（オーブンが 2 台あって片方だけ低い台所でも、低い方が選ばれうる）。予熱の暫定の時間に `ASM007 provisionalValue` は出していない（洗いの時間などの種類の props と同じ扱い）
 - Phase 6 のゲートの補足（P6-4、2026-10-30）: `G-PLAT-WASM` は wasm のビルドが古いままだと落ちる（ゴールはビルドしない）。`scripts/build-wasm.sh` で組み直すと合格した。`G-REPO-SELFTESTS` も、wasm のビルドが古いと `test-worker-test.sh` が落ちる。コアを変えた後は `build-wasm.sh` で組み直してから回す
+- わざと壊す確認: S592・時間と順序・`cgolden/serve/use-within-basic`（P8、2026-10-30）。期限の release を付けないと`use-within-basic` を含む 5 本が落ちた。戻すと合格した
+- わざと壊す確認: S593・境界・上限・`cgolden/serve/use-within-two-consumers`（P8、2026-10-30）。値を入力に取る最初の作業だけを見ると`use-within-two-consumers`・`use-within-missed` が落ちた。戻すと合格した
+- わざと壊す確認: S594・正常系・`cgolden/serve/use-within-missed`（P8、2026-10-30）。`SCH011` を出さないと`use-within-missed` だけが落ちた。戻すと合格した
+- わざと壊す確認: S595・データの完全性・`cgolden/serve/use-within-missed`（P8、2026-10-30）。`SCH011` の位置を注釈でなく `let` の文にすると`use-within-missed` だけが落ちた。戻すと合格した
+- わざと壊す確認: S596・時間と順序・`cgolden/serve/use-within-backward`（P8、2026-10-30）。後ろ向きのときは期限の release を付けないと`use-within-backward` だけが落ちた。戻すと合格した
+- わざと壊す確認: S597・効かない条件・`cgolden/serve/use-within-on-ingredient`（P8、2026-10-30）。材料そのものに付けても `TYP017` を出さないと`use-within-on-ingredient` だけが落ちた。戻すと合格した
+- わざと壊す確認: S598・正常系・`cgolden/serve/use-within-expr`（P8、2026-10-30）。式の文の注釈を読まないと`use-within-expr` だけが落ちた。戻すと合格した
+- わざと壊す確認: S599・効かない条件・`cgolden/serve/use-within-no-consumer`（P8、2026-10-30）。消費の作業の有無を見ずに、名前のある期限ごとに `SCH011` を出すと`use-within-no-consumer` を含む 6 本が落ちた。戻すと合格した
+- わざと壊す確認: S600・データの完全性・`cgolden/serve/use-within-json`（P8、2026-10-30）。段取りの JSON に `limits` を出さないと`use-within-json` だけが落ちた。戻すと合格した
+- わざと壊す確認: S601・前提の固定・`sh/test-schedcheck.sh`（P8、2026-10-30）。`schedcheck` の期限の検査を外すと`bad-use-within` の場合が落ちた（`G-SCHED-CHECK` は違反 0 のまま合格した）。戻すと合格した
+- わざと壊す確認: S602・前提の固定・`cgolden/serve/use-within-ir`（P8、2026-10-30）。注釈の名前を、値を作る作業の IR の名前にすると`use-within-ir` を含む 8 本が落ちた。戻すと合格した
+- わざと壊す確認: S603・データの完全性・`G-CORE-DIAG-REGISTRY`（P8、2026-10-30）。`diag-names.txt` から `SCH:useWithinMissed` を消すと「1 unlisted」で落ちた（`G-CORE-DIAG-APPEND`・`G-STD-PHRASES`・`G-TYPE-SEVERITY-TABLE` は名前の一覧を見ないので合格のままだった）。戻すと合格した
+- `@useWithin` の実装（P8、2026-10-30）: 束縛・式の文・材料の注釈を評価の時に読み、値を作った IR のノードと上限を表に積む（`make` の中でも積むので、献立で使う値にも効く）。段取りの反復で、値を入力に取るそれぞれの作業の始まりと、作った作業の終わり（上限）の差が上限を超えれば、作った作業に release を付ける。後ろ向きでは今の release と同じく、急ぐ作業として順位を上げる。守れない期限は採点で `feasible=false` になり、どの試みでも守れなければ、遅らせない段取りが選ばれる。値を作る作業が無い（材料そのもの）ときは `TYP017`。JSON の `limits` は期限があるときだけ出す（既存の段取りの JSON を変えないため。スキーマでは任意の欄）
+- S598 の golden（P8-1、2026-10-30）: 束縛していない式の文の値は、同じ料理の中では入力に取れない。料理の最後の式に `@useWithin` を付け、献立がその料理を `make` して使う形（`use-within-expr`）にした。`make` の中で積んだ期限が献立の段取りに効くことも、これで確かめている
+- `use-within-*` の期待値（P8-1、2026-10-30）: 段取りは手で組み、注釈を読まない前の実行ファイルの段取りとの差（作る作業の release だけ）で確かめた。`use-within-backward` は、2 人だと後ろ向きの段取りがもともと期限を守るので、1 人にした。`use-within-two-consumers` は、最初の形では同点の並べ替えで期限が自然に守られたので、切る時間を 25 分にした
+- `G-RF-GOLDEN-COUNT`（P8、2026-10-30）: P3-1 でパイプの golden を 15 個にした（13 個の予定から 2 つ足した）ので、増える数を 66 から 68 に直した（§5 の表と判定のコマンド、`goals.sh`）
+- Phase 7 のゲート（P7-5、2026-10-30）: ファズの前までの 56 本は合格した。ファズはコアを組み直しながら 1 時間かかり、その間は Phase 8 を本線に入れられないので止めた。P7-5 は P8-4 のゲートとまとめて回す
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
