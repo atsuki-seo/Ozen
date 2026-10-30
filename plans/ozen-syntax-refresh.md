@@ -550,7 +550,7 @@ recipe gohanToTamanegi(servings: 2) {
 | `G-RF-SAMPLES-SAME` | S617・S618・S620 | `samples-same: <n> samples, 0 changed ir, 0 changed schedules, 0 changed renders` |
 | `G-RF-SAMPLES-EXPECT` | S619 | 差分なし |
 | `G-RF-LIMIT-PAIRS` | S543 | `limit-pairs: <p> pairs, 0 not exact` |
-| `G-RF-GOLDEN-COUNT` | S552 | N0 + 66 |
+| `G-RF-GOLDEN-COUNT` | S552 | N0 + 68 |
 | `G-RF-CONCEPT` | S604〜S608 | 5 つの数がすべて 1 以上 |
 | `G-RF-CLAUDEMD` | S613 | 1 以上 |
 | `G-RF-CI-NO-PROTO` | S480 の CI の側 | push した HEAD で `ios-proto` の実行が 0 |
@@ -614,7 +614,7 @@ git diff --exit-code rewrite-start rewrite-end -- 'samples/*/expect.yaml' render
 # G-RF-LIMIT-PAIRS（P5-2 で新設）
 python3 scripts/check-limit-pairs.py --ozen build/core-gcc-release/ozen tests/golden   # → limit-pairs: <p> pairs, 0 not exact
 # G-RF-GOLDEN-COUNT
-scripts/golden-entries.sh tests/golden | wc -l     # → N0 + 66（N0 は §9）
+scripts/golden-entries.sh tests/golden | wc -l     # → N0 + 68（N0 は §9）
 # G-RF-CONCEPT（P9-1 から）
 sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -cE '\|>|per serving'
 sed -n '/^### 4\.1/,/^### 4\.2/p' docs/concept.md | grep -c 'unusedValue'
@@ -655,7 +655,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | `sh/test-schedcheck.sh` に足す例と、`tools/schedcheck/fixtures/bad-preheat-*.json`・`bad-use-within.json` | 予熱と期限の独立の検査 | P7-3・P8-3 |
 | `rtest/schedule-text`・`rtest/recipe-schedule` に足す例 | 予熱の文と段取り表 | P7-4 |
 
-golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quantity` 14・`menus` 3・`serve` 10・`pipe` 13・`syntax` 1・`linear` 11・`sched` 13・`bundle` 1）。
+golden の入口は、着手点の N0 = 363（§9）から 68 増える（`quantity` 14・`menus` 3・`serve` 10・`pipe` 15・`syntax` 1・`linear` 11・`sched` 13・`bundle` 1）。
 落ちたテストは緩めずに原因を調べる。仕様との食い違いはユーザーに報告する。
 
 機械で押さえる範囲: 構文・評価・段取り・JSON・文書の語・テストの名前と道筋・書き直しの前後の等価・上限の組・CI の digest。§8 に回すのは、書き直したレシピが料理として自然か、予熱の時間の値が妥当か、パイプの読みやすさ、警告の煩さ、concept の文体だけ。
