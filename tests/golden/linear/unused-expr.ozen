@@ -1,0 +1,10 @@
+recipe misoSoup {
+  ingredients {
+    tofu: Tofu 150 g
+    water: 600 ml
+    miso: Miso 50 g
+  }
+  cut(tofu, dice, 15 mm)
+  let boiled = boilWater(water)
+  dissolve([boiled, miso])
+}

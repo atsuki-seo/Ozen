@@ -1,0 +1,14 @@
+action blanch(x: T, water: Water) -> T<doneness: done> {
+  steps {
+    let boiled = boilWater(water)
+    simmer(x, 1 min)
+  }
+}
+recipe boiledCabbage {
+  ingredients {
+    cabbage: 200 g
+    water: 1000 ml
+  }
+  let washed = wash(cabbage)
+  let blanched = blanch(washed, water)
+}

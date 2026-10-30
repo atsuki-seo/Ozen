@@ -1,0 +1,13 @@
+recipe gohan {
+  ingredients {
+    rice: 300 g
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let onionCut = onion |> peel |> cut(dice, 5 mm)
+  store(onionCut)
+  let carrotPeeled = peel(carrot)
+  discard(carrotPeeled)
+  let washed = wash(rice)
+  soak(washed, 30 min)
+}

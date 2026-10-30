@@ -1,0 +1,3 @@
+warning LIN005 unusedValue unused-in-make.ozen:6:7-6:13 args=["peeled", "Onion<shape: peeled>"]: unused value
+result ok errors=0 warnings=1 infos=0
+exit 0

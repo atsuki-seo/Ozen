@@ -1,0 +1,8 @@
+recipe gohan {
+  ingredients {
+    rice: 300 g
+    salt: Salt 1 g
+  }
+  let washed = wash(rice)
+  let soaked = soak(washed, 30 min)
+}

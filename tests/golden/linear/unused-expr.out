@@ -1,0 +1,3 @@
+warning LIN005 unusedValue unused-expr.ozen:7:3-7:25 args=["cut(tofu, dice, 15 mm)", "Tofu<shape: cut(dice, 15 mm)>"]: unused value
+result ok errors=0 warnings=1 infos=0
+exit 0

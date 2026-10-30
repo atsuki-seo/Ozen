@@ -1,0 +1,3 @@
+warning LIN005 unusedValue unused-let.ozen:7:7-7:19 args=["carrotPeeled", "Carrot<shape: peeled>"]: unused value
+result ok errors=0 warnings=1 infos=0
+exit 0

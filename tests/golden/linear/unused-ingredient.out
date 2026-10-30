@@ -1,0 +1,3 @@
+warning LIN005 unusedValue unused-ingredient.ozen:4:5-4:9 args=["salt", "Salt"]: unused value
+result ok errors=0 warnings=1 infos=0
+exit 0

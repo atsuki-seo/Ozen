@@ -1,0 +1,6 @@
+recipe porkGinger {
+  ingredients { pork: 450 g }
+  let firstBatch = fry(pork / 3, 8 min)
+  let secondBatch = fry(pork / 3, 8 min)
+  let both = mix([firstBatch, secondBatch])
+}

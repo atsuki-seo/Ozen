@@ -1,0 +1,6 @@
+recipe buriFillet {
+  ingredients {
+    buri: 1000 g
+  }
+  let (head, collar, back, belly, frame, skin, guts, scales) = fillet(buri)
+}

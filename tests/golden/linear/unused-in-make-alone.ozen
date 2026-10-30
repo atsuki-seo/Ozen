@@ -1,0 +1,17 @@
+// args: check --format json --entry dinner
+recipe cookedRice {
+  ingredients {
+    rice: 300 g
+    onion: 1 pcs
+  }
+  let peeled = peel(onion)
+  let washed = wash(rice)
+  let soaked = soak(washed, 30 min)
+  let cooked = cookRice(soaked)
+}
+menu dinner(people: 2) {
+  let rice = make cookedRice
+  serve main {
+    plate perPerson on RiceBowl { rice }
+  }
+}

@@ -1,0 +1,6 @@
+recipe gohan {
+  ingredients { rice: 450 g }
+  let (cooking, spare) = split(rice, 300 g)
+  let washed = wash(cooking)
+  soak(washed, 30 min)
+}
