@@ -1455,6 +1455,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S635・実際の経路・`cgolden/serve/use-within-expr`（P9-4、2026-10-30）。`make` の中の期限を積まないと`use-within-expr` だけが落ちた。戻すと合格した
 - わざと壊す確認: S636・正常系・`cgolden/serve/use-within-missed-no-delay`（P9-4、2026-10-30）。採点を見ずに、いつも期限を見た最初の試みを採ると`use-within-missed-no-delay` を含む 11 本が落ちた。戻すと合格した
 - 監査で足した golden の期待値（P9-4、2026-10-30）: 段取りは手で組んだ。直す前の実装で出せるものは出力と照らし、直す前提の 3 つ（`preheat-no-preheat-time`・`preheat-max-temp-mixed`・`use-within-bad-arg`）は手で書いて先にコミットした。`unused-if` の行番号だけ数え違えて直した
+- わざと壊す確認: S542・副作用とコスト・`G-RF-SEPARATION`（P9-5、2026-10-30）。別の worktree で、golden の `.out` と `sema.c` を 1 つのコミットで変えると「1 mixed」で落ちた。コミットを外すと合格した
+- わざと壊す確認: S552・データの完全性・`G-RF-GOLDEN-COUNT`（P9-5、2026-10-30）。別の worktree で `linear/unused-alias` を消すと「got '447', want '448'」で落ちた。戻すと合格した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
