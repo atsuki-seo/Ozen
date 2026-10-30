@@ -1,5 +1,5 @@
 // args: debug steps
-recipe basics() {
+recipe basics {
   ingredients {
     rice: 1 gou
     pork: 0.2 kg

@@ -1,4 +1,4 @@
 import std.units.jp.{cup}
-recipe tea() {
+recipe tea {
   ingredients { milk: 1 cup }
 }

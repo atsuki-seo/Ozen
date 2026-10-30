@@ -1,5 +1,5 @@
 // args: debug steps
-recipe r() {
+recipe buriSashimi {
   ingredients {
     buri: 1000 g
   }

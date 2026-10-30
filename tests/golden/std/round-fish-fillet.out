@@ -1,4 +1,4 @@
-recipe r
+recipe buriSashimi
   buri : Buri 1000 g
   %1 = fillet(buri) : (Buri<head> 150..200 g, Buri<collar> 50..80 g, Buri<back> 250..300 g, Buri<belly> 150..200 g, Buri<frame> 100..150 g, Buri<skin> 30..50 g, Buri<guts> 80..120 g, Buri<scales> 10..20 g)
   %2 = cut(%1.3, slice, 10 mm) : Buri<back, shape: cut(slice, 10 mm)> 250..300 g
