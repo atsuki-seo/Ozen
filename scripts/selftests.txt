@@ -40,3 +40,4 @@ tools/htmlcheck/htmlcheck.py scripts/test-htmlcheck.sh
 tools/htmlcheck/selfcontained.py scripts/test-htmlcheck.sh
 renderers/tools/browser-test.sh scripts/test-browser-test.sh
 scripts/check-test-names.py scripts/test-check-test-names.sh
+scripts/check-rewrite-equivalence.py scripts/test-check-rewrite-equivalence.sh
