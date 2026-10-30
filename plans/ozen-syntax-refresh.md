@@ -977,6 +977,23 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S489・`sh/test-check-readme-example.sh`（P1-1、2026-10-30）。`run:` の無い塊の既定の実行ファイルを `--bin` に戻すと、`default-not-bin` などで「9 cases, 4 failed」になった。戻すと合格した
 - README の例の検査の相対パス（P1-1、2026-10-30）: 検査は例ごとに一時のフォルダで実行ファイルを呼ぶので、`G-RF-README-EXAMPLE` の `--ozen build/core-gcc-release/ozen` が見つからなかった。区切りを含む値を絶対パスに直し、自己テストに `relative-paths` を足した。直す前のスクリプトでは、この場合が落ちることを確かめた
 - README の試作の例（P1-1、2026-10-30）: 既定を `ozen` にしたので、試作の節の例に `<!-- run: ozenproto example0.ozen -->` を足した。節は P1-2 で消す。`--bin` と `ozenproto` の対応も、節と一緒に P1-2 で外す
+- わざと壊す確認: S479・`G-RF-PROTO-GONE`（P1-2、2026-10-30）。`proto/defects.tsv` を `proto-final` から戻して追跡すると「tracked prototype files: got '1'」で落ちた。消すと合格した
+- わざと壊す確認: S480・`G-RF-PROTO-GONE`（P1-2、2026-10-30）。`ios-proto.yml` を戻すと、追跡するファイル 1 と `scripts`・`.github` の参照 4 で落ちた。消すと合格した
+- わざと壊す確認: S481・`G-RF-PROTO-GONE`（P1-2、2026-10-30）。タグ `proto-final` を `HEAD~2` に向けると「proto-final is the parent of the deletion」で落ちた。元のタグのオブジェクトに戻すと合格した
+- わざと壊す確認: S483・`G-CORE-FLAGS`（P1-2、2026-10-30）。`goal_G_CORE_FLAGS` の道筋を `proto/scripts/check-flags.py` に戻すと、4 つの構成すべてで落ちた。戻すと合格した
+- わざと壊す確認: S483・`G-CORE-PURE`（P1-2、2026-10-30）。`goal_G_CORE_PURE` の道筋を `proto/scripts/check-pure.sh` に戻すと落ちた。戻すと合格した
+- わざと壊す確認: S483・`G-CORE-NOGLOBAL`（P1-2、2026-10-30）。`goal_G_CORE_NOGLOBAL` の道筋を `proto/scripts/check-noglobal.py` に戻すと落ちた。戻すと合格した
+- わざと壊す確認: S483・`G-CORE-DIAG-REGISTRY`（P1-2、2026-10-30）。`check-diag-registry.sh` の既定の登録簿を `proto/src/diag_codes.def` に戻すと、登録簿が無く落ちた。戻すと合格した
+- わざと壊す確認: S485・`G-RF-README-NO-PROTO`（P1-2、2026-10-30）。README に `## Evaluator prototype` の見出しを足すと落ちた。消すと合格した
+- わざと壊す確認: S486・`G-REPO-README-LICENSE`（P1-2、2026-10-30）。ライセンスの表の行に `proto/` を戻すと「code row: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S487・`G-PLAN-TESTS-EXIST`（P1-2、2026-10-30）。`retired-tests.txt` から `golden/*` の最初の 1 行を消すと「367 names, 1 missing」で落ちた。戻すと合格した
+- わざと壊す確認: S488・`G-RF-PROTO-GONE`（P1-2、2026-10-30）。報告書の冒頭の注記を消すと「proto-final in report header: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S490・`G-RF-PROTO-GONE`（P1-2、2026-10-30）。`check-selftests.sh` の対象に `proto/scripts` を戻すと、参照 1 で落ちた。戻すと合格した
+- わざと壊す確認: S491・`G-RF-NO-PROTO-GOALS`（P1-2、2026-10-30）。`goal_G_PROTO_BUILD` を足すと「G-PROTO goals: got '1'」で落ちた。消すと合格した
+- S483 の壊し方（P1-2、2026-10-30）: 網羅表は「移した `check-flags.py`・`check-pure.sh`・`check-noglobal.py` の根の求め方を戻す」としたが、この 3 つは根を求めず、引数の道筋だけを読む。そこで、ゴールの関数の道筋を `proto/scripts/` に戻す壊し方で確かめた。`check-diag-registry.sh` は網羅表のとおり既定の道筋で確かめた。そのために P1-1 で、`G-CORE-DIAG-REGISTRY` を既定の道筋で呼ぶようにした
+- README の例の検査の `--bin`（P1-2、2026-10-30）: 試作の節と一緒に、`--bin` と `ozenproto` の対応を外した。S489 は、`run:` の無い塊を `--ozen` で走らせる `match` などの場合で確かめ続ける
+- 試作の削除（P1-2、2026-10-30）: `proto/` のファイルは 565（574 から `scripts/` に移した 10 を引き、`ios-proto.yml` の 1 を足した数）。手元の試作のビルド `build/gcc-*`・`build/clang-*` の 4 つは、`CMakeCache.txt` の元が `proto` であることを確かめてから消した。`build/wasm`・`build/wasm-web`・`build/fuzz` も試作のものだが、D52 は消すものに挙げていないので残した
+- `G-RF-PROTO-GONE` の見出しの語（P1-2、2026-10-30）: 判定の見出しの文字列「proto/ in …」も grep に数えられたので、「prototype paths in …」に直した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
