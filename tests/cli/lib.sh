@@ -28,11 +28,11 @@ OZEN
 
 recipe() {
   file "$1" <<OZEN
-recipe $2() {
+recipe $2 {
   ingredients {
     rice: 300 g
   }
-  let w = wash(rice)
+  let washed = wash(rice)
 }
 OZEN
 }

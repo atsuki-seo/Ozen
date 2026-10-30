@@ -3,13 +3,13 @@
 . "$(dirname "$0")/lib.sh"
 package
 file soup.ozen <<'OZEN'
-recipe soup() {
+recipe soup {
   ingredients {
     onion: 2 pcs
     water: 400 ml
   }
-  let c = cut(peel(onion), slice, 3 mm)
-  let s = simmer([water, c], 15 min)
+  let sliced = cut(peel(onion), slice, 3 mm)
+  let simmered = simmer([water, sliced], 15 min)
 }
 OZEN
 file phrases/ja.ftl <<'FTL'

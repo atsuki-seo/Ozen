@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 . "$(dirname "$0")/lib.sh"
 file stew.ozen <<'OZEN'
-recipe stew() {
+recipe stew {
   ingredients {
     water: 400 ml
     fish: Buri 300 g
   }
-  let s = simmer([water, fish], 10 min)
+  let simmered = simmer([water, fish], 10 min)
 }
 OZEN
 grep -q 'ブリ 300 g' <<< "$("$ozen" render --kind recipe --lang ja stew.ozen)" || fail "default stage is not the adult name"

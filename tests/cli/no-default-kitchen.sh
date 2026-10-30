@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 . "$(dirname "$0")/lib.sh"
 package
-recipe recipes/r.ozen r
+recipe recipes/gohan.ozen gohan
 file kitchens/home.ozen <<'OZEN'
 kitchen home {
   places {

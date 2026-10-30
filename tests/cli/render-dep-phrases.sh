@@ -23,12 +23,12 @@ FTL
 file soup.ozen <<'OZEN'
 import dashi.stock.{Katsuobushi}
 
-recipe soup() {
+recipe soup {
   ingredients {
     water: 400 ml
     bonito: Katsuobushi 10 g
   }
-  let s = simmer([water, bonito], 5 min)
+  let simmered = simmer([water, bonito], 5 min)
 }
 OZEN
 out=$("$ozen" render --kind recipe --lang ja soup)

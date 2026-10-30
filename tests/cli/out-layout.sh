@@ -4,17 +4,17 @@
 package
 recipe recipes/curry.ozen curry
 file menus/meals.ozen <<'OZEN'
-recipe lunch() {
+recipe lunch {
   ingredients {
     rice: 300 g
   }
-  let w = wash(rice)
+  let washed = wash(rice)
 }
-recipe brunch() {
+recipe brunch {
   ingredients {
     rice: 200 g
   }
-  let w = wash(rice)
+  let washed = wash(rice)
 }
 OZEN
 "$ozen" build --format sarif > /dev/null 2>&1

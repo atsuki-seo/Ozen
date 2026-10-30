@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 . "$(dirname "$0")/lib.sh"
 package
-recipe recipes/r.ozen r
+recipe recipes/gohan.ozen gohan
 for opt in --kit --cook --serve --ent; do
   msg=$("$ozen" check "$opt" x 2>&1)
   want "$?" 2 "$opt status"

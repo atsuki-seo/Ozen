@@ -3,18 +3,18 @@
 . "$(dirname "$0")/lib.sh"
 package
 file zsoup.ozen <<'OZEN'
-recipe zsoup() {
+recipe zsoup {
   ingredients {
     water: 400 ml
   }
-  let s = simmer(water, 5 min)
+  let simmered = simmer(water, 5 min)
 }
 OZEN
 file dinner.ozen <<'OZEN'
 import zsoup.{zsoup}
 
 menu dinner(people: 2) {
-  let s = make zsoup()
+  let soupBowl = make zsoup
   serve main {
     plate perPerson on SoupBowl { s }
   }
@@ -33,7 +33,7 @@ file lunch.ozen <<'OZEN'
 import zsoup.{zsoup}
 
 menu lunch(people: 1) {
-  let s = make zsoup()
+  let soupBowl = make zsoup
   serve main {
     plate perPerson on SoupBowl { s }
   }

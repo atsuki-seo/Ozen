@@ -3,17 +3,17 @@
 . "$(dirname "$0")/lib.sh"
 package
 file menus/meals.ozen <<'OZEN'
-recipe lunch() {
+recipe lunch {
   ingredients {
     rice: 300 g
   }
-  let w = wash(rice)
+  let washed = wash(rice)
 }
-recipe brunch() {
+recipe brunch {
   ingredients {
     rice: 200 g
   }
-  let w = wash(rice)
+  let washed = wash(rice)
 }
 OZEN
 msg=$("$ozen" build menus.meals 2>&1)

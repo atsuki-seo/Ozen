@@ -8,11 +8,11 @@ recipe soup.ozen soup
 want "$?" 0 "bundle status"
 cd .. || fail "cd"
 mkdir taken
-printf 'recipe mine() {\n}\n' > taken/soup.ozen
+printf 'recipe mine {\n}\n' > taken/soup.ozen
 msg=$("$ozen" unbundle soup.bundle.ozen -o taken 2>&1)
 want "$?" 2 "overwrite status"
 want "$msg" "cli: unbundle would overwrite taken/soup.ozen" "overwrite message"
-want "$(cat taken/soup.ozen)" "$(printf 'recipe mine() {\n}')" "kept file"
+want "$(cat taken/soup.ozen)" "$(printf 'recipe mine {\n}')" "kept file"
 [ -e taken/package.ozen ] && fail "wrote package.ozen next to an existing file"
 mkdir fresh
 "$ozen" unbundle soup.bundle.ozen -o fresh
