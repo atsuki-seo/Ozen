@@ -1,0 +1,10 @@
+schedule roastedVegetables level=2 cooks=1
+  0..1200 (600) preheat oven#1 to 200 degC unattended [oven#1]
+  0..1200 (600) preheat oven#2 to 200 degC unattended [oven#2]
+  1200..3000 (3000) %2 roast unattended [oven#1]
+  1200..3000 (3000) %4 roast unattended [oven#2]
+  3000..3000 (3000) %5 combine unattended
+  3000..3300 (3300) %6 rest unattended
+  total 3300
+result ok errors=0 warnings=0 infos=0
+exit 0

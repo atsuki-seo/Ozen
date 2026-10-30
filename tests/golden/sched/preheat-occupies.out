@@ -1,0 +1,11 @@
+schedule gratinAndNaan level=2 cooks=2
+  0..1800 (1800) %2 prepare by cook1
+  0..300 (300) %5 brush by cook2
+  300..900 (900) %6 crisp unattended [oven#1]
+  900..2100 (1500) preheat oven#1 to 180 degC unattended [oven#1]
+  2100..3600 (3600) %3 bake unattended [oven#1]
+  3600..3600 (3600) %7 combine unattended
+  3600..3660 (3660) %8 rest unattended
+  total 3660
+result ok errors=0 warnings=0 infos=0
+exit 0

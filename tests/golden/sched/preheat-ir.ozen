@@ -1,0 +1,15 @@
+// args: debug ir --kitchen home
+action roast(x: T) -> T<doneness: done> {
+  uses HeatSource<oven, heated: 200 degC> for 30 min @unattended
+}
+kitchen home {
+  places {
+    oven: Oven
+  }
+}
+recipe roastPotato {
+  ingredients {
+    potato: 1 pcs
+  }
+  let roasted = roast(potato)
+}

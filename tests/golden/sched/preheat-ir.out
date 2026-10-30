@@ -1,0 +1,5 @@
+ir roastPotato
+  %1 = in potato : Potato 1 pcs
+  %2 = op roast %1 : Potato -> Potato<doneness: done> 1 pcs [HeatSource<oven, heated: 200 degC>; 1800 s; unattended]
+result ok errors=0 warnings=0 infos=0
+exit 0
