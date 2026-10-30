@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe araNi(ara: Buri<frame>, servings: 4) {
   ingredients {
-    water: 400 ml
-    sugar: Sugar 2 tbsp
-    miso: Miso 2 tbsp
+    water: 100 ml per serving
+    sugar: Sugar 0.5 tbsp per serving
+    miso: Miso 0.5 tbsp per serving
   }
   let simmered = simmer([ara, water, sugar], 20 min)
   let seasoned = dissolve([simmered, miso])

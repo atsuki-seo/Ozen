@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe misoSoup(servings: 4) {
   ingredients {
-    cabbage: 100 g
-    water: 600 ml
-    dashi: Dashi 1 tsp
-    miso: Miso 50 g
+    cabbage: 25 g per serving
+    water: 150 ml per serving
+    dashi: Dashi 0.25 tsp per serving
+    miso: Miso 12.5 g per serving
   }
   let cabbageCut = cut(cabbage, roughChop, 30 mm)
   let boiled = boilWater(water)

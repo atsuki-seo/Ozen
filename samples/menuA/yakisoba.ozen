@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe yakisoba(servings: 2) @vessel(FlatPlate) {
   ingredients {
-    noodles: SteamedNoodles 2 pcs
-    pork: Komagire 100 g
-    cabbage: 150 g
-    sprouts: BeanSprouts 100 g
-    sauce: WorcesterSauce 3 tbsp
+    noodles: SteamedNoodles 1 pcs per serving
+    pork: Komagire 50 g per serving
+    cabbage: 75 g per serving
+    sprouts: BeanSprouts 50 g per serving
+    sauce: WorcesterSauce 1.5 tbsp per serving
   }
   let cabbageCut = cut(cabbage, roughChop, 30 mm)
-  let loosened = loosen(noodles)
+  let loosened = noodles |> loosen
   let porkFried = fry(pork, 3 min, heat: high)
   let vegetables = fry([porkFried, cabbageCut, sprouts], 2 min, heat: high)
-  let mixed = fry([vegetables, loosened], 2 min, heat: high)
-  let seasoned = season(mixed, sauce)
+  let seasoned = [vegetables, loosened] |> fry(2 min, heat: high) |> season(sauce)
 }

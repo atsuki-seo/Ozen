@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe salad(servings: 4) {
   ingredients {
-    lettuce: 150 g
-    tomato: 1 pcs
-    cucumber: 1 pcs
-    dressing: Dressing 3 tbsp
+    lettuce: 37.5 g per serving
+    tomato: 0.25 pcs per serving
+    cucumber: 0.25 pcs per serving
+    dressing: Dressing 0.75 tbsp per serving
   }
-  let torn = tear(lettuce)
+  let torn = lettuce |> tear
   let tomatoCut = cut(tomato, biteSize, 20 mm)
   let cucumberCut = cut(cucumber, slice, 3 mm)
   let tossed = toss([torn, tomatoCut, cucumberCut, dressing])

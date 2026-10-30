@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe misoSoup(servings: 4) {
   ingredients {
-    tofu: Tofu 150 g
-    wakame: Wakame 5 g
-    water: 600 ml
-    dashi: Dashi 1 tsp
-    miso: Miso 50 g
+    tofu: Tofu 37.5 g per serving
+    wakame: Wakame 1.25 g per serving
+    water: 150 ml per serving
+    dashi: Dashi 0.25 tsp per serving
+    miso: Miso 12.5 g per serving
   }
   let tofuCut = cut(tofu, dice, 15 mm)
   let boiled = boilWater(water)

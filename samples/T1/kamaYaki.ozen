@@ -3,6 +3,5 @@ recipe kamaYaki(kama: Buri<collar>, servings: 4) {
   ingredients {
     salt: Salt 1 pinch
   }
-  let salted = season(kama, salt)
-  let grilled = fry(salted, 10 min, heat: medium)
+  let grilled = kama |> season(salt) |> fry(10 min, heat: medium)
 }

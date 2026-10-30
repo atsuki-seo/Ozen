@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe toriDon(servings: 1) {
   ingredients {
-    chicken: Chicken<thigh> 100 g
-    onion: 1/2 pcs
-    water: 70 ml
-    dashi: Dashi 1/2 tsp
-    sugar: Sugar 1 tsp
+    chicken: Chicken<thigh> 100 g per serving
+    onion: 1/2 pcs per serving
+    water: 70 ml per serving
+    dashi: Dashi 1/2 tsp per serving
+    sugar: Sugar 1 tsp per serving
   }
   let chickenCut = cut(chicken, biteSize, 30 mm)
-  let onionCut = cut(peel(onion), slice, 5 mm)
+  let onionCut = onion |> peel |> cut(slice, 5 mm)
   let sauce = mix([water, dashi, sugar])
   let topping = simmer([chickenCut, onionCut, sauce], 10 min)
 }

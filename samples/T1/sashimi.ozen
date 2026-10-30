@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe sashimi(fish: Buri<back>, servings: 4) {
   ingredients {
-    cabbage: 100 g
+    cabbage: 25 g per serving
   }
   let sliced = cut(fish, slice, 10 mm)
   let shredded = cut(cabbage, julienne, 1 mm)

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe cookedRice(servings: 4) {
   ingredients {
-    rice: 600 g
+    rice: 150 g per serving
   }
-  let soaked = soak(wash(rice), 30 min)
+  let soaked = rice |> wash |> soak(30 min)
   let cooked = cookRice(soaked)
 }

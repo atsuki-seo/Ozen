@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CC-BY-4.0
 recipe curry(servings: 4) {
   ingredients {
-    onion: 2 pcs
-    roux: CurryRoux 100 g
-    water: 800 ml
+    onion: 0.5 pcs per serving
+    roux: CurryRoux 25 g per serving
+    water: 200 ml per serving
   }
-  let sliced = cut(peel(onion), slice, 3 mm)
+  let sliced = onion |> peel |> cut(slice, 3 mm)
   let fried = fry(sliced, 10 min, heat: medium)
   let simmered = simmer([fried, water, roux], 20 min)
 }
