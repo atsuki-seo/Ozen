@@ -1,5 +1,7 @@
 # 評価器の試作の報告
 
+> 試作 `proto/` は、syntax refresh の計画（`plans/ozen-syntax-refresh.md` の D52）でリポジトリから消した。試作のコード・テスト・スクリプトは、タグ `proto-final` で読める（例: `git show proto-final:proto/defects.tsv`、`git worktree add ../ozen-proto proto-final`）。本文の数値と道筋は、そのタグの時点のもの。
+
 concept §9 の「試作で確認すること」の 3 項目について、`proto/` の試作（C23 の部分集合、評価器のレベル 3 の部分: `if`・`for`・`repeat`・`macro` と `quote`・燃料制）で測った結果をまとめる。数値は `build/results/`・`build/fuzz/summary.txt`・`proto/defects.tsv` から書き、`proto/scripts/check-report.py` が照合する。
 
 試作の範囲: 字句解析と、誤りから立ち直るパーサー、評価器（`let`・`if`・`for`・`repeat`・名前付き引数・注釈・入口と `params`）、展開の印による衛生的なマクロ、燃料・深さ・生成ノードの上限、自前の 128 bit 整数による有理数と区間、31 種の診断（展開履歴つき）。本番のコア `core/` は D12 のとおり D で作り直し、この試作からは下の §4 に挙げる部品をテストごと移す。
