@@ -107,7 +107,7 @@ static uint8_t unit_need(const ozni_sched *s, const state *st, uint32_t unit, ui
 
 static bool preheat_start(const ozni_sched *s, const state *st, uint32_t unit, const ozni_sched_group *grp,
                           ozni_rat now, ozni_rat *pre_start) {
-  if (!grp->heated || s->unit_info == nullptr || !s->unit_info[unit].preheats ||
+  if (!grp->heated || s->unit_info == nullptr ||
       (st->hot[unit] && ozni_rat_cmp(st->temp[unit], grp->temp) >= 0)) {
     return false;
   }
@@ -232,7 +232,7 @@ static bool heat_unit(ozni_sched *s, state *st, uint32_t ti, const ozni_sched_gr
     return true;
   }
   const ozni_sched_unit *ui = &s->unit_info[unit];
-  bool heated = grp->heated && ui->preheats;
+  bool heated = grp->heated;
   if (!s->backward) {
     if (heated && grp->preheat) {
       ozni_sched_extra e = {.kind = OZNI_EXTRA_PREHEAT, .unit = unit, .sink = UINT32_MAX, .dirt = UINT32_MAX,

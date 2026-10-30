@@ -83,7 +83,6 @@ typedef struct ozni_sched_unit {
   uint8_t category;
   bool sink;
   bool dishwasher;
-  bool preheats;
   ozni_rat preheat_lo;
   ozni_rat preheat_hi;
 } ozni_sched_unit;

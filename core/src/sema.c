@@ -7041,7 +7041,11 @@ static bool std_qty(sema *s, const char *name, ozni_qty *out) {
 static ozni_rat later_rat(ozni_rat a, ozni_rat b) { return ozni_rat_cmp(a, b) > 0 ? a : b; }
 
 static ozni_sched_unit unit_info_for(sema *s, const sched_unit *su) {
-  ozni_sched_unit ui = {.clean_lo = ozni_rat_int(0), .clean_hi = ozni_rat_int(0), .category = OZNI_UNIT_OTHER};
+  ozni_sched_unit ui = {.clean_lo = ozni_rat_int(0),
+                        .clean_hi = ozni_rat_int(0),
+                        .category = OZNI_UNIT_OTHER,
+                        .preheat_lo = ozni_rat_int(0),
+                        .preheat_hi = ozni_rat_int(0)};
   ozni_qty q;
   bool has = false;
   if (nd(s, su->kfile, su->knode)->kind == OZNI_N_Vessel) {
@@ -7063,7 +7067,6 @@ static ozni_sched_unit unit_info_for(sema *s, const sched_unit *su) {
     ui.clean_hi = q.v.hi;
   }
   if (kind_prop(s, su->kfile, su->knode, "preheatTime", &q, 0)) {
-    ui.preheats = true;
     ui.preheat_lo = q.v.lo;
     ui.preheat_hi = q.v.hi;
   }
