@@ -295,6 +295,7 @@ diag-vessel-substituted = { $arg1 } を { $arg2 } 枚、代わりの器で出し
 diag-long-wait = { $arg1 }が出すまでに{ $arg2 }待ちます
 diag-critical-path = いちばん長い道筋は{ $arg1 }です
 diag-serve-within-missed = { $arg1 }は出すまで{ $arg2 }待ち、上限の{ $arg3 }を守れません
+diag-servings-unknown = 人数が決まらないので、1 人あたりの量から総量を出せません
 
 ## 文章の部品
 heading-ingredients = 材料

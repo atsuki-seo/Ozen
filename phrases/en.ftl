@@ -285,6 +285,7 @@ diag-vessel-substituted = { $arg2 } of { $arg1 } are replaced by other vessels
 diag-long-wait = { $arg1 } waits { $arg2 } before serving
 diag-critical-path = The critical path is { $arg1 }
 diag-serve-within-missed = { $arg1 } waits { $arg2 } before serving, over its limit of { $arg3 }
+diag-servings-unknown = The servings are not known, so an amount per serving has no total
 
 ## Text parts
 heading-ingredients = Ingredients
