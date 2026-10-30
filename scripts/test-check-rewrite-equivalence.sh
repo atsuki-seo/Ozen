@@ -141,5 +141,78 @@ printf 'not a commit\n' > "$repo/tests/golden/a/extra.txt"
 commit_head
 expect untouched "equivalence: 0 rewritten, 0 changed results, 0 changed steps; records: 0 roadmap rows, 0 missing" 0
 
+samples_setup() {
+  rm -rf "$repo"
+  mkdir -p "$repo/scripts" "$repo/tests/samples" "$repo/renderers/tools" "$repo/samples/one" "$repo/samples/two"
+  cp "$work/build-core.sh" "$repo/scripts/build-core.sh"
+  cat > "$repo/tests/samples/check.py" <<'PY'
+import json, os, sys
+save = sys.argv[sys.argv.index("--save") + 1]
+os.makedirs(save, exist_ok=True)
+root = sys.argv[-1]
+for name in sorted(os.listdir(root)):
+    doc = {}
+    for f in sorted(os.listdir(os.path.join(root, name))):
+        for line in open(os.path.join(root, name, f), encoding="utf-8"):
+            if line.startswith("#ir "):
+                doc["ir"] = line[4:].strip()
+            elif line.startswith("#schedule "):
+                doc["schedules"] = line[10:].strip()
+            elif line.startswith("#text "):
+                doc["text"] = line[6:].strip()
+    json.dump(doc, open(os.path.join(save, name + "--run.json"), "w"))
+PY
+  cat > "$repo/renderers/tools/render-all.mjs" <<'JS'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+const args = process.argv.slice(2);
+const out = args[args.indexOf('--out') + 1];
+const dir = join(args[args.length - 1], 'samples');
+mkdirSync(out, { recursive: true });
+for (const f of readdirSync(dir)) {
+  writeFileSync(join(out, f + '.txt'), JSON.parse(readFileSync(join(dir, f), 'utf8')).text || '');
+}
+JS
+  printf '#ir a\n#schedule s\n#text hello\n' > "$repo/samples/one/main.ozen"
+  printf '#ir b\n#schedule t\n#text world\n' > "$repo/samples/two/main.ozen"
+  git -C "$repo" init -q
+  git -C "$repo" add -A
+  git_q commit -q -m base
+  git -C "$repo" tag base
+}
+
+expect_samples() {
+  local name=$1 want=$2 want_status=$3 got status
+  cases=$((cases + 1))
+  set +e
+  got=$(cd "$repo" && python3 -B "$here/check-rewrite-equivalence.py" --base base --head HEAD \
+    --cache "$work/cache-samples" --samples samples 2>/dev/null | tail -n 1)
+  status=$?
+  set -e
+  if [ "$got" != "$want" ] || [ "$status" -ne "$want_status" ]; then
+    echo "FAIL $name: got '$got' (status $status)" >&2
+    failed=$((failed + 1))
+  fi
+}
+
+setup
+cp "$repo/scripts/build-core.sh" "$work/build-core.sh"
+samples_setup
+printf '// renamed\n#ir a\n#schedule s\n#text hello\n' > "$repo/samples/one/main.ozen"
+commit_head
+expect_samples samples-same "samples-same: 2 samples, 0 changed ir, 0 changed schedules, 0 changed renders" 0
+samples_setup
+printf '#ir changed\n#schedule s\n#text hello\n' > "$repo/samples/one/main.ozen"
+commit_head
+expect_samples samples-ir "samples-same: 2 samples, 1 changed ir, 0 changed schedules, 0 changed renders" 1
+samples_setup
+printf '#ir b\n#schedule changed\n#text world\n' > "$repo/samples/two/main.ozen"
+commit_head
+expect_samples samples-schedule "samples-same: 2 samples, 0 changed ir, 1 changed schedules, 0 changed renders" 1
+samples_setup
+printf '#ir b\n#schedule t\n#text changed\n' > "$repo/samples/two/main.ozen"
+commit_head
+expect_samples samples-render "samples-same: 2 samples, 0 changed ir, 0 changed schedules, 1 changed renders" 1
+
 echo "test-check-rewrite-equivalence: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]
