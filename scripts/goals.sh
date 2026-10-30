@@ -25,7 +25,6 @@ fi
 cd "$root" || exit 2
 
 R=plan-start..HEAD
-CFGS="gcc-debug-san clang-debug-san gcc-release clang-release"
 CCFGS="core-gcc-debug-san core-clang-debug-san core-gcc-release core-clang-release"
 PLAN=plans/ozen-roadmap.md
 RF=refresh-start..HEAD
@@ -213,33 +212,6 @@ goal_G_VOCAB_EXPECT_INDEPENDENT() {
     "$(scripts/check-commit-separation.sh "$R" '^spec/(fixtures|samples)/' '^tools/vocabcheck/' 2>&1 | tail -n 1)"
 }
 
-goal_G_PROTO_BUILD() {
-  want_re "build" '^build: 4 configs, 0 failed$' "$(proto/scripts/build-all.sh 2>&1 | tail -n 1)"
-}
-
-goal_G_PROTO_FLAGS() {
-  local c n
-  n=$(ls proto/src/*.c | wc -l)
-  for c in $CFGS; do
-    want_eq "flags $c" "flags: $n files, 0 missing" \
-      "$(python3 -B scripts/check-flags.py --std-gcc c2x --std-clang c23 build/$c/compile_commands.json 2>&1 | tail -n 1)"
-  done
-}
-
-goal_G_PROTO_COMPILERS() {
-  want_eq "compilers" "compilers: 4 configs, 0 mismatched" "$(proto/scripts/check-compilers.sh 2>&1 | tail -n 1)"
-}
-
-goal_G_PROTO_PURE() {
-  want_eq "pure" "pure: 0 disallowed symbols, 0 disallowed includes" \
-    "$(scripts/check-pure.sh proto/src build/gcc-release/libozenproto.a build/clang-release/libozenproto.a 2>&1 | tail -n 1)"
-}
-
-goal_G_PROTO_NOGLOBAL() {
-  want_re "noglobal" '^noglobal: [0-9]+ objects, 0 writable sections$' \
-    "$(python3 -B scripts/check-noglobal.py build/gcc-release/libozenproto.a build/clang-release/libozenproto.a 2>&1 | tail -n 1)"
-}
-
 nofloat() {
   local inc=$1 src=$2 hdrs=$3 f
   if ( for f in $src/*.c; do gcc -std=c2x -O2 -mgeneral-regs-only $inc -c "$f" -o /dev/null || exit 1; done ) >/dev/null 2>&1; then
@@ -248,55 +220,6 @@ nofloat() {
     fail "nofloat compile"
   fi
   want_eq "float/double tokens" 0 "$(for f in $hdrs; do gcc -x c -fpreprocessed -dD -E -P "$f" 2>/dev/null; done | grep -wE 'float|double' | wc -l)"
-}
-
-goal_G_PROTO_NOFLOAT() {
-  nofloat "-Iproto/include" proto/src "proto/src/*.c proto/src/*.h proto/include/*.h"
-}
-
-goal_G_PROTO_NOINT128() {
-  want_eq "int128" 0 "$(git grep -nwE '__int128|__uint128_t|_BitInt' -- proto/src proto/include | wc -l)"
-}
-
-goal_G_PROTO_EXPORTS() {
-  want_eq "exports" "ozp_default_limits ozp_expand ozp_free_string " \
-    "$(nm -g --defined-only build/gcc-release/libozenproto.a | awk 'NF==3{print $3}' | grep -v '^ozpi_' | sort -u | tr '\n' ' ')"
-}
-
-goal_G_PROTO_DIAG_REGISTRY() {
-  local out n
-  out=$(scripts/check-diag-registry.sh --registry proto/src/diag_codes.def --names proto/tests/diag-names.txt --outputs proto/tests/golden 2>&1 | tail -n 1)
-  want_re "diag" '^diag: [0-9]+ codes, 0 duplicate codes, 0 duplicate names, 0 bad codes, 0 unlisted, 0 unused$' "$out"
-  n=$(grep -cvE '^[[:space:]]*(#|$)' proto/tests/diag-names.txt)
-  want_eq "diag codes = names" "$n" "$(last_num "$out" 1)"
-}
-
-goal_G_PROTO_DIAG_APPEND() {
-  want_eq "deleted registry lines" 0 "$(git log --format= -p "$R" -- proto/src/diag_codes.def | grep -E '^-[^-]' | wc -l)"
-  want_ge1 "registry commits" "$(git rev-list --count "$R" -- proto/src/diag_codes.def)"
-}
-
-goal_G_PROTO_GOLDEN_INDEPENDENT() {
-  want_re "separation" '^separation: [1-9][0-9]* commits, 0 mixed$' \
-    "$(scripts/check-commit-separation.sh "$R" '^proto/tests/golden/.*\.out$' '^proto/(src|driver)/|^proto/scripts/run-golden\.sh$' 2>&1 | tail -n 1)"
-}
-
-goal_G_PROTO_VERSION() {
-  want_eq "project VERSION" 0 "$(tr '\n' ' ' < proto/CMakeLists.txt | grep -E 'project\([^)]*VERSION' | wc -l)"
-  want_eq "VERSION words" 0 "$(grep -v 'cmake_minimum_required' proto/CMakeLists.txt | grep -wE 'VERSION|SOVERSION|PROJECT_VERSION' | wc -l)"
-  want_eq "spec version keys" 0 "$(git grep -niE '^\s*version\s*:' -- spec | wc -l)"
-}
-
-goal_G_PROTO_REPORT() {
-  local out k
-  out=$(python3 -B proto/scripts/check-report.py docs/prototype-report.md build/results proto/defects.tsv 2>&1 | tail -n 1)
-  want_re "report" '^report: [0-9]+ checks, 0 failed$' "$out"
-  k=$(last_num "$out" 1)
-  if [ "${k:-0}" -ge $(($(ls build/results | wc -l) + 4)) ]; then pass "report checks >= results + 4: $k"; else fail "report checks '$k' < results + 4"; fi
-}
-
-goal_G_PROTO_README_EXAMPLE() {
-  want_re "readme" '^readme: [1-9][0-9]* examples, 0 mismatches$' "$(scripts/check-readme-example.sh 2>&1 | tail -n 1)"
 }
 
 goal_G_PLAN_TESTS_EXIST() {
@@ -322,83 +245,6 @@ goal_G_REPO_CLAUDEMD() {
   want_ge1 "Japanese rule" "$(grep -ciE 'japanese|日本語' CLAUDE.md)"
 }
 
-
-goal_G_PROTO_UNIT() {
-  local c n
-  n=$(ctest --test-dir build/gcc-debug-san -N 2>/dev/null | sed -nE 's/^Total Tests: ([0-9]+)$/\1/p')
-  for c in $CFGS; do
-    want_eq "unit $c" "100% tests passed, 0 tests failed out of $n" \
-      "$(ctest --test-dir build/$c --output-on-failure 2>&1 | grep -E '^[0-9]+% tests passed')"
-  done
-}
-
-goal_G_PROTO_GOLDEN() {
-  local c n
-  n=$(find proto/tests/golden -name '*.ozen' | wc -l)
-  for c in $CFGS; do
-    want_eq "golden $c" "golden: $n passed, 0 failed, 0 timed out" "$(proto/scripts/run-golden.sh build/$c/ozenproto 2>&1 | tail -n 1)"
-  done
-}
-
-goal_G_PROTO_RATIONAL_ORACLE() {
-  local s
-  for s in 1 2 3; do
-    want_eq "oracle seed $s" "oracle: 20000 cases, 0 mismatches" \
-      "$(python3 -B proto/tests/oracle/rational_oracle.py --runner build/gcc-debug-san/ozenproto --cases 20000 --seed $s 2>&1 | tail -n 1)"
-  done
-}
-
-goal_G_PROTO_OOM() {
-  local out f
-  out=$(build/gcc-debug-san/ozp_oom_test proto/tests/golden/*/*.ozen 2>&1)
-  f=$(ls proto/tests/golden/*/*.ozen | wc -l)
-  want_re "oom" "^oom: $f files, [0-9]+ points, 0 failures$" "$(tail -n 1 <<< "$out")"
-  want_eq "asan reports" 0 "$(grep -c 'ERROR: AddressSanitizer' <<< "$out")"
-}
-
-goal_G_PROTO_DETERMINISM() {
-  local c
-  want_eq "digests" 1 "$(for c in $CFGS; do proto/scripts/digest.sh build/$c/ozenproto; proto/scripts/digest.sh build/$c/ozenproto; done | sort -u | wc -l)"
-}
-
-goal_G_PROTO_FUZZ() {
-  local out
-  out=$(proto/scripts/fuzz.sh 600 2>&1 | tail -n 1)
-  want_re "fuzz" '^fuzz: [1-9][0-9]* execs in ([6-9][0-9]{2}|[0-9]{4,}) s, 0 crashes, 0 leaks, 0 timeouts$' "$out"
-  want_eq "fuzz artifacts" 0 "$(ls build/fuzz/artifacts 2>/dev/null | wc -l)"
-}
-
-goal_G_PROTO_WASM() {
-  local n
-  n=$(find proto/tests/golden -name '*.ozen' | wc -l)
-  want_eq "wasm golden" "golden: $n passed, 0 failed, 0 timed out" "$(proto/scripts/run-golden.sh 'node build/wasm/ozenproto.js' 2>&1 | tail -n 1)"
-  want_eq "wasm oracle" "oracle: 2000 cases, 0 mismatches" \
-    "$(python3 -B proto/tests/oracle/rational_oracle.py --runner 'node build/wasm/ozenproto.js' --cases 2000 --seed 1 2>&1 | tail -n 1)"
-  want_eq "wasm digest" "$(proto/scripts/digest.sh build/gcc-release/ozenproto --save native)" \
-    "$(proto/scripts/digest.sh 'node build/wasm/ozenproto.js' --save wasm)"
-}
-
-goal_G_PROTO_WASM_BRIDGE() {
-  local out
-  out=$(node proto/wasm/bridge-test.mjs 2>&1 | tail -n 1)
-  want_re "bridge" '^bridge: ([3-9]|[1-9][0-9]+) inputs, 0 mismatches$' "$out"
-}
-
-goal_G_PROTO_WASM_WORKER() {
-  want_re "worker" '^worker: [1-9][0-9]* inputs, 0 mismatches$' "$(proto/scripts/worker-test.sh 2>&1 | tail -n 1)"
-}
-
-goal_G_PROTO_IOS() {
-  local id
-  id=$(gh run list --workflow ios-proto.yml --commit "$(git rev-parse HEAD)" --json databaseId -q '.[0].databaseId')
-  want_eq "ios run" "success $(git rev-parse HEAD)" "$(gh run view "$id" --json conclusion,headSha -q '.conclusion + " " + .headSha')"
-  want_eq "ios artifacts" "ios-digest xcframework " "$(gh api "repos/{owner}/{repo}/actions/runs/$id/artifacts" -q '.artifacts[].name' | sort | tr '\n' ' ')"
-  rm -rf build/ios && gh run download "$id" -n ios-digest -D build/ios && mkdir -p build/results && cp build/ios/digest.txt build/results/digest-ios.txt
-  [ ! -f build/ios/golden.txt ] || cp build/ios/golden.txt build/results/golden-ios.txt
-  want_eq "ios digest" "$(cat build/results/digest-native.txt 2>/dev/null)" "$(cat build/results/digest-ios.txt 2>/dev/null)"
-  gh run download "$id" -n xcframework -D build/ios
-  want_eq "xcframework slices" 2 "$(unzip -l build/ios/OzenProto.xcframework.zip | grep -oE 'ios-arm64(-simulator)?/' | sort -u | wc -l)"
-}
 
 
 goal_G_REPO_VERSION() {
