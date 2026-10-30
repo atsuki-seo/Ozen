@@ -1098,6 +1098,35 @@
           },
           "type": "array"
         },
+        "limits": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "consumer": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "missed": {
+                "type": "boolean"
+              },
+              "producer": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "within": {
+                "$ref": "#/$defs/rational"
+              }
+            },
+            "required": [
+              "consumer",
+              "missed",
+              "producer",
+              "within"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
         "resources": {
           "items": {
             "additionalProperties": false,
