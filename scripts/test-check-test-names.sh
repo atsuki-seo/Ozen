@@ -97,5 +97,32 @@ reset
 printf 'tests/golden/soup.ozen\n' >> "$work/exceptions.txt"
 expect_names names-exception-without-reason "names: 5 declarations, 3 bindings, 0 one-letter, 1 unlisted exceptions" 1
 
+expect_pipe() {
+  local name=$1 want=$2 want_status=$3 got status
+  cases=$((cases + 1))
+  set +e
+  got=$(cd "$work" && python3 -B "$here/check-test-names.py" --samples-pipe --exceptions exceptions.txt samples 2>/dev/null | tail -n 1)
+  status=$?
+  set -e
+  if [ "$got" != "$want" ] || [ "$status" -ne "$want_status" ]; then
+    echo "FAIL $name: got '$got' (status $status)" >&2
+    failed=$((failed + 1))
+  fi
+}
+
+reset
+mkdir -p "$work/samples/piped" "$work/samples/plain"
+printf 'recipe gohan {\n  let cooked = rice |> wash |> cookRice\n}\n' > "$work/samples/piped/gohan.ozen"
+printf 'package demo {\n}\n' > "$work/samples/piped/package.ozen"
+printf 'recipe salad {\n  let torn = tear(lettuce)\n}\n' > "$work/samples/plain/salad.ozen"
+expect_pipe samples-one-without "samples-pipe: 2 samples, 1 without pipe, 0 unlisted exceptions" 1
+printf 'samples/plain has one step only\n' >> "$work/exceptions.txt"
+expect_pipe samples-listed "samples-pipe: 2 samples, 0 without pipe, 0 unlisted exceptions" 0
+printf 'samples/piped\n' >> "$work/exceptions.txt"
+expect_pipe samples-unlisted "samples-pipe: 2 samples, 0 without pipe, 1 unlisted exceptions" 1
+printf '// a |> b in a comment\n' > "$work/samples/plain/salad.ozen"
+printf '# path reason\n' > "$work/exceptions.txt"
+expect_pipe samples-comment-pipe "samples-pipe: 2 samples, 1 without pipe, 0 unlisted exceptions" 1
+
 echo "test-check-test-names: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]
