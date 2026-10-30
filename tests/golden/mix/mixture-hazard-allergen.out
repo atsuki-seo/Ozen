@@ -1,8 +1,8 @@
-recipe r
+recipe porkCream
   pork : Pork 200 g
   milk : Milk 100 ml
   %1 = combine([pork, milk]) : Mixture 302.8..304 g with Allergen(milk), Hazard
   %2 = mix(%1) : Mixture 302.8..304 g with Allergen(milk), Hazard
-error SAF001 undercooked mixture-hazard-allergen.ozen:7:11-7:28 args=["Mixture", "raw"]: undercooked
+error SAF001 undercooked mixture-hazard-allergen.ozen:7:15-7:32 args=["Mixture", "raw"]: undercooked
 result error errors=1 warnings=0 infos=0
 exit 1

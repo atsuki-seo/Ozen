@@ -1,8 +1,8 @@
 // args: debug steps
-recipe r() {
+recipe riceForPot {
   ingredients {
     rice: 300 g
     water: 450 ml
   }
-  let m = mix([rice, water])
+  let inPot = mix([rice, water])
 }

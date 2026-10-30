@@ -1,4 +1,4 @@
-recipe r
+recipe riceForPot
   rice : Rice 300 g
   water : Water 450 ml
   %1 = combine([rice, water]) : Mixture 745.5..750 g

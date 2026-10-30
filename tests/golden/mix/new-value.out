@@ -1,4 +1,4 @@
-recipe r
+recipe glazedOnion
   onion : Onion 1 pcs
   sugar : Sugar 10 g
   %1 = peel(onion) : Onion<shape: peeled> 1 pcs
