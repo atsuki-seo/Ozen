@@ -2,24 +2,24 @@
 action stewB(x: T) -> T<doneness: done> {
   uses hands for 30 min
 }
-recipe stew() {
+recipe stew {
   ingredients {
     pork: 300 g
   }
-  let s = stewB(pork)
+  let cooked = stewB(pork)
 }
-recipe soup() {
+recipe soup {
   ingredients {
     dashi: 300 ml
   }
-  let s = rest(dashi, 10 min)
+  let cooked = rest(dashi, 10 min)
 }
-menu dinner() {
-  let a = make soup()
-  let b = make stew()
+menu dinner {
+  let soupBowl = make soup
+  let stewBowl = make stew
   serve main {
-    plate perPerson on SoupBowl { a } @serveWithin(5 min)
-    plate perPerson on DeepPlate { b }
+    plate perPerson on SoupBowl { soupBowl } @serveWithin(5 min)
+    plate perPerson on DeepPlate { stewBowl }
   }
 }
 kitchen today : Options {
