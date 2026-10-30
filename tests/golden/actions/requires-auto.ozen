@@ -1,7 +1,5 @@
 // args: debug requires
-recipe r() requires Oven {
+recipe onionSaute requires Oven {
   ingredients { onion: 1 pcs }
-  let p = peel(onion)
-  let c = cut(p, style: slice)
-  let f = fry(c, 5 min)
+  let fried = onion |> peel |> cut(style: slice) |> fry(5 min)
 }

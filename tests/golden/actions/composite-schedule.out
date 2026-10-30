@@ -1,4 +1,4 @@
-schedule r level=1 cooks=1
+schedule dicedOnion level=1 cooks=1
   0..120 (60) %2 peel by cook1
   120..300 (180) %3 cut by cook1
   total 300

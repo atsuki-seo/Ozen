@@ -10,11 +10,11 @@ kitchen home {
 action stew(x: T) -> T<doneness: done> {
   uses HeatSource<stovetop>, Container<capacity >= volume(x) * 1.2>
 }
-recipe fits() {
+recipe smallStew {
   ingredients { water: 2 L }
-  let s = stew(water)
+  let stewed = stew(water)
 }
-recipe overflows() {
+recipe bigStew {
   ingredients { water: 2.1 L }
-  let s = stew(water)
+  let stewed = stew(water)
 }

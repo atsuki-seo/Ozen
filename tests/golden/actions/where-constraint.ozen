@@ -1,5 +1,5 @@
 action stew(x: T) -> T<doneness: done> where T: Vegetable
-recipe r() {
+recipe porkStew {
   ingredients { pork: 300 g }
-  let s = stew(pork)
+  let stewed = stew(pork)
 }

@@ -1,9 +1,9 @@
 action halfPrep(x: T<Peelable, shape: whole>) -> T<shape: cut(dice, 3 mm)> {
   steps {
-    let p = peel(x)
+    let peeled = peel(x)
   }
 }
-recipe r() {
+recipe onionPrep {
   ingredients { onion: 1 pcs }
-  let o = halfPrep(onion)
+  let prepped = halfPrep(onion)
 }

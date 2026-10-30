@@ -4,7 +4,7 @@ extend action warm {
     uses HeatSource<oven> for 5..8 min
   }
 }
-recipe r() {
+recipe naanPlate {
   ingredients { naan: 1 pcs }
-  let w = warm(naan)
+  let warmed = warm(naan)
 }

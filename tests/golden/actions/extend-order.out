@@ -1,4 +1,4 @@
-recipe r
+recipe naanPlate
   variants warm: microwave | toaster | pan | oven
 result ok errors=0 warnings=0 infos=0
 exit 0

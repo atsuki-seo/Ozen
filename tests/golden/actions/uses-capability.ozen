@@ -6,8 +6,7 @@ kitchen home {
     bowl: MixingBowl
   }
 }
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let s = soak(rice)
-  let c = cookRice(s)
+  let cooked = rice |> soak |> cookRice
 }
