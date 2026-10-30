@@ -1,4 +1,4 @@
-recipe r
+recipe gohan
   rice : Rice 300 g
   %1 = split(rice, 300 g) : (Rice 300 g, Rice 0 g)
   %2 = discard(%1.2)

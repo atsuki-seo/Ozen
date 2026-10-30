@@ -1,7 +1,7 @@
 // args: debug steps
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let (a, b) = split(rice, 200 g)
-  store(b)
-  let w = wash(a)
+  let (portion, rest) = split(rice, 200 g)
+  store(rest)
+  let washed = wash(portion)
 }

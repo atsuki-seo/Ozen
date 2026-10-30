@@ -1,11 +1,11 @@
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
   parallel {
-    branch one {
-      let a = wash(rice)
+    branch washLine {
+      let washed = wash(rice)
     }
-    branch two {
-      let b = soak(rice, 10 min)
+    branch soakLine {
+      let soaked = soak(rice, 10 min)
     }
   }
 }

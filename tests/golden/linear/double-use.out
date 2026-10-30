@@ -1,3 +1,3 @@
-error LIN001 doubleUse double-use.ozen:4:16-4:20 args=["rice"]: double use
+error LIN001 doubleUse double-use.ozen:4:26-4:30 args=["rice"]: double use
 result error errors=1 warnings=0 infos=0
 exit 1
