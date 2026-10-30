@@ -1,4 +1,4 @@
-error SAF001 undercooked allow-saf-stays-error.ozen:3:11-3:34 args=["Pork", "raw"]: undercooked
-info SAF002 fixedSeverity allow-saf-stays-error.ozen:3:35-3:54 args=["undercooked"]: fixed severity
+error SAF001 undercooked allow-saf-stays-error.ozen:3:16-3:39 args=["Pork", "raw"]: undercooked
+info SAF002 fixedSeverity allow-saf-stays-error.ozen:3:40-3:59 args=["undercooked"]: fixed severity
 result error errors=1 warnings=0 infos=1
 exit 1

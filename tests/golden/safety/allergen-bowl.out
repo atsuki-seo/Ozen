@@ -4,8 +4,8 @@ schedule lunch level=2 cooks=1
   180..240 (210) %4 toss by cook1 [bowl#1]
   total 240
 info NAM006 localOverride allergen-bowl.ozen:2:1-4:2 args=["Egg", "std.prelude"]: local override
-info ASM007 provisionalValue allergen-bowl.ozen:9:11-9:19 args=["mix"]: provisional value
-info ASM007 provisionalValue allergen-bowl.ozen:15:11-15:24 args=["toss"]: provisional value
-info SCH006 washInserted allergen-bowl.ozen:15:11-15:24 args=["bowl#1", "allergen(egg)"]: wash inserted
+info ASM007 provisionalValue allergen-bowl.ozen:9:15-9:23 args=["mix"]: provisional value
+info ASM007 provisionalValue allergen-bowl.ozen:15:16-15:29 args=["toss"]: provisional value
+info SCH006 washInserted allergen-bowl.ozen:15:16-15:29 args=["bowl#1", "allergen(egg)"]: wash inserted
 result ok errors=0 warnings=0 infos=4
 exit 0

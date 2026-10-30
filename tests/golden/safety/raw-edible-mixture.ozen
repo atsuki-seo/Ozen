@@ -1,5 +1,5 @@
 // args: debug steps
-recipe r() {
+recipe buriSalad {
   ingredients {
     buri: 200 g
     cabbage: 100 g

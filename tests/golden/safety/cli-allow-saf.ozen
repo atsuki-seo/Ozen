@@ -1,5 +1,5 @@
 // args: check --allow SAF --warn SAF
-recipe r() {
+recipe porkShabu {
   ingredients { pork: 200 g }
-  let c = cut(pork, style: slice)
+  let sliced = cut(pork, style: slice)
 }

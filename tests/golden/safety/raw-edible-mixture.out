@@ -1,4 +1,4 @@
-recipe r
+recipe buriSalad
   buri : Buri 200 g
   cabbage : Cabbage 100 g
   %1 = cut(buri, slice, 10 mm) : Buri<shape: cut(slice, 10 mm)> 200 g

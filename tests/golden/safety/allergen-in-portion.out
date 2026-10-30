@@ -1,5 +1,5 @@
 info NAM006 localOverride allergen-in-portion.ozen:2:1-4:2 args=["Egg", "std.prelude"]: local override
 info ASM004 unlimitedEquipment allergen-in-portion.ozen:17:6-17:11: unlimited equipment
-error SAF004 allergen allergen-in-portion.ozen:18:11-18:71 args=["egg", "make eggSalad()"]: allergen
+error SAF004 allergen allergen-in-portion.ozen:18:15-18:71 args=["egg", "make eggSalad"]: allergen
 result error errors=1 warnings=0 infos=2
 exit 1
