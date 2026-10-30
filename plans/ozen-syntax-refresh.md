@@ -357,7 +357,7 @@ recipe gohanToTamanegi(servings: 2) {
 - **S517** `core/grammar.ebnf` に規則 `pipe` がある。
 - **S518** パイプで組み替えた呼び出しの span は、左辺の始まりから右辺の終わりまで。
 - **S519** パイプを使った入力でも、すべてのノードの span は親の span の内側にある（`span_nesting`）。
-- **S520** `a |> f` は `f(a)` より 1 つ多くノードを数える（`--max-nodes`）。
+- **S520** `a |> f` は `f(a)` と同じ数のノードを数える（`--max-nodes`）。
 - **S521** ファズの辞書 `core/fuzz/ozen.dict` に `"|>"` がある。
 
 ### 4.4 `()` の省略（D44）
@@ -643,7 +643,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | `cgolden/quantity/*`（14 個） | Count の無次元化、材料の次元、`per serving` | P2-1・P2-2・P4-1 |
 | `cgolden/menus/make-bare`・`make-servings`・`make-servings-per-serving` | `make` の括弧なしと人数 | P2-3・P2-4・P4-1 |
 | `cgolden/serve/serve-within-backward` | `--serve-at` での `@serveWithin` | P2-5 |
-| `cgolden/pipe/*`（13 個） | パイプの意味・優先順位・誤り・注釈・span・ノードの数 | P3-1 |
+| `cgolden/pipe/*`（15 個） | パイプの意味・優先順位・誤り・注釈・span・ノードの数 | P3-1 |
 | `cgolden/syntax/omit-parens` | `()` の省略で同じ IR | P3-2 |
 | `cgolden/linear/unused-*`（11 個） | `LIN005` | P6-1 |
 | `cgolden/sched/preheat-*`（13 個） | 予熱 | P7-1 |
@@ -706,11 +706,11 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 | S513 | 正常系 | `cgolden/pipe/unattended` | 注釈を最初の段に付ける | P3-1 |
 | S514 | 効かない条件 | `cgolden/pipe/unattended-builtin` | 組み替えた呼び出しでは `check_targets` を呼ばない | P3-1 |
 | S515 | 前提の固定 | `G-RF-TYPEARGS-STABLE` | `\|` の直後の空白を読み飛ばして `>` まで 1 つのトークンにする | P3-1 |
-| S516 | データの完全性 | `cgolden/pipe/ast` | `mark(OZNI_R_pipe)` を外す | P3-1 |
+| S516 | データの完全性 | `cgolden/pipe/ast-rules` | `mark(OZNI_R_pipe)` を外す | P3-1 |
 | S517 | データの完全性 | `G-CORE-GRAMMAR` | `grammar.ebnf` から規則 `pipe` を消す | P3-1 |
 | S518 | 境界・上限 | `cgolden/pipe/ast` | 組み替えた呼び出しの span を右辺の始まりからにする | P3-1 |
 | S519 | 前提の固定 | `cunit/span_nesting` | 組み替えた呼び出しの span の終わりを左辺の終わりにする | P3-1 |
-| S520 | 副作用とコスト | `cgolden/pipe/nodes`（`--max-nodes` のちょうどと 1 つ超え） | 右辺が名前のとき既存の Name のノードを Call に書き換え、ノードを増やさない | P3-1 |
+| S520 | 副作用とコスト | `cgolden/pipe/nodes`（1 つ足りない）・`cgolden/pipe/nodes-exact`（ちょうど） | 右辺が名前のとき既存の Name のノードを Call に書き換え、ノードを増やさない | P3-1 |
 | S521 | データの完全性 | `G-RF-FUZZ-DICT` | 辞書から `"\|>"` を消す | P3-1 |
 | S522 | 正常系 | `cgolden/syntax/omit-parens` | `()` の無い宣言では引数の既定値を束縛しない | P3-2 |
 | S523 | データの完全性 | `G-RF-NO-EMPTY-PARENS`、`sh/test-check-test-names.sh` | `tests/` に `recipe salad() {` を 1 つ戻す | P3-2・P5-7 |
@@ -860,7 +860,7 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 
 | ID | 内容 | 完了条件 |
 | --- | --- | --- |
-| P3-1 | 先に `cgolden/pipe/*`（13 個）を書く。字句・構文・`grammar.ebnf`・`rules.def`・ファズの辞書 | `G-CORE-GOLDEN`、`G-CORE-GRAMMAR`、`G-CORE-UNIT`、`G-CORE-FUZZ`、`G-RF-FUZZ-DICT`、red-first の確認。S504〜S514・S516〜S521 のわざと壊す確認（S515 は P5-0 で `G-RF-TYPEARGS-STABLE` が回せるようになってから行う） |
+| P3-1 | 先に `cgolden/pipe/*`（15 個）を書く。字句・構文・`grammar.ebnf`・`rules.def`・ファズの辞書 | `G-CORE-GOLDEN`、`G-CORE-GRAMMAR`、`G-CORE-UNIT`、`G-CORE-FUZZ`、`G-RF-FUZZ-DICT`、red-first の確認。S504〜S514・S516〜S521 のわざと壊す確認（S515 は P5-0 で `G-RF-TYPEARGS-STABLE` が回せるようになってから行う） |
 | P3-2 | 先に `cgolden/syntax/omit-parens` を書く。`scripts/check-test-names.py` の `--empty-parens` と自己テスト、`scripts/empty-parens-exceptions.txt` を作る。`renderers/test/inputs/`・`bindings/inputs/`・README の空の `()` を消す（`tests/`・`core/tests/` は Phase 5 で消す） | `G-CORE-GOLDEN`、`G-REND-TESTS`、`G-PLAT-LINUX`、`G-RF-README-EXAMPLE`、`python3 scripts/check-test-names.py --empty-parens --exceptions scripts/empty-parens-exceptions.txt bindings/inputs renderers/test/inputs README.md` が `0 found`。S522 のわざと壊す確認 |
 | P3-3 | ゲート | 手元の前提ゴールと Phase 3 のゴール |
 
@@ -1011,6 +1011,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - `serve-within-backward` の手計算の写し間違い（P2-5、2026-10-30）: `ASM007`（盛り付けの時間が仮の値）は表示の順で最初の盛り付けに 1 回だけ付く。後ろ向きでは煮込みの盛り付け（22 行目）が先に来るのに、前向きの golden の 21 行目を写していた。期待値を別のコミットで直した。段取りの行は手計算のとおりだった
 - わざと壊す確認: S502・`cgolden/serve/serve-within-backward`（P2-5、2026-10-30）。`sched.c` を release をそのまま反転した時計に写す元の処理に戻すと、汁物が 1680 s に仕上がり `SCH010` が出て落ちた。戻すと合格した
 - わざと壊す確認: S503・`cgolden/serve/serve-within-backward`（P2-5、2026-10-30）。`SCH010` を待ちが期限を超えなくても出すようにすると落ちた（前向きの `serve-within` など 5 本も一緒に落ちた）。戻すと合格した
+- S520 の数え違い（P3-1、2026-10-30）: `ceil(4)` は `Call`・`Name ceil`・`Number 4` の 3 ノードで、D43 の組み替えでも `4 |> ceil` は `Number`・`Name`・新しい `Call` の 3 ノードになる。計画を書いたときは組み替えの `Call` だけを数えて「1 つ多い」としていた。`ozen check --max-nodes` で `property batches = ceil(5 / 2)` が 7 でちょうど通り、6 で止まることを確かめ、S520 を「同じ数」に直した。網羅表の壊し方（Name を Call に書き換えて数を減らす）は 1 つ足りない `nodes` で、数を増やす誤りはちょうどの `nodes-exact` で捉える
+- `pipe/ast` と `pipe/ast-rules`（P3-1、2026-10-30）: `ozen debug ast --rules` は規則の一覧だけを出し、構文木と span を出さない。golden は 1 つのコマンドしか走らせないので、S518（span）を `ast`、S516（規則 `pipe`）を `ast-rules` に分けた。`cgolden/pipe/*` は `nodes-exact` と合わせて 15 個
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
