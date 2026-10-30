@@ -1081,6 +1081,9 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 書き直しのわざと壊す確認: S416・正常系・`cgolden/names/ingredient-type-omitted`（P5-1、2026-10-30）。型を省いた材料の型を `Unknown` にすると、`ingredient-type-omitted` が落ちた（245 本が落ちた）。戻すと合格した
 - 書き直しのわざと壊す確認: S428・正常系・`cgolden/packages/deprecated-warning`（P5-1、2026-10-30）。非推奨の単位の `PKG012` を出さないと、`deprecated-warning` と `bundle/annotation-scope` が落ちた。戻すと合格した
 - P5-1 の範囲（2026-10-30）: `syntax` 17 本、`decl` 1 本（`menu` の空の `()` だけ）、`names` 6 本、`modules` 11 本、`packages` 4 本、`std` 3 本を書き直した。`typeargs` と `decl` のほかの宣言の golden は、もとから実際の料理の名前の宣言で、1 文字の名前も空の `()` も無いので変えていない。`modules` と `packages` の料理を持たない golden（循環・取り込み・版）も同じ。書き直した 42 本は、`check-rewrite-equivalence.py` で終了コード・診断・結果の数・手順の名前の列がすべて書き直す前と同じ
+- わざと壊す確認: S539・データの完全性・`G-RF-EQUIVALENCE`（P5-1、2026-10-30）。§9 から `S413`（`names/let-rebind`）の書き直しの記録を 1 行消すと「records: 23 roadmap rows, 1 missing」で落ちた。戻すと 0 missing で合格した
+- わざと壊す確認: S540・データの完全性・`G-RF-NAMES`（P5-1、2026-10-30）。`names/let-rebind.ozen` の料理名を `recipe r` に戻すと、P5-1 の 7 フォルダで「1 one-letter」になった。戻すと 0 one-letter に戻った
+- わざと壊す確認: S546・前提の固定・`G-CORE-GOLDEN`（P5-1、2026-10-30）。書き直した `names/let-rebind.out` の位置を 1 列ずらすと、4 つの構成すべてで「397 passed, 1 failed」になって落ちた。戻すと合格した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
