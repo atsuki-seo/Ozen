@@ -1,2 +1,2 @@
 // args: check --max-nodes 5
-property p = 1 + 2
+property cups = 1 + 2

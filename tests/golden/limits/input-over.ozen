@@ -1,2 +1,2 @@
-// args: check --max-input-bytes 51
-property p = 12
+// args: check --max-input-bytes 54
+property cups = 12
