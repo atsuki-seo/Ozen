@@ -1,0 +1,12 @@
+recipe onionMilkSoup
+  rice : Rice 300 g
+  milk : Milk 200 ml
+  onion : Onion 2 pcs
+  %1 = wash(rice) : Rice<prep has washed> 300 g
+  %2 = soak(%1) : Rice<prep has washed, prep has soaked(1800 s)> 300 g
+  %3 = cookRice(%2) : CookedRice 300 g
+  %4 = peel(onion) : Onion<shape: peeled> 2 pcs
+  %5 = cut(%4, slice) : Onion<shape: cut(slice, 3 mm)> 2 pcs
+  %6 = simmer(milk, 300 s) : Milk<doneness: done> 200 ml
+result ok errors=0 warnings=0 infos=0
+exit 0
