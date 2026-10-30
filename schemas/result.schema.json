@@ -1274,6 +1274,22 @@
                   }
                 ]
               },
+              "heats": {
+                "additionalProperties": false,
+                "properties": {
+                  "resource": {
+                    "type": "string"
+                  },
+                  "temp": {
+                    "$ref": "#/$defs/rational"
+                  }
+                },
+                "required": [
+                  "resource",
+                  "temp"
+                ],
+                "type": "object"
+              },
               "id": {
                 "minimum": 0,
                 "type": "integer"
@@ -1286,7 +1302,8 @@
                   "rinse",
                   "soak",
                   "wipe",
-                  "run"
+                  "run",
+                  "preheat"
                 ]
               },
               "leaves": {
@@ -1314,6 +1331,25 @@
                     "dirt",
                     "food",
                     "resource"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "needs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "resource": {
+                      "type": "string"
+                    },
+                    "temp": {
+                      "$ref": "#/$defs/rational"
+                    }
+                  },
+                  "required": [
+                    "resource",
+                    "temp"
                   ],
                   "type": "object"
                 },
@@ -1580,6 +1616,7 @@
             "soak",
             "wipe",
             "run",
+            "preheat",
             "hold"
           ]
         },
