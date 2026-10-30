@@ -5,6 +5,6 @@ recipe curry {
     pork: 200 g
     onion: 1 pcs
   }
-  let p = peel(onion)
-  let f = fry(pork, 5 min)
+  let peeled = peel(onion)
+  let fried = fry(pork, 5 min)
 }
