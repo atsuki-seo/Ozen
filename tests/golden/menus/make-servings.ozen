@@ -1,0 +1,24 @@
+// args: check --kitchen home --entry dinner
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pot: Pot
+  }
+  tableware {
+    bowl: SoupBowl { count: 3, capacity: 300 ml }
+  }
+}
+recipe misoSoup(servings: Count = 2) {
+  ingredients {
+    dashi: 150 ml * servings
+  }
+  let soup = boil(dashi, 5 min)
+  serve main {
+    plate perPerson on SoupBowl { soup }
+  }
+}
+menu dinner {
+  let soup = make misoSoup(servings: 4)
+}

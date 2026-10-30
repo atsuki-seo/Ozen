@@ -1,0 +1,3 @@
+error KIT003 vesselShortage make-servings.ozen:19:5-19:41 args=["SoupBowl", "4", "3"]: vessel shortage
+result error errors=1 warnings=0 infos=0
+exit 1
