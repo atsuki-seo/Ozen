@@ -8173,6 +8173,17 @@ static void steps_json(sema *s, const sched_out *o, ozni_index name) {
   ozni_buf_puts(b, "]}");
 }
 
+static bool hot_enough(sema *s, const sched_unit *su, const ozni_ir_req *req) {
+  for (ozni_index k = 0; req->heated && k < ozni_table_count(s->kentries); k++) {
+    const kentry *e = ozni_table_get(s->kentries, k);
+    ozni_qty max;
+    if (e->name == su->entry && entry_field(s, e, "maxTemp", &max) && ozni_rat_cmp(max.v.hi, req->temp) < 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static void schedule_dish(sema *s, ozni_index name) {
   uint32_t total = ozni_table_count(s->ir.nodes) - s->ir_base;
   ozni_sched_task *tasks = ozni_arena_alloc(s->c->arena, (total + 1) * sizeof *tasks);
@@ -8314,7 +8325,8 @@ static void schedule_dish(sema *s, ozni_index name) {
           for (ozni_index u = 0; u < ozni_table_count(units); u++) {
             const sched_unit *su = ozni_table_get(units, u);
             bool runs_only = req->text != washer && kind_is(s, su->kfile, su->knode, washer, 0);
-            if (!runs_only && kind_has(s, su->kfile, su->knode, req->file, nd(s, req->file, req->type), 0)) {
+            if (!runs_only && kind_has(s, su->kfile, su->knode, req->file, nd(s, req->file, req->type), 0) &&
+                hot_enough(s, su, req)) {
               if (!ozni_table_push(lists, &u, nullptr)) {
                 s->c->oom = true;
               }
