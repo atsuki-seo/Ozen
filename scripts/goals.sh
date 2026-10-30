@@ -659,7 +659,8 @@ goal_G_RF_SAMPLES_PIPE() {
 }
 
 goal_G_RF_SAMPLES_SAME() {
-  not_yet "check-rewrite-equivalence.py --samples" P5-8
+  want_re "samples same" '^samples-same: [1-9][0-9]* samples, 0 changed ir, 0 changed schedules, 0 changed renders$' \
+    "$(python3 -B scripts/check-rewrite-equivalence.py --base rewrite-start --head "$(rewrite_head)" --samples samples 2>/dev/null | tail -n 1)"
 }
 
 goal_G_RF_SAMPLES_EXPECT() {
