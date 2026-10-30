@@ -138,6 +138,7 @@ const ARG_KINDS = {
   criticalPath: ['duration'],
   noPlating: ['name'],
   unusedValue: ['name'],
+  useWithinMissed: ['name', 'duration', 'duration'],
 };
 
 export function termText(ph, kind, x, opts = {}) {

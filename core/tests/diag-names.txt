@@ -103,3 +103,4 @@ SCH:criticalPath
 SCH:serveWithinMissed
 TYP:servingsUnknown
 LIN:unusedValue
+SCH:useWithinMissed
