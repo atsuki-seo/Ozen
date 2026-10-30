@@ -10,10 +10,10 @@ action press(x: T, time: Time = 2 min, heat: Heat = low) -> T<doneness: done> {
 local action hidden(x: T) -> T {
   uses hands for 1 min
 }
-recipe r() {
+recipe pressedTofu {
   ingredients {
     tofu: 100 g
   }
-  let p = press(tofu)
-  let h = hidden(p)
+  let pressed = press(tofu)
+  let hiddenResult = hidden(pressed)
 }

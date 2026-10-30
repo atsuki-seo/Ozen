@@ -1,7 +1,7 @@
 // args: check --format json
 macro inner(v) {
   quote {
-    let y = $v + 1 min
+    let total = $v + 1 min
   }
 }
 macro outer(v) {
@@ -9,10 +9,10 @@ macro outer(v) {
     inner($v)
   }
 }
-recipe r() {
+recipe onionSalad {
   ingredients {
     onion: 1 pcs
   }
   outer(1 g)
-  let s = cut(onion, style: slice)
+  let sliced = cut(onion, style: slice)
 }

@@ -1,14 +1,14 @@
-// args: check --format sarif --entry r
+// args: check --format sarif --entry onionSalad
 macro inner(v) {
   quote {
-    let y = $v + 1 min
+    let total = $v + 1 min
   }
 }
-recipe r() {
+recipe onionSalad {
   ingredients {
     onion: 1 pcs
     salt: [any amount]
   }
   inner(1 g)
-  let s = cut(onion, style: slice)
+  let sliced = cut(onion, style: slice)
 }

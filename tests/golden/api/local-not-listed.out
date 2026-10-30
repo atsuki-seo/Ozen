@@ -1,6 +1,6 @@
 {"schemaVersion":1,"ozenVersion":"0.1.0","level":0,"entry":null,"files":["local-not-listed.ozen"],"outcome":{"status":"ok","errors":0,"warnings":0,"infos":0},"diagnostics":[],"definitions":{"definitions":[
 {"kind":"action","name":"shown","module":"local-not-listed","file":0,"local":false,"supers":[],"output":{"text":"T","name":"T"},"params":[{"name":"x","type":{"text":"T","name":"T"},"default":null}],"values":[],"finer":[],"members":[{"uses":[{"text":"hands","name":"hands"}],"for":{"text":"1 min","annotations":[]},"annotations":[]}],"annotations":[]},
-{"kind":"recipe","name":"r","module":"local-not-listed","file":0,"local":false,"supers":[],"params":[],"values":[],"finer":[],"members":[],"annotations":[]},
+{"kind":"recipe","name":"gohanPrep","module":"local-not-listed","file":0,"local":false,"supers":[],"params":[],"values":[],"finer":[],"members":[],"annotations":[]},
 {"kind":"dimension","name":"Mass","module":"std.prelude","file":2,"local":false,"supers":[],"params":[],"values":[],"finer":[],"members":[],"annotations":[]},
 {"kind":"dimension","name":"Volume","module":"std.prelude","file":2,"local":false,"supers":[],"params":[],"values":[],"finer":[],"members":[],"annotations":[]},
 {"kind":"dimension","name":"Length","module":"std.prelude","file":2,"local":false,"supers":[],"params":[],"values":[],"finer":[],"members":[],"annotations":[]},

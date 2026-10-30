@@ -1,21 +1,21 @@
 // args: check --format json --emit ir --entry dinner
-recipe soup() {
+recipe soup {
   ingredients {
     water: 300 ml
   }
-  let w = boilWater(water)
+  let boiled = boilWater(water)
 }
-recipe salad() {
+recipe salad {
   ingredients {
     lettuce: 100 g
   }
-  let t = tear(lettuce)
+  let torn = tear(lettuce)
 }
-menu dinner() {
-  let a = make soup()
-  let b = make salad()
+menu dinner {
+  let soupBowl = make soup
+  let saladPlate = make salad
   serve main {
-    plate perPerson on SoupBowl { a } @whileWarm
-    plate perPerson on SmallBowl { b } @chilled @serveWithin(30 min)
+    plate perPerson on SoupBowl { soupBowl } @whileWarm
+    plate perPerson on SmallBowl { saladPlate } @chilled @serveWithin(30 min)
   }
 }

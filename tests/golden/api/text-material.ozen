@@ -8,15 +8,15 @@ kitchen home {
     board: CuttingBoard
   }
 }
-recipe r() {
+recipe porkAndCabbage {
   ingredients {
     pork: 200 g
     c1: Cabbage 50 g
   }
   parallel {
-    branch a {
-      let a = trim(pork, style: dice)
-      let b = trim(c1)
+    branch trimmedPork {
+      let trimmedPork = trim(pork, style: dice)
+      let trimmedCabbage = trim(c1)
     }
   }
 }

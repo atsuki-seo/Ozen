@@ -5,10 +5,10 @@ local action secret(x: T) -> T {
 action shown(x: T) -> T {
   uses hands for 1 min
 }
-recipe r() {
+recipe gohanPrep {
   ingredients {
     rice: 300 g
   }
-  let s = secret(rice)
-  let t = shown(s)
+  let prepped = secret(rice)
+  let finished = shown(prepped)
 }

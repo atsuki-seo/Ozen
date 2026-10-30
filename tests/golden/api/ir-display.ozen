@@ -1,5 +1,5 @@
-// args: check --format json --emit ir --entry r
-recipe r() {
+// args: check --format json --emit ir --entry porkStew
+recipe porkStew {
   ingredients {
     water: 200 ml
     onion: 1 pcs
