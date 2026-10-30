@@ -1,6 +1,6 @@
 // args: debug steps
 action braise(x: T<Fatty>) -> T<doneness: done>
-recipe r() {
-  ingredients { b: Buri<belly> 300 g }
-  let y = braise(b)
+recipe buriDaikon {
+  ingredients { buriBelly: Buri<belly> 300 g }
+  let braised = braise(buriBelly)
 }

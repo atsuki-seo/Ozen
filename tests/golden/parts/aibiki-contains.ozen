@@ -19,10 +19,10 @@ ingredient Aibiki37 : Mixture {
   axes: doneness
   contains: { Lean: 30..40 %, Fat: 60..70 % }
 }
-recipe r() {
+recipe hamburgSteak {
   ingredients {
-    a: Aibiki 100 ml
-    b: Aibiki37 100 ml
+    mince: Aibiki 100 ml
+    leanMince: Aibiki37 100 ml
   }
-  let m = fry([a, b], 5 min)
+  let fried = fry([mince, leanMince], 5 min)
 }

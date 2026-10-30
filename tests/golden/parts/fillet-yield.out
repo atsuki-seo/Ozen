@@ -1,4 +1,4 @@
-recipe r
+recipe simesaba
   saba : Saba 1000 g
   %1 = fillet3(saba) : (Saba<fillet> 500..600 g, Saba<head> 150..200 g, Saba<frame> 200..350 g)
   %2 = cut(%1.1, style: slice) : Saba<fillet, shape: cut(slice, 3 mm)> 500..600 g

@@ -1,6 +1,6 @@
 alias Mixed = Pork<belly | leg>
 action braise(x: T<Fatty>) -> T<doneness: done>
-recipe r() {
-  ingredients { m: Mixed 300 g }
-  let y = braise(m)
+recipe nikomi {
+  ingredients { mixedPork: Mixed 300 g }
+  let braised = braise(mixedPork)
 }

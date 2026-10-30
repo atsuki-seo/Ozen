@@ -1,5 +1,5 @@
-recipe r
-  b : Buri<belly> 300 g
-  %1 = braise(b) : Buri<belly, doneness: done> 300 g
+recipe buriDaikon
+  buriBelly : Buri<belly> 300 g
+  %1 = braise(buriBelly) : Buri<belly, doneness: done> 300 g
 result ok errors=0 warnings=0 infos=0
 exit 0

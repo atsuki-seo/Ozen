@@ -1,5 +1,5 @@
 alias TofuOrPork = Tofu | Pork
-recipe r() {
-  ingredients { p: TofuOrPork 200 g }
-  let c = cut(p, style: dice)
+recipe stirFry {
+  ingredients { protein: TofuOrPork 200 g }
+  let diced = cut(protein, style: dice)
 }

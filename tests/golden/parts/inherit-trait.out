@@ -1,7 +1,7 @@
-recipe r
-  a : Pork<shoulderLoin> 300 g
-  b : Pork<shoulderLoin> 200 g
-  %1 = roastLoin(a) : Pork<shoulderLoin, doneness: done> 300 g
-  %2 = braise(b) : Pork<shoulderLoin, doneness: done> 200 g
+recipe porkRoast
+  roastCut : Pork<shoulderLoin> 300 g
+  braiseCut : Pork<shoulderLoin> 200 g
+  %1 = roastLoin(roastCut) : Pork<shoulderLoin, doneness: done> 300 g
+  %2 = braise(braiseCut) : Pork<shoulderLoin, doneness: done> 200 g
 result ok errors=0 warnings=0 infos=0
 exit 0

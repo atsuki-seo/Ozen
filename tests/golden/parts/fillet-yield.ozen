@@ -16,10 +16,10 @@ ingredient Saba : Fish, Hazard, RawEdible, SkinEdible {
   }
 }
 action fillet3(x: T) -> (T<fillet>, T<head>, T<frame>)
-recipe r() {
+recipe simesaba {
   ingredients { saba: 1000 g }
-  let (f, h, a) = fillet3(saba)
-  let s = cut(f, style: slice)
-  store(h)
-  discard(a)
+  let (body, head, bones) = fillet3(saba)
+  let sliced = cut(body, style: slice)
+  store(head)
+  discard(bones)
 }

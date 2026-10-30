@@ -1,4 +1,4 @@
-recipe r
+recipe buriSashimi
   buri : Buri 2000 g
   %1 = gut(buri) : (Buri<back> 500..600 g, Buri<guts> 160..240 g, Buri<scales> 20..40 g)
   %2 = cut(%1.1, style: slice) : Buri<back, shape: cut(slice, 3 mm)> 500..600 g
