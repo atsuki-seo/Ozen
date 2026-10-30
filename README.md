@@ -63,21 +63,21 @@ For example, with these two files:
 
 <!-- file: soup.ozen -->
 ```ozen
-recipe soup {
+recipe soup(servings: 2) {
   ingredients {
-    water: 400 ml
-    onion: 1 pcs
-    carrot: 1 pcs
+    water: 200 ml per serving
+    onion: 0.5 pcs per serving
+    carrot: 0.5 pcs per serving
   }
-  let onionCut = cut(peel(onion), slice, 3 mm)
-  let carrotCut = cut(peel(carrot), rollCut, 20 mm)
+  let onionCut = onion |> peel |> cut(slice, 3 mm)
+  let carrotCut = carrot |> peel |> cut(rollCut, 20 mm)
   let soup = simmer([water, onionCut, carrotCut], 15 min)
 }
 
 menu lunch(people: 2) {
-  let s = make soup
+  let soupPot = make soup
   serve main {
-    plate perPerson on SoupBowl { s }
+    plate perPerson on SoupBowl { soupPot }
   }
 }
 ```
@@ -115,9 +115,9 @@ schedule lunch level=2 cooks=1
   1500..1560 (1518) %10 plate perPerson by cook1 [bowl#1, bowl#2]
   serve main at 1560
   total 1560
-info ASM007 provisionalValue soup.ozen:7:18-7:47 args=["cut"]: provisional value
-info ASM007 provisionalValue soup.ozen:7:22-7:33 args=["peel"]: provisional value
-info ASM007 provisionalValue soup.ozen:15:5-15:38 args=["plate"]: provisional value
+info ASM007 provisionalValue soup.ozen:7:18-7:51 args=["cut"]: provisional value
+info ASM007 provisionalValue soup.ozen:7:18-7:31 args=["peel"]: provisional value
+info ASM007 provisionalValue soup.ozen:15:5-15:44 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=3
 ```
 
