@@ -1035,6 +1035,22 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - S522 の壊し方（P3-2、2026-10-30）: 網羅表は「`()` の無い宣言では引数の既定値を束縛しない」としたが、`()` の無い宣言は引数を持たないので、この壊し方は起こりえない。`recipe x()` と `recipe x` はもともと同じ構文木になり（`paren_params(p, n, false)`）、`make x` は P2-3 で `make x()` と同じになった。そのため `omit-parens` は直す前から合格し、`scripts/red-first-exceptions.txt` に理由を書いた。壊し方を「`recipe`・`menu` の `()` を必須にする」に直した
 - わざと壊す確認: S522・`cgolden/syntax/omit-parens`（P3-2、2026-10-30）。`paren_params(p, n, false)` を `true` にして `()` を必須にすると、`()` を省いた宣言が構文の誤りになり `omit-parens` が落ちた。戻すと合格した
 - 空の `()` の数（P3-2、2026-10-30）: `check-test-names.py --empty-parens` で、`tests` に 434 か所、`core/tests/unit` に 2 か所（§3.2 の見積もり 454 行は 1 行に 2 か所ある行や `.out` の行を含む数え方で、こちらは `.ozen`・`.sh`・`.c` の一致の数。`syntax/omit-parens` は例外）。`renderers/test/inputs` の 11 か所、`bindings/inputs` の 1 か所、README の `ozen` の塊の 4 か所は P3-2 で消し、README の束ねる例の出力の `recipe soup()` も合わせて直した。`G-RF-NO-EMPTY-PARENS` は P5-7 まで落ちる
+- わざと壊す確認: S525・`cgolden/quantity/per-serving`（P4-1、2026-10-30）。人数を掛ける処理を外すと、`rice` が 75 g のままになり `per-serving` が落ちた（`per serving` を使うほかの golden も一緒に落ちた）。戻すと合格した
+- わざと壊す確認: S526・`cgolden/quantity/fixed-amount`（P4-1、2026-10-30）。印の無い量にも人数を掛けると、`miso` が 80 g になり `fixed-amount` が落ちた（`servings` の引数を持つ既存の golden も一緒に落ちた）。戻すと合格した
+- わざと壊す確認: S527・`cgolden/quantity/per-serving-param`（P4-1、2026-10-30）。`serving_count` で料理の引数（`s->servings`）を見ないと、`TYP020` になり `per-serving-param` が落ちた。戻すと合格した
+- わざと壊す確認: S528・`cgolden/quantity/per-serving-options`（P4-1、2026-10-30）。`serving_count` で条件の `servings` を見ないと、`per-serving-options` だけが落ちた。戻すと合格した
+- わざと壊す確認: S529・`cgolden/quantity/servings-unknown`（P4-1、2026-10-30）。人数が決まらないとき 1 人とすると、`TYP020` が出ず `servings-unknown` だけが落ちた。戻すと合格した
+- わざと壊す確認: S530・`cgolden/quantity/servings-unknown`（P4-1、2026-10-30）。登録簿の `TYP020` の重さを `WARNING` にすると、`servings-unknown` だけが落ちた。戻すと合格した
+- わざと壊す確認: S531・`cgolden/quantity/per-serving-misplaced`（P4-1、2026-10-30）。`default_of` で既定値の後の `per` とその次の語を読み飛ばすと、`SYN003` が出ず `per-serving-misplaced` だけが落ちた。戻すと合格した
+- わざと壊す確認: S532・`cgolden/menus/make-servings-per-serving`（P4-1、2026-10-30）。`eval_param` で `make` の引数の `servings` を料理の人数にしない（P2-4 の前に戻す）と、`make-servings-per-serving` と `make-servings` が落ちた。戻すと合格した
+- わざと壊す確認: S533・`cgolden/quantity/per-serving-json`（P4-1、2026-10-30）。JSON の `ingredients` の量を人数で割って書くと、`per-serving-json` だけが落ちた。戻すと合格した
+- わざと壊す確認: S534・`cgolden/quantity/per-serving-json`（P4-1、2026-10-30）。掛けた量に Count の次元を 1 つ足すと、`per-serving-json` が落ちた（`per serving` を使うほかの golden も一緒に落ちた）。戻すと合格した
+- わざと壊す確認: S535・`G-STD-PHRASES`（P4-1、2026-10-30）。`phrases/ja.ftl` から `diag-servings-unknown` を消すと「1 missing in ja」で落ちた。戻すと合格した
+- わざと壊す確認: S536・`G-RF-FUZZ-DICT`（P4-1、2026-10-30）。辞書から `"serving"` を消すと「fuzz dict \"serving\": got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S614・`prop/bundle_roundtrip`（P4-1、2026-10-30）。`ozen bundle` が宣言を書き写すときに `|>` を落とすと、「tests/golden/bundle/new-syntax: unbundle failed」で 1 differences になって落ちた。戻すと合格した
+- `per serving` の作り（P4-1、2026-10-30）: 構文は `ingredient_item := IDENT ':' [ type_ref ] expr [ per_serving ] annotations` と `per_serving := 'per' 'serving'`。量の式を新しいノード `PerServing` で包む（ノードの種類は末尾に足したので、ほかの種類の番号は変わらない）。`TYP020` は引数を持たず、位置は `75 g per serving` 全体。人数は `s->servings`（料理の引数か、`make` で渡した値）、無ければ条件の `servings` から取り、`pcs` が付いていれば外す（D45）
+- 既存の golden の期待値の変更（P4-1、2026-10-30）: `api/local-not-listed` は診断の一覧を出すので、`TYP020` の 1 行を手で足した。実装より先の別のコミットにした
+- `per-serving-misplaced` の red-first（P4-1、2026-10-30）: `per` は直す前はどこでも予期しないトークンなので、直す前から合格する。`scripts/red-first-exceptions.txt` に理由を書いた
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
