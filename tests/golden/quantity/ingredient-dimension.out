@@ -1,0 +1,3 @@
+error TYP001 dimension ingredient-dimension.ozen:4:11-4:16 args=["Time", "Mass"]: dimension
+result error errors=1 warnings=0 infos=0
+exit 1
