@@ -1,5 +1,5 @@
 // args: debug ir
-recipe r() {
+recipe nimono {
   ingredients {
     onion: 1 pcs
     carrot: 1 pcs

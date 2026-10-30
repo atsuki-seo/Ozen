@@ -1,4 +1,4 @@
-ir r
+ir nimono
   %1 = in onion : Onion 1 pcs
   %2 = op peel %1 : Onion -> Onion<shape: peeled> 1 pcs [hands, WorkSurface; 60..120 s]
   %3 = op cut %2 style=slice size=3 mm : Onion<shape: peeled> -> Onion<shape: cut(slice, 3 mm)> 1 pcs [hands, WorkSurface, CuttingSurface, Knife; 60..180 s]

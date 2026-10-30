@@ -1,5 +1,5 @@
 // args: debug ir
-recipe r() {
+recipe onionSlices {
   ingredients { onion: 1/3 pcs }
-  let p = peel(onion)
+  let peeled = peel(onion)
 }

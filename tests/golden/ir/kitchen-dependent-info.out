@@ -1,4 +1,4 @@
-ir r
+ir porkGinger
   %1 = in pork : Pork 500 g
   %2 = op fry %1/2 time=480 s heat=medium : Pork -> Pork<doneness: done, browning: light> 250 g [hands, HeatSource<stovetop>, FryingPan; 480 s]
   %3 = op fry %1/2 time=480 s heat=medium : Pork -> Pork<doneness: done, browning: light> 250 g [hands, HeatSource<stovetop>, FryingPan; 480 s]

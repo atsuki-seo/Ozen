@@ -1,4 +1,4 @@
-ir r
+ir gohan
   %1 = in rice : Rice 300 g
   %2 = op soak %1 time=1800 s : Rice -> Rice<prep has soaked(1800 s)> 300 g [Container; 1800 s; unattended]
   %3 = choose cookRice %2 : Rice<prep has soaked(1800 s)> -> CookedRice 300 g { cooker [RiceCooking; 2520..3240 s; unattended] | pot [hands, HeatSource<stovetop>, Pot; 1500..2100 s] | microwave [HeatSource<microwave>, Container; 900..1200 s; unattended] }
