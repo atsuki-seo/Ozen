@@ -6,6 +6,8 @@ import sys
 
 EMPTY_PARENS = re.compile(
     r"\b(?:recipe|menu)\s+[A-Za-z_][A-Za-z0-9_]*\s*\(\s*\)|\bmake\s+[A-Za-z_][A-Za-z0-9_.]*\s*\(\s*\)")
+DECLARATION = re.compile(r"\b(?:recipe|menu)\s+([A-Za-z_][A-Za-z0-9_]*)")
+BINDING = re.compile(r"\blet\s+(?:([A-Za-z_][A-Za-z0-9_]*)|\(([^)]*)\))")
 SUFFIXES = (".ozen", ".sh", ".c")
 
 
@@ -45,21 +47,43 @@ def load_exceptions(path):
     return listed, unlisted
 
 
+def names(files, listed, unlisted):
+    declarations = bindings = short = 0
+    for path in files:
+        if os.path.normpath(path) in listed:
+            continue
+        text = text_of(path)
+        found = DECLARATION.findall(text)
+        bound = []
+        for single, group in BINDING.findall(text):
+            bound += [single] if single else [n.strip() for n in group.split(",") if n.strip()]
+        declarations += len(found)
+        bindings += len(bound)
+        for name in found + bound:
+            if len(name) == 1:
+                short += 1
+                print(f"{path}: {name}", file=sys.stderr)
+    for path in unlisted:
+        print(f"exception without a reason: {path}", file=sys.stderr)
+    print(f"names: {declarations} declarations, {bindings} bindings, {short} one-letter, "
+          f"{len(unlisted)} unlisted exceptions")
+    return 0 if short == 0 and not unlisted else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--empty-parens", action="store_true")
     ap.add_argument("--exceptions", required=True)
     ap.add_argument("paths", nargs="+")
     a = ap.parse_args()
-    if not a.empty_parens:
-        print("only --empty-parens is available", file=sys.stderr)
-        return 2
     try:
         listed, unlisted = load_exceptions(a.exceptions)
         files = list(sources(a.paths))
     except FileNotFoundError as e:
         print(f"no such file: {e}", file=sys.stderr)
         return 2
+    if not a.empty_parens:
+        return names(files, listed, unlisted)
     found = 0
     for path in files:
         if os.path.normpath(path) in listed:
