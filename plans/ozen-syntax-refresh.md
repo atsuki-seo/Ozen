@@ -849,17 +849,23 @@ golden の入口は、着手点の N0 = 363（§9）から 85 増える（`quant
 | S629 | データの完全性 | `cgolden/sched/preheat-no-preheat-time` | `preheatTime` が無ければ予熱を入れない | P9-4 |
 | S630 | 効かない条件 | `cgolden/sched/preheat-max-temp-mixed` | `maxTemp` の低い個体を候補から外さない | P9-4 |
 | S631 | 効かない条件 | `cgolden/sched/preheat-cooled` | 温度を要らない作業の後も温まったままにする | P9-4 |
-| S632 | 時間と順序 | `cgolden/sched/preheat-short-prep` | 予熱の始まりを 0 秒で切らない | P9-4 |
+| S632 | 時間と順序 | `cgolden/sched/preheat-short-prep` | 作業を予熱の終わりまで待たせない | P9-4 |
 | S633 | 効かない条件 | `cgolden/serve/use-within-bad-arg` | 引数の次元を見ない | P9-4 |
 | S634 | データの完全性 | `cgolden/sched/preheat-json` | 期限が無くても `limits` の欄を出す | P9-4 |
 | S635 | 実際の経路 | `cgolden/serve/use-within-expr` | `make` の中の期限を積まない | P9-4 |
-| S636 | 正常系 | `cgolden/serve/use-within-missed-no-delay` | どの試みでも守れないとき、期限を見た最初の試みを採る | P9-4 |
+| S636 | 正常系 | `cgolden/serve/use-within-missed-no-delay` | 採点を見ずに、いつも期限を見た最初の試みを採る | P9-4 |
 
 網羅の検査は `G-RF-COVERAGE`（P0-1 の後と P9-4 で実行する）。
 
 独立した監査（サブエージェント）の指摘のうち、取り込まなかったものと理由:
 
 - §8 の「書き直したレシピが料理として自然か」のうち、「最後の作業が加熱か盛り付けか」を機械で確かめる案 — D50 で「動作の並びを保つ」としたので、元のテストが切っただけで終わる場合は、そのまま保つことがある。自然かどうかの判断は §8 に残す。
+- P9-4 の監査の 18（予熱と `@useWithin`・`@serveWithin`・`OvenRange` の組み合わせの golden）— それぞれの仕組みは別の golden で確かめ、組み合わせた段取りの正しさは `G-SCHED-CHECK`（`needs`・`heats`・`limits` を JSON から独立に検査する）が全 golden で見る。監査で走らせた組み合わせも違反 0 だった
+- P9-4 の監査の 20 のうち `buy` の結果に付けた `@useWithin` — 作る作業が無いので IR の producer が作業にならず、期限は効かず診断も出ない。S597 は「材料そのもの（宣言と、それを束縛し直した名前）」に限った
+- P9-4 の監査の 21（材料・式の文に付けた `@allow(unusedValue)`）— 重さの設定は診断の位置を含む注釈の範囲で決まる共通の仕組み（`levels.c`）で、`diag/annotation-scope`・`bundle/annotation-scope` が材料と束縛の両方で確かめている
+- P9-4 の監査の 22（段取り表の予熱の行の要素）— `recipe-schedule` は予熱の文が HTML に出ることを見る。行の構造は既存の段取り表のテストが作業の種類によらず確かめている
+- P9-4 の監査の 23（調べた値が `preheatTime` の範囲に含まれるかを機械で判定する）— 調べた記録は値の欄を持たない書式（`spec/sources/search-log.yaml`）で、値の幅の妥当性は §8 に残す
+- P9-4 の監査の 25（LIN005 の数を §9 と照合するゴール）— 出る数は golden の期待値が固定しているので、別のゴールは足さない
 
 ---
 
@@ -1421,6 +1427,34 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S610・前提の固定・`G-REPO-VERSION`（P9-3、2026-10-30）。`VERSION` だけを `0.2.0` にすると 3 つの検査が落ちた。戻すと合格した
 - README の例（P9-2、2026-10-30）: 例の献立の `let s = make soup` は 1 文字の名前だったので `soupPot` にし、スープの材料を `per serving`（`servings: 2` の既定値）、切る手順をパイプにした。量の総量は前と同じ。診断の位置は手で数え直し、例の検査で一致を確かめた
 - concept（P9-1、2026-10-30）: §4.1 に使われない値、§4.2 に予熱、§4.4 にパイプ・`()` の省略・`per serving`、§4.5 に `@useWithin`、§6.1 の重さの表に `unusedValue`・`useWithinMissed`（警告）と `servingsUnknown`（エラー）を足した。本文の `make homemadeNaan()`・`make cookedRice()` の空の `()` も消した
+- 網羅の監査: 指摘 25 件、取り込み 20 件（P9-4、2026-10-30）。独立したサブエージェントに §1・§4・§8・網羅表と、追加・書き直したテストのソースを読ませた。実装の穴 3 件（`preheatTime` の無い種類で予熱が入らず `schedcheck` が違反とする、`maxTemp` の低い個体を候補に残す、`@useWithin(10 g)` を時間として扱う）を直し、S629・S630・S633 にした。§9 で決めたことを S621〜S628・S631・S632・S634〜S636 にし、golden を 17 個、`schedcheck` の fixture を 2 つ足した。`G-RF-CONCEPT` は語ごとと重さの表の行ごとに分けた。取り込まなかった 5 件の理由は §5.3 の末尾に書いた。S501・S560・S579・S586 の文言を実装に合わせて直した
+- `schedcheck` の並び（P9-4、2026-10-30）: 長さ 0 の予熱は作業と同じ時刻に並ぶので、同じ始まりの時刻では予熱を先に見るようにした（段取りのテキストは、今の並びのとおり作業を先に出す）
+- わざと壊す確認: S561・効かない条件・`cgolden/linear/unused-in-make-only`（P9-4、2026-10-30）。`make` の中でも追跡して `quiet` を外して報告すると`unused-in-make-only` を含む 4 本が落ちた。戻すと合格した
+- わざと壊す確認: S575・境界・上限・`cgolden/sched/preheat-same-temp`（P9-4、2026-10-30）。温度の比較を「同じかそれより低い」から「より低い」にすると`preheat-same-temp` だけが落ちた。戻すと合格した
+- わざと壊す確認: S578・時間と順序・`cgolden/sched/preheat-reuse-backward`（P9-4、2026-10-30）。後ろ向きで予熱の予約を取り消さないと`preheat-reuse-backward` だけが落ちた。戻すと合格した
+- わざと壊す確認: S578・時間と順序・`cgolden/sched/preheat-hotter-backward`（P9-4、2026-10-30）。後ろ向きで温度を見ずに予熱の予約を取り消すと`preheat-hotter-backward` だけが落ちた。戻すと合格した
+- わざと壊す確認: S592・境界・上限・`cgolden/serve/use-within-range`（P9-4、2026-10-30）。作った作業の終わりの下限で待ちを計ると`use-within-range` だけが落ちた。戻すと合格した
+- わざと壊す確認: S597・効かない条件・`cgolden/serve/use-within-on-alias`（P9-4、2026-10-30）。材料と同じ名前の束縛のときだけ材料とみなすと`use-within-on-alias` だけが落ちた。戻すと合格した
+- わざと壊す確認: S600・データの完全性・`cgolden/serve/use-within-missed-json`（P9-4、2026-10-30）。`missed` をいつも `false` にすると`use-within-missed-json` だけが落ちた。戻すと合格した
+- わざと壊す確認: S601・前提の固定・`sh/test-schedcheck.sh`（P9-4、2026-10-30）。`missed` なのに間に合っている場合の検査と、知らない作業を指す場合の検査を、それぞれ外すと `bad-use-marked`・`bad-use-unknown` の場合が落ちた。戻すと合格した
+- わざと壊す確認: S621・効かない条件・`cgolden/linear/unused-repeat`（P9-4、2026-10-30）。繰り返しの本体の値も追跡すると`unused-repeat` を含む 4 本が落ちた。戻すと合格した
+- わざと壊す確認: S622・正常系・`cgolden/wash/reason`（P9-4、2026-10-30）。枝の最後の値を料理の最後の値にすると`wash/reason` を含む 13 本が落ちた。戻すと合格した
+- わざと壊す確認: S623・正常系・`cgolden/eval/runtime-value-in-if`（P9-4、2026-10-30）。診断が 1 つでもある料理では報告しないと`runtime-value-in-if` を含む 41 本が落ちた。戻すと合格した
+- わざと壊す確認: S624・データの完全性・`cgolden/macro/hygiene-tmp`（P9-4、2026-10-30）。報告に展開の履歴（`via`）を付けないと`hygiene-tmp` を含む 3 本が落ちた。戻すと合格した
+- わざと壊す確認: S625・効かない条件・`cgolden/linear/unused-alias`（P9-4、2026-10-30）。同じ値を 2 回積むと`unused-alias` だけが落ちた。戻すと合格した
+- わざと壊す確認: S626・正常系・`cgolden/menus/split-pass`（P9-4、2026-10-30）。献立では報告しないと`split-pass`・`sched/shared-cutting` が落ちた。戻すと合格した
+- わざと壊す確認: S627・正常系・`cgolden/linear/unused-if`（P9-4、2026-10-30）。`if` の本体を追跡しないと`unused-if` だけが落ちた。戻すと合格した
+- わざと壊す確認: S628・効かない条件・`cgolden/linear/unused-non-food`（P9-4、2026-10-30）。量の束縛も使われない値として報告すると`unused-non-food` を含む 12 本が落ちた。戻すと合格した
+- わざと壊す確認: S629・データの完全性・`cgolden/sched/preheat-no-preheat-time`（P9-4、2026-10-30）。`preheatTime` が 0 なら予熱を入れないと`preheat-no-preheat-time` だけが落ちた。戻すと合格した
+- わざと壊す確認: S630・効かない条件・`cgolden/sched/preheat-max-temp-mixed`（P9-4、2026-10-30）。`maxTemp` の低い個体を候補から外さないと`preheat-max-temp-mixed` だけが落ちた。戻すと合格した
+- わざと壊す確認: S631・効かない条件・`cgolden/sched/preheat-cooled`（P9-4、2026-10-30）。温度を要らない作業の後も温まったままにすると`preheat-cooled` だけが落ちた。戻すと合格した
+- わざと壊す確認: S632・時間と順序・`cgolden/sched/preheat-short-prep`（P9-4、2026-10-30）。作業を予熱の終わりまで待たせないと`preheat-short-prep` を含む 11 本が落ちた。戻すと合格した
+- S632 の壊し方（P9-4、2026-10-30）: 最初に「予熱の始まりを 0 秒で切らない」で壊したが、個体の空いた時刻（0 以上）との遅い方を取るので結果は変わらず、落ちなかった。網羅表の壊し方を「作業を予熱の終わりまで待たせない」に替えた
+- わざと壊す確認: S633・効かない条件・`cgolden/serve/use-within-bad-arg`（P9-4、2026-10-30）。`@useWithin` の引数の次元を見ないと`use-within-bad-arg` だけが落ちた。戻すと合格した
+- わざと壊す確認: S634・データの完全性・`cgolden/sched/preheat-json`（P9-4、2026-10-30）。期限が無くても `limits` の欄を出すと`preheat-json` を含む 4 本が落ちた。戻すと合格した
+- わざと壊す確認: S635・実際の経路・`cgolden/serve/use-within-expr`（P9-4、2026-10-30）。`make` の中の期限を積まないと`use-within-expr` だけが落ちた。戻すと合格した
+- わざと壊す確認: S636・正常系・`cgolden/serve/use-within-missed-no-delay`（P9-4、2026-10-30）。採点を見ずに、いつも期限を見た最初の試みを採ると`use-within-missed-no-delay` を含む 11 本が落ちた。戻すと合格した
+- 監査で足した golden の期待値（P9-4、2026-10-30）: 段取りは手で組んだ。直す前の実装で出せるものは出力と照らし、直す前提の 3 つ（`preheat-no-preheat-time`・`preheat-max-temp-mixed`・`use-within-bad-arg`）は手で書いて先にコミットした。`unused-if` の行番号だけ数え違えて直した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
