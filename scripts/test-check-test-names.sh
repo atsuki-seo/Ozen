@@ -68,5 +68,34 @@ reset
 rm "$work/README.md"
 expect missing-path "" 2
 
+expect_names() {
+  local name=$1 want=$2 want_status=$3 got status
+  cases=$((cases + 1))
+  set +e
+  got=$(cd "$work" && python3 -B "$here/check-test-names.py" --exceptions exceptions.txt tests 2>/dev/null | tail -n 1)
+  status=$?
+  set -e
+  if [ "$got" != "$want" ] || [ "$status" -ne "$want_status" ]; then
+    echo "FAIL $name: got '$got' (status $status)" >&2
+    failed=$((failed + 1))
+  fi
+}
+
+reset
+expect_names names-clean "names: 5 declarations, 3 bindings, 0 one-letter, 0 unlisted exceptions" 0
+printf 'recipe r {\n  let x = wash(rice)\n}\n' > "$work/tests/golden/short.ozen"
+expect_names one-letter "names: 6 declarations, 4 bindings, 2 one-letter, 0 unlisted exceptions" 1
+printf 'tests/golden/short.ozen keeps one-letter names on purpose\n' >> "$work/exceptions.txt"
+expect_names names-listed "names: 5 declarations, 3 bindings, 0 one-letter, 0 unlisted exceptions" 0
+reset
+printf 'recipe pair {\n  let (a, rest) = split(rice)\n}\n' > "$work/tests/golden/pair.ozen"
+expect_names tuple-binding "names: 6 declarations, 5 bindings, 1 one-letter, 0 unlisted exceptions" 1
+reset
+printf '#!/bin/sh\ncat <<EOF\nmenu m {\n}\nEOF\n' > "$work/tests/cli/tea.sh"
+expect_names shell-heredoc "names: 5 declarations, 3 bindings, 1 one-letter, 0 unlisted exceptions" 1
+reset
+printf 'tests/golden/soup.ozen\n' >> "$work/exceptions.txt"
+expect_names names-exception-without-reason "names: 5 declarations, 3 bindings, 0 one-letter, 1 unlisted exceptions" 1
+
 echo "test-check-test-names: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]
