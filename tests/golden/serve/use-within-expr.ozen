@@ -1,0 +1,29 @@
+// args: debug schedule --entry bananaCream --options today
+action whisk(x: T) -> T {
+  uses hands for 5 min
+}
+action slice(x: T) -> T {
+  uses hands for 20 min
+}
+action top(x: T, with: U) -> T {
+  uses hands for 2 min
+}
+recipe whippedCream {
+  ingredients {
+    cream: 200 ml
+    sugar: 20 g
+  }
+  whisk([cream, sugar]) @useWithin(10 min)
+}
+menu bananaCream(people: 2) {
+  let whipped = make whippedCream
+  let banana = buy Banana 2 pcs
+  let sliced = slice(banana)
+  let topped = top(sliced, whipped)
+  serve main {
+    plate perPerson on DeepPlate { topped }
+  }
+}
+kitchen today : Options {
+  cooks: 2
+}

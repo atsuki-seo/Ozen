@@ -1,0 +1,9 @@
+schedule potatoTempura level=1 cooks=1
+  1380..2580 (2580) %6 slice by cook1
+  2580..2580 (2580) %3 combine unattended
+  2580..2880 (2880) %4 whisk by cook1
+  2880..3000 (3000) %7 coat by cook1
+  3000..3600 (3600) %8 deepFry by cook1
+  total 3600
+result ok errors=0 warnings=0 infos=0
+exit 0

@@ -1,0 +1,24 @@
+// args: debug ir
+action whisk(x: T) -> T {
+  uses hands for 5 min
+}
+action slice(x: T) -> T {
+  uses hands for 20 min
+}
+action coat(x: T, batter: U) -> T {
+  uses hands for 2 min
+}
+action deepFry(x: T) -> T<doneness: done> {
+  uses hands for 10 min
+}
+recipe potatoTempura {
+  ingredients {
+    egg: 1 pcs
+    water: 200 ml
+    potato: 2 pcs
+  }
+  let batter = whisk([egg, water]) @useWithin(10 min)
+  let sliced = slice(potato)
+  let coated = coat(sliced, batter)
+  let fried = deepFry(coated)
+}

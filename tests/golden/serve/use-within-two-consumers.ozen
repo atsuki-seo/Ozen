@@ -1,0 +1,33 @@
+// args: debug schedule --options today
+action whisk(x: T) -> T {
+  uses hands for 5 min
+}
+action slice(x: T) -> T {
+  uses hands for 25 min
+}
+action trim(x: T) -> T {
+  uses hands for 5 min
+}
+action coat(x: T, batter: U) -> T {
+  uses hands for 2 min
+}
+action deepFry(x: T) -> T<doneness: done> {
+  uses hands for 10 min
+}
+recipe vegetableTempura {
+  ingredients {
+    egg: 1 pcs
+    water: 200 ml
+    potato: 1 pcs
+    onion: 1 pcs
+  }
+  let batter = whisk([egg, water]) @useWithin(10 min)
+  let trimmedPotato = trim(potato)
+  let slicedOnion = slice(onion)
+  let coatedPotato = coat(trimmedPotato, batter / 2)
+  let coatedOnion = coat(slicedOnion, batter / 2)
+  let fried = deepFry([coatedPotato, coatedOnion])
+}
+kitchen today : Options {
+  cooks: 2
+}

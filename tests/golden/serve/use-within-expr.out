@@ -1,0 +1,12 @@
+schedule bananaCream level=1 cooks=2
+  0..0 (0) %3 combine unattended
+  0..1200 (1200) %6 slice by cook1
+  300..600 (600) %4 whisk by cook2
+  1200..1320 (1320) %7 top by cook1
+  1320..1380 (1338) %8 plate perPerson by cook1
+  serve main at 1380
+  total 1380
+info ASM004 unlimitedEquipment use-within-expr.ozen:18:6-18:17: unlimited equipment
+info ASM007 provisionalValue use-within-expr.ozen:24:5-24:44 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=2
+exit 0

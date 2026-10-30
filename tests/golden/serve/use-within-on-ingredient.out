@@ -1,0 +1,3 @@
+error TYP017 annotationTarget use-within-on-ingredient.ozen:15:16-15:34 args=["useWithin"]: annotation target
+result error errors=1 warnings=0 infos=0
+exit 1
