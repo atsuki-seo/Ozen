@@ -6,5 +6,5 @@ recipe karubiTopping(meat: Beef<Fatty>, servings: 2) {
     sugar: Sugar 0.5 tsp per serving
   }
   let onionCut = onion |> peel |> cut(slice, 5 mm)
-  let topping = [meat, onionCut] |> fry(5 min, heat: high) |> season(sauce)
+  let topping = [meat, onionCut] |> fry(5 min, heat: high) |> season(sauce) |> season(sugar)
 }
