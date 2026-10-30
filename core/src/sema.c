@@ -4873,6 +4873,21 @@ static value eval_inner(sema *s, ozni_index node) {
   return unknown();
 }
 
+static bool amount_dims(sema *s, ozni_dimvec d) {
+  static const char *const names[] = {"Mass", "Volume", "Count"};
+  for (size_t k = 0; k < sizeof names / sizeof names[0]; k++) {
+    int dim = dim_named(s, names[k]);
+    ozni_dimvec want = {{0}};
+    if (dim >= 0) {
+      want.e[dim] = 1;
+      if (dims_equal(d, want)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 static void eval_ingredients(sema *s, const ozni_node *n) {
   for (ozni_index it = n->first; it != 0 && !s->c->limit_hit; it = nd(s, s->file, it)->next) {
     const ozni_node *item = nd(s, s->file, it);
@@ -4915,7 +4930,10 @@ static void eval_ingredients(sema *s, const ozni_node *n) {
       diag_node(s, OZNI_D_TYP_vagueAmount, s->file, nd(s, s->file, amount), &arg, 1);
     } else if (amount != 0) {
       value v = eval(s, amount);
-      if (v.kind == V_QTY && v.q.known) {
+      if (v.kind == V_QTY && v.q.known && !amount_dims(s, v.q.d)) {
+        ozni_str args[2] = {S(s, dim_name_text(s, v.q.d)), S(s, intern(s, "Mass", 4))};
+        diag_node(s, OZNI_D_TYP_dimension, s->file, nd(s, s->file, amount), args, 2);
+      } else if (v.kind == V_QTY && v.q.known) {
         f->amount = v.q;
       }
     }
