@@ -11,7 +11,7 @@ enum { OZNI_WHEN_DEFAULT, OZNI_WHEN_SAME_FOOD, OZNI_WHEN_SAME_TOOL, OZNI_WHEN_TA
 
 enum { OZNI_UNIT_OTHER, OZNI_UNIT_TOOL, OZNI_UNIT_PLACE, OZNI_UNIT_VESSEL };
 
-enum { OZNI_EXTRA_WASH, OZNI_EXTRA_RINSE, OZNI_EXTRA_SOAK, OZNI_EXTRA_WIPE, OZNI_EXTRA_RUN };
+enum { OZNI_EXTRA_WASH, OZNI_EXTRA_RINSE, OZNI_EXTRA_SOAK, OZNI_EXTRA_WIPE, OZNI_EXTRA_RUN, OZNI_EXTRA_PREHEAT };
 
 enum { OZNI_CLEANUP_NONE, OZNI_CLEANUP_BEFORE_MEAL, OZNI_CLEANUP_AFTER_MEAL };
 
@@ -53,6 +53,10 @@ typedef struct ozni_sched_group {
   uint32_t nunits;
   uint32_t pick;
   uint8_t wash;
+  bool heated;
+  bool preheat;
+  ozni_rat temp;
+  ozni_rat pre_start;
 } ozni_sched_group;
 
 typedef struct ozni_sched_mark {
@@ -79,6 +83,9 @@ typedef struct ozni_sched_unit {
   uint8_t category;
   bool sink;
   bool dishwasher;
+  bool preheats;
+  ozni_rat preheat_lo;
+  ozni_rat preheat_hi;
 } ozni_sched_unit;
 
 typedef struct ozni_sched_extra {
@@ -94,6 +101,7 @@ typedef struct ozni_sched_extra {
   ozni_rat start;
   ozni_rat end_hi;
   ozni_rat end_lo;
+  ozni_rat temp;
 } ozni_sched_extra;
 
 typedef struct ozni_sched {

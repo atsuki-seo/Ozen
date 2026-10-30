@@ -479,6 +479,17 @@ static bool dimensionless(ozni_dimvec d) {
   return true;
 }
 
+static void put_qty(sema *s, ozni_buf *b, ozni_qty q);
+
+static void put_temp(sema *s, ozni_buf *b, ozni_rat temp) {
+  ozni_qty q = {.v = {temp, temp}, .known = true};
+  int dim = dim_index(s, intern(s, "Temperature", 11));
+  if (dim >= 0) {
+    q.d.e[dim] = 1;
+  }
+  put_qty(s, b, q);
+}
+
 static void put_qty(sema *s, ozni_buf *b, ozni_qty q) {
   put_rat(b, q.v.lo);
   if (ozni_rat_cmp(q.v.lo, q.v.hi) != 0) {
@@ -1595,6 +1606,24 @@ static void ir_put_ref(sema *s, ozni_buf *b, food *f) {
   }
 }
 
+static void heat_of(sema *s, ozni_index file, ozni_index type, const value *params, const ozni_index *pnames,
+                    uint32_t np, ozni_ir_req *req) {
+  for (ozni_index ta = nd(s, file, type)->first; ta != 0; ta = nd(s, file, ta)->next) {
+    ozni_index alt = nd(s, file, ta)->kind == OZNI_N_TypeArgs ? nd(s, file, ta)->first : 0;
+    for (ozni_index a = alt != 0 ? nd(s, file, alt)->first : 0; a != 0; a = nd(s, file, a)->next) {
+      const ozni_node *an = nd(s, file, a);
+      if (an->kind != OZNI_N_StateArg || an->first == 0 || !str_is(S(s, an->text), "heated")) {
+        continue;
+      }
+      value v = eval_in(s, file, an->first, params, pnames, np);
+      if (v.kind == V_QTY && v.q.known) {
+        req->heated = true;
+        req->temp = v.q.v.hi;
+      }
+    }
+  }
+}
+
 static void ir_put_uses(sema *s, ozni_buf *b, ozni_index file, ozni_index holder, const value *params,
                         const ozni_index *pnames, uint32_t np, ozni_rat *lo, ozni_rat *hi, bool *unattended,
                         uint32_t *nreqs, bool *provisional) {
@@ -1615,7 +1644,8 @@ static void ir_put_uses(sema *s, ozni_buf *b, ozni_index file, ozni_index holder
         ozni_buf_puts(b, first ? "" : ", ");
         ozni_buf_put(b, text.p, text.len);
         first = false;
-        ozni_ir_req req = {intern(s, text.p, text.len), file, u};
+        ozni_ir_req req = {.text = intern(s, text.p, text.len), .file = file, .type = u};
+        heat_of(s, file, u, params, pnames, np, &req);
         if (!ozni_table_push(s->ir.reqs, &req, nullptr)) {
           s->c->oom = true;
         }
@@ -3182,6 +3212,8 @@ static bool req_met(sema *s, ozni_index rfile, ozni_index rnode, const value *pa
           continue;
         }
         ozni_str field = S(s, an->text);
+        bool heated = str_is(field, "heated");
+        field = heated ? (ozni_str){"maxTemp", 7} : field;
         char buf[64];
         ozni_qty have;
         if (field.len >= sizeof buf) {
@@ -3191,6 +3223,10 @@ static bool req_met(sema *s, ozni_index rfile, ozni_index rnode, const value *pa
         buf[field.len] = '\0';
         value need = eval_in(s, rfile, an->first, params, pnames, np);
         if (!entry_field(s, e, buf, &have) || need.kind != V_QTY || !need.q.known || !dims_equal(have.d, need.q.d)) {
+          continue;
+        }
+        if (heated) {
+          ok = ok && ozni_rat_cmp(have.v.hi, need.q.v.lo) >= 0;
           continue;
         }
         ozni_str op = S(s, an->text2);
@@ -6971,7 +7007,7 @@ static bool std_qty(sema *s, const char *name, ozni_qty *out) {
 static ozni_rat later_rat(ozni_rat a, ozni_rat b) { return ozni_rat_cmp(a, b) > 0 ? a : b; }
 
 static ozni_sched_unit unit_info_for(sema *s, const sched_unit *su) {
-  ozni_sched_unit ui = {ozni_rat_int(0), ozni_rat_int(0), OZNI_UNIT_OTHER, false, false};
+  ozni_sched_unit ui = {.clean_lo = ozni_rat_int(0), .clean_hi = ozni_rat_int(0), .category = OZNI_UNIT_OTHER};
   ozni_qty q;
   bool has = false;
   if (nd(s, su->kfile, su->knode)->kind == OZNI_N_Vessel) {
@@ -6991,6 +7027,11 @@ static ozni_sched_unit unit_info_for(sema *s, const sched_unit *su) {
   if (has) {
     ui.clean_lo = q.v.lo;
     ui.clean_hi = q.v.hi;
+  }
+  if (kind_prop(s, su->kfile, su->knode, "preheatTime", &q, 0)) {
+    ui.preheats = true;
+    ui.preheat_lo = q.v.lo;
+    ui.preheat_hi = q.v.hi;
   }
   return ui;
 }
@@ -7193,7 +7234,7 @@ static void schedule_json(sema *s, const sched_out *o) {
   const ozni_sched *p = &o->plan;
   static const char *const cleanups[] = {"none", "beforeMeal", "afterMeal"};
   static const char *const categories[] = {"other", "tool", "place", "vessel"};
-  static const char *const extra_kinds[] = {"wash", "rinse", "soak", "wipe", "run"};
+  static const char *const extra_kinds[] = {"wash", "rinse", "soak", "wipe", "run", "preheat"};
   ozni_buf_puts(b, "{\"schemaVersion\":1,\"cooks\":");
   ozni_buf_putu(b, o->cooks);
   ozni_buf_puts(b, ",\"cleanup\":\"");
@@ -7315,9 +7356,22 @@ static void schedule_json(sema *s, const sched_out *o) {
       ozni_buf_puts(b, "null");
     }
     ozni_buf_puts(b, ",\"uses\":[");
+    bool needs = false;
     for (uint32_t g = 0; g < alt->ngroups; g++) {
       ozni_buf_puts(b, g == 0 ? "" : ",");
       put_json_str(b, S(s, unit_at(o, p->groups[alt->first_group + g].pick)->label));
+      needs = needs || p->groups[alt->first_group + g].heated;
+    }
+    for (uint32_t g = 0, n = 0; needs && g < alt->ngroups; g++) {
+      const ozni_sched_group *grp = &p->groups[alt->first_group + g];
+      if (!grp->heated) {
+        continue;
+      }
+      ozni_buf_puts(b, n++ == 0 ? "],\"needs\":[{\"resource\":" : ",{\"resource\":");
+      put_json_str(b, S(s, unit_at(o, grp->pick)->label));
+      ozni_buf_puts(b, ",\"temp\":");
+      put_json_rat(b, grp->temp);
+      ozni_buf_puts(b, "}");
     }
     ozni_buf_puts(b, "],\"leaves\":[");
     for (uint32_t m = 0; m < alt->nmarks; m++) {
@@ -7396,6 +7450,12 @@ static void schedule_json(sema *s, const sched_out *o) {
         ozni_buf_puts(b, ",\"level\":\"wash\"}");
       }
       ozni_buf_puts(b, "]");
+    } else if (e->kind == OZNI_EXTRA_PREHEAT) {
+      ozni_buf_puts(b, ",\"heats\":{\"resource\":");
+      put_json_str(b, S(s, unit_at(o, e->unit)->label));
+      ozni_buf_puts(b, ",\"temp\":");
+      put_json_rat(b, e->temp);
+      ozni_buf_puts(b, "}");
     } else if (e->kind != OZNI_EXTRA_SOAK) {
       ozni_buf_puts(b, ",\"cleans\":{\"resource\":");
       put_json_str(b, S(s, unit_at(o, e->unit)->label));
@@ -7546,7 +7606,7 @@ static void schedule_text(sema *s, const sched_out *o, ozni_index name, ozni_buf
       continue;
     }
     if (i >= p->ntasks) {
-      static const char *const words[] = {"wash ", "rinse ", "soak ", "wipe ", "run "};
+      static const char *const words[] = {"wash ", "rinse ", "soak ", "wipe ", "run ", "preheat "};
       const ozni_sched_extra *e = &p->extras[i - p->ntasks];
       put_rat(b, e->start);
       ozni_buf_puts(b, "..");
@@ -7557,8 +7617,13 @@ static void schedule_text(sema *s, const sched_out *o, ozni_index name, ozni_buf
       ozni_buf_puts(b, words[e->kind]);
       ozni_str ul = S(s, unit_at(o, e->unit)->label), dt = dirt_text(s, o, e->dirt);
       ozni_buf_put(b, ul.p, ul.len);
-      ozni_buf_puts(b, " after ");
-      ozni_buf_put(b, dt.p, dt.len);
+      if (e->kind == OZNI_EXTRA_PREHEAT) {
+        ozni_buf_puts(b, " to ");
+        put_temp(s, b, e->temp);
+      } else {
+        ozni_buf_puts(b, " after ");
+        ozni_buf_put(b, dt.p, dt.len);
+      }
       if (e->cook != 0) {
         ozni_buf_puts(b, " by cook");
         ozni_buf_putu(b, e->cook);
@@ -7578,7 +7643,8 @@ static void schedule_text(sema *s, const sched_out *o, ozni_index name, ozni_buf
         ozni_buf_put(b, tl.p, tl.len);
       }
       ozni_buf_puts(b, "]\n");
-      if (e->task != UINT32_MAX && e->kind != OZNI_EXTRA_SOAK && e->kind != OZNI_EXTRA_WIPE) {
+      if (e->task != UINT32_MAX && e->kind != OZNI_EXTRA_SOAK && e->kind != OZNI_EXTRA_WIPE &&
+          e->kind != OZNI_EXTRA_PREHEAT) {
         const ozni_ir_node *served = task_node(s, o, e->task);
         ozni_str args[2] = {ul, dt};
         if (served->src != 0) {
@@ -7789,7 +7855,10 @@ static sched_score score_schedule(sema *s, const sched_out *o, const ozni_table 
   }
   uint32_t washes = 0, tools = 0;
   for (uint32_t k = 0; k < p->nextras; k++) {
-    washes += p->extras[k].task != UINT32_MAX && p->extras[k].kind != OZNI_EXTRA_WIPE ? 1 : 0;
+    washes += p->extras[k].task != UINT32_MAX && p->extras[k].kind != OZNI_EXTRA_WIPE &&
+                      p->extras[k].kind != OZNI_EXTRA_PREHEAT
+                  ? 1
+                  : 0;
   }
   sc.metric[0] = ozni_rat_int(washes);
   ozni_rat idle = ozni_rat_int(0);
@@ -7882,7 +7951,7 @@ static void steps_json(sema *s, const sched_out *o, ozni_index name) {
     }
     order[j] = i;
   }
-  static const char *const extra_kinds[] = {"wash", "rinse", "soak", "wipe", "run"};
+  static const char *const extra_kinds[] = {"wash", "rinse", "soak", "wipe", "run", "preheat"};
   ozni_str nm = S(s, name);
   ozni_buf_puts(b, b->len > 0 ? ",{\"name\":" : "{\"name\":");
   ozni_buf_json(b, nm.p, nm.len);
@@ -7948,7 +8017,17 @@ static void steps_json(sema *s, const sched_out *o, ozni_index name) {
       ozni_buf_puts(b, extra_kinds[e->kind]);
       ozni_buf_puts(b, "\",\"action\":\"");
       ozni_buf_puts(b, extra_kinds[e->kind]);
-      ozni_buf_puts(b, "\",\"args\":[],\"foods\":[],\"resources\":[");
+      if (e->kind == OZNI_EXTRA_PREHEAT) {
+        ozni_buf tb = {.a = s->c->allocator};
+        put_temp(s, &tb, e->temp);
+        ozni_buf_puts(b, "\",\"args\":[{\"name\":\"temp\",\"value\":");
+        ozni_buf_json(b, tb.p != nullptr ? tb.p : "", tb.len);
+        ozni_buf_puts(b, "}],\"foods\":[],\"resources\":[");
+        s->c->oom = s->c->oom || tb.failed;
+        ozni_buf_discard(&tb);
+      } else {
+        ozni_buf_puts(b, "\",\"args\":[],\"foods\":[],\"resources\":[");
+      }
       if (e->sink != UINT32_MAX) {
         ozni_str sl = S(s, unit_at(o, e->sink)->label);
         ozni_buf_json(b, sl.p, sl.len);
@@ -7963,7 +8042,11 @@ static void steps_json(sema *s, const sched_out *o, ozni_index name) {
       }
       ozni_buf_puts(b, "],\"reason\":");
       ozni_str why = dirt_text(s, o, e->dirt);
-      ozni_buf_json(b, why.p, why.len);
+      if (e->kind == OZNI_EXTRA_PREHEAT) {
+        ozni_buf_puts(b, "null");
+      } else {
+        ozni_buf_json(b, why.p, why.len);
+      }
       ozni_buf_puts(b, ",\"cook\":");
       if (e->cook != 0) {
         ozni_buf_putu(b, e->cook);
@@ -8112,7 +8195,7 @@ static void schedule_dish(sema *s, ozni_index name) {
               const plate_unit *pu = ozni_table_get(s->plate_units, pi->first_unit + a);
               for (ozni_index u = 0; u < ozni_table_count(units); u++) {
                 const sched_unit *su = ozni_table_get(units, u);
-                ozni_sched_group one = {ozni_table_count(lists), 1, 0, 0};
+                ozni_sched_group one = {.first_unit = ozni_table_count(lists), .nunits = 1};
                 if (su->entry == pu->entry && su->number == pu->number &&
                     (!ozni_table_push(lists, &u, nullptr) || !ozni_table_push(groups, &one, nullptr))) {
                   s->c->oom = true;
@@ -8122,7 +8205,9 @@ static void schedule_dish(sema *s, ozni_index name) {
             }
             continue;
           }
-          ozni_sched_group g = {ozni_table_count(lists), 0, 0, 0};
+          ozni_sched_group g = {.first_unit = ozni_table_count(lists)};
+          g.heated = req->heated;
+          g.temp = req->temp;
           ozni_index washer = intern(s, "Dishwasher", 10);
           for (ozni_index u = 0; u < ozni_table_count(units); u++) {
             const sched_unit *su = ozni_table_get(units, u);

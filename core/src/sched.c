@@ -21,6 +21,12 @@ typedef struct state {
   hist *hist;
   uint32_t nhist;
   uint32_t hist_cap;
+  bool *hot;
+  ozni_rat *temp;
+  bool *pend;
+  ozni_rat *pend_from;
+  ozni_rat *pend_temp;
+  uint32_t *pend_task;
 } state;
 
 static bool case_matches(const ozni_sched *s, const ozni_sched_case *k, const ozni_sched_mark *m,
@@ -99,6 +105,21 @@ static uint8_t unit_need(const ozni_sched *s, const state *st, uint32_t unit, ui
   return best;
 }
 
+static bool preheat_start(const ozni_sched *s, const state *st, uint32_t unit, const ozni_sched_group *grp,
+                          ozni_rat now, ozni_rat *pre_start) {
+  if (!grp->heated || s->unit_info == nullptr || !s->unit_info[unit].preheats ||
+      (st->hot[unit] && ozni_rat_cmp(st->temp[unit], grp->temp) >= 0)) {
+    return false;
+  }
+  ozni_rat earliest = ozni_rat_int(0);
+  if (ozni_rat_cmp(now, s->unit_info[unit].preheat_hi) > 0 &&
+      ozni_rat_sub(now, s->unit_info[unit].preheat_hi, &earliest) != OZNI_OK) {
+    earliest = ozni_rat_int(0);
+  }
+  *pre_start = later(st->unit_free[unit], earliest);
+  return true;
+}
+
 static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sched_alt *alt, ozni_rat now,
                 ozni_rat *start, uint32_t *cook) {
   *start = now;
@@ -149,6 +170,20 @@ static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sc
         continue;
       }
       ozni_rat at = later(st->unit_free[unit], now);
+      ozni_rat pre_start = at;
+      bool pre = false;
+      if (s->backward) {
+        if (grp->heated && st->pend[unit] && ozni_rat_cmp(grp->temp, st->pend_temp[unit]) >= 0) {
+          at = later(st->pend_from[unit], now);
+        }
+      } else if (preheat_start(s, st, unit, grp, now, &pre_start)) {
+        ozni_rat ready;
+        if (!add(pre_start, s->unit_info[unit].preheat_hi, &ready)) {
+          return false;
+        }
+        at = later(at, ready);
+        pre = true;
+      }
       uint8_t wash = unit_need(s, st, unit, ti, alt, g, nullptr);
       if (wash != OZNI_CLEAN_NONE) {
         at = later(at, cook_start);
@@ -163,6 +198,8 @@ static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sc
         best = at;
         grp->pick = unit;
         grp->wash = wash;
+        grp->preheat = pre;
+        grp->pre_start = pre_start;
       }
     }
     if (grp->pick == UINT32_MAX) {
@@ -178,6 +215,49 @@ static bool push_extra(ozni_sched *s, ozni_sched_extra e) {
     return false;
   }
   s->extras[s->nextras++] = e;
+  return true;
+}
+
+static bool flush_preheat(ozni_sched *s, state *st, uint32_t unit) {
+  const ozni_sched_unit *ui = &s->unit_info[unit];
+  ozni_sched_extra e = {.kind = OZNI_EXTRA_PREHEAT, .unit = unit, .sink = UINT32_MAX, .dirt = UINT32_MAX,
+                        .task = st->pend_task[unit], .start = st->pend_from[unit], .temp = st->pend_temp[unit]};
+  st->pend[unit] = false;
+  return add(e.start, ui->preheat_hi, &e.end_hi) && add(e.start, ui->preheat_lo, &e.end_lo) && push_extra(s, e);
+}
+
+static bool heat_unit(ozni_sched *s, state *st, uint32_t ti, const ozni_sched_group *grp, ozni_rat end) {
+  uint32_t unit = grp->pick;
+  if (s->unit_info == nullptr) {
+    return true;
+  }
+  const ozni_sched_unit *ui = &s->unit_info[unit];
+  bool heated = grp->heated && ui->preheats;
+  if (!s->backward) {
+    if (heated && grp->preheat) {
+      ozni_sched_extra e = {.kind = OZNI_EXTRA_PREHEAT, .unit = unit, .sink = UINT32_MAX, .dirt = UINT32_MAX,
+                            .task = ti, .start = grp->pre_start, .temp = grp->temp};
+      if (!add(e.start, ui->preheat_hi, &e.end_hi) || !add(e.start, ui->preheat_lo, &e.end_lo) || !push_extra(s, e)) {
+        return false;
+      }
+      st->temp[unit] = grp->temp;
+    }
+    st->hot[unit] = heated;
+    return true;
+  }
+  if (st->pend[unit] && !(heated && ozni_rat_cmp(grp->temp, st->pend_temp[unit]) >= 0) && !flush_preheat(s, st, unit)) {
+    return false;
+  }
+  st->pend[unit] = false;
+  if (heated) {
+    st->pend[unit] = true;
+    st->pend_from[unit] = end;
+    st->pend_temp[unit] = grp->temp;
+    st->pend_task[unit] = ti;
+    if (!add(end, ui->preheat_hi, &st->unit_free[unit])) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -304,7 +384,13 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
               ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.used),
               nullptr,
               0,
-              0};
+              0,
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.hot),
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.temp),
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend),
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend_from),
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend_temp),
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend_task)};
   uint32_t total_groups = 0;
   for (uint32_t i = 0; i < n; i++) {
     for (uint32_t a = 0; a < s->tasks[i].nalts; a++) {
@@ -315,7 +401,8 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
   st.hist = ozni_arena_alloc(ar, st.hist_cap * sizeof *st.hist);
   if (prio == nullptr || best == nullptr || ready == nullptr || defer == nullptr || st.cook_free == nullptr ||
       st.unit_free == nullptr || st.head == nullptr || st.owner == nullptr || st.soaked == nullptr || st.used == nullptr ||
-      st.hist == nullptr) {
+      st.hist == nullptr || st.hot == nullptr || st.temp == nullptr || st.pend == nullptr || st.pend_from == nullptr ||
+      st.pend_temp == nullptr || st.pend_task == nullptr) {
     return false;
   }
   for (uint32_t i = 0; i < n; i++) {
@@ -346,6 +433,12 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
     st.owner[u] = 0;
     st.soaked[u] = false;
     st.used[u] = false;
+    st.hot[u] = false;
+    st.temp[u] = ozni_rat_int(0);
+    st.pend[u] = false;
+    st.pend_from[u] = ozni_rat_int(0);
+    st.pend_temp[u] = ozni_rat_int(0);
+    st.pend_task[u] = 0;
   }
   ozni_rat now = ozni_rat_int(0);
   uint32_t left = n;
@@ -398,7 +491,8 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
       }
       ready[j] = i;
     }
-    bool placed = false;
+    bool placed = false, waking = false;
+    ozni_rat wake = now;
     for (uint32_t r = 0; r < nready; r++) {
       uint32_t ti = ready[r];
       ozni_sched_task *t = &s->tasks[ti];
@@ -440,6 +534,10 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
           return false;
         }
       }
+      if (!washing && ozni_rat_cmp(pick_start, now) > 0 && (!waking || ozni_rat_cmp(pick_start, wake) < 0)) {
+        wake = pick_start;
+        waking = true;
+      }
       if (washing || ozni_rat_cmp(pick_start, now) > 0) {
         continue;
       }
@@ -468,6 +566,9 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
         if (st.nhist < st.hist_cap) {
           st.hist[st.nhist] = (hist){ti, g, st.head[unit]};
           st.head[unit] = ++st.nhist;
+        }
+        if (!heat_unit(s, &st, ti, &s->groups[alt->first_group + g], t->end_hi)) {
+          return false;
         }
       }
     }
@@ -514,10 +615,19 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
         found = true;
       }
     }
+    if (waking && ozni_rat_cmp(wake, now) > 0 && (!found || ozni_rat_cmp(wake, next) < 0)) {
+      next = wake;
+      found = true;
+    }
     if (!found) {
       return false;
     }
     now = next;
+  }
+  for (uint32_t u = 0; u < s->nunits; u++) {
+    if (st.pend[u] && !flush_preheat(s, &st, u)) {
+      return false;
+    }
   }
   return true;
 }
@@ -575,7 +685,8 @@ static bool cleanup(ozni_arena *ar, ozni_sched *s) {
     if (e->cook != 0) {
       cook_free[e->cook] = later(cook_free[e->cook], e->end_hi);
     }
-    if (e->kind != OZNI_EXTRA_SOAK && (!was_cleaned[e->unit] || ozni_rat_cmp(e->end_hi, cleaned[e->unit]) > 0)) {
+    if (e->kind != OZNI_EXTRA_SOAK && e->kind != OZNI_EXTRA_PREHEAT &&
+        (!was_cleaned[e->unit] || ozni_rat_cmp(e->end_hi, cleaned[e->unit]) > 0)) {
       cleaned[e->unit] = e->end_hi;
       was_cleaned[e->unit] = true;
     }
