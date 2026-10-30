@@ -771,15 +771,15 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 | S571 | 時間と順序 | `cgolden/sched/preheat-lookahead` | 予熱を作業が ready になった時刻に始める | P7-2 |
 | S572 | 正常系 | `cgolden/sched/preheat-basic` | 所要時間を固定の 10 分にする | P7-2 |
 | S573 | 副作用とコスト | `cgolden/sched/preheat-unattended` | 予熱に人を割り当てる | P7-2 |
-| S574 | 副作用とコスト | `cgolden/sched/preheat-occupies` | 予熱と使う作業の間に個体を空ける | P7-2 |
+| S574 | 副作用とコスト | `cgolden/sched/preheat-occupies` | 予熱の始まりを、個体が空いた時刻で縛らない | P7-2 |
 | S575 | 効かない条件 | `cgolden/sched/preheat-reuse` | 毎回予熱を入れる | P7-2 |
 | S576 | 境界・上限 | `cgolden/sched/preheat-hotter` | 高い温度でも入れ直さない | P7-2 |
 | S577 | 正常系 | `cgolden/sched/preheat-arg-temp` | 温度を式でなく数のリテラルだけ読む | P7-2 |
-| S578 | 時間と順序 | `cgolden/sched/preheat-backward` | 後ろ向きで予熱の release を写さない | P7-2 |
+| S578 | 時間と順序 | `cgolden/sched/preheat-backward` | 後ろ向きでも前向きと同じ置き方で予熱を置く | P7-2 |
 | S579 | 効かない条件 | `cgolden/sched/preheat-max-temp` | `heated` を `req_met` で見ない | P7-2 |
 | S580 | 境界・上限 | `cgolden/sched/preheat-max-temp-equal` | 比較を `<` でなく `<=` にする | P7-2 |
 | S581 | 効かない条件 | `cgolden/sched/preheat-no-max-temp` | `maxTemp` が無いとき満たさないことにする | P7-2 |
-| S582 | 前提の固定 | `cgolden/sched/preheat-ir`（台所を注入した `debug ir`） | 予熱を IR のノードにする | P7-2 |
+| S582 | 前提の固定 | `cgolden/sched/preheat-ir`（台所を注入した `debug ir`） | IR の表示に予熱を足す | P7-2 |
 | S583 | データの完全性 | `cgolden/sched/preheat-basic` | 行の語を `wash` にする | P7-2 |
 | S584 | データの完全性 | `cgolden/sched/preheat-json` | `heats` を出さない | P7-3 |
 | S585 | データの完全性 | `cgolden/sched/preheat-json` | `needs` を出さない | P7-3 |
@@ -1322,6 +1322,35 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - LIN005 の実装で決めたこと（P6-2、2026-10-30）: (1) `repeat`・`for` の本体で作った値は追跡しない。`repeat batches { let fried = fry(pork / batches, 8 min) }` のように、繰り返しの各回の値が料理の一部で、言語にそれを集める書き方が無いため。(2) `parallel` の枝の中の値は最後の値にならない（今の評価は枝の中で最後の値を更新しない）。料理が `parallel` で終わると、枝の値はすべて報告される（`wash/*`・`sched/*` の多く）。(3) 呼び出しが誤り（`NAM002` など）で評価されないと、その引数は消費されずに報告される（`modules/ambiguous-on-use`・`eval/runtime-value-in-if`）。(4) マクロの展開の中の束縛は、マクロの定義の位置に、展開した呼び出しを `via` として付けて報告する。(5) 同じ食材の値を 2 つの名前で束縛したときは、最初の名前だけを報告する
 - `G-RF-SAMPLES-UNUSED` の判定コマンドの誤り（P6-3、2026-10-30）: リポジトリの根から `ozen check --format json samples/T4/` を走らせていたが、`package.ozen` の無いフォルダでは「no FILE given」で失敗し、標準エラーを捨てていたので常に 0 になっていた。サンプルのフォルダに入って走らせ、走ったサンプルの数も数えるように直した（§5 のコマンドも直した）
 - サンプルの LIN005（P6-3、2026-10-30）: 直した判定で `samples/T4/karubiTopping.ozen` の `sugar` が 1 件出た。`refresh-start` の時点から材料に書いただけで使っていなかった（サンプルの誤り）。`|> season(sugar)` を足して直した。`G-SAMPLE-CHECK`・レンダラーのテストは変わらず合格した。書き直した golden の LIN005 は上の 133 件に含まれる
+- わざと壊す確認: S568・正常系・`cgolden/sched/preheat-basic`（P7、2026-10-30）。予熱の作業を足さないと`preheat-basic` を含む 8 本が落ちた。戻すと合格した
+- わざと壊す確認: S569・正常系・`cgolden/sched/preheat-basic`（P7、2026-10-30）。予熱をいつも最初の個体（`oven#1`）に入れると`preheat-basic` だけが落ちた。戻すと合格した
+- わざと壊す確認: S570・時間と順序・`cgolden/sched/preheat-basic`（P7、2026-10-30）。予熱を作業の始まりから置くと`preheat-basic` を含む 8 本が落ちた。戻すと合格した
+- わざと壊す確認: S571・時間と順序・`cgolden/sched/preheat-lookahead`（P7、2026-10-30）。予熱を作業が ready になった時刻から始めると`preheat-lookahead` を含む 8 本が落ちた。戻すと合格した
+- わざと壊す確認: S572・正常系・`cgolden/sched/preheat-basic`（P7、2026-10-30）。所要時間を固定の 10 分にすると`preheat-basic` を含む 9 本が落ちた。戻すと合格した
+- わざと壊す確認: S573・副作用とコスト・`cgolden/sched/preheat-unattended`（P7、2026-10-30）。予熱に 1 人目を割り当てると`preheat-unattended` を含む 8 本が落ちた。戻すと合格した
+- わざと壊す確認: S574・副作用とコスト・`cgolden/sched/preheat-occupies`（P7、2026-10-30）。予熱の始まりを個体が空いた時刻で縛らないと`preheat-occupies`・`preheat-hotter` が落ちた。戻すと合格した
+- わざと壊す確認: S575・効かない条件・`cgolden/sched/preheat-reuse`（P7、2026-10-30）。温まった個体でも毎回予熱を入れると`preheat-reuse` だけが落ちた。戻すと合格した
+- わざと壊す確認: S576・境界・上限・`cgolden/sched/preheat-hotter`（P7、2026-10-30）。温まっていれば温度を見ずに予熱を省くと`preheat-hotter` だけが落ちた。戻すと合格した
+- わざと壊す確認: S577・正常系・`cgolden/sched/preheat-arg-temp`（P7、2026-10-30）。温度を数のリテラルのときだけ読むと`preheat-arg-temp`・`preheat-json` が落ちた。戻すと合格した
+- わざと壊す確認: S578・時間と順序・`cgolden/sched/preheat-backward`（P7、2026-10-30）。後ろ向きでも前向きと同じ置き方で予熱を置くと`preheat-backward` だけが落ちた。戻すと合格した
+- わざと壊す確認: S579・効かない条件・`cgolden/sched/preheat-max-temp`（P7、2026-10-30）。`req_met` で `heated` を見ないと`preheat-max-temp` だけが落ちた。戻すと合格した
+- わざと壊す確認: S580・境界・上限・`cgolden/sched/preheat-max-temp-equal`（P7、2026-10-30）。`maxTemp` との比較を等しいときも満たさないにすると`preheat-max-temp-equal` だけが落ちた。戻すと合格した
+- わざと壊す確認: S581・効かない条件・`cgolden/sched/preheat-no-max-temp`（P7、2026-10-30）。`maxTemp` が無い個体は満たさないことにすると`preheat-no-max-temp` を含む 11 本が落ちた。戻すと合格した
+- わざと壊す確認: S582・前提の固定・`cgolden/sched/preheat-ir`（P7、2026-10-30）。IR の表示に予熱を足すと`preheat-ir` だけが落ちた。戻すと合格した
+- わざと壊す確認: S583・データの完全性・`cgolden/sched/preheat-basic`（P7、2026-10-30）。予熱の行の語を `wash` にすると`preheat-basic` を含む 8 本が落ちた。戻すと合格した
+- わざと壊す確認: S584・データの完全性・`cgolden/sched/preheat-json`（P7、2026-10-30）。段取りの JSON に `heats` を出さないと`preheat-json` だけが落ちた。戻すと合格した
+- わざと壊す確認: S585・データの完全性・`cgolden/sched/preheat-json`（P7、2026-10-30）。段取りの JSON に `needs` を出さないと`preheat-json` だけが落ちた。戻すと合格した
+- わざと壊す確認: S586・データの完全性・`G-API-SCHEMA`（P7、2026-10-30）。スキーマの作業の `kind` の列挙から `preheat` を消すと「420 files, 13 invalid」で落ちた。戻すと合格した
+- わざと壊す確認: S587・前提の固定・`sh/test-schedcheck.sh`（P7、2026-10-30）。`schedcheck` の予熱の検査を外すと`bad-preheat-*` の 3 つの場合で落ちた（`G-SCHED-CHECK` は違反 0 のまま合格した。正しい段取りしか集めないため）。戻すと合格した
+- わざと壊す確認: S588・文書との一致・`rtest/schedule-text`（P7、2026-10-30）。`ja.ftl` から `preheat` のキーを消すと`schedule-text` の予熱のテストが落ちた（`G-STD-PHRASES` は定義の言い回しだけを見るので合格のままだった）。戻すと合格した
+- わざと壊す確認: S589・実際の経路・`rtest/recipe-schedule`（P7、2026-10-30）。段取り表で `preheat` の作業を飛ばすと`recipe-schedule` の予熱のテストが落ちた。戻すと合格した
+- わざと壊す確認: S590・データの完全性・`G-RF-STD-PREHEAT`（P7、2026-10-30）。`OvenRange` から `preheatTime` を消すと「oven kinds with preheatTime: got '1', want '2'」で落ちた。戻すと合格した
+- わざと壊す確認: S591・データの完全性・`G-STD-PROVENANCE`（P7、2026-10-30）。`Oven` の `preheatTime` から `@source(provisional)` を消すと「1 without source」で落ちた。戻すと合格した
+- 予熱の置き方（P7-2、2026-10-30）: D48 の「`@serveWithin` と同じ release の反復で組み直す」は採らなかった。前向きの段取りは、温度を要る作業を置く時点で、予熱を過去に遡って置く（`now - preheatTime` と、個体が空いた時刻の遅い方から）。予熱は無人なので、人の割り当てを変えずに置ける。予熱が終わるまで作業を待たせるときは、その時刻を次の出来事に加える。後ろ向きの段取り（逆向きに組む）では、温度を要る作業を置いた直後に予熱の区間を個体に予約し、次にその個体を使う作業が同じかそれより低い温度なら予約を取り消し、そうでなければ予熱を確定する。網羅表の S574・S578 の壊し方を、この置き方に合わせて書き替えた
+- `preheat-reuse`・`preheat-hotter` の組み直し（P7-1、2026-10-30）: 最初は 2 つの食材を別々に焼く形で書いたが、段取りは同点の並びを入れ替えた案も試して短い方を採るので、`hotter` では 200 °C を先に焼いて 180 °C で使い回す段取りになり、入れ直しを確かめられなかった。1 つの食材を続けて 2 回焼く形（依存で順が決まる）に書き直した
+- 予熱の時間（P7-1、2026-10-30）: std の `Oven`・`OvenRange` に `preheatTime: 10..20 min @source(provisional)` を足した。Whirlpool の製品サポートの「Long Pre-Heat Times for Oven」に 350°F まで約 12〜15 分（隠れたヒーターは約 20 分）、±5 分とあったが、1 つの系列・1 つの温度の目安なので暫定のままにし、`spec/sources/search-log.yaml` に記録した
+- 決めたこと（P7-2、2026-10-30）: `maxTemp` が要る温度より低い個体は `KIT002` を出すが、段取りの候補からは外していない（オーブンが 2 台あって片方だけ低い台所でも、低い方が選ばれうる）。予熱の暫定の時間に `ASM007 provisionalValue` は出していない（洗いの時間などの種類の props と同じ扱い）
+- Phase 6 のゲートの補足（P6-4、2026-10-30）: `G-PLAT-WASM` は wasm のビルドが古いままだと落ちる（ゴールはビルドしない）。`scripts/build-wasm.sh` で組み直すと合格した。`G-REPO-SELFTESTS` は 1 回だけ 1 本落ちたが、別の git worktree を作っていた間のことで、消した後は合格した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
