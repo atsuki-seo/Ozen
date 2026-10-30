@@ -34,7 +34,7 @@ printf 'extra := STRING ;\n' >> "$work/g.ebnf"
 expect rule-without-golden "grammar: 5 rules, 1 not covered" 1
 sed -i '$d' "$work/g.ebnf"
 printf 'mystery\n' >> "$work/golden/a/one.ozen"
-expect unknown-rule "grammar: 4 rules, 0 not covered" 1
+expect unknown-rule "grammar: 4 rules, 0 not covered, 1 unknown" 1
 
 echo "test-check-grammar-coverage: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]
