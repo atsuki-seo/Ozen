@@ -1,19 +1,19 @@
 // args: debug steps
-recipe salad() {
+recipe salad {
   ingredients { lettuce: 100 g }
-  let t = tear(lettuce)
+  let torn = tear(lettuce)
 }
-recipe dessert() {
+recipe dessert {
   ingredients { ice: VanillaIce 100 g }
-  let s = layer(ice)
+  let served = layer(ice)
 }
-menu dinner() {
-  let s = make salad()
-  let d = make dessert()
+menu dinner {
+  let served = make salad
+  let dessertPlate = make dessert
   serve main {
-    plate perPerson on FlatPlate { s }
+    plate perPerson on FlatPlate { served }
   }
   serve sweets after main + 40 min {
-    plate perPerson on Glass { d }
+    plate perPerson on Glass { dessertPlate }
   }
 }

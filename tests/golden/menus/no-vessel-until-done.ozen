@@ -1,5 +1,5 @@
 // args: check --entry stirFry
-recipe stirFry() {
+recipe stirFry {
   ingredients { cabbage: 200 g }
-  let f = fry(cabbage, 3 min)
+  let fried = fry(cabbage, 3 min)
 }

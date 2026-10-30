@@ -11,6 +11,6 @@ menu lunch
   %3 = make ramen(topping: %2.1) : Ramen<doneness: done, shape: cut(slice, 3 mm)> 150 g
   %4 = make friedRice(topping: %2.2) : FriedRice<doneness: done, shape: cut(dice, 3 mm)> 250 g
   %5 = make ramen(topping: %1) : Ramen<doneness: done, shape: cut(slice, 3 mm)> 400 g
-error LIN001 doubleUse split-pass.ozen:17:35-17:37 args=["ch"]: double use
+error LIN001 doubleUse split-pass.ozen:17:35-17:46 args=["chashuBlock"]: double use
 result error errors=1 warnings=0 infos=0
 exit 1

@@ -6,6 +6,6 @@ schedule curry level=0
   total 1260
 info ASM004 unlimitedEquipment single-recipe-schedule.ozen:2:8-2:13: unlimited equipment
 info SCH009 criticalPath single-recipe-schedule.ozen:2:8-2:13 args=["1260 s"]: critical path
-info ASM007 provisionalValue single-recipe-schedule.ozen:2:16-2:45 args=["plate"]: provisional value
+info ASM007 provisionalValue single-recipe-schedule.ozen:2:14-2:43 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=3
 exit 0

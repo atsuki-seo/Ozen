@@ -1,8 +1,8 @@
 // args: debug steps
-recipe tomatoSalad() {
+recipe tomatoSalad {
   ingredients { tomato: 2 pcs }
-  let c = cut(tomato, style: dice)
+  let diced = cut(tomato, style: dice)
 }
-menu dinner() {
-  let s = make tomatoSalad()
+menu dinner {
+  let salad = make tomatoSalad
 }

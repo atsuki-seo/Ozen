@@ -2,16 +2,16 @@
 action stewB(x: T) -> T<doneness: done> {
   uses hands for 30 min
 }
-recipe stew() @vessel(DeepPlate) {
+recipe stew @vessel(DeepPlate) {
   ingredients {
     pork: 300 g
   }
-  let s = stewB(pork)
+  let stewed = stewB(pork)
 }
 menu dinner(people: 2) {
-  let c = make stew()
+  let stewBowl = make stew
   serve main {
-    plate perPerson on Donburi { c }
+    plate perPerson on Donburi { stewBowl }
   }
 }
 kitchen home {

@@ -1,11 +1,11 @@
 // args: debug steps
-recipe dressedSalad() -> Salad {
+recipe dressedSalad -> Salad {
   ingredients {
     lettuce: 200 g
     dressing: 30 ml
   }
-  let t = toss([lettuce, dressing])
+  let tossed = toss([lettuce, dressing])
 }
-menu dinner() {
-  let s = make dressedSalad()
+menu dinner {
+  let salad = make dressedSalad
 }

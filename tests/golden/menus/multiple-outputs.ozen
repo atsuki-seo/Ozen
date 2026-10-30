@@ -1,12 +1,12 @@
 // args: debug steps
 action fillet3(x: T) -> (T<back>, T<collar>, T<frame>)
 recipe filletBuri(fish: Buri) -> (Buri<back>, Buri<collar>, Buri<frame>) {
-  let (b, c, f) = fillet3(fish)
+  let (back, collar, frame) = fillet3(fish)
 }
-menu dinner() {
+menu dinner {
   let buri = buy Buri 3000 g
-  let (b, c, f) = make filletBuri(fish: buri)
-  let s = cut(b, style: slice)
-  store(c)
-  discard(f)
+  let (back, collar, frame) = make filletBuri(fish: buri)
+  let sliced = cut(back, style: slice)
+  store(collar)
+  discard(frame)
 }

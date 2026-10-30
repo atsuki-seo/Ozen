@@ -1,11 +1,11 @@
 // args: check --strict
-recipe soup() {
+recipe soup {
   ingredients { dashi: 300 ml }
-  let s = boil(dashi, 5 min)
+  let simmered = boil(dashi, 5 min)
 }
-menu dinner() {
-  let s = make soup()
+menu dinner {
+  let simmered = make soup
   serve main {
-    plate perPerson on SoupBowl { s } @whileWarm
+    plate perPerson on SoupBowl { simmered } @whileWarm
   }
 }

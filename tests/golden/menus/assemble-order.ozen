@@ -1,5 +1,5 @@
 // args: debug ir --entry dinner
-menu dinner() {
+menu dinner {
   serve main {
     plate perPerson on Glass {
       assemble { buy Cornflakes 30 g, buy VanillaIce 100 g, buy Strawberry 2 pcs }

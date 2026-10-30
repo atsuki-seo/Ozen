@@ -1,9 +1,9 @@
 // args: debug steps --entry dinner
-recipe steamedRice() {
+recipe steamedRice {
   ingredients { rice: 300 g }
-  let s = soak(rice)
-  let c = cookRice(s)
+  let soaked = soak(rice)
+  let cooked = cookRice(soaked)
 }
 menu dinner(people: 4) {
-  let staple = choose perPerson from { make steamedRice(), buy Naan 2 pcs }
+  let staple = choose perPerson from { make steamedRice, buy Naan 2 pcs }
 }

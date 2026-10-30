@@ -1,16 +1,16 @@
 // args: debug steps
-recipe warmNaan() -> Naan {
+recipe warmNaan -> Naan {
   ingredients { naan: 2 pcs }
-  let w = warm(naan)
+  let warmed = warm(naan)
 }
 recipe naanPlate(bread: Naan) {
-  let t = warm(bread)
+  let toasted = warm(bread)
 }
-menu madeAtHome() {
-  let n = make warmNaan()
-  let p = make naanPlate(bread: n)
+menu madeAtHome {
+  let naan = make warmNaan
+  let plate = make naanPlate(bread: naan)
 }
-menu bought() {
-  let n = buy Naan 2 pcs
-  let p = make naanPlate(bread: n)
+menu bought {
+  let naan = buy Naan 2 pcs
+  let plate = make naanPlate(bread: naan)
 }

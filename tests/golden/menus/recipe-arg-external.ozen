@@ -1,4 +1,4 @@
 // args: check --entry ramenTopping
 recipe ramenTopping(pork: Pork<shape: cut>) {
-  let f = fry(pork, 3 min)
+  let fried = fry(pork, 3 min)
 }

@@ -1,12 +1,12 @@
 // args: debug steps
-recipe creamSoup() {
+recipe creamSoup {
   ingredients {
     milk: 200 ml
     onion: 1 pcs
   }
-  let p = peel(onion)
-  let s = simmer([p, milk], 10 min)
+  let peeled = peel(onion)
+  let simmered = simmer([peeled, milk], 10 min)
 }
-menu lunch() {
-  let soup = make creamSoup()
+menu lunch {
+  let soup = make creamSoup
 }

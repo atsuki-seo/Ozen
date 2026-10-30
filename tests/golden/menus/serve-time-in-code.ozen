@@ -1,4 +1,4 @@
-menu dinner() {
+menu dinner {
   serve main at 19 h {
   }
 }
