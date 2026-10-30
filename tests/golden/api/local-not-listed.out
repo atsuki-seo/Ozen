@@ -348,6 +348,7 @@
 {"code":"SCH009","name":"criticalPath"},
 {"code":"SCH010","name":"serveWithinMissed"},
 {"code":"TYP020","name":"servingsUnknown"},
-{"code":"LIN005","name":"unusedValue"}
+{"code":"LIN005","name":"unusedValue"},
+{"code":"SCH011","name":"useWithinMissed"}
 ]}}
 exit 0
