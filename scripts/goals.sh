@@ -666,7 +666,8 @@ goal_G_RF_SAMPLES_EXPECT() {
 }
 
 goal_G_RF_LIMIT_PAIRS() {
-  not_yet "check-limit-pairs.py" P5-2
+  want_re "limit pairs" '^limit-pairs: [1-9][0-9]* pairs, 0 not exact$' \
+    "$(python3 -B scripts/check-limit-pairs.py --ozen build/core-gcc-release/ozen tests/golden 2>/dev/null | tail -n 1)"
 }
 
 goal_G_RF_GOLDEN_COUNT() {
