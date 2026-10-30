@@ -741,7 +741,7 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 | S547 | 前提の固定 | `G-CORE-UNIT` | `core/tests/unit` の C の文字列の宣言の名前と、期待する名前を食い違わせる | P5-7 |
 | S548 | 前提の固定 | `G-CORE-OOM` | 確保に失敗したときの `MAC004` を出さない（`check.c`） | P5-2 |
 | S549 | 前提の固定 | `G-CORE-PROPS` | 書き直した golden に `propsOptions` という名前の宣言を足す（`monotonic` とぶつかる） | P5-9 |
-| S550 | 前提の固定 | `G-SCHED-CHECK` | 書き直した段取りの golden で、洗いの行を 1 つ消す | P5-5 |
+| S550 | 前提の固定 | `G-SCHED-CHECK` | 洗いを段取りに入れずに汚れた道具を使う（`clean_unit` で洗いの作業を記録しない） | P5-5 |
 | S551 | プラットフォームの経路 | `G-PLAT-LINUX`・`G-PLAT-WASM` | `bindings/inputs.txt` の 1 件の期待を変える | P5-7 |
 | S552 | データの完全性 | `G-RF-GOLDEN-COUNT` | 新しい golden を 1 つ消す | P9-5 |
 | S616 | 正常系 | `G-RF-SAMPLES-PIPE`、`sh/test-check-test-names.sh`（`--samples-pipe` の場合） | `samples/T2/` のパイプを `let` の連鎖に戻す | P5-8 |
@@ -1198,6 +1198,47 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 書き直しのわざと壊す確認: S436・正常系・`cgolden/levels/level-1-human-only`（P5-4、2026-10-30）。行の壊し方（レベル 1 でも設備を数える）は、台所が無いと数える設備が無く何も変わらない。条件だけのときもレベルを 2 にする壊し方にすると、`level-1-human-only` を含む 24 本が落ちた。戻すと合格した
 - 書き直しのわざと壊す確認: S463・正常系・`cgolden/ir/kitchen-dependent-info`（P5-4、2026-10-30）。台所の値を読む式の `SCH002` を出さないと、`kitchen-dependent-info` を含む 3 本が落ちた。戻すと合格した
 - P5-4 の範囲（2026-10-30）: `ir` 7 本、`levels` 10 本、`kitchen` 8 本、`vessels` 8 本、`serve` 12 本、`menus` 18 本を書き直した。Phase 2〜4 で足した golden のうち、`serve/serve-within-backward` は元の `serve-within` から 1 文字の名前と空の `()` を引き継いでいたので、同じ対応表で書き直した（ロードマップの行は無い）。JSON の期待値の位置（`"line"`・`"column"`）も、補助の道具で同じように移した
+- 書き直しのわざと壊す確認: S288・正常系・`cgolden/sched/priority-longest-path`（P5-5、2026-10-30）。準備のできた作業を優先度の低い順に並べると、`priority-longest-path` を含む 22 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S289・境界・上限・`cgolden/sched/tie-node-order`（P5-5、2026-10-30）。同点の作業を逆の順にすると、`tie-node-order` を含む 13 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S290・正常系・`cgolden/sched/backward-serve-at`（P5-5、2026-10-30）。後ろ向きでも前から詰めると、`backward-serve-at` を含む 8 本が落ちた。`forward`（`cgolden/sched/forward`）はもとから前向きなので落ちない。戻すと合格した
+- 書き直しのわざと壊す確認: S291・時間と順序・`cgolden/sched/objective-order`（P5-5、2026-10-30）。段取りの比較で、合計の時間を出す時刻の守り（実現できるか）より先に比べると、`objective-order` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S292・正常系・`cgolden/sched/prefer-*`（P5-5、2026-10-30）。`--prefer` の指定の順を無視して決まった順で比べると、`prefer-fewer-tools`・`prefer-less-waiting`・`prefer-pace-then-tools`・`prefer-steady-pace` が落ちた。`prefer-fewer-washes` は指定を使わない壊し方、`prefer-tools-then-pace` は指定の順を逆にする壊し方を足して、それぞれ落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S293・正常系・`cgolden/sched/improvement`（P5-5、2026-10-30）。改善の繰り返しを飛ばすと、`improvement` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S294・正常系・`cgolden/sched/unattended-frees-hands`（P5-5、2026-10-30）。放置の作業にも調理する人を割り当てると、`unattended-frees-hands` を含む 28 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S295・境界・上限・`cgolden/sched/oven-range-one-unit`（P5-5、2026-10-30）。行の壊し方（能力ごとに別の台として数える）に近い、設備の空き時刻を見ずに同時に使えるようにする壊し方で、`oven-range-one-unit` を含む 10 本が落ちた（台を能力ごとに分ける作りを足すより、同じ台の取り合いが無くなる点が同じで小さい）。戻すと合格した
+- 書き直しのわざと壊す確認: S296・正常系・`cgolden/sched/variant-earliest`（P5-5、2026-10-30）。変種を常に最初の候補にすると `variant-earliest` だけが落ちた。`variant-tie-order`（`cgolden/sched/variant-tie-order`）は、同点で後の候補を選ぶ壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S297・正常系・`cgolden/sched/variant-info`（P5-5、2026-10-30）。選んだ変種の `SCH003` を出さないと、`variant-info` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S298・正常系・`cgolden/sched/calibration`（P5-5、2026-10-30）。台所の補正の係数を掛けないと、`calibration` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S299・境界・上限・`cgolden/sched/heat-model`（P5-5、2026-10-30）。加熱の時間の式で厚さの比の指数を掛けないと、`heat-model` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S300・効かない条件・`cgolden/sched/hardness-order-warn`（P5-5、2026-10-30）。柔らかいものを先に入れたときの `SCH004` を出さないと、`hardness-order-warn` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S301・効かない条件・`cgolden/sched/capacity-impossible`（P5-5、2026-10-30）。設備の数が足りないときの `SCH005` を出さないと、`capacity-impossible` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S303・正常系・`cgolden/sched/person-attributes`（P5-5、2026-10-30）。人ごとに避ける作業の制限を無視すると、`person-attributes` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S304・正常系・`cgolden/sched/range-duration-upper`（P5-5、2026-10-30）。幅のある時間の作業を下限の長さで割り当てると、`range-duration-upper` を含む 43 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S305・正常系・`cgolden/wash/dirt-from-leaves`（P5-5、2026-10-30）。動作の `leaves` から汚れを付けないと、`dirt-from-leaves` を含む 24 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S306・正常系・`cgolden/wash/compat-rules`（P5-5、2026-10-30）。行の壊し方（ルールの表を 1 行ずらす）に近い、ルールの当てはまる場合の値より既定の値を先に使う壊し方で、`compat-rules` を含む 7 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S307・正常系・`cgolden/wash/wait-or-wash`（P5-5、2026-10-30）。使った道具を次に使う前に常に洗うと、`wait-or-wash` を含む 20 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S308・正常系・`cgolden/wash/reason`（P5-5、2026-10-30）。`SCH006` の引数から汚れの理由を外すと、`reason` を含む 15 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S309・副作用とコスト・`cgolden/wash/uses-sink-hands`（P5-5、2026-10-30）。洗いで流しを使わないと、`uses-sink-hands` を含む 15 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S310・効かない条件・`cgolden/wash/hazard-not-relaxed`（P5-5、2026-10-30）。`@fixed` の `Hazard`・`Allergen` のルールを上書きできるようにすると、`hazard-not-relaxed` と `allergen-not-relaxed`（`cgolden/wash/allergen-not-relaxed`）が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S311・効かない条件・`cgolden/wash/same-food-same-state`（P5-5、2026-10-30）。同じ食材・同じ状態でも洗うと、`same-food-same-state` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S312・時間と順序・`cgolden/wash/no-drying`（P5-5、2026-10-30）。洗いの前に 5 分の待ちを入れると、`no-drying` を含む 15 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S313・正常系・`cgolden/cleanup/before-meal`（P5-5、2026-10-30）。`beforeMeal` の片付けに食器を含めると、`before-meal` だけが落ちた。`none`（`cgolden/cleanup/none`）は片付け無しでも片付ける壊し方、`after-meal`（`cgolden/cleanup/after-meal`）は食後の片付けを食事の前から始める壊し方を足して、それぞれ落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S314・正常系・`cgolden/cleanup/wipe-places`（P5-5、2026-10-30）。場所の拭きを片付けに入れないと、`wipe-places` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S315・正常系・`cgolden/cleanup/store-to-fridge`（P5-5、2026-10-30）。`store` を片付けの作業として扱わないと、`store-to-fridge` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S316・時間と順序・`cgolden/sched/meal-blocks-hands`（P5-5、2026-10-30）。食事中の時間帯を手の作業から外さないと、`meal-blocks-hands` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S317・正常系・`cgolden/cleanup/dishwasher-during-meal`（P5-5、2026-10-30）。食洗機を最後の波の後に回すと、`dishwasher-during-meal` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S325・正常系・`cgolden/sched/shared-cutting`（P5-5、2026-10-30）。同じ切り方の作業をまとめないと、`shared-cutting` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S326・時間と順序・`cgolden/sched/meal-duration-from-interval`（P5-5、2026-10-30）。波の間隔から食事の時間帯を作らないと、`meal-duration-from-interval` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S433・時間と順序・`cgolden/sched/parallel-join`（P5-5、2026-10-30）。`parallel` の後の作業を全枝の後に合流させないと、`parallel-join` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S437・正常系・`cgolden/sched/store-discard-in-schedule`（P5-5、2026-10-30）。段取りの表示から `store` の作業を外すと、`store-discard-in-schedule` と 1 本が落ちた（片付けの印を外す壊し方では表示が変わらず落ちなかった）。戻すと合格した
+- 書き直しのわざと壊す確認: S438・正常系・`cgolden/sched/heat-thickness-by-cut`（P5-5、2026-10-30）。切り方ごとの名目の厚さを使わず、寸法をそのまま厚さにすると、`heat-thickness-by-cut` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S439・正常系・`cgolden/sched/heat-direct-attribute`（P5-5、2026-10-30）。加熱の `direct` の値を使わず式で求めると、`heat-direct-attribute` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S440・正常系・`cgolden/wash/rule-override`（P5-5、2026-10-30）。書き手のルールで std のルールを上書きしないと、`rule-override` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S441・正常系・`cgolden/wash/staining-info`（P5-5、2026-10-30）。std の `Staining` のルールを `wash` にすると、`staining-info` を含む 3 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S442・正常系・`cgolden/sched/veg-before-meat`（P5-5、2026-10-30）。洗いを避ける後回しをやめ、改善の試行もしないと、`veg-before-meat` を含む 9 本が落ちた（後回しをやめるだけでは、試行のうち同点を逆に並べるものが同じ段取りを選ぶので落ちなかった）。戻すと合格した
+- わざと壊す確認: S550・前提の固定・`G-SCHED-CHECK`（P5-5、2026-10-30）。網羅表の壊し方（書き直した golden の `.out` から洗いの行を消す）では、このゴールが実装に段取りを出させて検査するので落ちなかった。洗いを段取りに入れずに道具を使う壊し方（`clean_unit` で洗いの作業を記録しない）にすると、「67 schedules, 36 violations」で落ちた。戻すと合格した
+- P5-5 の範囲（2026-10-30）: `sched` 32 本、`wash` 11 本、`cleanup` 7 本を書き直した。名前の対応は手順に合わせた（`mark`・`touch` などの試験用の動作の結果は `marked`・`touched`）。`sched/objective-order` の料理名 `a`・`b`・`c` は、並びが名前の順に依ることがあり得るので、同じ順になる `applePie`・`beefStew`・`carrotSalad` にした
+- S550 の壊し方（P5-5、2026-10-30）: `G-SCHED-CHECK` は `.out` を読まず、`collect-schedules.sh` で実装に段取りの JSON を出させて `schedcheck` に掛ける。そのため網羅表の壊し方では落ちない。実装が洗いを入れないまま汚れた道具を使う壊し方に直した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
