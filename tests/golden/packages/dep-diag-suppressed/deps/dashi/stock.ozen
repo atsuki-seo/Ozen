@@ -1,4 +1,4 @@
 ingredient Katsuobushi : Seasoning
-recipe stockBase() {
+recipe stockBase {
   ingredients { kombu: Wakame [any amount] }
 }
