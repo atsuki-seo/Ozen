@@ -1359,7 +1359,17 @@ static ozni_index ingredients_stmt(parser *p) {
         (is_amount_start(p, 1) || kind_at(p, 1) == OZNI_T_LT || kind_at(p, 1) == OZNI_T_LBRACKET)) {
       add(p, it, type_ref(p));
     }
-    add(p, it, expr(p));
+    uint32_t amount_start = cur(p)->start;
+    ozni_index amount = expr(p);
+    if (amount != 0 && at_word(p, "per") && kind_at(p, 1) == OZNI_T_IDENT && text_is(p, tok_at(p, 1), "serving")) {
+      mark(p, OZNI_R_per_serving);
+      ozni_index per = node(p, OZNI_N_PerServing, amount_start);
+      add(p, per, amount);
+      advance(p);
+      advance(p);
+      amount = finish(p, per);
+    }
+    add(p, it, amount);
     annotations(p, it);
     add(p, n, finish(p, it));
     if (!list_sep(p)) {

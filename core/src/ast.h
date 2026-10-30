@@ -16,7 +16,7 @@
   X(Plate) X(Ingredients) X(Item) X(Annotation) X(Binary) X(Unary) X(Not) X(Range) X(RangeFrom)        \
   X(RangeTo) X(Call) X(NamedArg) X(Member) X(Quantity) X(QtyPart) X(Number) X(NumberRange) X(String)    \
   X(MlString) X(Bool) X(Splice) X(Vague) X(List) X(Record) X(Entry) X(Construct) X(Name) X(Quote)       \
-  X(Make) X(Buy) X(Choose) X(Assemble)
+  X(Make) X(Buy) X(Choose) X(Assemble) X(PerServing)
 
 typedef enum ozni_node_kind : uint8_t {
 #define OZNI_NODE_ENUM(k) OZNI_N_##k,
