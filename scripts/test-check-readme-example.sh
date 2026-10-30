@@ -9,14 +9,13 @@ trap 'rm -rf "$work"' EXIT
 cases=0
 failed=0
 printf '#!/bin/sh\ntr a-z A-Z < "$1"\n' > "$work/upper.sh"
-printf '#!/bin/sh\nrev < "$1"\n' > "$work/rev.sh"
-chmod +x "$work/upper.sh" "$work/rev.sh"
+chmod +x "$work/upper.sh"
 
 expect() {
   local name=$1 want=$2 status=$3 got st
   cases=$((cases + 1))
   set +e
-  got=$("$here/check-readme-example.sh" --readme "$work/README.md" --bin "$work/rev.sh" --ozen "$work/upper.sh" \
+  got=$("$here/check-readme-example.sh" --readme "$work/README.md" --ozen "$work/upper.sh" \
     2>/dev/null | tail -n 1)
   st=$?
   set -e
@@ -38,10 +37,6 @@ printf '# x\n\n<!-- file: a.ozen -->\n```ozen\nabc\n```\n\n```text\nABC\n```\n\n
 expect carried-files "readme: 2 examples, 0 mismatches" 0
 printf '# x\n\nno examples\n' > "$work/README.md"
 expect none "readme: 0 examples, 0 mismatches" 1
-printf '# x\n\n```ozen\nabc\n```\n\n```text\ncba\n```\n' > "$work/README.md"
-expect default-not-bin "readme: 1 examples, 1 mismatches" 1
-printf '# x\n\n<!-- file: a.ozen -->\n```ozen\nabc\n```\n\n<!-- run: ozenproto a.ozen -->\n```text\ncba\n```\n' > "$work/README.md"
-expect run-bin "readme: 1 examples, 0 mismatches" 0
 printf '# x\n\n```ozen\nabc\n```\n\n```text\nABC\n```\n' > "$work/README.md"
 cases=$((cases + 1))
 got=$(cd "$work" && "$here/check-readme-example.sh" --readme README.md --ozen ./upper.sh 2>/dev/null | tail -n 1) || true

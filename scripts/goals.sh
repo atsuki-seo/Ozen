@@ -92,7 +92,7 @@ goal_G_REPO_LICENSE_TEXT() {
 }
 
 goal_G_REPO_README_LICENSE() {
-  want_ge1 "code row" "$(grep -cF '| `proto/`, `tools/`, `scripts/`, `spec/vocab/`, `spec/schema/`, `spec/coverage/`, `spec/fixtures/` | MIT OR Apache-2.0 |' README.md)"
+  want_ge1 "code row" "$(grep -cF '| `tools/`, `scripts/`, `spec/vocab/`, `spec/schema/`, `spec/coverage/`, `spec/fixtures/` | MIT OR Apache-2.0 |' README.md)"
   want_ge1 "docs row" "$(grep -cF '| `docs/`, `plans/`, `spec/samples/` | CC-BY-4.0 |' README.md)"
   want_ge1 "output sentence" "$(grep -cF 'Recipes you write in Ozen and the schedules and IR the compiler produces are yours; the Ozen licenses do not apply to them.' README.md)"
 }
