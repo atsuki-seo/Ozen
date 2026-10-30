@@ -1,4 +1,4 @@
 error TYP003 vagueAmount select-by-name-prefix-group.ozen:5:11-5:23 args=["salt"]: vague amount
-warning LIN003 leftoverPart select-by-name-prefix-group.ozen:7:11-7:12 args=["b", "200 g"]: leftover part
+warning LIN003 leftoverPart select-by-name-prefix-group.ozen:7:17-7:21 args=["rest", "200 g"]: leftover part
 result error errors=1 warnings=1 infos=0
 exit 1

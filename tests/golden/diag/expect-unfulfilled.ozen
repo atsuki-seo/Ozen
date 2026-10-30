@@ -1,6 +1,6 @@
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let (a, b) = split(rice, 100 g) @expect(leftoverPart)
-  let w = wash(a)
-  store(b)
+  let (portion, rest) = split(rice, 100 g) @expect(leftoverPart)
+  let washed = wash(portion)
+  store(rest)
 }

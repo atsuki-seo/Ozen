@@ -1,4 +1,4 @@
-warning LIN003 leftoverPart precedence.ozen:7:11-7:12 args=["b", "200 g"]: leftover part
-error LIN003 leftoverPart precedence.ozen:8:11-8:12 args=["d", "200 g"]: leftover part
+warning LIN003 leftoverPart precedence.ozen:7:18-7:27 args=["spareRice", "200 g"]: leftover part
+error LIN003 leftoverPart precedence.ozen:8:21-8:33 args=["spareSprouts", "200 g"]: leftover part
 result error errors=1 warnings=1 infos=0
 exit 1

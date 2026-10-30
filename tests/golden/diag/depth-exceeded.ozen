@@ -1,5 +1,5 @@
 // args: check --max-depth 3
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let x = rice + rice + rice + rice
+  let total = rice + rice + rice + rice
 }

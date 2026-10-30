@@ -1,9 +1,9 @@
 // args: check --deny leftoverPart --allow vagueAmount
-recipe r() {
+recipe onigiri {
   ingredients {
     rice: 300 g
     salt: [any amount]
   }
-  let (a, b) = split(rice, 100 g)
-  let w = wash(a)
+  let (portion, rest) = split(rice, 100 g)
+  let washed = wash(portion)
 }
