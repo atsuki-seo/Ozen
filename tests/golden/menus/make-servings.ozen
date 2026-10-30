@@ -1,4 +1,4 @@
-// args: check --kitchen home --entry dinner
+// args: debug schedule --entry dinner --kitchen home
 kitchen home {
   places {
     stove: IHStove
@@ -7,7 +7,7 @@ kitchen home {
     pot: Pot
   }
   tableware {
-    bowl: SoupBowl { count: 3, capacity: 300 ml }
+    bowl: SoupBowl { count: 5, capacity: 300 ml }
   }
 }
 recipe misoSoup(servings: Count = 2) {

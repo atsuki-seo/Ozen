@@ -1,3 +1,8 @@
-error KIT003 vesselShortage make-servings.ozen:19:5-19:41 args=["SoupBowl", "4", "3"]: vessel shortage
-result error errors=1 warnings=0 infos=0
-exit 1
+schedule dinner level=2 cooks=1
+  0..300 (300) %2 boil unattended [stove#1, pot#1]
+  300..360 (318) %3 plate perPerson by cook1 [bowl#1, bowl#2, bowl#3, bowl#4]
+  serve main at 360
+  total 360
+info ASM007 provisionalValue make-servings.ozen:19:5-19:41 args=["plate"]: provisional value
+result ok errors=0 warnings=0 infos=1
+exit 0
