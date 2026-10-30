@@ -1,0 +1,19 @@
+// args: check --format json --emit schedule --options today
+action whisk(x: T) -> T {
+  uses hands for 5 min
+}
+action fold(x: T) -> T {
+  uses hands for 2 min
+}
+recipe layeredCream {
+  ingredients {
+    cream: 200 ml
+    sugar: 20 g
+  }
+  let whipped = whisk([cream, sugar]) @useWithin(10 min)
+  let rested = rest(whipped / 2, 20 min)
+  let layered = fold([rested, whipped / 2])
+}
+kitchen today : Options {
+  cooks: 1
+}

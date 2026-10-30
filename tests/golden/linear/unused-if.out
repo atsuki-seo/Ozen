@@ -1,0 +1,3 @@
+warning LIN005 unusedValue unused-if.ozen:9:9-9:18 args=["carrotCut", "Carrot<shape: cut(rollCut, 20 mm)>"]: unused value
+result ok errors=0 warnings=1 infos=0
+exit 0

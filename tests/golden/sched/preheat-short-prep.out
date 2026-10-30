@@ -1,0 +1,7 @@
+schedule potatoGratin level=2 cooks=1
+  0..300 (300) %2 prepare by cook1
+  0..1200 (600) preheat oven#1 to 180 degC unattended [oven#1]
+  1200..3000 (3000) %3 bake unattended [oven#1]
+  total 3000
+result ok errors=0 warnings=0 infos=0
+exit 0

@@ -1,0 +1,3 @@
+error TYP017 annotationTarget use-within-on-alias.ozen:6:21-6:39 args=["useWithin"]: annotation target
+result error errors=1 warnings=0 infos=0
+exit 1

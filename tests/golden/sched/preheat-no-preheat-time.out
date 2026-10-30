@@ -1,0 +1,6 @@
+schedule roastPotato level=2 cooks=1
+  0..1800 (1800) %2 roast unattended [brick#1]
+  0..0 (0) preheat brick#1 to 200 degC unattended [brick#1]
+  total 1800
+result ok errors=0 warnings=0 infos=0
+exit 0

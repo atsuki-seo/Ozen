@@ -1,0 +1,10 @@
+recipe porkGinger {
+  ingredients {
+    pork: 400 g
+    cabbage: 100 g
+  }
+  repeat 2 {
+    let fried = fry(pork / 2, 8 min)
+  }
+  let shredded = cut(cabbage, julienne, 2 mm)
+}

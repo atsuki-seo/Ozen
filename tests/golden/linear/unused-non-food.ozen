@@ -1,0 +1,9 @@
+recipe gohan(servings: Count = 2) {
+  ingredients {
+    rice: 150 g per serving
+  }
+  let soakTime = 30 min
+  let batches = ceil(servings / 2)
+  let ratio = 1.2
+  let soaked = rice |> wash |> soak(20 min)
+}

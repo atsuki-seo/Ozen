@@ -1,0 +1,12 @@
+recipe vegetableSoup(withCarrot: Count = 1) {
+  ingredients {
+    water: 400 ml
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let onionCut = onion |> peel |> cut(slice, 3 mm)
+  if withCarrot > 0 {
+    let carrotCut = carrot |> peel |> cut(rollCut, 20 mm)
+  }
+  let soup = simmer([water, onionCut], 15 min)
+}

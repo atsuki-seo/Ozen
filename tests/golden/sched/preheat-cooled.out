@@ -1,0 +1,9 @@
+schedule roastedPotato level=2 cooks=1
+  0..1200 (600) preheat oven#1 to 200 degC unattended [oven#1]
+  1200..3000 (3000) %2 roast unattended [oven#1]
+  3000..3600 (3600) %3 crisp unattended [oven#1]
+  3600..4800 (4200) preheat oven#1 to 180 degC unattended [oven#1]
+  4800..6600 (6600) %4 bake unattended [oven#1]
+  total 6600
+result ok errors=0 warnings=0 infos=0
+exit 0

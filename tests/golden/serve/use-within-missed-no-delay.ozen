@@ -1,0 +1,29 @@
+// args: debug schedule --options today
+action whisk(x: T) -> T {
+  uses hands for 5 min
+}
+action slice(x: T) -> T {
+  uses hands for 20 min
+}
+action fold(x: T) -> T {
+  uses hands for 2 min
+}
+action top(x: T, with: U) -> T {
+  uses hands for 2 min
+}
+recipe bananaCream {
+  ingredients {
+    cream: 300 ml
+    sugar: 30 g
+    banana: 2 pcs
+  }
+  let whipped = whisk([cream, sugar]) @useWithin(10 min)
+  let rested = rest(whipped / 3, 20 min)
+  let layered = fold([rested, whipped / 3])
+  let sliced = slice(banana)
+  let topped = top(sliced, whipped / 3)
+  let served = rest([layered, topped], 1 min)
+}
+kitchen today : Options {
+  cooks: 2
+}

@@ -1,0 +1,15 @@
+schedule bananaCream level=1 cooks=2
+  0..0 (0) %3 combine unattended
+  0..300 (300) %4 whisk by cook2
+  0..1200 (1200) %9 slice by cook1
+  300..1500 (1500) %5 rest unattended
+  1200..1320 (1320) %10 top by cook1
+  1500..1500 (1500) %6 combine unattended
+  1500..1620 (1620) %7 fold by cook1
+  1620..1620 (1620) %11 combine unattended
+  1620..1680 (1680) %12 rest unattended
+  total 1680
+warning SCH011 useWithinMissed use-within-missed-no-delay.ozen:20:39-20:57 args=["whipped", "1200 s", "600 s"]: use within missed
+warning SCH011 useWithinMissed use-within-missed-no-delay.ozen:20:39-20:57 args=["whipped", "900 s", "600 s"]: use within missed
+result ok errors=0 warnings=2 infos=0
+exit 0

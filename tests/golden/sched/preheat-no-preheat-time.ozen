@@ -1,0 +1,19 @@
+// args: debug schedule --kitchen home --options today
+kind BrickOven : Place, HeatSource<oven>
+action roast(x: T) -> T<doneness: done> {
+  uses HeatSource<oven, heated: 200 degC> for 30 min @unattended
+}
+kitchen home {
+  places {
+    brick: BrickOven
+  }
+}
+recipe roastPotato {
+  ingredients {
+    potato: 1 pcs
+  }
+  let roasted = roast(potato)
+}
+kitchen today : Options {
+  cooks: 1
+}

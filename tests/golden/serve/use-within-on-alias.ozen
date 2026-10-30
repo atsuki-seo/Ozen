@@ -1,0 +1,11 @@
+recipe whippedCream {
+  ingredients {
+    cream: 200 ml
+    sugar: 20 g
+  }
+  let fresh = cream @useWithin(10 min)
+  let whipped = whisk([fresh, sugar])
+}
+action whisk(x: T) -> T {
+  uses hands for 5 min
+}
