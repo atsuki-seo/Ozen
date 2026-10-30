@@ -2,7 +2,7 @@
 menu katsuCurryNight(people: 4) {
   let rice = make cookedRice(servings: 4)
   let (fillet, kama) = filletBuri(buy Buri 1 pcs)
-  let side = choose perPerson from { make cookedRice(), buy Naan }
+  let side = choose perPerson from { make cookedRice, buy Naan }
   serve main {
     plate perPerson on DeepPlate { rice, kama } @serveWithin(5 min)
   }

@@ -19,8 +19,7 @@ File menu.ozen
       Let side
         Choose perPerson
           Make
-            Call
-              Name cookedRice
+            Name cookedRice
           Buy
             TypeRef Naan
       Serve main
