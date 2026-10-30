@@ -109,6 +109,13 @@ typedef struct binding {
   value v;
 } binding;
 
+typedef struct tracked {
+  food *f;
+  ozni_span span;
+  ozni_index name;
+  ozni_index trail;
+} tracked;
+
 typedef struct sema {
   ozni_project *pr;
   ozni_ctx *c;
@@ -129,6 +136,8 @@ typedef struct sema {
   uint32_t branch;
   uint32_t next_id;
   ozni_table *portions;
+  ozni_table *values;
+  uint32_t untracked;
   value last;
   ozni_index last_node;
   ozni_table *reqs;
@@ -1758,6 +1767,21 @@ static void consume(sema *s, const value *v, ozni_index file, ozni_index argnode
   f->consumed = true;
   f->consumed_group = s->group;
   f->consumed_branch = s->branch;
+}
+
+static void track(sema *s, const value *v, ozni_span span, ozni_index name) {
+  if (v->kind != V_FOOD || v->f == nullptr || s->values == nullptr || s->untracked > 0) {
+    return;
+  }
+  for (ozni_index k = 0; k < ozni_table_count(s->values); k++) {
+    if (((const tracked *)ozni_table_get(s->values, k))->f == v->f) {
+      return;
+    }
+  }
+  tracked t = {v->f, span, name, s->trail};
+  if (!ozni_table_push(s->values, &t, nullptr)) {
+    s->c->oom = true;
+  }
 }
 
 static void add_derived(sema *s, food *f, ozni_index trait) {
@@ -3938,7 +3962,9 @@ static value call_composite(sema *s, ozni_index file, const ozni_node *call, ozn
   s->file = afile;
   s->mod = mod_at_node(s, afile, anode);
   s->last = unknown();
+  s->untracked++;
   eval_block(s, block, true);
+  s->untracked--;
   value result = s->last;
   s->file = saved_file;
   s->mod = saved_mod;
@@ -4966,6 +4992,9 @@ static void eval_ingredients(sema *s, const ozni_node *n) {
     f->in_label = item->text;
     value fv = {.kind = V_FOOD, .f = f, .ref = item->text};
     bind(s, item->text, fv);
+    uint32_t name_end = item->name_end > item->name_start ? item->name_end : item->span.start + S(s, item->text).len;
+    uint32_t name_start = item->name_end > item->name_start ? item->name_start : item->span.start;
+    track(s, &fv, (ozni_span){s->file, name_start, name_end}, item->text);
     decl_ing di = {item->text, f};
     if (s->decl_ings != nullptr && !ozni_table_push(s->decl_ings, &di, nullptr)) {
       s->c->oom = true;
@@ -5075,9 +5104,11 @@ static void eval_repeat(sema *s, const ozni_node *n, bool top) {
     type_error(s, nd(s, s->file, n->first), "Count", count.kind == V_QTY ? V_UNDECIDED : count.kind);
     return;
   }
+  s->untracked++;
   for (uint32_t k = 0; k < times && body != 0 && !s->c->limit_hit && !s->c->oom; k++) {
     eval_scoped(s, body, top);
   }
+  s->untracked--;
 }
 
 static void eval_for(sema *s, const ozni_node *n, bool top) {
@@ -5093,12 +5124,14 @@ static void eval_for(sema *s, const ozni_node *n, bool top) {
     type_error(s, nd(s, s->file, n->first), "List", list.kind);
     return;
   }
+  s->untracked++;
   for (ozni_index k = 0; k < ozni_table_count(list.items) && body != 0 && !s->c->limit_hit; k++) {
     ozni_index mark = ozni_table_count(s->scope);
     bind(s, n->text, *(const value *)ozni_table_get(list.items, k));
     eval_block(s, body, top);
     ozni_table_truncate(s->scope, mark);
   }
+  s->untracked--;
 }
 
 static const mframe *frame_for(const sema *s, ozni_index param, uint32_t *index) {
@@ -5172,6 +5205,7 @@ static void eval_block(sema *s, ozni_index block, bool top) {
       if (S(s, n->text).len > 0 && S(s, n->text).p[0] == '$') {
         bind_splice(s, n, v);
       } else {
+        track(s, &v, (ozni_span){s->file, n->name_start, n->name_end}, n->text);
         bind(s, n->text, v);
       }
     } else if (n->kind == OZNI_N_LetTuple) {
@@ -5264,6 +5298,7 @@ static void eval_block(sema *s, ozni_index block, bool top) {
       }
       value v = eval(s, st);
       s->top = top;
+      track(s, &v, (ozni_span){s->file, n->span.start, n->span.end}, 0);
       if (top && v.kind == V_FOOD) {
         s->last = v;
         s->last_node = st;
@@ -5827,17 +5862,48 @@ static void check_cooked(sema *s, const food *f, ozni_index node) {
   }
 }
 
+static bool is_output(const sema *s, const food *f) {
+  bool output = s->last.kind == V_FOOD && s->last.f == f;
+  for (ozni_index i = 0; s->last.kind == V_TUPLE && s->last.items != nullptr && i < ozni_table_count(s->last.items);
+       i++) {
+    output = output || ((const value *)ozni_table_get(s->last.items, i))->f == f;
+  }
+  return output;
+}
+
+static void report_unused(sema *s) {
+  for (ozni_index k = 0; s->values != nullptr && k < ozni_table_count(s->values); k++) {
+    const tracked *t = ozni_table_get(s->values, k);
+    const food *f = t->f;
+    if (f->consumed || f->portion || f->divided || is_output(s, f)) {
+      continue;
+    }
+    ozni_buf tb = {.a = s->c->allocator};
+    put_food_type(s, &tb, f);
+    if (tb.failed) {
+      s->c->oom = true;
+    } else {
+      const ozni_source *src = &s->c->srcs[t->span.file];
+      ozni_str what = t->name != 0 ? S(s, t->name)
+                                   : (ozni_str){src->text + t->span.start, t->span.end - t->span.start};
+      ozni_str args[2] = {what, {tb.p != nullptr ? tb.p : "", (uint32_t)tb.len}};
+      ozni_index saved_trail = s->trail;
+      s->trail = t->trail;
+      diag(s, OZNI_D_LIN_unusedValue, t->span.file, t->span.start, t->span.end, args, 2);
+      s->trail = saved_trail;
+    }
+    ozni_buf_discard(&tb);
+  }
+}
+
 static void finish_dish(sema *s) {
   if (s->last.kind == V_FOOD && s->last.f != nullptr && !s->last.f->consumed) {
     check_cooked(s, s->last.f, s->last_node);
   }
+  report_unused(s);
   for (ozni_index k = 0; k < ozni_table_count(s->portions); k++) {
     food *f = *(food *const *)ozni_table_get(s->portions, k);
-    bool output = s->last.kind == V_FOOD && s->last.f == f;
-    for (ozni_index i = 0; s->last.kind == V_TUPLE && s->last.items != nullptr && i < ozni_table_count(s->last.items);
-         i++) {
-      output = output || ((const value *)ozni_table_get(s->last.items, i))->f == f;
-    }
+    bool output = is_output(s, f);
     if (f->consumed || f->discard || output || f->label == 0) {
       continue;
     }
@@ -6017,7 +6083,7 @@ static ozni_index prefixed(sema *s, const char *prefix, ozni_index name) {
 
 typedef struct saved_dish {
   ozni_index file, mod;
-  ozni_table *scope, *portions, *reqs, *variant_acts;
+  ozni_table *scope, *portions, *values, *reqs, *variant_acts;
   value last;
   ozni_index last_node;
   uint32_t step_no, group, branch;
@@ -6026,9 +6092,9 @@ typedef struct saved_dish {
 } saved_dish;
 
 static saved_dish save_dish(const sema *s) {
-  return (saved_dish){s->file,     s->mod,       s->scope,   s->portions, s->reqs,       s->variant_acts,
-                      s->last,     s->last_node, s->step_no, s->group,    s->branch,     s->servings,
-                      s->entry_dish};
+  return (saved_dish){s->file,      s->mod,       s->scope,   s->portions, s->values,   s->reqs,
+                      s->variant_acts, s->last,  s->last_node, s->step_no, s->group, s->branch,
+                      s->servings,  s->entry_dish};
 }
 
 static void restore_dish(sema *s, const saved_dish *d) {
@@ -6036,6 +6102,7 @@ static void restore_dish(sema *s, const saved_dish *d) {
   s->mod = d->mod;
   s->scope = d->scope;
   s->portions = d->portions;
+  s->values = d->values;
   s->reqs = d->reqs;
   s->variant_acts = d->variant_acts;
   s->last = d->last;
@@ -6129,6 +6196,7 @@ static value eval_make(sema *s, const ozni_node *mk) {
   s->mod = mod_at_node(s, rfile, rnode);
   s->scope = ozni_table_new(s->c->arena, sizeof(binding));
   s->portions = ozni_table_new(s->c->arena, sizeof(food *));
+  s->values = nullptr;
   s->reqs = ozni_table_new(s->c->arena, sizeof(ozni_index));
   s->variant_acts = ozni_table_new(s->c->arena, sizeof(act_ref));
   s->last = unknown();
@@ -8656,6 +8724,8 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
     ozni_buf_puts(s->out, "\n");
   }
   s->portions = ozni_table_new(s->c->arena, sizeof(food *));
+  s->values = ozni_table_new(s->c->arena, sizeof(tracked));
+  s->untracked = 0;
   s->reqs = ozni_table_new(s->c->arena, sizeof(ozni_index));
   s->variant_acts = ozni_table_new(s->c->arena, sizeof(act_ref));
   s->wave_names = ozni_table_new(s->c->arena, sizeof(ozni_index));
