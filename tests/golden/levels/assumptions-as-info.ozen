@@ -1,4 +1,4 @@
 // args: check --entry stew
-recipe stew() {
+recipe stew {
   ingredients { salt: [any amount] }
 }

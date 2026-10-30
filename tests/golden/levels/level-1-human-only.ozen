@@ -1,11 +1,11 @@
 // args: debug schedule --options today
-recipe r() {
+recipe bibimbapPrep {
   ingredients {
     rice: 300 g
     beans: BeanSprouts 100 g
   }
-  let a = wash(rice)
-  let b = wash(beans)
+  let washedRice = wash(rice)
+  let washedSprouts = wash(beans)
 }
 kitchen today : Options {
   cooks: 2

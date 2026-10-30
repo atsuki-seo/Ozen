@@ -1,9 +1,9 @@
-// args: check --entry r --kitchen home --options today
-recipe r() {
+// args: check --entry greenSalad --kitchen home --options today
+recipe greenSalad {
   ingredients {
     lettuce: 100 g
   }
-  let t = toss(lettuce)
+  let tossed = toss(lettuce)
 }
 kitchen home {
   places {

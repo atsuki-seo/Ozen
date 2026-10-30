@@ -1,6 +1,6 @@
 // args: check --entry rice
-recipe rice() @vessel(RiceBowl) {
+recipe rice @vessel(RiceBowl) {
   ingredients { rice: 300 g }
-  let s = soak(rice)
-  let c = cookRice(s)
+  let soaked = soak(rice)
+  let cooked = cookRice(soaked)
 }

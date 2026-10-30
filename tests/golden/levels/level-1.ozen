@@ -1,7 +1,7 @@
 // args: check --entry curry --options today
 recipe curry(servings: Count = 4) @vessel(DeepPlate) {
   ingredients { pork: 200 g }
-  let f = fry(pork, 5 min)
+  let fried = fry(pork, 5 min)
 }
 kitchen today : Options {
   servings: 2

@@ -1,4 +1,4 @@
-schedule r level=1 cooks=2
+schedule bibimbapPrep level=1 cooks=2
   0..180 (60) %2 wash by cook1
   0..180 (60) %4 wash by cook2
   total 180

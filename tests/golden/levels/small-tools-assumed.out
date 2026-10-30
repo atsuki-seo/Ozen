@@ -1,4 +1,4 @@
-info ASM002 noPlating small-tools-assumed.ozen:2:8-2:9 args=["r"]: no plating
-info ASM008 smallToolsAssumed small-tools-assumed.ozen:2:8-2:9 args=["MixingBowl"]: small tools assumed
+info ASM002 noPlating small-tools-assumed.ozen:2:8-2:18 args=["greenSalad"]: no plating
+info ASM008 smallToolsAssumed small-tools-assumed.ozen:2:8-2:18 args=["MixingBowl"]: small tools assumed
 result ok errors=0 warnings=0 infos=2
 exit 0

@@ -1,5 +1,5 @@
-// args: debug schedule --entry r
-recipe r() @vessel(Bowl) {
+// args: debug schedule --entry gohan
+recipe gohan @vessel(Bowl) {
   ingredients { rice: 300 g }
-  let w = wash(rice)
+  let washed = wash(rice)
 }

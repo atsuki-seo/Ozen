@@ -1,10 +1,10 @@
 // args: debug schedule
-recipe r() {
+recipe gohanPrep {
   ingredients {
     rice: 300 g
     onion: 1 pcs
   }
-  let w = wash(rice)
-  let s = soak(w)
-  let p = peel(onion)
+  let washed = wash(rice)
+  let soaked = soak(washed)
+  let peeled = peel(onion)
 }
