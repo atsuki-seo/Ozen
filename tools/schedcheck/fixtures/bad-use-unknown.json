@@ -1,0 +1,48 @@
+{
+ "schemaVersion": 1,
+ "cooks": 1,
+ "cleanup": "none",
+ "rules": [],
+ "waves": [],
+ "dishes": [],
+ "resources": [],
+ "holds": [],
+ "tasks": [
+  {
+   "id": 1,
+   "kind": "op",
+   "op": "whisk",
+   "deps": [],
+   "start": {
+    "num": 0,
+    "den": 1
+   },
+   "endHi": {
+    "num": 300,
+    "den": 1
+   },
+   "endLo": {
+    "num": 300,
+    "den": 1
+   },
+   "cook": 1,
+   "uses": [],
+   "leaves": [],
+   "food": null,
+   "targets": [],
+   "unattended": false,
+   "wave": null
+  }
+ ],
+ "limits": [
+  {
+   "producer": 1,
+   "consumer": 9,
+   "within": {
+    "num": 600,
+    "den": 1
+   },
+   "missed": false
+  }
+ ]
+}
