@@ -1286,6 +1286,11 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S551・プラットフォームの経路・`G-PLAT-LINUX`（P5-7、2026-10-30）。橋渡しの側（`bindings/linux/main.swift`）で `emit` から定義（16）を落とすと「swift: 12 inputs, 10 mismatches」で落ちた。戻すと合格した
 - P5-7 の範囲（2026-10-30）: `tests/cli` の 22 本（`lib.sh` の雛形を含む）、`core/tests/unit` の `test_api.c`・`test_ir.c`、`bindings/inputs/utf8.ozen`、`tests/samples/test-check.sh` を書き直した。補助の関数 `recipe FILE NAME` で作る料理の名前（`r`・`a`・`b`）は名前の検査の正規表現に掛からないが、同じく書き直した（`gohan`、`aemono`・`butaJiru`。並びの順を保つ名前にした）。`render-entry.sh` で束縛を変えたのに盛り付けの `{ s }` を直し忘れ、テストが状態のコードしか見ないため合格していたのを見つけて直した
 - S547・S551 の壊し方（P5-7、2026-10-30）: 単体テストは C の文字列のレシピの名前を期待として持たないので、網羅表の「宣言の名前と期待する名前を食い違わせる」は当てはまらない。レシピに未定義の名前を入れる壊し方にした。橋渡しの検査は CLI とライブラリが同じ入口を通るので、ライブラリを壊すと両方が同じに変わって落ちない。`bindings/inputs.txt` には期待が無いので、橋渡しの側の `emit` を落とす壊し方にした
+- わざと壊す確認: S616・正常系・`G-RF-SAMPLES-PIPE`（P5-8、2026-10-30）。`samples/T2/` の 4 か所のパイプを `let` の連鎖と入れ子の呼び出しに戻すと「samples-pipe: 11 samples, 1 without pipe, 0 unlisted exceptions」で落ちた。戻すと合格した（`sh/test-check-test-names.sh` の `--samples-pipe` の場合も、パイプの無いサンプルで落ちることを確かめている）
+- わざと壊す確認: S617・前提の固定・`G-RF-SAMPLES-SAME`（P5-8、2026-10-30）。`curryRice` のルーを `25 g per serving` から `26 g per serving` にずらすと「5 changed ir, 0 changed schedules, 12 changed renders」で落ちた。戻すと合格した（`sh/test-check-rewrite-equivalence.sh` の `samples-ir` の場合も同じ形を確かめている）
+- わざと壊す確認: S618・前提の固定・`G-RF-SAMPLES-SAME`（P5-8、2026-10-30）。`menuB` の `fry(sliced, 10 min, …)` を `12 min` にすると「3 changed ir, 3 changed schedules, 8 changed renders」で落ちた。戻すと合格した
+- わざと壊す確認: S620・実際の経路・`G-RF-SAMPLES-SAME`（render-all）（P5-8、2026-10-30）。`samples/T4/karubiDon.ozen` の `let topping = make karubiTopping(…)` を盛り付けの中に畳むと、IR と段取りは変わらず「0 changed ir, 0 changed schedules, 6 changed renders」で落ちた。戻すと合格した
+- S620 の壊し方（P5-8、2026-10-30）: 最初に `karubiTopping.ozen` の最後の `let topping =` を外したが、この束縛は盛り付けから参照されず、言い回しの `name-topping` が指すのは `karubiDon.ozen` の束縛だったので、出力は変わらなかった。言い回しが名前で参照する束縛を畳む壊し方にした
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
