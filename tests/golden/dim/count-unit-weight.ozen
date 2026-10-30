@@ -1,8 +1,8 @@
 // args: debug steps
-recipe r() {
+recipe glazedOnion {
   ingredients {
     onion: 2 pcs
     sugar: 10 g
   }
-  let m = mix([onion, sugar])
+  let glazed = mix([onion, sugar])
 }

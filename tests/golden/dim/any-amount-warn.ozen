@@ -1,4 +1,4 @@
-recipe r() {
+recipe misoSoup {
   ingredients {
     salt: [any amount]
   }

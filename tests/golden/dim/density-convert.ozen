@@ -1,8 +1,8 @@
 // args: debug steps
-recipe r() {
+recipe simpleSyrup {
   ingredients {
     water: 100 ml
     sugar: 10 g
   }
-  let m = mix([water, sugar])
+  let syrup = mix([water, sugar])
 }

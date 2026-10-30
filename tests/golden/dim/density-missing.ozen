@@ -1,8 +1,8 @@
 ingredient Syrup : Seasoning
-recipe r() {
+recipe pancakeTopping {
   ingredients {
     syrup: Syrup 30 ml
     sugar: 10 g
   }
-  let m = mix([syrup, sugar])
+  let topping = mix([syrup, sugar])
 }

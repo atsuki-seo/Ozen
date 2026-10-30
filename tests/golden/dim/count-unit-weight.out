@@ -1,4 +1,4 @@
-recipe r
+recipe glazedOnion
   onion : Onion 2 pcs
   sugar : Sugar 10 g
   %1 = combine([onion, sugar]) : Mixture 310..510 g

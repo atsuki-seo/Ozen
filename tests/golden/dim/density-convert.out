@@ -1,4 +1,4 @@
-recipe r
+recipe simpleSyrup
   water : Water 100 ml
   sugar : Sugar 10 g
   %1 = combine([water, sugar]) : Mixture 109..110 g

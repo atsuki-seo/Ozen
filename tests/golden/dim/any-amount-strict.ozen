@@ -1,5 +1,5 @@
 // args: check --strict
-recipe r() {
+recipe misoSoup {
   ingredients {
     salt: [any amount]
   }

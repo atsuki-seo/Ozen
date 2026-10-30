@@ -1,6 +1,6 @@
-recipe a() @deny(strict) {
+recipe misoSoup @deny(strict) {
   ingredients { salt: [any amount] }
 }
-recipe b() {
+recipe greenSalad {
   ingredients { pepper: [any amount] }
 }

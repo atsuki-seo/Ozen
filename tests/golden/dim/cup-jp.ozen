@@ -1,5 +1,5 @@
 // args: debug steps
 import std.units.jp.{cup}
-recipe r() {
+recipe hotMilk {
   ingredients { milk: 1 cup }
 }
