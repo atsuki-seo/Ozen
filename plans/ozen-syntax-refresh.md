@@ -1013,6 +1013,25 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S503・`cgolden/serve/serve-within-backward`（P2-5、2026-10-30）。`SCH010` を待ちが期限を超えなくても出すようにすると落ちた（前向きの `serve-within` など 5 本も一緒に落ちた）。戻すと合格した
 - S520 の数え違い（P3-1、2026-10-30）: `ceil(4)` は `Call`・`Name ceil`・`Number 4` の 3 ノードで、D43 の組み替えでも `4 |> ceil` は `Number`・`Name`・新しい `Call` の 3 ノードになる。計画を書いたときは組み替えの `Call` だけを数えて「1 つ多い」としていた。`ozen check --max-nodes` で `property batches = ceil(5 / 2)` が 7 でちょうど通り、6 で止まることを確かめ、S520 を「同じ数」に直した。網羅表の壊し方（Name を Call に書き換えて数を減らす）は 1 つ足りない `nodes` で、数を増やす誤りはちょうどの `nodes-exact` で捉える
 - `pipe/ast` と `pipe/ast-rules`（P3-1、2026-10-30）: `ozen debug ast --rules` は規則の一覧だけを出し、構文木と span を出さない。golden は 1 つのコマンドしか走らせないので、S518（span）を `ast`、S516（規則 `pipe`）を `ast-rules` に分けた。`cgolden/pipe/*` は `nodes-exact` と合わせて 15 個
+- わざと壊す確認: S504・`cgolden/pipe/bare-name`（P3-1、2026-10-30）。右辺が名前のとき左辺を引数に足さないと、`wash()` が引数なしになり、`bare-name` が落ちた（名前の段を持つ `chain`・`macro`・`precedence` なども一緒に落ちた）。戻すと合格した
+- わざと壊す確認: S505・`cgolden/pipe/first-arg`（P3-1、2026-10-30）。左辺を最後の位置の引数（名前付きの引数の前）に入れると、`cut(slice, peeled, …)` になり `first-arg` が落ちた。戻すと合格した
+- わざと壊す確認: S506・`cgolden/pipe/chain`（P3-1、2026-10-30）。右辺を残りのパイプごと読んでから左辺を差し込む右結合にすると、`chain` が落ちた。戻すと合格した
+- わざと壊す確認: S507・`cgolden/pipe/precedence`（P3-1、2026-10-30）。パイプを単項の式の直後で読むようにして `sum` より強くすると、`precedence` だけが落ちた。戻すと合格した
+- わざと壊す確認: S508・`cgolden/pipe/bad-target-quantity`（P3-1、2026-10-30）。右辺の名前の検査を外し、任意の式を左辺との呼び出しに包むと、`bad-target-quantity` が落ちた（`bad-target-list`・`bad-target-make` も一緒に落ちた）。戻すと合格した
+- わざと壊す確認: S509・`cgolden/pipe/bad-target-list`（P3-1、2026-10-30）。S508 と同じ壊し方で、`bad-target-list` が落ちた。戻すと合格した
+- わざと壊す確認: S510・`cgolden/pipe/bad-target-make`（P3-1、2026-10-30）。右辺の先頭に `make` を許して包むと、`bad-target-make` だけが落ちた。戻すと合格した
+- わざと壊す確認: S511・`cgolden/pipe/macro`（P3-1、2026-10-30）。`eval_macro` で、パイプで作った呼び出しの最初の引数を飛ばすと、`macro` だけが落ちた。戻すと合格した
+- わざと壊す確認: S512・`cgolden/pipe/named-only`（P3-1、2026-10-30）。左辺を引数の最後（名前付きの引数の後ろ）に入れると、`named-only` が落ちた（`first-arg`・`chain` なども一緒に落ちた）。戻すと合格した
+- わざと壊す確認: S513・`cgolden/pipe/unattended`（P3-1、2026-10-30）。`check_targets` で、パイプで作った呼び出しを最初の段の左辺（`rice`）までたどって確かめると、`unattended` だけが落ちた。戻すと合格した
+- わざと壊す確認: S514・`cgolden/pipe/unattended-builtin`（P3-1、2026-10-30）。`check_targets` で、パイプで作った呼び出しを確かめないようにすると、`unattended-builtin` だけが落ちた。戻すと合格した
+- わざと壊す確認: S516・`cgolden/pipe/ast-rules`（P3-1、2026-10-30）。`mark(p, OZNI_R_pipe)` を外すと、規則の一覧から `pipe` が消えて `ast-rules` だけが落ちた。戻すと合格した
+- わざと壊す確認: S517・`G-CORE-GRAMMAR`（P3-1、2026-10-30）。`grammar.ebnf` から規則 `pipe` を消すと、直した検査（後述）で「131 rules, 0 not covered, 1 unknown」になって落ちた。戻すと合格した
+- わざと壊す確認: S518・`cgolden/pipe/ast`（P3-1、2026-10-30）。組み替えた呼び出しの span を右辺の始まりからにすると、`ast` が落ちた（`nodes` の `MAC003` の位置も変わって落ちた）。戻すと合格した
+- わざと壊す確認: S519・`cunit/span_nesting`（P3-1、2026-10-30）。組み替えた呼び出しの span の終わりを左辺の終わりにすると、`span_nesting` が「span 103-107 of Name outside 87-91」などで落ちた。戻すと合格した
+- わざと壊す確認: S520・`cgolden/pipe/nodes`（P3-1、2026-10-30）。右辺の `Name` のノードを `Call` に書き換えてノードを増やさないと、`nodes` が落ちた。戻すと合格した
+- わざと壊す確認: S521・`G-RF-FUZZ-DICT`（P3-1、2026-10-30）。辞書から `"|>"` を消すと「fuzz dict "|>": got '0'」で落ちた。戻すと合格した
+- 文法の網羅の検査の穴（P3-1、2026-10-30）: `check-grammar-coverage.py` は、`ozen debug ast --rules` が出したのに文法に無い規則を「unknown rule」として終了コード 1 にするが、ゴールが読む最後の行は「0 not covered」のままだった。そのため S517 の壊し方では `G-CORE-GRAMMAR` が落ちなかった。文法に無い規則があるときだけ、最後の行に「, <n> unknown」を足すように直し、自己テストの `unknown-rule` の期待を先に変えた。無いときの行はロードマップの書式のまま
+- `G-RF-FUZZ-DICT` の P3-1 での扱い（2026-10-30）: このゴールは `"|>"`・`"per"`・`"serving"` の 3 つを見る。P3-1 で足すのは `"|>"` だけで、残りの 2 つは P4-1 で足すので、それまでこのゴールは 2 つの確かめで落ちる。P3-1 では `"|>"` の確かめが合格することを見た
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
