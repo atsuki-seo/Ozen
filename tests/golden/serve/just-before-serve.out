@@ -7,6 +7,6 @@ schedule dinner level=1 cooks=2
   serve main at 1860
   total 1860
 info ASM004 unlimitedEquipment just-before-serve.ozen:21:6-21:12: unlimited equipment
-info ASM007 provisionalValue just-before-serve.ozen:26:5-26:52 args=["plate"]: provisional value
+info ASM007 provisionalValue just-before-serve.ozen:26:5-26:57 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=2
 exit 0

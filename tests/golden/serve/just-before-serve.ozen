@@ -5,25 +5,25 @@ action topIt(x: T) -> T {
 action stewB(x: T) -> T<doneness: done> {
   uses hands for 30 min
 }
-recipe stew() {
+recipe stew {
   ingredients {
     pork: 300 g
   }
-  let s = stewB(pork)
+  let stewed = stewB(pork)
 }
-recipe dessert() {
+recipe dessert {
   ingredients {
     ice: VanillaIce 100 g
   }
-  let c = rest(ice, 10 min)
-  let d = topIt(c)
+  let rested = rest(ice, 10 min)
+  let topped = topIt(rested)
 }
-menu dinner() {
-  let b = make stew()
-  let d = make dessert()
+menu dinner {
+  let stewBowl = make stew
+  let topped = make dessert
   serve main {
-    plate perPerson on DeepPlate { b }
-    plate perPerson on Glass { d } @justBeforeServe
+    plate perPerson on DeepPlate { stewBowl }
+    plate perPerson on Glass { topped } @justBeforeServe
   }
 }
 kitchen today : Options {

@@ -1,12 +1,12 @@
 schedule dinner level=2 cooks=1
   0..600 (600) %2 simmerIt unattended [stove#1]
   0..720 (720) %4 prepIt by cook1
-  600..1140 hold c [stove#1]
+  600..1140 hold curryPot [stove#1]
   720..1020 (1020) %5 boilIt by cook1 [stove#2]
   1020..1080 (1038) %6 plate perPerson by cook1
   1080..1140 (1098) %7 plate perPerson by cook1
   serve main at 1140
   total 1140
-info ASM007 provisionalValue keep-warm-occupies.ozen:28:5-28:73 args=["plate"]: provisional value
+info ASM007 provisionalValue keep-warm-occupies.ozen:28:5-28:80 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=1
 exit 0

@@ -2,16 +2,16 @@
 action topIt(x: T) -> T {
   uses hands for 1 min
 }
-recipe dessert() {
+recipe dessert {
   ingredients {
     ice: VanillaIce 100 g
   }
-  let d = topIt(ice)
+  let topped = topIt(ice)
 }
-menu dinner() {
-  let d = make dessert()
+menu dinner {
+  let topped = make dessert
   serve main {
-    plate perPerson on Glass { d } @serveWithin(30 s)
+    plate perPerson on Glass { topped } @serveWithin(30 s)
   }
 }
 kitchen today : Options {

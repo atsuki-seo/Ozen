@@ -8,25 +8,25 @@ action prepIt(x: T) -> T {
 action boilIt(x: T) -> T<doneness: done> {
   uses hands, HeatSource<stovetop> for 5 min
 }
-recipe curry() {
+recipe curry {
   ingredients {
     pork: 300 g
   }
-  let c = simmerIt(pork)
+  let curryPot = simmerIt(pork)
 }
-recipe soup() {
+recipe soup {
   ingredients {
     dashi: 300 ml
   }
-  let p = prepIt(dashi)
-  let b = boilIt(p)
+  let prepped = prepIt(dashi)
+  let boiled = boilIt(prepped)
 }
-menu dinner() {
-  let c = make curry()
-  let s = make soup()
+menu dinner {
+  let curryPot = make curry
+  let soupPot = make soup
   serve main {
-    plate perPerson on DeepPlate { c } @keepWarm(on: Stove, max: 60 min)
-    plate perPerson on SoupBowl { s }
+    plate perPerson on DeepPlate { curryPot } @keepWarm(on: Stove, max: 60 min)
+    plate perPerson on SoupBowl { soupPot }
   }
 }
 kitchen home {

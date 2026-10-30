@@ -4,7 +4,7 @@ schedule dinner level=1 cooks=1
   serve main at 120
   total 120
 info ASM004 unlimitedEquipment serve-within-missed.ozen:11:6-11:12: unlimited equipment
-info ASM007 provisionalValue serve-within-missed.ozen:14:5-14:54 args=["plate"]: provisional value
-warning SCH010 serveWithinMissed serve-within-missed.ozen:14:32-14:33 args=["d", "60 s", "30 s"]: serve within missed
+info ASM007 provisionalValue serve-within-missed.ozen:14:5-14:59 args=["plate"]: provisional value
+warning SCH010 serveWithinMissed serve-within-missed.ozen:14:32-14:38 args=["topped", "60 s", "30 s"]: serve within missed
 result ok errors=0 warnings=1 infos=2
 exit 0

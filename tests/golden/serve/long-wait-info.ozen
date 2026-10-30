@@ -1,33 +1,33 @@
 // args: debug schedule --entry dinner --options today
-action stewY(x: T) -> T<doneness: done> {
+action stewY(soupBowl: T) -> T<doneness: done> {
   uses hands for 40 min
 }
-recipe xdish() {
+recipe clearSoup {
   ingredients {
     dashi: 300 ml
   }
-  let r = rest(dashi, 10 min)
+  let rested = rest(dashi, 10 min)
 }
-recipe ydish() {
+recipe porkStew {
   ingredients {
     pork: 300 g
   }
-  let s = stewY(pork)
+  let stewed = stewY(pork)
 }
-recipe zdish() {
+recipe hotWater {
   ingredients {
     water: 300 ml
   }
-  let r = rest(water, 13 min)
+  let rested = rest(water, 13 min)
 }
-menu dinner() {
-  let x = make xdish()
-  let y = make ydish()
-  let z = make zdish()
+menu dinner {
+  let soupBowl = make clearSoup
+  let stewBowl = make porkStew
+  let waterGlass = make hotWater
   serve main {
-    plate perPerson on SoupBowl { x }
-    plate perPerson on DeepPlate { y }
-    plate perPerson on SoupBowl { z }
+    plate perPerson on SoupBowl { soupBowl }
+    plate perPerson on DeepPlate { stewBowl }
+    plate perPerson on SoupBowl { waterGlass }
   }
 }
 kitchen today : Options {

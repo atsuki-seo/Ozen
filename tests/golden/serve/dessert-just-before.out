@@ -7,7 +7,7 @@ schedule dinner level=1 cooks=1
   serve dessert at 4500
   total 4500
 info ASM004 unlimitedEquipment dessert-just-before.ozen:11:6-11:12: unlimited equipment
-info ASM007 provisionalValue dessert-just-before.ozen:14:5-14:39 args=["plate"]: provisional value
+info ASM007 provisionalValue dessert-just-before.ozen:14:5-14:46 args=["plate"]: provisional value
 info ASM007 provisionalValue dessert-just-before.ozen:18:7-18:61 args=["assemble"]: provisional value
 result ok errors=0 warnings=0 infos=3
 exit 0

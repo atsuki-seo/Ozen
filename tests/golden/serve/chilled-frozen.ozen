@@ -2,35 +2,35 @@
 action tossIt(x: T) -> T {
   uses hands for 2 min
 }
-recipe salad() {
+recipe salad {
   ingredients {
     lettuce: 100 g
   }
-  let t = tossIt(lettuce)
+  let tossed = tossIt(lettuce)
 }
-recipe slaw() {
+recipe slaw {
   ingredients {
     cabbage: 100 g
   }
-  let t = tossIt(cabbage)
+  let tossed = tossIt(cabbage)
 }
 action stewB(x: T) -> T<doneness: done> {
   uses hands for 30 min
 }
-recipe stew() {
+recipe stew {
   ingredients {
     pork: 300 g
   }
-  let s = stewB(pork)
+  let stewed = stewB(pork)
 }
-menu dinner() {
-  let a = make salad()
-  let b = make slaw()
-  let c = make stew()
+menu dinner {
+  let saladBowl = make salad
+  let slawBowl = make slaw
+  let stewBowl = make stew
   serve main {
-    plate perPerson on SmallBowl { a } @chilled
-    plate perPerson on SmallBowl { b } @chilled
-    plate perPerson on DeepPlate { c }
+    plate perPerson on SmallBowl { saladBowl } @chilled
+    plate perPerson on SmallBowl { slawBowl } @chilled
+    plate perPerson on DeepPlate { stewBowl }
     plate perPerson on Glass { buy VanillaIce 100 g } @frozen
   }
 }
