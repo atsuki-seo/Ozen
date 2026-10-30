@@ -34,3 +34,4 @@ e7effd2 the subcommands CLI test only stops listing unbundle among the unavailab
 6b33539 the ingredient-dimension-ok golden passes because no ingredient amount was checked before; the S499 mutation (rejecting a volume) makes it fail
 96e6c0a the omit-parens golden passes because the parser already allowed a recipe or menu without parentheses and make takes a bare name since P2-3; the S522 mutation (requiring the parentheses) makes it fail
 d4be62d the per-serving-misplaced golden passes because per was an unexpected token everywhere before; the S531 mutation (reading per serving in a parameter default) makes it fail
+11abea8 the store-discard, part, last-tuple, composite and divided goldens expect no unused value warning, so they pass before the check exists; the S558, S559, S560, S563 and S564 mutations (reporting values after store or discard, parts, the last tuple, values in composite steps and divided foods) show that they detect the change
