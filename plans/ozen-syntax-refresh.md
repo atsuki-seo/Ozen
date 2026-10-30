@@ -616,11 +616,14 @@ python3 scripts/check-limit-pairs.py --ozen build/core-gcc-release/ozen tests/go
 # G-RF-GOLDEN-COUNT
 scripts/golden-entries.sh tests/golden | wc -l     # → N0 + 68（N0 は §9）
 # G-RF-CONCEPT（P9-1 から）
-sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -cE '\|>|per serving'
+sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -c '|>'
+sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -c 'per serving'
+sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -c '`()` を省く'
 sed -n '/^### 4\.1/,/^### 4\.2/p' docs/concept.md | grep -c 'unusedValue'
 sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -c 'preheat'
-sed -n '/^### 4\.5/,/^### 4\.6/p' docs/concept.md | grep -c 'useWithin'
-sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cE 'servingsUnknown|useWithinMissed'   # → すべて 1 以上
+sed -n '/^### 4\.5/,/^### 4\.6/p' docs/concept.md | grep -c 'useWithin'   # → ここまですべて 1 以上
+sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep '^| 警告' | grep -oE 'unusedValue|useWithinMissed' | sort -u | wc -l   # → 2
+sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep '^| エラー' | grep -c 'servingsUnknown'   # → 1
 # G-RF-CLAUDEMD
 grep -c 'plans/ozen-syntax-refresh.md' CLAUDE.md   # → 1 以上
 # G-RF-CI-NO-PROTO（push の後）

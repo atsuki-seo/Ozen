@@ -682,11 +682,17 @@ goal_G_RF_GOLDEN_COUNT() {
 }
 
 goal_G_RF_CONCEPT() {
-  want_ge1 "concept 4.4 pipe or per serving" "$(sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -cE '\|>|per serving')"
+  local syntax severity
+  syntax=$(sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md)
+  severity=$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md)
+  want_ge1 "concept 4.4 pipe" "$(grep -c '|>' <<< "$syntax")"
+  want_ge1 "concept 4.4 per serving" "$(grep -c 'per serving' <<< "$syntax")"
+  want_ge1 "concept 4.4 omitted parentheses" "$(grep -c '`()` を省く' <<< "$syntax")"
   want_ge1 "concept 4.1 unusedValue" "$(sed -n '/^### 4\.1/,/^### 4\.2/p' docs/concept.md | grep -c 'unusedValue')"
   want_ge1 "concept 4.2 preheat" "$(sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -c 'preheat')"
   want_ge1 "concept 4.5 useWithin" "$(sed -n '/^### 4\.5/,/^### 4\.6/p' docs/concept.md | grep -c 'useWithin')"
-  want_ge1 "concept 6.1 new codes" "$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cE 'servingsUnknown|useWithinMissed')"
+  want_eq "concept 6.1 warnings" 2 "$(grep '^| 警告' <<< "$severity" | grep -oE 'unusedValue|useWithinMissed' | sort -u | wc -l)"
+  want_eq "concept 6.1 errors" 1 "$(grep '^| エラー' <<< "$severity" | grep -c 'servingsUnknown')"
 }
 
 goal_G_RF_CLAUDEMD() {
