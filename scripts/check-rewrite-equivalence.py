@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 import argparse
 import fnmatch
+import json
 import os
 import re
 import shutil
@@ -129,6 +130,55 @@ def row_matches(name, names, unit_text):
     return any(fnmatch.fnmatchcase(n, name) for n in names)
 
 
+def sample_outputs(ref, cache, samples):
+    sha, binary = build(ref, cache)
+    tmp = tempfile.mkdtemp()
+    wt = os.path.join(tmp, "wt")
+    out = os.path.join(tmp, "out")
+    try:
+        git("worktree", "add", "--detach", wt, sha)
+        saved = os.path.join(out, "json", "samples")
+        subprocess.run([sys.executable, "-B", "tests/samples/check.py", "--ozen", binary, "--save", saved, samples],
+                       cwd=wt, capture_output=True)
+        subprocess.run(["node", "renderers/tools/render-all.mjs", "--langs", "ja,en", "--out", os.path.join(out, "html"),
+                        os.path.join(out, "json")], cwd=wt, capture_output=True)
+        count = sum(1 for d in os.listdir(os.path.join(wt, samples)) if os.path.isdir(os.path.join(wt, samples, d)))
+        docs = {}
+        for f in sorted(os.listdir(saved)) if os.path.isdir(saved) else []:
+            if f.endswith(".json"):
+                docs[f] = json.load(open(os.path.join(saved, f), encoding="utf-8"))
+        renders = {}
+        for d, _, fs in os.walk(os.path.join(out, "html")):
+            for f in fs:
+                path = os.path.join(d, f)
+                renders[os.path.relpath(path, os.path.join(out, "html"))] = open(path, "rb").read()
+        return count, docs, renders
+    finally:
+        subprocess.run(["git", "worktree", "remove", "--force", wt], capture_output=True)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def samples_main(a, cache):
+    _, base_docs, base_renders = sample_outputs(a.base, cache, a.samples)
+    count, head_docs, head_renders = sample_outputs(a.head, cache, a.samples)
+    changed = {"ir": 0, "schedules": 0}
+    for key in changed:
+        for name in sorted(set(base_docs) | set(head_docs)):
+            before = base_docs.get(name, {}).get(key) if isinstance(base_docs.get(name), dict) else None
+            after = head_docs.get(name, {}).get(key) if isinstance(head_docs.get(name), dict) else None
+            if before != after:
+                changed[key] += 1
+                print(f"changed {key}: {name}", file=sys.stderr)
+    renders = 0
+    for name in sorted(set(base_renders) | set(head_renders)):
+        if base_renders.get(name) != head_renders.get(name):
+            renders += 1
+            print(f"changed render: {name}", file=sys.stderr)
+    print(f"samples-same: {count} samples, {changed['ir']} changed ir, {changed['schedules']} changed schedules, "
+          f"{renders} changed renders")
+    return 0 if changed["ir"] == 0 and changed["schedules"] == 0 and renders == 0 else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True)
@@ -136,10 +186,15 @@ def main():
     ap.add_argument("--records")
     ap.add_argument("--roadmap", default="plans/ozen-roadmap.md")
     ap.add_argument("--cache", default="build/equivalence")
-    ap.add_argument("golden")
+    ap.add_argument("--samples")
+    ap.add_argument("golden", nargs="?")
     a = ap.parse_args()
-    root = a.golden.rstrip("/")
     cache = os.path.abspath(a.cache)
+    if a.samples:
+        return samples_main(a, cache)
+    if a.golden is None:
+        ap.error("a golden folder or --samples is needed")
+    root = a.golden.rstrip("/")
     try:
         changed = changed_files(a.base, a.head)
         head_entries, folders = golden_entries(a.head, root)
