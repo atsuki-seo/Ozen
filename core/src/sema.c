@@ -2554,8 +2554,12 @@ static bool typed_qty(sema *s, ozni_index vfile, ozni_index vnode, ozni_index tf
     return false;
   }
   int dim = nd(s, tfile, base)->kind == OZNI_N_TypeRef ? dim_index(s, nd(s, tfile, base)->text) : -1;
-  if (dim >= 0 && dimensionless(out->d) && str_is(S(s, nd(s, tfile, base)->text), "Count")) {
-    out->d.e[dim] = 1;
+  if (dim >= 0 && str_is(S(s, nd(s, tfile, base)->text), "Count")) {
+    ozni_dimvec pcs = {{0}};
+    pcs.e[dim] = 1;
+    if (dims_equal(out->d, pcs)) {
+      out->d.e[dim] = 0;
+    }
   }
   return true;
 }
@@ -2604,7 +2608,9 @@ static void check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index 
       return;
     }
     ozni_dimvec want = {{0}};
-    want.e[dim_index(s, bn->text)] = 1;
+    if (!str_is(S(s, bn->text), "Count")) {
+      want.e[dim_index(s, bn->text)] = 1;
+    }
     if (!dims_equal(v.d, want)) {
       ozni_str args[2] = {S(s, dim_name_text(s, v.d)), S(s, bn->text)};
       diag_node(s, OZNI_D_TYP_dimension, vfile, nd(s, vfile, vnode), args, 2);
