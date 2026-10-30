@@ -10,10 +10,10 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/samples/one"
 cat > "$work/samples/one/main.ozen" <<'OZ'
-recipe one() {
+recipe one {
   ingredients { onion: 1 pcs }
-  let p = peel(onion)
-  let c = cut(p, slice)
+  let peeled = peel(onion)
+  let sliced = cut(peeled, slice)
 }
 OZ
 cat > "$work/samples/one/package.ozen" <<'OZ'
