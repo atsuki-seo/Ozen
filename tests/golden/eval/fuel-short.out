@@ -1,3 +1,3 @@
-error MAC001 fuelExhausted fuel-short.ozen:4:13-4:14 args=["8"]: fuel exhausted
+error MAC001 fuelExhausted fuel-short.ozen:4:17-4:18 args=["8"]: fuel exhausted
 result error errors=1 warnings=0 infos=0
 exit 1

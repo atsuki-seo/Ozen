@@ -1,7 +1,7 @@
-recipe r() {
+recipe nikujaga {
   ingredients { onion: 1 pcs }
-  let t = 15..20 min
-  if t > 18 min {
-    let p = peel(onion)
+  let simmerTime = 15..20 min
+  if simmerTime > 18 min {
+    let peeled = peel(onion)
   }
 }

@@ -1,6 +1,6 @@
 // args: check --max-steps 8
-recipe r() {
+recipe rinseRice {
   repeat 2 {
-    let a = 1
+    let rinse = 1
   }
 }
