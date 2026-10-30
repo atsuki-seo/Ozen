@@ -1055,6 +1055,13 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S515・`G-RF-TYPEARGS-STABLE`（P5-0、2026-10-30）。一時の worktree で `typeargs/alternatives.out` の 1 行目の末尾に空白を足したコミットを作り、`rewrite-start` をそこに向けると「typeargs unchanged: exit 1」で落ちた。タグを元のコミットに戻すと合格した
 - わざと壊す確認: S541・`G-RF-NAMES`（`unlisted exceptions`）（P5-0、2026-10-30）。`scripts/test-names-exceptions.txt` に理由の無い行を足すと「1 unlisted exceptions」になった。消すと 0 に戻った（1 文字の名前が残る間、このゴールはほかの理由でも落ちる）
 - P5-0 の道具（2026-10-30）: `check-rewrite-equivalence.py` は、比べる時点ごとに一時の worktree で `scripts/build-core.sh --only core-gcc-release` を走らせ、実行ファイルを `build/equivalence/<コミット>/ozen` に取っておく。書き直したものは、2 つの時点の間で `.ozen`・`.out`・フォルダの golden の中身が変わった golden。比べる中身は終了コード・診断のコードの並び・`result` の数・手順の名前の列。記録は、書き直したテスト（`cgolden/`・`cli/`・`cunit/`）を指すロードマップ §5.3 の行のうち「わざと壊す方法」を持つものごとに、S 項目・観点・テストの名前を含む `- 書き直しのわざと壊す確認: ` の行を探す。`cunit/` の名前は、変わった単体テストの C のファイルにその名前があれば書き直したものとみなす。タグ `rewrite-start` は P5-0 の道具のコミットの後に打った。1 文字の名前は着手時に 705 個（宣言 459・束縛 709 のうち）
+- わざと壊す確認: S538・正常系・`G-RF-EQUIVALENCE`（P5-1、2026-10-30）。一時の worktree で、書き直した `syntax/recover-multiple` の最後の誤り（`let seasoned = *`）を消して期待値も合わせたコミットを作り、`--head` に渡すと「1 changed results」（`SYN003` が 3 つから 2 つ）で落ちた。HEAD に戻すと 0 changed results で合格した
+- 書き直しのわざと壊す確認: S156・正常系・`cgolden/syntax/recover-multiple`（P5-1、2026-10-30）。構文の誤りの後で同期せずにブロックを抜けると、`recover-multiple` が落ちた（`reserved-word`・`diag/code-and-name` なども一緒に落ちた）。戻すと合格した
+- 書き直しのわざと壊す確認: S410・効かない条件・`cgolden/syntax/utf8-invalid`（P5-1、2026-10-30）。`resolve.c` の UTF-8 の検査を外すと、`utf8-invalid` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S411・効かない条件・`cgolden/syntax/ident-nonascii`（P5-1、2026-10-30）。字句解析で ASCII でない識別子の診断を出さないと、`ident-nonascii` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S412・正常系・`cgolden/syntax/multiline-string`（P5-1、2026-10-30）。三重引用符の文字列の読み取りを改行で止めると、`multiline-string` と `decl/phrases` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S415・効かない条件・`cgolden/syntax/annotation-target`（P5-1、2026-10-30）。`check_targets` で `TYP017` を出さないと、`annotation-target` と `pipe/unattended-builtin` が落ちた。戻すと合格した
+- 書き直しの期待値の求め方（P5-1、2026-10-30）: 書き直したソースを書いたあと、古い期待値に名前の対応表を当てて新しい期待値を作る（scratchpad の補助の道具。`ozen` は走らせない）。診断の位置は、古いソースのその位置の文字列が何番目の出現かを数え、名前を置き換えた文字列の同じ番目の出現を新しいソースで探して求める。出現の数が変わるものと構文木の span は手で数えた。量・時間の変わる行は手で計算した。そのあと golden を走らせ、食い違いは 1 つずつ原因を調べた（`syntax` では、手で書いた置き換えの文字列のエスケープの誤り 1 件）
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
