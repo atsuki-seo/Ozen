@@ -6025,11 +6025,10 @@ static void made_from(sema *s, food *o, const ozni_table *made) {
 
 static value eval_make(sema *s, const ozni_node *mk) {
   const ozni_node *call = mk->first != 0 ? nd(s, s->file, mk->first) : nullptr;
+  ozni_index callee = call == nullptr ? 0 : call->kind == OZNI_N_Call ? call->first : mk->first;
   ozni_index rfile, rnode;
-  if (call == nullptr || call->kind != OZNI_N_Call || call->first == 0 || s->make_depth > 16 ||
-      nd(s, s->file, call->first)->kind != OZNI_N_Name ||
-      !find_def(s, nd(s, s->file, call->first)->text, &rfile, &rnode) ||
-      nd(s, rfile, rnode)->kind != OZNI_N_Recipe) {
+  if (callee == 0 || s->make_depth > 16 || nd(s, s->file, callee)->kind != OZNI_N_Name ||
+      !find_def(s, nd(s, s->file, callee)->text, &rfile, &rnode) || nd(s, rfile, rnode)->kind != OZNI_N_Recipe) {
     return unknown();
   }
   const ozni_node *rec = nd(s, rfile, rnode);
@@ -6045,7 +6044,8 @@ static value eval_make(sema *s, const ozni_node *mk) {
       set[np++] = false;
     }
   }
-  for (ozni_index arg = nd(s, s->file, call->first)->next; arg != 0; arg = nd(s, s->file, arg)->next) {
+  for (ozni_index arg = call->kind == OZNI_N_Call ? nd(s, s->file, callee)->next : 0; arg != 0;
+       arg = nd(s, s->file, arg)->next) {
     const ozni_node *an = nd(s, s->file, arg);
     if (an->kind == OZNI_N_Annotation) {
       continue;
