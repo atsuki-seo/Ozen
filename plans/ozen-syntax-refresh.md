@@ -335,7 +335,7 @@ recipe gohanToTamanegi(servings: 2) {
 - **S498** S497 の診断の引数は得た次元と `Mass`、位置は量の式。
 - **S499** 質量・体積・個数の材料の量（`rice: 300 g`・`milk: 200 ml`・`onion: 2 pcs`）は通る。
 - **S500** `make 名前`（括弧なし）は `make 名前()` と同じ手順・同じ出力の値になる。
-- **S501** 献立の `make r(servings: 4)` で呼んだ料理の器の枚数の検査は、4 人分で行う。
+- **S501** 献立の `make r(servings: 4)` で呼んだ料理は、段取りの盛り付けで 4 人分の器を使う（`make` の中では器の枚数の診断を出さないので、器の数で確かめる。§9）。
 - **S502** `--serve-at`（`serveAt`）を指定したときも、`@serveWithin(t)` を守る配置があれば守る。`serve/serve-within` に `serveAt: 60 min` を足した入力で、汁物の仕上がりから出すまでの待ちは 300 s 以下。
 - **S503** S502 の入力で `SCH010` は出ない。
 
@@ -418,7 +418,7 @@ recipe gohanToTamanegi(servings: 2) {
 - **S557** 宣言しただけで使わない材料は `LIN005`（位置は材料の名前）。
 - **S558** `store(x)`・`discard(x)` に渡した値には出さない。
 - **S559** 部位（split・捌き・組の出力）には出さない（`LIN003` だけ）。
-- **S560** 最後の値と、最後の組の値には出さない。
+- **S560** 最後の値には出さない。最後の値が組のときの各値は部位なので、S559 で除かれる（`LIN003` と共有の出力の判定で確かめる）。
 - **S561** `make` で呼ばれた料理の評価の中では出さない。
 - **S562** S561 の料理を単体で評価すれば出す。
 - **S563** 合成した動作の `steps` の中の値には出さない。
@@ -426,6 +426,14 @@ recipe gohanToTamanegi(servings: 2) {
 - **S565** `@allow(unusedValue)` で隠せる。
 - **S566** 登録簿の末尾に `LIN005`、`core/tests/diag-names.txt` に `LIN:unusedValue`、`phrases/ja.ftl`・`en.ftl` に `diag-unused-value` がある。
 - **S567** サンプル（`samples/*`）の評価で `LIN005` は出ない。
+- **S621** `repeat`・`for` の本体で作った値は追跡しない（繰り返しの各回の値は料理の一部で、集める書き方が無いため）。
+- **S622** 料理が `parallel` で終わるとき、枝の中の値は最後の値にならず、使われなければ報告される。
+- **S623** 呼び出しが誤りで評価されないと、その引数は消費されず、使われない値として報告される。
+- **S624** マクロの展開の中の束縛は、マクロの定義の位置に、展開した呼び出しを `via` として付けて報告する。
+- **S625** 同じ食材の値を 2 つの名前で束縛したときは、最初の名前だけを報告する。
+- **S626** 献立の値（`make`・`buy` の結果）も対象にする。
+- **S627** `if` の本体で束縛した値も対象にする。
+- **S628** 食材でない値（量・時間・数）には出さない。
 
 ### 4.8 予熱（D48）
 
@@ -440,19 +448,23 @@ recipe gohanToTamanegi(servings: 2) {
 - **S576** 続けてより高い温度で使う作業の前には、予熱を入れ直す。
 - **S577** 要る温度は、動作の引数の式でもよい（`heated: temp`）。
 - **S578** `--serve-at`（後ろ向き）でも、S570 と S571 を守る。
-- **S579** 台所の個体の `maxTemp` が要る温度より低ければ `KIT002 requiresUnmet`。
+- **S579** 要る温度を満たす個体（`maxTemp` が要る温度以上か、`maxTemp` が無い個体）が台所に 1 つも無ければ `KIT002 requiresUnmet`。
 - **S580** `maxTemp` が要る温度と等しければ通る。
 - **S581** `maxTemp` を書いていない個体は、要る温度を満たしたことにする。
 - **S582** 予熱は IR に入らない（台所を注入した `debug ir` に予熱の作業が無い）。
 - **S583** 段取りのテキストに `<始まり>..<終わりの上限> (<終わりの下限>) preheat <個体> to <温度> unattended [<個体>]` の行が出る。
 - **S584** 段取りの JSON で、予熱の作業は `kind: "preheat"` と `heats: {resource, temp}` を持つ。
 - **S585** 段取りの JSON で、温度を要る作業は `needs: [{resource, temp}]` を持つ。
-- **S586** `schemas/result.schema.json` が S584・S585 の形を許す。
+- **S586** `schemas/result.schema.json` が S584・S585・S600 の形を許す。
 - **S587** `schedcheck` は、温度を要る作業の前に同じ個体に足りる温度の予熱があり、その間に別の作業が個体を使わないことを、JSON だけから検査する。
 - **S588** レンダラーは予熱の作業を `phrases` の文で書く（`ja.ftl`・`en.ftl` に予熱のキー）。
 - **S589** レンダラーの段取り表（HTML）に予熱の行が出る。
 - **S590** std の `HeatSource<oven>` を持つ設備の種類は、すべて `preheatTime` を持つ。
 - **S591** `preheatTime` は暫定の範囲で、出どころ（`@source(provisional)`）と調べた記録がある。
+- **S629** `preheatTime` を持たない種類の個体で温度を要るときは、長さ 0 の予熱を作業の始まりに入れる（`needs` と `heats` の対応を保つため）。
+- **S630** `maxTemp` が要る温度より低い個体は、その作業の候補から外す。
+- **S631** 温度を要らない作業が個体を使った後は、次の温度を要る作業の前に予熱を入れ直す。時間が空くだけでは冷めない扱いにする。
+- **S632** 温度を要る作業が ready になった時刻が予熱の上限の時間より前なら、予熱は 0 秒（または個体が空いた時刻）から始まり、作業は予熱の終わりまで待つ。
 
 ### 4.9 作ってから使うまでの期限（D49）
 
@@ -468,6 +480,10 @@ recipe gohanToTamanegi(servings: 2) {
 - **S601** `schedcheck` は `limits` を JSON だけから検査する。
 - **S602** `@useWithin` は IR を変えない。
 - **S603** 登録簿の末尾に `SCH011`、`core/tests/diag-names.txt` に `SCH:useWithinMissed`、`phrases/ja.ftl`・`en.ftl` に `diag-use-within-missed` がある。
+- **S633** `@useWithin` の引数が時間でなければ `TYP001 dimension` にし、期限は積まない。
+- **S634** 期限の無い段取りの JSON には `limits` の欄を出さない。
+- **S635** `make` で呼んだ料理の中で付けた期限も、献立の段取りに効く。
+- **S636** どの試みでも守れない期限があるときは、作る作業を遅らせない段取り（期限を見ない試み）を採る。
 
 ### 4.10 文書・設定・版（D41・D53・D55）
 
@@ -550,7 +566,7 @@ recipe gohanToTamanegi(servings: 2) {
 | `G-RF-SAMPLES-SAME` | S617・S618・S620 | `samples-same: <n> samples, 0 changed ir, 0 changed schedules, 0 changed renders` |
 | `G-RF-SAMPLES-EXPECT` | S619 | 差分なし |
 | `G-RF-LIMIT-PAIRS` | S543 | `limit-pairs: <p> pairs, 0 not exact` |
-| `G-RF-GOLDEN-COUNT` | S552 | N0 + 68 |
+| `G-RF-GOLDEN-COUNT` | S552 | N0 + 85 |
 | `G-RF-CONCEPT` | S604〜S608 | 5 つの数がすべて 1 以上 |
 | `G-RF-CLAUDEMD` | S613 | 1 以上 |
 | `G-RF-CI-NO-PROTO` | S480 の CI の側 | push した HEAD で `ios-proto` の実行が 0 |
@@ -614,7 +630,7 @@ git diff --exit-code rewrite-start rewrite-end -- 'samples/*/expect.yaml' render
 # G-RF-LIMIT-PAIRS（P5-2 で新設）
 python3 scripts/check-limit-pairs.py --ozen build/core-gcc-release/ozen tests/golden   # → limit-pairs: <p> pairs, 0 not exact
 # G-RF-GOLDEN-COUNT
-scripts/golden-entries.sh tests/golden | wc -l     # → N0 + 68（N0 は §9）
+scripts/golden-entries.sh tests/golden | wc -l     # → N0 + 85（N0 は §9）
 # G-RF-CONCEPT（P9-1 から）
 sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -c '|>'
 sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -c 'per serving'
@@ -649,16 +665,16 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | `cgolden/serve/serve-within-backward` | `--serve-at` での `@serveWithin` | P2-5 |
 | `cgolden/pipe/*`（15 個） | パイプの意味・優先順位・誤り・注釈・span・ノードの数 | P3-1 |
 | `cgolden/syntax/omit-parens` | `()` の省略で同じ IR | P3-2 |
-| `cgolden/linear/unused-*`（11 個） | `LIN005` | P6-1 |
-| `cgolden/sched/preheat-*`（13 個） | 予熱 | P7-1 |
-| `cgolden/serve/use-within-*`（9 個） | `@useWithin` | P8-1 |
+| `cgolden/linear/unused-*`（16 個） | `LIN005` | P6-1・P9-4 |
+| `cgolden/sched/preheat-*`（20 個） | 予熱 | P7-1・P9-4 |
+| `cgolden/serve/use-within-*`（14 個） | `@useWithin` | P8-1・P9-4 |
 | `cgolden/bundle/new-syntax` | 束ねてもパイプと `per serving` が保たれる | P4-1 |
 | `sh/test-check-rewrite-equivalence.sh`・`sh/test-check-test-names.sh`・`sh/test-check-limit-pairs.sh`・`sh/test-check-std-preheat.sh` | 新しい検査スクリプトの自己テスト | P3-2・P5-0・P5-2・P7-1 |
 | `sh/test-check-flags.sh`・`sh/test-check-pure.sh`・`sh/test-check-noglobal.sh`・`sh/test-check-diag-registry.sh`・`sh/test-check-readme-example.sh` | 移した検査スクリプトの自己テスト | P1-1 |
 | `sh/test-schedcheck.sh` に足す例と、`tools/schedcheck/fixtures/bad-preheat-*.json`・`bad-use-within.json` | 予熱と期限の独立の検査 | P7-3・P8-3 |
 | `rtest/schedule-text`・`rtest/recipe-schedule` に足す例 | 予熱の文と段取り表 | P7-4 |
 
-golden の入口は、着手点の N0 = 363（§9）から 68 増える（`quantity` 14・`menus` 3・`serve` 10・`pipe` 15・`syntax` 1・`linear` 11・`sched` 13・`bundle` 1）。
+golden の入口は、着手点の N0 = 363（§9）から 85 増える（`quantity` 14・`menus` 3・`serve` 15・`pipe` 15・`syntax` 1・`linear` 16・`sched` 20・`bundle` 1）。P9-4 の網羅の監査で 17 個を足した（§9）。
 落ちたテストは緩めずに原因を調べる。仕様との食い違いはユーザーに報告する。
 
 機械で押さえる範囲: 構文・評価・段取り・JSON・文書の語・テストの名前と道筋・書き直しの前後の等価・上限の組・CI の digest。§8 に回すのは、書き直したレシピが料理として自然か、予熱の時間の値が妥当か、パイプの読みやすさ、警告の煩さ、concept の文体だけ。
@@ -761,6 +777,7 @@ golden の入口は、着手点の N0 = 363（§9）から 68 増える（`quant
 | S558 | 効かない条件 | `cgolden/linear/unused-store-discard` | `store`・`discard` の後も報告する | P6-2 |
 | S559 | 効かない条件 | `cgolden/linear/unused-part` | 部位も報告する | P6-2 |
 | S560 | 効かない条件 | `cgolden/linear/unused-last-tuple` | 最後の組の値を報告する | P6-2 |
+| S561 | 効かない条件 | `cgolden/linear/unused-in-make-only` | `quiet` でも報告する | P9-4 |
 | S561 | 効かない条件 | `cgolden/linear/unused-in-make` | `quiet` でも報告する | P6-2 |
 | S562 | 正常系 | `cgolden/linear/unused-in-make-alone` | 献立から呼ばれる料理を単体でも報告しない | P6-2 |
 | S563 | 効かない条件 | `cgolden/linear/unused-composite` | `steps` の中の値も追跡する | P6-2 |
@@ -776,9 +793,12 @@ golden の入口は、着手点の N0 = 363（§9）から 68 増える（`quant
 | S573 | 副作用とコスト | `cgolden/sched/preheat-unattended` | 予熱に人を割り当てる | P7-2 |
 | S574 | 副作用とコスト | `cgolden/sched/preheat-occupies` | 予熱の始まりを、個体が空いた時刻で縛らない | P7-2 |
 | S575 | 効かない条件 | `cgolden/sched/preheat-reuse` | 毎回予熱を入れる | P7-2 |
+| S575 | 境界・上限 | `cgolden/sched/preheat-same-temp` | 温度の比較を「同じかそれより低い」から「より低い」にする | P9-4 |
 | S576 | 境界・上限 | `cgolden/sched/preheat-hotter` | 高い温度でも入れ直さない | P7-2 |
 | S577 | 正常系 | `cgolden/sched/preheat-arg-temp` | 温度を式でなく数のリテラルだけ読む | P7-2 |
 | S578 | 時間と順序 | `cgolden/sched/preheat-backward` | 後ろ向きでも前向きと同じ置き方で予熱を置く | P7-2 |
+| S578 | 時間と順序 | `cgolden/sched/preheat-reuse-backward` | 後ろ向きで予熱の予約を取り消さない | P9-4 |
+| S578 | 時間と順序 | `cgolden/sched/preheat-hotter-backward` | 後ろ向きで温度を見ずに予熱の予約を取り消す | P9-4 |
 | S579 | 効かない条件 | `cgolden/sched/preheat-max-temp` | `heated` を `req_met` で見ない | P7-2 |
 | S580 | 境界・上限 | `cgolden/sched/preheat-max-temp-equal` | 比較を `<` でなく `<=` にする | P7-2 |
 | S581 | 効かない条件 | `cgolden/sched/preheat-no-max-temp` | `maxTemp` が無いとき満たさないことにする | P7-2 |
@@ -793,15 +813,19 @@ golden の入口は、着手点の N0 = 363（§9）から 68 増える（`quant
 | S590 | データの完全性 | `G-RF-STD-PREHEAT`、`sh/test-check-std-preheat.sh` | `OvenRange` から `preheatTime` を消す | P7-1 |
 | S591 | データの完全性 | `G-STD-PROVENANCE`・`G-STD-SOURCES` | `preheatTime` から `@source(provisional)` を消す | P7-1 |
 | S592 | 時間と順序 | `cgolden/serve/use-within-basic` | release を付けない | P8-2 |
+| S592 | 境界・上限 | `cgolden/serve/use-within-range` | 作った作業の終わりの下限で待ちを計る | P9-4 |
 | S593 | 境界・上限 | `cgolden/serve/use-within-two-consumers` | 最初の消費の作業だけを見る | P8-2 |
 | S594 | 正常系 | `cgolden/serve/use-within-missed` | 警告を出さない | P8-2 |
 | S595 | データの完全性 | `cgolden/serve/use-within-missed` | 位置を値の名前にする | P8-2 |
 | S596 | 時間と順序 | `cgolden/serve/use-within-backward` | 後ろ向きで release を写さない | P8-2 |
 | S597 | 効かない条件 | `cgolden/serve/use-within-on-ingredient` | 材料に付けても通す | P8-2 |
+| S597 | 効かない条件 | `cgolden/serve/use-within-on-alias` | 材料と同じ名前の束縛のときだけ材料とみなす | P9-4 |
 | S598 | 正常系 | `cgolden/serve/use-within-expr` | 式の文の注釈を読まない | P8-2 |
 | S599 | 効かない条件 | `cgolden/serve/use-within-no-consumer` | 消費の作業の有無を見ずに、名前のある期限ごとに `SCH011` を出す | P8-2 |
 | S600 | データの完全性 | `cgolden/serve/use-within-json` | `limits` を出さない | P8-3 |
+| S600 | データの完全性 | `cgolden/serve/use-within-missed-json` | `missed` をいつも `false` にする | P9-4 |
 | S601 | 前提の固定 | `G-SCHED-CHECK`、`sh/test-schedcheck.sh`（`bad-use-within` の fixture） | `schedcheck` の `limits` の検査を外す | P8-3 |
+| S601 | 前提の固定 | `sh/test-schedcheck.sh`（`bad-use-marked`・`bad-use-unknown` の fixture） | `missed` なのに間に合っている場合と、知らない作業を指す場合の検査を外す | P9-4 |
 | S602 | 前提の固定 | `cgolden/serve/use-within-ir` | 注釈の名前を、値を作る作業の IR の名前にする | P8-2 |
 | S603 | データの完全性 | `G-CORE-DIAG-REGISTRY`・`G-CORE-DIAG-APPEND`・`G-STD-PHRASES`・`G-TYPE-SEVERITY-TABLE` | `diag-names.txt` から `SCH:useWithinMissed` を消す | P8-2 |
 | S604 | 文書との一致 | `G-RF-CONCEPT` | concept §4.4 から `per serving` と `\|>` を消す | P9-1 |
@@ -814,6 +838,22 @@ golden の入口は、着手点の N0 = 363（§9）から 68 増える（`quant
 | S613 | 文書との一致 | `G-RF-CLAUDEMD` | `CLAUDE.md` から本ファイルの名前を消す | P0-3 |
 | S614 | 永続化 | `prop/bundle_roundtrip`（`cgolden/bundle/new-syntax` を含む） | `ozen bundle` でパイプの式を書き写すときに `\|>` を落とす | P4-1 |
 | S615 | 永続化 | `G-RF-TAGS` | タグ `rewrite-end` を消す | P5-9 |
+| S621 | 効かない条件 | `cgolden/linear/unused-repeat` | 繰り返しの本体の値も追跡する | P9-4 |
+| S622 | 正常系 | `cgolden/wash/reason` | 枝の最後の値を料理の最後の値にする | P9-4 |
+| S623 | 正常系 | `cgolden/eval/runtime-value-in-if` | 誤りのある料理では報告しない | P9-4 |
+| S624 | データの完全性 | `cgolden/macro/hygiene-tmp` | 報告に展開の履歴を付けない | P9-4 |
+| S625 | 効かない条件 | `cgolden/linear/unused-alias` | 同じ値を 2 回積む | P9-4 |
+| S626 | 正常系 | `cgolden/menus/split-pass` | 献立では報告しない | P9-4 |
+| S627 | 正常系 | `cgolden/linear/unused-if` | `if` の本体を追跡しない | P9-4 |
+| S628 | 効かない条件 | `cgolden/linear/unused-non-food` | 量の束縛も使われない値として報告する | P9-4 |
+| S629 | データの完全性 | `cgolden/sched/preheat-no-preheat-time` | `preheatTime` が無ければ予熱を入れない | P9-4 |
+| S630 | 効かない条件 | `cgolden/sched/preheat-max-temp-mixed` | `maxTemp` の低い個体を候補から外さない | P9-4 |
+| S631 | 効かない条件 | `cgolden/sched/preheat-cooled` | 温度を要らない作業の後も温まったままにする | P9-4 |
+| S632 | 時間と順序 | `cgolden/sched/preheat-short-prep` | 予熱の始まりを 0 秒で切らない | P9-4 |
+| S633 | 効かない条件 | `cgolden/serve/use-within-bad-arg` | 引数の次元を見ない | P9-4 |
+| S634 | データの完全性 | `cgolden/sched/preheat-json` | 期限が無くても `limits` の欄を出す | P9-4 |
+| S635 | 実際の経路 | `cgolden/serve/use-within-expr` | `make` の中の期限を積まない | P9-4 |
+| S636 | 正常系 | `cgolden/serve/use-within-missed-no-delay` | どの試みでも守れないとき、期限を見た最初の試みを採る | P9-4 |
 
 網羅の検査は `G-RF-COVERAGE`（P0-1 の後と P9-4 で実行する）。
 

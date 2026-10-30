@@ -678,7 +678,7 @@ goal_G_RF_LIMIT_PAIRS() {
 }
 
 goal_G_RF_GOLDEN_COUNT() {
-  want_eq "golden entries" $((RF_N0 + 68)) "$(scripts/golden-entries.sh tests/golden | wc -l)"
+  want_eq "golden entries" $((RF_N0 + 85)) "$(scripts/golden-entries.sh tests/golden | wc -l)"
 }
 
 goal_G_RF_CONCEPT() {
