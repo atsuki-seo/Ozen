@@ -735,7 +735,7 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 | S541 | 効かない条件 | `G-RF-NAMES`（`unlisted exceptions`） | 例外のリストから理由を消す | P5-0 |
 | S542 | 副作用とコスト | `G-RF-SEPARATION` | 期待値と `sema.c` を 1 つのコミットにする | P9-5 |
 | S543 | 境界・上限 | `G-RF-LIMIT-PAIRS`、`sh/test-check-limit-pairs.sh` | `limits/nodes-exact` の入力のノードを 1 つ減らす | P5-2 |
-| S544 | 前提の固定 | `G-CORE-GRAMMAR` | 規則 `tuple_binding` を使う唯一の golden からその構文を消す | P5-9 |
+| S544 | 前提の固定 | `G-CORE-GRAMMAR` | 規則 `for` を使う唯一の golden（`decl/recipe`）からその構文を消す | P5-9 |
 | S545 | 前提の固定 | `G-CORE-DIAG-REGISTRY` | `LIN004` を出す唯一の golden からその診断を消す | P5-9 |
 | S546 | 前提の固定 | `G-CORE-GOLDEN` | 書き直した 1 つの `.out` の位置を 1 列ずらす | P5-1〜P5-7 |
 | S547 | 前提の固定 | `G-CORE-UNIT` | `core/tests/unit` の C の文字列のレシピに未定義の名前を入れる | P5-7 |
@@ -1291,6 +1291,16 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S618・前提の固定・`G-RF-SAMPLES-SAME`（P5-8、2026-10-30）。`menuB` の `fry(sliced, 10 min, …)` を `12 min` にすると「3 changed ir, 3 changed schedules, 8 changed renders」で落ちた。戻すと合格した
 - わざと壊す確認: S620・実際の経路・`G-RF-SAMPLES-SAME`（render-all）（P5-8、2026-10-30）。`samples/T4/karubiDon.ozen` の `let topping = make karubiTopping(…)` を盛り付けの中に畳むと、IR と段取りは変わらず「0 changed ir, 0 changed schedules, 6 changed renders」で落ちた。戻すと合格した
 - S620 の壊し方（P5-8、2026-10-30）: 最初に `karubiTopping.ozen` の最後の `let topping =` を外したが、この束縛は盛り付けから参照されず、言い回しの `name-topping` が指すのは `karubiDon.ozen` の束縛だったので、出力は変わらなかった。言い回しが名前で参照する束縛を畳む壊し方にした
+- わざと壊す確認: S537・データの完全性・`G-RF-PATHS`（P5-9、2026-10-30）。`rewrite-end` を、`decl/enum.ozen` と `decl/enum.out` を改名したコミットに一時的に移すと「added, deleted or renamed goldens: got '4'」で落ちた。タグを戻すと合格した
+- わざと壊す確認: S544・前提の固定・`G-CORE-GRAMMAR`（P5-9、2026-10-30）。`decl/recipe.ozen` の `for dish in [rice, curry] { taste(dish) }` を `taste(curry)` にすると「grammar: 133 rules, 1 not covered」で落ちた。戻すと合格した
+- わざと壊す確認: S545・前提の固定・`G-CORE-DIAG-REGISTRY`（P5-9、2026-10-30）。`linear/parallel-double-use.out` から `LIN004` の行を消すと「1 unused」で落ちた。戻すと合格した
+- わざと壊す確認: S549・前提の固定・`G-CORE-PROPS`（P5-9、2026-10-30）。`linear/parallel-double-use.ozen` に `kitchen propsOptions : Options {}` を足すと「monotonic: 75 cases, 1 decreases」で落ちた。戻すと合格した
+- わざと壊す確認: S615・永続化・`G-RF-TAGS`（P5-9、2026-10-30）。タグ `rewrite-end` を消すと「tags: got '3', want '4'」で落ちた。打ち直すと合格した
+- わざと壊す確認: S619・前提の固定・`G-RF-SAMPLES-EXPECT`（P5-9、2026-10-30）。`rewrite-end` を、`samples/T1/expect.yaml` の 1 行目を書き換えたコミットに一時的に移すと落ちた。タグを戻すと合格した
+- S544 の壊し方（P5-9、2026-10-30）: 書き直しで分割の束縛を使う golden が増え、`tuple_binding` を使う golden は 22 本になった。使う golden が 1 本だけの規則は 11 個（`for`・`resource`・`trait` など）あり、網羅表の行を `for` に替えた
+- S545 の壊し方（P5-9、2026-10-30）: 登録簿の検査は `.out` の中の「コード 名前」の並びを探すので、golden の入力を変えても `.out` が変わらなければ落ちない。`.out` から診断の行を消す壊し方にした（`api/local-not-listed.out` の一覧は JSON の書式なので数えられない）
+- S538 の前提の固定（P5-9、2026-10-30）: 比べる実行ファイルを HEAD のものにする壊し方は、Phase 6 で LIN005 が入るまで出力が変わらないので、今は落ちない。Phase 6 のゲートで確かめて記録する
+- 1 文字の名前の残り（P5-9、2026-10-30）: `decl/recipe.ozen` の繰り返しの変数 `x` を `dish` に直した（`rewrite-end` はこの後に打ち直した）。golden の中で定義する動作の仮引数 `x`・`p`（152 か所）は、標準ライブラリ（`stdlib/*.ozen`）の書き方をそのまま写したもので、S540 の範囲（宣言と `let` の束縛）の外なので残した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
