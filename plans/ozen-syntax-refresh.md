@@ -1239,6 +1239,29 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S550・前提の固定・`G-SCHED-CHECK`（P5-5、2026-10-30）。網羅表の壊し方（書き直した golden の `.out` から洗いの行を消す）では、このゴールが実装に段取りを出させて検査するので落ちなかった。洗いを段取りに入れずに道具を使う壊し方（`clean_unit` で洗いの作業を記録しない）にすると、「67 schedules, 36 violations」で落ちた。戻すと合格した
 - P5-5 の範囲（2026-10-30）: `sched` 32 本、`wash` 11 本、`cleanup` 7 本を書き直した。名前の対応は手順に合わせた（`mark`・`touch` などの試験用の動作の結果は `marked`・`touched`）。`sched/objective-order` の料理名 `a`・`b`・`c` は、並びが名前の順に依ることがあり得るので、同じ順になる `applePie`・`beefStew`・`carrotSalad` にした
 - S550 の壊し方（P5-5、2026-10-30）: `G-SCHED-CHECK` は `.out` を読まず、`collect-schedules.sh` で実装に段取りの JSON を出させて `schedcheck` に掛ける。そのため網羅表の壊し方では落ちない。実装が洗いを入れないまま汚れた道具を使う壊し方に直した
+- 書き直しのわざと壊す確認: S332・データの完全性・`cgolden/api/diag-json-fields`（P5-6、2026-10-30）。JSON の診断の `related` に展開履歴の位置を出さないと、`diag-json-fields` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S333・文書との一致・`cgolden/api/sarif-mapping`（P5-6、2026-10-30）。SARIF の `info` を `warning` に写すと、`sarif-mapping` が落ちた（`G-API-SARIF` は SARIF の形の検査なので合格のまま）。戻すと合格した
+- 書き直しのわざと壊す確認: S334・正常系・`cgolden/api/signatures-json`（P5-6、2026-10-30）。シグネチャの JSON に引数の型を出さないと `signatures-json` だけが落ちた。`text-material`（`cgolden/api/text-material`）は、手順の JSON に引数を出さない壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S335・正常系・`cgolden/api/types-json`（P5-6、2026-10-30）。型の JSON に範囲の上限・下限を出さないと、`types-json` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S397・正常系・`cgolden/bundle/inline-modules`（P5-6、2026-10-30）。束ねたファイルにモジュールの名前空間（`module … {`）を書かないと、`inline-modules` を含む 12 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S398・正常系・`cgolden/bundle/header`（P5-6、2026-10-30）。見出しに `std` の版を書かないと、`header` と `header-license-from`（`cgolden/bundle/header-license-from`）を含む 12 本が落ちた。`license` を引き継がない壊し方では、`header-license-from` を含む 3 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S399・データの完全性・`cgolden/bundle/contents`（P5-6、2026-10-30）。台所以外の定義をすべて入れると、`contents` と `dep-partial`（`cgolden/bundle/dep-partial`）を含む 10 本が落ちた。言い回しを入れない壊し方では `phrases-included`（`cgolden/bundle/phrases-included`）が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S399・データの完全性・`cgolden/bundle/global-effects`（P5-6、2026-10-30）。`extend`・`rule`・`check` を名前からだけたどると、`global-effects` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S399・正常系・`cgolden/bundle/same-name`（P5-6、2026-10-30）。同じ名前の候補の最初の 1 つだけを入れると、`same-name` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S399・正常系・`cgolden/bundle/import-pruned`（P5-6、2026-10-30）。使われない名前の import を残すと、`import-pruned` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S400・副作用とコスト・`cgolden/bundle/order-by-name`（P5-6、2026-10-30）。モジュールを名前の順に並べずに読み込みの順のままにすると、`G-BUNDLE-STABLE` が「order-by-name golden: got '0 passed, 1 failed'」で落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S402・正常系・`cgolden/bundle/build-standalone`（P5-6、2026-10-30）。束ねたファイルの中のモジュールを登録しないと、`build-standalone` を含む 10 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S403・効かない条件・`cgolden/bundle/std-module-rejected`（P5-6、2026-10-30）。インラインの `std` のモジュールの `PKG005` を出さないと、`std-module-rejected` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S404・境界・上限・`cgolden/bundle/std-version-check`（P5-6、2026-10-30）。束ねたファイルの `std` の版を比べないと、`std-version-check` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S404・境界・上限・`cgolden/bundle/std-version-incompatible`（P5-6、2026-10-30）。主の版を比べないと、`std-version-incompatible` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S404・境界・上限・`cgolden/bundle/std-version-bad`（P5-6、2026-10-30）。版の形が正しくないときの `PKG010` を出さないと、`std-version-bad` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S405・境界・上限・`cgolden/bundle/annotation-scope`（P5-6、2026-10-30）。注釈の範囲の終わりを見ずにファイルの後ろ全体に効かせると、`annotation-scope` を含む 5 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S406・効かない条件・`cgolden/bundle/local-closed`（P5-6、2026-10-30）。束ねるとき `local` を外して書き写すと、`local-closed` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S406・効かない条件・`cgolden/bundle/local-import-rejected`（P5-6、2026-10-30）。`local` の定義の import を許すと、`local-import-rejected` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S407・効かない条件・`cgolden/bundle/import-two-versions`（P5-6、2026-10-30）。同じ依存の 2 つの版の `PKG009` を出さないと、`import-two-versions` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S425・効かない条件・`cgolden/api/local-not-listed`（P5-6、2026-10-30）。定義の一覧に `local` も出すと、`local-not-listed` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S477・正常系・`cgolden/bundle/relative-import`（P5-6、2026-10-30）。束ねたファイルの中のモジュールをパッケージに属させないと、`relative-import` だけが落ちた。戻すと合格した
+- P5-6 の範囲（2026-10-30）: `api` 11 本、`bundle` 21 本（フォルダの golden 13 本の依存を含む）を書き直した。束ねたファイルの期待値は元のソースを写すので、名前の対応表に加えて写した `recipe`・`menu`・`make` の空の `()` も消した。JSON の期待値で、std の定義（単位 `s`・動作の引数 `p` など）の名前まで対応表で置き換えてしまった所と、SARIF の直し方の `deletedRegion` の位置は、golden を走らせて食い違いを見つけ、手で直した。`tests/golden` 全体で 1 文字の名前と空の `()` は 0 になった
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
