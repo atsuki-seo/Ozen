@@ -1152,6 +1152,52 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 書き直しのわざと壊す確認: S424・正常系・`cgolden/actions/extend-in-assumptions`（P5-3、2026-10-30）。`ASM006` の候補の一覧から `extend` で足した変種を外すと、`extend-in-assumptions` だけが落ちた。戻すと合格した
 - 書き直しのわざと壊す確認: S434・正常系・`cgolden/actions/composite-*`（P5-3、2026-10-30）。合成した動作の `steps` を展開しないと、`composite-expand`・`composite-schedule`・`composite-types` が落ちた。戻すと合格した
 - P5-3 の範囲（2026-10-30）: `state` 15 本、`mix` 4 本、`parts` 11 本、`linear` 6 本、`safety` 7 本、`actions` 9 本を書き直した。続けて当てる動作はパイプにした（`state` の 8 本、`actions/requires-auto`・`uses-capability`）。パイプにしたものは、診断の位置が呼び出しの span に当たらないものに限った。`state/axis-*`・`parts/part-trait-clash`・`actions/error-in-unused-variant`・`no-overload`・`safety/plate-raw-buy` は料理名や 1 文字の名前を持たないので変えていない
+- 書き直しのわざと壊す確認: S231・境界・上限・`cgolden/kitchen/recipe-arg-range`（P5-4、2026-10-30）。行の壊し方（区間の端を含めない、開いた区間を無視する）は、書き直した `recipe-arg-range`（閉じた区間 `1..20` に 30）では結果が変わらない。範囲の検査を外す壊し方にすると、`recipe-arg-range` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S234・正常系・`cgolden/kitchen/variant-filtered`（P5-4、2026-10-30）。台所で使えない変種も候補に残すと、`variant-filtered` と `no-variant-left`（`cgolden/kitchen/no-variant-left`）を含む 3 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S235・正常系・`cgolden/kitchen/notation-defaults`（P5-4、2026-10-30）。std の `EquipmentSpec` の `count` の既定を 0 にすると、`notation-defaults` を含む 55 本が落ちた（`req_met` で `count` が無いときを 0 とみなす壊し方では、型の既定値が先に効くので落ちなかった）。戻すと合格した
+- 書き直しのわざと壊す確認: S236・正常系・`cgolden/kitchen/capacity-compile-time`（P5-4、2026-10-30）。台所の値を読む式を調理時の値（未知）として扱うと、`capacity-compile-time` を含む 3 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S238・効かない条件・`cgolden/vessels/soup-flat-plate`（P5-4、2026-10-30）。液体を平皿に盛る `TYP014` を出さないと、`soup-flat-plate` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S239・正常系・`cgolden/vessels/fallback-order`（P5-4、2026-10-30）。器の代替の順を逆にすると、`fallback-order` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S240・境界・上限・`cgolden/vessels/count-exact`（P5-4、2026-10-30）。要る枚数を 1 多く数えると、`count-exact` と `count-short`（`cgolden/vessels/count-short`）を含む 8 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S241・境界・上限・`cgolden/vessels/capacity-over-warn`（P5-4、2026-10-30）。器の容量の `SCH001` を出さないと、`capacity-over-warn` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S242・正常系・`cgolden/menus/output-type-default`（P5-4、2026-10-30）。`make` の出力の型を最後の値の型のままにすると、`output-type-default` と `output-type-explicit`（`cgolden/menus/output-type-explicit`）を含む 13 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S243・正常系・`cgolden/menus/make-buy-swap`（P5-4、2026-10-30）。`buy` の値の型を別の型にすると、`make-buy-swap` を含む 7 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S244・正常系・`cgolden/menus/output-properties`（P5-4、2026-10-30）。`make` の出力に料理のトレイト（アレルゲンを含む）を引き継がないと、`output-properties` と 1 本が落ちた（`made_from` を外す壊し方では、表示のアレルゲンが最後の値から来るので落ちなかった）。戻すと合格した
+- 書き直しのわざと壊す確認: S245・正常系・`cgolden/menus/choose-breakdown`（P5-4、2026-10-30）。人ごとの選び方の内訳を無視すると、`choose-breakdown` を含む 4 本が落ちた。`choose-default-even`（`cgolden/menus/choose-default-even`）は、均等に分けたときの `ASM001` を出さない壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S246・時間と順序・`cgolden/menus/assemble-order`（P5-4、2026-10-30）。`assemble` の中身を逆の順に評価すると、`assemble-order` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S247・正常系・`cgolden/menus/split-pass`（P5-4、2026-10-30）。`split` で元の値を消費しないと、`split-pass` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S248・正常系・`cgolden/menus/single-recipe-wrap`（P5-4、2026-10-30）。入口の料理に盛り付けを補わないと、`single-recipe-wrap` を含む 9 本が落ちた。`no-vessel-until-done`（`cgolden/menus/no-vessel-until-done`）は、器が無いときの `ASM002` を出さない壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S249・正常系・`cgolden/menus/recipe-arg-external`（P5-4、2026-10-30）。料理の引数の材料の `ASM003` を出さないと、`recipe-arg-external` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S250・正常系・`cgolden/menus/waves`（P5-4、2026-10-30）。行の壊し方（段取りの 2 つ目の波の間隔を 0 にする）では、手順だけを出す `waves` は落ちず、段取りを出す 4 本が落ちた。手順の表示で間隔を出さない壊し方を足すと、`waves` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S251・効かない条件・`cgolden/menus/serve-time-in-code`（P5-4、2026-10-30）。`serve` の後の `at` と時刻を構文で受け付けると、`serve-time-in-code` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S252・効かない条件・`cgolden/menus/while-warm-strict-ok`（P5-4、2026-10-30）。`@whileWarm` のような性質の注釈を曖昧な量（`TYP003`）とすると、`--strict` でエラーになり `while-warm-strict-ok` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S270・正常系・`cgolden/levels/level-0`（P5-4、2026-10-30）。レベルを常に 2 にすると、`level-0` と `level-1`（`cgolden/levels/level-1`）を含む 61 本が落ちた。`level-2`（`cgolden/levels/level-2`）は、もとからレベル 2 なので落ちない。戻すと合格した
+- 書き直しのわざと壊す確認: S271・副作用とコスト・`cgolden/levels/check-stops`（P5-4、2026-10-30）。`ozen check` でも段取りを組んで出すと、`check-stops` を含む 105 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S272・正常系・`cgolden/levels/assumptions-as-info`（P5-4、2026-10-30）。登録簿の `ASM002` の重さを警告にすると、`assumptions-as-info` を含む 13 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S274・正常系・`cgolden/levels/critical-path`（P5-4、2026-10-30）。最短の時間をすべての作業の長さの和で数えると、`critical-path` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S275・正常系・`cgolden/levels/first-variant-assumed`（P5-4、2026-10-30）。最初でなく最後の変種を仮定すると、`first-variant-assumed` を含む 5 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S276・正常系・`cgolden/levels/small-tools-assumed`（P5-4、2026-10-30）。小さな道具の `ASM008` を出さないと、`small-tools-assumed` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S277・正常系・`cgolden/levels/provisional-assumed`（P5-4、2026-10-30）。暫定の値の `ASM007` を出さないと、`provisional-assumed` を含む 27 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S280・正常系・`cgolden/ir/variants-as-choice`（P5-4、2026-10-30）。IR の選択に台所で使える変種だけを入れると、`variants-as-choice` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S282・正常系・`cgolden/ir/servings-changes-ir`（P5-4、2026-10-30）。料理の引数を条件の値で上書きしないと、`servings-changes-ir` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S283・正常系・`cgolden/ir/waves-in-ir`（P5-4、2026-10-30）。IR の表示から波の行を外すと、`waves-in-ir` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S285・正常系・`cgolden/ir/text-dump-format`（P5-4、2026-10-30）。IR の表示から資源の欄の名前を外すと、`text-dump-format` を含む 16 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S286・正常系・`cgolden/ir/rational-amounts`（P5-4、2026-10-30）。割り切れない量を整数に丸めて書くと、`rational-amounts` と `dim/rational-quarter` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S318・境界・上限・`cgolden/serve/serve-within`（P5-4、2026-10-30）。`@serveWithin` の制約を段取りに入れないと、`serve-within` を含む 5 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S319・副作用とコスト・`cgolden/serve/keep-warm-occupies`（P5-4、2026-10-30）。保温で設備を占有しないと、`keep-warm-occupies` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S320・正常系・`cgolden/serve/chilled-frozen`（P5-4、2026-10-30）。冷蔵庫の容量が書いていないとき 1 にすると、`chilled-frozen` を含む 3 本が落ちた。`fridge-capacity-when-written`（`cgolden/serve/fridge-capacity-when-written`）は、書いた容量を無視する壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S321・正常系・`cgolden/serve/just-before-serve`（P5-4、2026-10-30）。std の `justBeforeServe` を `serveWithin(5 min)` にすると、`just-before-serve` と 1 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S322・境界・上限・`cgolden/serve/long-wait-info`（P5-4、2026-10-30）。長い待ちの比較を `>=` にすると、`long-wait-info` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S323・副作用とコスト・`cgolden/serve/plating-time`（P5-4、2026-10-30）。std の盛り付けの時間を 0 分にすると、`plating-time` を含む 32 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S422・正常系・`cgolden/menus/multiple-outputs`（P5-4、2026-10-30）。組を出す料理の 2 つ目以降の出力を捨てると、`multiple-outputs` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S423・時間と順序・`cgolden/menus/plate-overrides-dish`（P5-4、2026-10-30）。料理の `@vessel` を盛り付けの器より優先すると、`plate-overrides-dish` を含む 7 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S429・効かない条件・`cgolden/kitchen/requires-unmet`（P5-4、2026-10-30）。料理の `requires` の検査（段取りの前に行うもの）を外すと、`requires-unmet` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S430・正常系・`cgolden/kitchen/default-places`（P5-4、2026-10-30）。std の `Kitchen` の場所の既定を外す（`Floor?` などにする）と、`default-places` を含む 26 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S432・正常系・`cgolden/kitchen/kitchen-has-branch`（P5-4、2026-10-30）。`kitchen.has(…)` を調理時の値（未知）として扱うと、`kitchen-has-branch` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S435・境界・上限・`cgolden/vessels/shared-platter`（P5-4、2026-10-30）。`shared` の盛り付けにも人数分の器を求めると、`shared-platter` だけが落ちた。`shared-leftover`（`cgolden/vessels/shared-leftover`）は、盛り付けで値を消費しない壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S436・正常系・`cgolden/levels/level-1-human-only`（P5-4、2026-10-30）。行の壊し方（レベル 1 でも設備を数える）は、台所が無いと数える設備が無く何も変わらない。条件だけのときもレベルを 2 にする壊し方にすると、`level-1-human-only` を含む 24 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S463・正常系・`cgolden/ir/kitchen-dependent-info`（P5-4、2026-10-30）。台所の値を読む式の `SCH002` を出さないと、`kitchen-dependent-info` を含む 3 本が落ちた。戻すと合格した
+- P5-4 の範囲（2026-10-30）: `ir` 7 本、`levels` 10 本、`kitchen` 8 本、`vessels` 8 本、`serve` 12 本、`menus` 18 本を書き直した。Phase 2〜4 で足した golden のうち、`serve/serve-within-backward` は元の `serve-within` から 1 文字の名前と空の `()` を引き継いでいたので、同じ対応表で書き直した（ロードマップの行は無い）。JSON の期待値の位置（`"line"`・`"column"`）も、補助の道具で同じように移した
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
