@@ -1062,6 +1062,25 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 書き直しのわざと壊す確認: S412・正常系・`cgolden/syntax/multiline-string`（P5-1、2026-10-30）。三重引用符の文字列の読み取りを改行で止めると、`multiline-string` と `decl/phrases` が落ちた。戻すと合格した
 - 書き直しのわざと壊す確認: S415・効かない条件・`cgolden/syntax/annotation-target`（P5-1、2026-10-30）。`check_targets` で `TYP017` を出さないと、`annotation-target` と `pipe/unattended-builtin` が落ちた。戻すと合格した
 - 書き直しの期待値の求め方（P5-1、2026-10-30）: 書き直したソースを書いたあと、古い期待値に名前の対応表を当てて新しい期待値を作る（scratchpad の補助の道具。`ozen` は走らせない）。診断の位置は、古いソースのその位置の文字列が何番目の出現かを数え、名前を置き換えた文字列の同じ番目の出現を新しいソースで探して求める。出現の数が変わるものと構文木の span は手で数えた。量・時間の変わる行は手で計算した。そのあと golden を走らせ、食い違いは 1 つずつ原因を調べた（`syntax` では、手で書いた置き換えの文字列のエスケープの誤り 1 件）
+- 書き直しのわざと壊す確認: S158・正常系・`cgolden/decl/*`（P5-1、2026-10-30）。構文解析で `rule` の宣言を読み飛ばすと、書き直した `decl/menu` は落ちないが `decl/rule` が落ちた（`rule` を使うほかの 23 本も一緒に落ちた）。`decl` で書き直したのは `menu.ozen` の空の `()` だけで、`decl/menu` は手順の名前の列も結果も変わらない。戻すと合格した
+- 書き直しのわざと壊す確認: S161・効かない条件・`cgolden/names/case-insensitive-free`（P5-1、2026-10-30）。大文字で始まる名前を探すとき動作の定義を見ないようにすると、`case-insensitive-free` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S162・正常系・`cgolden/modules/name-from-path`（P5-1、2026-10-30）。モジュール名の頭にパッケージ名を付けないと、`name-from-path` が落ちた（std のモジュール名も変わり、329 本が落ちた）。戻すと合格した
+- 書き直しのわざと壊す確認: S164・正常系・`cgolden/modules/import-forms`（P5-1、2026-10-30）。`import … as` の別名を束縛しないと、`import-forms` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S165・正常系・`cgolden/modules/prelude-implicit`（P5-1、2026-10-30）。std の prelude を取り込まないと、`prelude-implicit` が落ちた（329 本が落ちた）。戻すと合格した
+- 書き直しのわざと壊す確認: S166・境界・上限・`cgolden/modules/ambiguous-on-use`（P5-1、2026-10-30）。同じ名前を 2 つのモジュールから取り込んだ時点で `NAM002` を出すと、`ambiguous-on-use`（誤りが 2 つになる）と `ambiguous-unused-ok`（`cgolden/modules/ambiguous-unused-ok`）が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S169・効かない条件・`cgolden/modules/recipe-imports-menu`（P5-1、2026-10-30）。行の壊し方（循環の検出を外す）では `cycle` だけが落ち、書き直した `recipe-imports-menu` は落ちなかった。`PKG002` を出さないようにする壊し方を足すと、`recipe-imports-menu` だけが落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S170・効かない条件・`cgolden/modules/recipe-names-kitchen`（P5-1、2026-10-30）。料理から台所を参照しても `NAM008` を出さないと、`recipe-names-kitchen` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S171・正常系・`cgolden/modules/forward-reference`（P5-1、2026-10-30）。同じファイルで後ろに宣言した定義を見つけないようにすると、`forward-reference` が落ちた（std の前方参照も壊れ、329 本が落ちた）。戻すと合格した
+- 書き直しのわざと壊す確認: S172・正常系・`cgolden/modules/entry-*`（P5-1、2026-10-30）。献立が無いとき料理を入口の候補にしないと、`entry-recipe-only` と束ねる golden 5 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S176・境界・上限・`cgolden/packages/requires-ok`（P5-1、2026-10-30）。行の壊し方（副の版を比べない。std と依存の 2 か所）では `requires-newer-minor` などが落ち、通る側の `requires-ok` は落ちなかった。同じ版でも新しい版を求めているとする壊し方を足すと、`requires-ok` が落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S178・効かない条件・`cgolden/packages/dep-diag-suppressed`（P5-1、2026-10-30）。行の壊し方（依存先の `SAF` も抑える）では `dep-saf-shown`（`cgolden/packages/dep-saf-shown`）だけが落ちた。依存先の診断を抑えない壊し方を足すと、`dep-diag-suppressed` だけが落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S357・正常系・`cgolden/std/package`（P5-1、2026-10-30）。`stdlib/package.ozen` のパッケージ名を `stdx` にすると、`std/package` が落ちた（329 本が落ちた）。戻すと合格した
+- 書き直しのわざと壊す確認: S361・正常系・`cgolden/std/prelude-contents`（P5-1、2026-10-30）。prelude から `unit g` を消すと、`prelude-contents` が落ちた（198 本が落ちた）。戻すと合格した
+- 書き直しのわざと壊す確認: S413・効かない条件・`cgolden/names/let-rebind`（P5-1、2026-10-30）。同じ名前の束縛を `NAM003` にせず通すと、`let-rebind` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S414・境界・上限・`cgolden/names/arity-*`（P5-1、2026-10-30）。名前付き引数の重なりと知らない名前を数えないと、`arity-duplicate` と `arity-unknown` が落ちた（`arity-missing` は位置の引数の不足なので落ちない）。戻すと合格した
+- 書き直しのわざと壊す確認: S416・正常系・`cgolden/names/ingredient-type-omitted`（P5-1、2026-10-30）。型を省いた材料の型を `Unknown` にすると、`ingredient-type-omitted` が落ちた（245 本が落ちた）。戻すと合格した
+- 書き直しのわざと壊す確認: S428・正常系・`cgolden/packages/deprecated-warning`（P5-1、2026-10-30）。非推奨の単位の `PKG012` を出さないと、`deprecated-warning` と `bundle/annotation-scope` が落ちた。戻すと合格した
+- P5-1 の範囲（2026-10-30）: `syntax` 17 本、`decl` 1 本（`menu` の空の `()` だけ）、`names` 6 本、`modules` 11 本、`packages` 4 本、`std` 3 本を書き直した。`typeargs` と `decl` のほかの宣言の golden は、もとから実際の料理の名前の宣言で、1 文字の名前も空の `()` も無いので変えていない。`modules` と `packages` の料理を持たない golden（循環・取り込み・版）も同じ。書き直した 42 本は、`check-rewrite-equivalence.py` で終了コード・診断・結果の数・手順の名前の列がすべて書き直す前と同じ
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
