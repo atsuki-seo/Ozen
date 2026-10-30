@@ -1,0 +1,8 @@
+// args: check
+recipe tomatoSalad(tomato: Tomato) {
+  let diced = cut(tomato, style: dice)
+}
+menu dinner {
+  let tomatoes = buy Tomato 2 pcs
+  let salad = tomatoes |> make tomatoSalad
+}

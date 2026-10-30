@@ -1,0 +1,10 @@
+// args: debug steps
+macro soakLong(v) {
+  quote {
+    let soaked = soak(wash($v), 60 min)
+  }
+}
+recipe gohan {
+  ingredients { rice: 300 g }
+  rice |> soakLong
+}

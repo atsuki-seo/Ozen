@@ -1,0 +1,3 @@
+error SYN003 unexpectedToken bad-target-make.ozen:7:27-7:31 args=["make"]: unexpected token
+result error errors=1 warnings=0 infos=0
+exit 1

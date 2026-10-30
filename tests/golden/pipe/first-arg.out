@@ -1,0 +1,7 @@
+recipe tamanegiItame
+  onion : Onion 1 pcs
+  %1 = peel(onion) : Onion<shape: peeled> 1 pcs
+  %2 = cut(%1, slice, size: 2 mm) : Onion<shape: cut(slice, 2 mm)> 1 pcs
+  %3 = fry(%2, 300 s, heat: medium) : Onion<doneness: done, browning: light, shape: cut(slice, 2 mm)> 1 pcs
+result ok errors=0 warnings=0 infos=0
+exit 0

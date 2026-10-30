@@ -1,0 +1,3 @@
+error SYN003 unexpectedToken bad-target-quantity.ozen:4:24-4:26 args=["20"]: unexpected token
+result error errors=1 warnings=0 infos=0
+exit 1

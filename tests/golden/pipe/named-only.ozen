@@ -1,0 +1,6 @@
+// args: debug steps
+recipe tamanegiItame {
+  ingredients { onion: 1 pcs }
+  let sliced = cut(peel(onion), slice)
+  let fried = sliced |> fry(time: 5 min, heat: high)
+}

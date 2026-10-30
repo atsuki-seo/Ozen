@@ -1,0 +1,7 @@
+// args: check
+recipe gohan(servings: Count = 3) {
+  ingredients { rice: 150 g * servings }
+  let batches = servings / 2 |> ceil @unattended
+  let soaked = soak(wash(rice), 10 min * batches)
+  let cooked = cookRice(soaked)
+}

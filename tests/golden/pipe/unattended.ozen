@@ -1,0 +1,6 @@
+// args: check
+recipe gohan {
+  ingredients { rice: 300 g }
+  let soaked = rice |> wash |> soak(30 min) @unattended
+  let cooked = cookRice(soaked)
+}

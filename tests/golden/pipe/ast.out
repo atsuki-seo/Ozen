@@ -1,0 +1,14 @@
+File ast.ozen
+  Recipe gohan 2:1-5:2
+    Block 2:14-5:2
+      Ingredients 3:3-3:30
+        Item rice 3:17-3:28
+          Quantity 300 g 3:23-3:28
+      Let soaked 4:3-4:44
+        Call 4:16-4:44
+          Name soak 4:32-4:36
+          Call 4:16-4:28
+            Name wash 4:24-4:28
+            Name rice 4:16-4:20
+          Quantity 20 min 4:37-4:43
+exit 0

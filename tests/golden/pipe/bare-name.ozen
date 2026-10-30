@@ -1,0 +1,7 @@
+// args: debug steps
+recipe gohan {
+  ingredients { rice: 300 g }
+  let washed = rice |> wash
+  let soaked = soak(washed)
+  let cooked = cookRice(soaked)
+}

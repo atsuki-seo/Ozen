@@ -1,0 +1,3 @@
+error TYP017 annotationTarget unattended-builtin.ozen:4:38-4:49 args=["unattended"]: annotation target
+result error errors=1 warnings=0 infos=0
+exit 1

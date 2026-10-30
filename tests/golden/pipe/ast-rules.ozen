@@ -1,0 +1,5 @@
+// args: debug ast --rules
+recipe gohan {
+  ingredients { rice: 300 g }
+  let soaked = rice |> wash |> soak(20 min)
+}

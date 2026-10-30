@@ -1,0 +1,2 @@
+// args: check --max-nodes 6
+property batches = 5 / 2 |> ceil

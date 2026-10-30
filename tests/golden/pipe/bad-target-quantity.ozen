@@ -1,0 +1,5 @@
+// args: check
+recipe gohan {
+  ingredients { rice: 300 g }
+  let soaked = rice |> 20 min
+}
