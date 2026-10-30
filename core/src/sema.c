@@ -5920,6 +5920,9 @@ static void eval_param(sema *s, ozni_index file, ozni_index param) {
   ozni_index type = field_type_node(s, file, param), def = field_default(s, file, param);
   value bound;
   if (lookup_local(s, pn->text, &bound)) {
+    if (bound.kind == V_QTY && str_is(S(s, pn->text), "servings")) {
+      s->servings = bound.q;
+    }
     return;
   }
   if (type != 0 && is_material(s, file, type)) {
