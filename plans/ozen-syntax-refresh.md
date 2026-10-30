@@ -738,11 +738,11 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 | S544 | 前提の固定 | `G-CORE-GRAMMAR` | 規則 `tuple_binding` を使う唯一の golden からその構文を消す | P5-9 |
 | S545 | 前提の固定 | `G-CORE-DIAG-REGISTRY` | `LIN004` を出す唯一の golden からその診断を消す | P5-9 |
 | S546 | 前提の固定 | `G-CORE-GOLDEN` | 書き直した 1 つの `.out` の位置を 1 列ずらす | P5-1〜P5-7 |
-| S547 | 前提の固定 | `G-CORE-UNIT` | `core/tests/unit` の C の文字列の宣言の名前と、期待する名前を食い違わせる | P5-7 |
+| S547 | 前提の固定 | `G-CORE-UNIT` | `core/tests/unit` の C の文字列のレシピに未定義の名前を入れる | P5-7 |
 | S548 | 前提の固定 | `G-CORE-OOM` | 確保に失敗したときの `MAC004` を出さない（`check.c`） | P5-2 |
 | S549 | 前提の固定 | `G-CORE-PROPS` | 書き直した golden に `propsOptions` という名前の宣言を足す（`monotonic` とぶつかる） | P5-9 |
 | S550 | 前提の固定 | `G-SCHED-CHECK` | 洗いを段取りに入れずに汚れた道具を使う（`clean_unit` で洗いの作業を記録しない） | P5-5 |
-| S551 | プラットフォームの経路 | `G-PLAT-LINUX`・`G-PLAT-WASM` | `bindings/inputs.txt` の 1 件の期待を変える | P5-7 |
+| S551 | プラットフォームの経路 | `G-PLAT-LINUX`・`G-PLAT-WASM` | 橋渡しの側（`bindings/linux/main.swift`）で `emit` を 1 つ落とす | P5-7 |
 | S552 | データの完全性 | `G-RF-GOLDEN-COUNT` | 新しい golden を 1 つ消す | P9-5 |
 | S616 | 正常系 | `G-RF-SAMPLES-PIPE`、`sh/test-check-test-names.sh`（`--samples-pipe` の場合） | `samples/T2/` のパイプを `let` の連鎖に戻す | P5-8 |
 | S617 | 前提の固定 | `G-RF-SAMPLES-SAME`、`sh/test-check-rewrite-equivalence.sh`（`--samples` の場合） | `curryRice` の `per serving` の量を 1 g ずらす | P5-8 |
@@ -1262,6 +1262,30 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 書き直しのわざと壊す確認: S425・効かない条件・`cgolden/api/local-not-listed`（P5-6、2026-10-30）。定義の一覧に `local` も出すと、`local-not-listed` だけが落ちた。戻すと合格した
 - 書き直しのわざと壊す確認: S477・正常系・`cgolden/bundle/relative-import`（P5-6、2026-10-30）。束ねたファイルの中のモジュールをパッケージに属させないと、`relative-import` だけが落ちた。戻すと合格した
 - P5-6 の範囲（2026-10-30）: `api` 11 本、`bundle` 21 本（フォルダの golden 13 本の依存を含む）を書き直した。束ねたファイルの期待値は元のソースを写すので、名前の対応表に加えて写した `recipe`・`menu`・`make` の空の `()` も消した。JSON の期待値で、std の定義（単位 `s`・動作の引数 `p` など）の名前まで対応表で置き換えてしまった所と、SARIF の直し方の `deletedRegion` の位置は、golden を走らせて食い違いを見つけ、手で直した。`tests/golden` 全体で 1 文字の名前と空の `()` は 0 になった
+- 書き直しのわざと壊す確認: S345・正常系・`cli/subcommands`（P5-7、2026-10-30）。`unbundle` の分岐を外すと、`unbundle-manifest-taken` と `unbundle-no-overwrite` が使い方の表示で落ちた（`subcommands` は `check`・`build` の終了コードと使い方の一覧を見るので、この壊し方では落ちない）。`build` の分岐を外す壊し方を足すと、`subcommands` が「build: got '2', want '0'」で落ちた。どちらも戻すと合格した
+- 書き直しのわざと壊す確認: S346・正常系・`cli/entry-forms`（P5-7、2026-10-30）。モジュール名と入口の名前の分け方を後ろから探すと、`entry-forms` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S348・効かない条件・`cli/entry-ambiguous`（P5-7、2026-10-30）。入口が複数あるときのエラーを出さず先頭を選ぶと、`entry-ambiguous` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S349・境界・上限・`cli/kitchen-lookup`（P5-7、2026-10-30）。台所が 2 つ見つかったときのエラーを出さず最初を使うと、`kitchen-lookup` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S350・効かない条件・`cli/no-default-kitchen`（P5-7、2026-10-30）。`-k` が無いとき `kitchens/` の `home` を既定の台所にすると、`no-default-kitchen` が「level without -k: got '"level":2'」で落ちた（ほかに台所を持たない 13 本も落ちた）。戻すと合格した
+- 書き直しのわざと壊す確認: S351・境界・上限・`cli/no-prefix-abbrev`（P5-7、2026-10-30）。長い引数の名前の前方一致（`--kit`）を受け付けると、`no-prefix-abbrev` だけが落ちた。`short-options`（`cli/short-options`）は、短い名前を受け付けない壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S352・正常系・`cli/project-scope`（P5-7、2026-10-30）。`action` だけのモジュールも入口として数えると、`project-scope` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S353・時間と順序・`cli/project-order-continue`（P5-7、2026-10-30）。1 つ目の失敗でビルドを止めると、`project-order-continue` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S354・データの完全性・`cli/out-layout`（P5-7、2026-10-30）。`out/index.json` を書かないと、`out-layout` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S355・正常系・`cli/options-to-ozen`（P5-7、2026-10-30）。条件の Ozen への書き出しで `--prefer` を落とすと、`options-to-ozen` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S356・正常系・`cli/diag-display`（P5-7、2026-10-30）。診断の行の末尾に名前からの表示を出さないと、`diag-display` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S395・実際の経路・`cli/render`（P5-7、2026-10-30）。`render` の分岐を外すと、`render` と描画の 3 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S395・実際の経路・`cli/render-entry`（P5-7、2026-10-30）。モジュール名だけの指定で入口を決めない（エラーにする）と、`render-entry` と描画の 2 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S443・永続化・`cli/out-removed-entry`（P5-7、2026-10-30）。`out/` の古い出力を消さないと、`out-removed-entry` が落ちた。`out-rebuild-identical`（`cli/out-rebuild-identical`）は、古い出力を消さずに追記する壊し方を足すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S444・永続化・`cli/unbundle-no-overwrite`（P5-7、2026-10-30）。`unbundle` の上書きの検査を外すと、`unbundle-no-overwrite` と `unbundle-manifest-taken` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S444・永続化・`cli/unbundle-manifest-taken`（P5-7、2026-10-30）。上書きの検査を `package.ozen` と `deps/` の下では行わないと、`unbundle-manifest-taken` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S478・正常系・`cli/unbundle-phrases`（P5-7、2026-10-30）。言い回しを元のパッケージでなく根のパッケージに戻すと、`unbundle-phrases` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S385・実際の経路・`cli/render-dep-phrases`（P5-7、2026-10-30）。描画に依存の言い回しのフォルダを渡さないと、`render-dep-phrases` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S387・実際の経路・`cli/render-stage`（P5-7、2026-10-30）。描画に `--stage` を渡さないと、`render-stage` だけが落ちた。戻すと合格した
+- わざと壊す確認: S523・データの完全性・`G-RF-NO-EMPTY-PARENS`（P5-7、2026-10-30）。`syntax/annotation-target.ozen` の料理を `recipe salad() {` に戻すと「513 sources, 1 found」で落ちた。戻すと合格した（`sh/test-check-test-names.sh` の `recipe-parens` の場合も同じ形を確かめている）
+- わざと壊す確認: S547・前提の固定・`G-CORE-UNIT`（P5-7、2026-10-30）。`test_api.c` の C の文字列のレシピの `wash(rice)` を `wash(nosuch)` にすると、`api_levels_by_null` が落ちた（「1 tests failed out of 24」）。戻すと合格した
+- わざと壊す確認: S551・プラットフォームの経路・`G-PLAT-LINUX`（P5-7、2026-10-30）。橋渡しの側（`bindings/linux/main.swift`）で `emit` から定義（16）を落とすと「swift: 12 inputs, 10 mismatches」で落ちた。戻すと合格した
+- P5-7 の範囲（2026-10-30）: `tests/cli` の 22 本（`lib.sh` の雛形を含む）、`core/tests/unit` の `test_api.c`・`test_ir.c`、`bindings/inputs/utf8.ozen`、`tests/samples/test-check.sh` を書き直した。補助の関数 `recipe FILE NAME` で作る料理の名前（`r`・`a`・`b`）は名前の検査の正規表現に掛からないが、同じく書き直した（`gohan`、`aemono`・`butaJiru`。並びの順を保つ名前にした）。`render-entry.sh` で束縛を変えたのに盛り付けの `{ s }` を直し忘れ、テストが状態のコードしか見ないため合格していたのを見つけて直した
+- S547・S551 の壊し方（P5-7、2026-10-30）: 単体テストは C の文字列のレシピの名前を期待として持たないので、網羅表の「宣言の名前と期待する名前を食い違わせる」は当てはまらない。レシピに未定義の名前を入れる壊し方にした。橋渡しの検査は CLI とライブラリが同じ入口を通るので、ライブラリを壊すと両方が同じに変わって落ちない。`bindings/inputs.txt` には期待が無いので、橋渡しの側の `emit` を落とす壊し方にした
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
