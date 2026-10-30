@@ -1,4 +1,4 @@
-recipe r
+recipe gohan
   requires Container
   variants cookRice: pot | microwave
 result ok errors=0 warnings=0 infos=0

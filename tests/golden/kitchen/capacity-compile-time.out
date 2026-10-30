@@ -1,4 +1,4 @@
-recipe r
+recipe porkGinger
   pork : Pork 600 g
   %1 = fry(pork/3, 480 s) : Pork<doneness: done, browning: light> 200 g
   %2 = fry(pork/3, 480 s) : Pork<doneness: done, browning: light> 200 g

@@ -1,4 +1,4 @@
-recipe r
+recipe roastPork
   pork : Pork 200 g
   %1 = fry(pork, 300 s) : Pork<doneness: done, browning: light> 200 g
 info SCH002 kitchenDependent kitchen-has-branch.ozen:15:6-15:23 args=["kitchen.has(Oven)"]: kitchen dependent

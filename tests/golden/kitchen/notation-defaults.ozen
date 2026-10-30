@@ -7,7 +7,7 @@ kitchen home {
     pan: FryingPan
   }
 }
-recipe r() {
+recipe porkSaute {
   ingredients { pork: 200 g }
-  let f = fry(pork, 5 min)
+  let fried = fry(pork, 5 min)
 }

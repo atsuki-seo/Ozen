@@ -5,8 +5,8 @@ kitchen tiny {
     knife: Knife
   }
 }
-recipe r() {
+recipe carrotSalad {
   ingredients { carrot: 1 pcs }
-  let w = wash(carrot)
-  let c = cut(w, style: slice)
+  let washed = wash(carrot)
+  let sliced = cut(washed, style: slice)
 }

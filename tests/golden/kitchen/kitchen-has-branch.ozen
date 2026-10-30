@@ -10,11 +10,11 @@ kitchen home {
     pan: FryingPan
   }
 }
-recipe r() {
+recipe roastPork {
   ingredients { pork: 200 g }
   if kitchen.has(Oven) {
-    let a = roast(pork)
+    let roasted = roast(pork)
   } else {
-    let b = fry(pork, 5 min)
+    let fried = fry(pork, 5 min)
   }
 }

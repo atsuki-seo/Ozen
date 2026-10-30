@@ -7,10 +7,10 @@ kitchen home {
     pan: FryingPan { capacity: 250 g }
   }
 }
-recipe r() {
+recipe porkGinger {
   ingredients { pork: 600 g }
   let batches = ceil(pork / kitchen.pan.capacity)
   repeat batches {
-    let f = fry(pork / batches, 8 min)
+    let fried = fry(pork / batches, 8 min)
   }
 }

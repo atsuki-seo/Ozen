@@ -4,7 +4,7 @@ kitchen home {
     stove: IHStove
   }
 }
-recipe r() requires Oven {
+recipe onionGratin requires Oven {
   ingredients { onion: 1 pcs }
-  let p = peel(onion)
+  let peeled = peel(onion)
 }

@@ -4,7 +4,7 @@ kitchen bare {
     sink: Sink
   }
 }
-recipe r() {
+recipe gohan {
   ingredients { naan: 1 pcs }
-  let w = warm(naan)
+  let washed = warm(naan)
 }
