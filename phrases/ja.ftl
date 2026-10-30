@@ -434,6 +434,7 @@ clean-rinse = { $tool }をすすぐ
 clean-soak = { $tool }を浸け置きする
 clean-wipe = { $tool }を拭く
 clean-run = 食洗機で{ $tool }を洗う
+preheat = { $tool }を{ $temp }℃に予熱する
 time-from = { $time }〜
 variant-pot = 鍋
 variant-cooker = 炊飯器

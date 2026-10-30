@@ -47,6 +47,10 @@ export function taskText(ph, defs, nodes, sched, t, opts = {}) {
     const tool = tools.reduce((a, b) => (a === null ? b : ph.format('list-join', { first: a, rest: b })), null) ?? '';
     return ph.format(keyFor('clean', t.kind), { tool }, `${t.kind}(${tool})`);
   }
+  if (t.kind === 'preheat') {
+    const tool = unitName(ph, sched, t.heats.resource);
+    return ph.format('preheat', { tool, temp: String(seconds(t.heats.temp)) }, `preheat(${tool})`);
+  }
   const node = nodes.get(t.id);
   return node ? stepText(ph, defs, nodes, node, opts) : t.op;
 }
