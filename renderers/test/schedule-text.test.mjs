@@ -17,3 +17,12 @@ test('schedule lines carry the time and the cook', () => {
   const two = renderSchedule(result(dir, ['--entry', 'dinner', '--kitchen', 'home', '--cooks', '2']), ph);
   assert.match(two, /（2人目）$/m);
 });
+
+test('the oven is preheated before the dish goes in', () => {
+  const res = result(join(root, 'tests', 'golden', 'sched'), ['--kitchen', 'home', '--options', 'today', 'preheat-json.ozen']);
+  const ja = renderSchedule(res, new Phrases([stdPhrases()], { lang: 'ja' }));
+  assert.match(ja, /^0:00〜 オーブンを220℃に予熱する。（放置）$/m);
+  assert.match(ja, /^0:20〜 .*（放置）$/m);
+  const en = renderSchedule(res, new Phrases([stdPhrases()], { lang: 'en' }));
+  assert.match(en, /^0:00 Preheat the oven to 220 °C\. \(unattended\)$/m);
+});
