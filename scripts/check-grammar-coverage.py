@@ -41,7 +41,8 @@ def main():
         print(f"not covered: {r}", file=sys.stderr)
     for r in sorted(unknown):
         print(f"unknown rule: {r}", file=sys.stderr)
-    print(f"grammar: {len(rules)} rules, {len(missing)} not covered")
+    extra = f", {len(unknown)} unknown" if unknown else ""
+    print(f"grammar: {len(rules)} rules, {len(missing)} not covered{extra}")
     return 0 if rules and not missing and not unknown else 1
 
 
