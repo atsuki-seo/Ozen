@@ -222,7 +222,7 @@ goal_G_PROTO_FLAGS() {
   n=$(ls proto/src/*.c | wc -l)
   for c in $CFGS; do
     want_eq "flags $c" "flags: $n files, 0 missing" \
-      "$(python3 -B proto/scripts/check-flags.py --std-gcc c2x --std-clang c23 build/$c/compile_commands.json 2>&1 | tail -n 1)"
+      "$(python3 -B scripts/check-flags.py --std-gcc c2x --std-clang c23 build/$c/compile_commands.json 2>&1 | tail -n 1)"
   done
 }
 
@@ -232,12 +232,12 @@ goal_G_PROTO_COMPILERS() {
 
 goal_G_PROTO_PURE() {
   want_eq "pure" "pure: 0 disallowed symbols, 0 disallowed includes" \
-    "$(proto/scripts/check-pure.sh proto/src build/gcc-release/libozenproto.a build/clang-release/libozenproto.a 2>&1 | tail -n 1)"
+    "$(scripts/check-pure.sh proto/src build/gcc-release/libozenproto.a build/clang-release/libozenproto.a 2>&1 | tail -n 1)"
 }
 
 goal_G_PROTO_NOGLOBAL() {
   want_re "noglobal" '^noglobal: [0-9]+ objects, 0 writable sections$' \
-    "$(python3 -B proto/scripts/check-noglobal.py build/gcc-release/libozenproto.a build/clang-release/libozenproto.a 2>&1 | tail -n 1)"
+    "$(python3 -B scripts/check-noglobal.py build/gcc-release/libozenproto.a build/clang-release/libozenproto.a 2>&1 | tail -n 1)"
 }
 
 nofloat() {
@@ -265,7 +265,7 @@ goal_G_PROTO_EXPORTS() {
 
 goal_G_PROTO_DIAG_REGISTRY() {
   local out n
-  out=$(proto/scripts/check-diag-registry.sh 2>&1 | tail -n 1)
+  out=$(scripts/check-diag-registry.sh 2>&1 | tail -n 1)
   want_re "diag" '^diag: [0-9]+ codes, 0 duplicate codes, 0 duplicate names, 0 bad codes, 0 unlisted, 0 unused$' "$out"
   n=$(grep -cvE '^[[:space:]]*(#|$)' proto/tests/diag-names.txt)
   want_eq "diag codes = names" "$n" "$(last_num "$out" 1)"
@@ -296,7 +296,7 @@ goal_G_PROTO_REPORT() {
 }
 
 goal_G_PROTO_README_EXAMPLE() {
-  want_re "readme" '^readme: [1-9][0-9]* examples, 0 mismatches$' "$(proto/scripts/check-readme-example.sh 2>&1 | tail -n 1)"
+  want_re "readme" '^readme: [1-9][0-9]* examples, 0 mismatches$' "$(scripts/check-readme-example.sh 2>&1 | tail -n 1)"
 }
 
 goal_G_PLAN_TESTS_EXIST() {
@@ -417,7 +417,7 @@ goal_G_CORE_FLAGS() {
   local c
   for c in $CCFGS; do
     want_re "flags $c" '^flags: [0-9]+ files, 0 missing$' \
-      "$(python3 -B proto/scripts/check-flags.py --std-gcc c2x --std-clang c23 --extra -Wswitch-enum build/$c/compile_commands.json 2>&1 | tail -n 1)"
+      "$(python3 -B scripts/check-flags.py --std-gcc c2x --std-clang c23 --extra -Wswitch-enum build/$c/compile_commands.json 2>&1 | tail -n 1)"
   done
 }
 
@@ -453,12 +453,12 @@ goal_G_CORE_GRAMMAR() {
 
 goal_G_CORE_PURE() {
   want_eq "pure" "pure: 0 disallowed symbols, 0 disallowed includes" \
-    "$(proto/scripts/check-pure.sh core/src build/core-gcc-release/libozen.a build/core-clang-release/libozen.a 2>&1 | tail -n 1)"
+    "$(scripts/check-pure.sh core/src build/core-gcc-release/libozen.a build/core-clang-release/libozen.a 2>&1 | tail -n 1)"
 }
 
 goal_G_CORE_NOGLOBAL() {
   want_re "noglobal" '^noglobal: [0-9]+ objects, 0 writable sections$' \
-    "$(python3 -B proto/scripts/check-noglobal.py build/core-gcc-release/libozen.a build/core-clang-release/libozen.a 2>&1 | tail -n 1)"
+    "$(python3 -B scripts/check-noglobal.py build/core-gcc-release/libozen.a build/core-clang-release/libozen.a 2>&1 | tail -n 1)"
 }
 
 goal_G_CORE_NOFLOAT() {
@@ -480,7 +480,7 @@ goal_G_CORE_OOM() {
 
 goal_G_CORE_DIAG_REGISTRY() {
   local out n
-  out=$(proto/scripts/check-diag-registry.sh --registry core/src/diag_codes.def --names core/tests/diag-names.txt --outputs tests/golden 2>&1 | tail -n 1)
+  out=$(scripts/check-diag-registry.sh --registry core/src/diag_codes.def --names core/tests/diag-names.txt --outputs tests/golden 2>&1 | tail -n 1)
   want_re "diag" '^diag: [0-9]+ codes, 0 duplicate codes, 0 duplicate names, 0 bad codes, 0 unlisted, 0 unused$' "$out"
   n=$(grep -cvE '^[[:space:]]*(#|$)' core/tests/diag-names.txt)
   want_eq "diag codes = names" "$n" "$(last_num "$out" 1)"

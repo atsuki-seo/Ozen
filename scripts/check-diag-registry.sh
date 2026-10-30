@@ -3,7 +3,7 @@
 
 set -uo pipefail
 
-root=$(cd "$(dirname "$0")/../.." && pwd)
+root=$(cd "$(dirname "$0")/.." && pwd)
 registry="$root/proto/src/diag_codes.def"
 names="$root/proto/tests/diag-names.txt"
 outputs="$root/proto/tests/golden"

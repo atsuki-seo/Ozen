@@ -3,7 +3,7 @@
 
 set -uo pipefail
 
-root=$(cd "$(dirname "$0")/../.." && pwd)
+root=$(cd "$(dirname "$0")/.." && pwd)
 readme="$root/README.md"
 bin="$root/build/gcc-release/ozenproto"
 ozen="$root/build/core-gcc-release/ozen"

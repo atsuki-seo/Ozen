@@ -9,16 +9,16 @@ scripts/check-tools.sh scripts/test-check-tools.sh
 tools/vocabcheck/vocabcheck.py python3 -B -m unittest tools.vocabcheck.test_vocabcheck tools.vocabcheck.test_qty
 tools/fct/extract.py python3 -B -m unittest tools.fct.test_extract
 tools/vocabcheck/sources.py python3 -B -m unittest tools.vocabcheck.test_vocabcheck.Fixtures.test_fx_vocab_ng_primary_missing_locator tools.vocabcheck.test_vocabcheck.Fixtures.test_fx_vocab_ng_primary_quote_mismatch tools.vocabcheck.test_vocabcheck.Fixtures.test_fx_vocab_ng_provisional_without_search
-proto/scripts/check-flags.py proto/scripts/test-check-flags.sh
+scripts/check-flags.py scripts/test-check-flags.sh
 proto/scripts/check-compilers.sh proto/scripts/test-check-compilers.sh
-proto/scripts/check-diag-registry.sh proto/scripts/test-check-diag-registry.sh
+scripts/check-diag-registry.sh scripts/test-check-diag-registry.sh
 tools/vocabcheck/priorwork.py scripts/test-priorwork.sh
 proto/scripts/digest.sh proto/scripts/test-digest.sh
-proto/scripts/check-pure.sh proto/scripts/test-check-pure.sh
-proto/scripts/check-noglobal.py proto/scripts/test-check-noglobal.sh
+scripts/check-pure.sh scripts/test-check-pure.sh
+scripts/check-noglobal.py scripts/test-check-noglobal.sh
 proto/scripts/run-golden.sh proto/scripts/test-run-golden.sh
 proto/scripts/worker-test.sh proto/scripts/test-worker-test.sh
-proto/scripts/check-readme-example.sh proto/scripts/test-check-readme-example.sh
+scripts/check-readme-example.sh scripts/test-check-readme-example.sh
 proto/scripts/check-report.py proto/scripts/test-check-report.sh
 scripts/check-c23-subset.sh scripts/test-check-c23-subset.sh
 scripts/run-golden.sh scripts/test-run-golden.sh
