@@ -705,7 +705,7 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 | S512 | 境界・上限 | `cgolden/pipe/named-only` | 左辺を名前付きの引数の後ろに入れる | P3-1 |
 | S513 | 正常系 | `cgolden/pipe/unattended` | 注釈を最初の段に付ける | P3-1 |
 | S514 | 効かない条件 | `cgolden/pipe/unattended-builtin` | 組み替えた呼び出しでは `check_targets` を呼ばない | P3-1 |
-| S515 | 前提の固定 | `G-RF-TYPEARGS-STABLE` | `\|` の直後の空白を読み飛ばして `>` まで 1 つのトークンにする | P3-1 |
+| S515 | 前提の固定 | `G-RF-TYPEARGS-STABLE` | `rewrite-start` を、`typeargs/alternatives.out` の 1 行を変えたコミットに向ける | P3-1 |
 | S516 | データの完全性 | `cgolden/pipe/ast-rules` | `mark(OZNI_R_pipe)` を外す | P3-1 |
 | S517 | データの完全性 | `G-CORE-GRAMMAR` | `grammar.ebnf` から規則 `pipe` を消す | P3-1 |
 | S518 | 境界・上限 | `cgolden/pipe/ast` | 組み替えた呼び出しの span を右辺の始まりからにする | P3-1 |
@@ -1051,6 +1051,10 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - `per serving` の作り（P4-1、2026-10-30）: 構文は `ingredient_item := IDENT ':' [ type_ref ] expr [ per_serving ] annotations` と `per_serving := 'per' 'serving'`。量の式を新しいノード `PerServing` で包む（ノードの種類は末尾に足したので、ほかの種類の番号は変わらない）。`TYP020` は引数を持たず、位置は `75 g per serving` 全体。人数は `s->servings`（料理の引数か、`make` で渡した値）、無ければ条件の `servings` から取り、`pcs` が付いていれば外す（D45）
 - 既存の golden の期待値の変更（P4-1、2026-10-30）: `api/local-not-listed` は診断の一覧を出すので、`TYP020` の 1 行を手で足した。実装より先の別のコミットにした
 - `per-serving-misplaced` の red-first（P4-1、2026-10-30）: `per` は直す前はどこでも予期しないトークンなので、直す前から合格する。`scripts/red-first-exceptions.txt` に理由を書いた
+- S515 の壊し方（P5-0、2026-10-30）: 網羅表は「`|` の直後の空白を読み飛ばして `>` まで 1 つのトークンにする」としたが、`| >` と書いた golden は無く、この壊し方では何も落ちない。`G-RF-TYPEARGS-STABLE` は 2 つのタグの間の期待値の差分を見るゴールなので、壊し方を「`rewrite-start` を、`typeargs/alternatives.out` の 1 行を変えたコミットに向ける」に直した。型の `|` の読み方そのものは、期待値を変えないまま `G-CORE-GOLDEN` の `typeargs/*` が確かめる
+- わざと壊す確認: S515・`G-RF-TYPEARGS-STABLE`（P5-0、2026-10-30）。一時の worktree で `typeargs/alternatives.out` の 1 行目の末尾に空白を足したコミットを作り、`rewrite-start` をそこに向けると「typeargs unchanged: exit 1」で落ちた。タグを元のコミットに戻すと合格した
+- わざと壊す確認: S541・`G-RF-NAMES`（`unlisted exceptions`）（P5-0、2026-10-30）。`scripts/test-names-exceptions.txt` に理由の無い行を足すと「1 unlisted exceptions」になった。消すと 0 に戻った（1 文字の名前が残る間、このゴールはほかの理由でも落ちる）
+- P5-0 の道具（2026-10-30）: `check-rewrite-equivalence.py` は、比べる時点ごとに一時の worktree で `scripts/build-core.sh --only core-gcc-release` を走らせ、実行ファイルを `build/equivalence/<コミット>/ozen` に取っておく。書き直したものは、2 つの時点の間で `.ozen`・`.out`・フォルダの golden の中身が変わった golden。比べる中身は終了コード・診断のコードの並び・`result` の数・手順の名前の列。記録は、書き直したテスト（`cgolden/`・`cli/`・`cunit/`）を指すロードマップ §5.3 の行のうち「わざと壊す方法」を持つものごとに、S 項目・観点・テストの名前を含む `- 書き直しのわざと壊す確認: ` の行を探す。`cunit/` の名前は、変わった単体テストの C のファイルにその名前があれば書き直したものとみなす。タグ `rewrite-start` は P5-0 の道具のコミットの後に打った。1 文字の名前は着手時に 705 個（宣言 459・束縛 709 のうち）
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
