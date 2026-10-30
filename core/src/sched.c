@@ -804,13 +804,47 @@ bool ozni_schedule(ozni_arena *ar, ozni_sched *s) {
   }
   ozni_sched rs = *s;
   rs.tasks = rev;
-  if (s->rank != nullptr) {
+  bool *urgent = ozni_arena_alloc(ar, (n + 1) * sizeof *urgent);
+  if (urgent == nullptr) {
+    return false;
+  }
+  bool any_urgent = false;
+  for (uint32_t j = 0; j < n; j++) {
+    urgent[j] = rev[j].has_release;
+    any_urgent = any_urgent || urgent[j];
+    rev[j].has_release = false;
+  }
+  if (s->rank != nullptr || any_urgent) {
     ozni_rat *rrank = ozni_arena_alloc(ar, (n + 1) * sizeof *rrank);
-    if (rrank == nullptr) {
+    ozni_rat *best = ozni_arena_alloc(ar, (n + 1) * sizeof *best);
+    if (rrank == nullptr || best == nullptr) {
       return false;
     }
-    for (uint32_t i = 0; i < n; i++) {
-      rrank[n - 1 - i] = s->rank[i];
+    ozni_rat lift = ozni_rat_int(1);
+    for (uint32_t j = 0; j < n; j++) {
+      best[j] = ozni_rat_int(0);
+    }
+    for (uint32_t k = n; k > 0; k--) {
+      uint32_t j = k - 1;
+      ozni_rat dur = s->alts[rev[j].first_alt].hi;
+      if (!add(lift, dur, &lift) || !add(dur, best[j], &rrank[j])) {
+        return false;
+      }
+      if (s->rank != nullptr) {
+        rrank[j] = s->rank[n - 1 - j];
+      }
+      for (uint32_t d = 0; d < rcount[j]; d++) {
+        uint32_t p = deps[rfirst[j] + d];
+        urgent[p] = urgent[p] || urgent[j];
+        if (ozni_rat_cmp(rrank[j], best[p]) > 0) {
+          best[p] = rrank[j];
+        }
+      }
+    }
+    for (uint32_t j = 0; j < n; j++) {
+      if (urgent[j] && !add(rrank[j], lift, &rrank[j])) {
+        return false;
+      }
     }
     rs.rank = rrank;
   }
