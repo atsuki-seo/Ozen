@@ -42,3 +42,4 @@ renderers/tools/browser-test.sh scripts/test-browser-test.sh
 scripts/check-test-names.py scripts/test-check-test-names.sh
 scripts/check-rewrite-equivalence.py scripts/test-check-rewrite-equivalence.sh
 scripts/check-limit-pairs.py scripts/test-check-limit-pairs.sh
+scripts/check-std-preheat.py scripts/test-check-std-preheat.sh

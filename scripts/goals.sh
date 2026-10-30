@@ -613,7 +613,11 @@ goal_G_RF_FUZZ_DICT() {
 }
 
 goal_G_RF_STD_PREHEAT() {
-  not_yet "check-std-preheat.py" P7-1
+  local out
+  out=$(python3 -B scripts/check-std-preheat.py --ozen build/core-gcc-release/ozen 2>/dev/null | tail -n 1)
+  want_ge1 "oven kinds" "$(sed -nE 's/^oven kinds: ([0-9]+), with preheatTime: [0-9]+$/\1/p' <<< "$out")"
+  want_eq "oven kinds with preheatTime" "$(sed -nE 's/^oven kinds: ([0-9]+), .*/\1/p' <<< "$out")" \
+    "$(sed -nE 's/^oven kinds: [0-9]+, with preheatTime: ([0-9]+)$/\1/p' <<< "$out")"
 }
 
 goal_G_RF_SAMPLES_UNUSED() {
