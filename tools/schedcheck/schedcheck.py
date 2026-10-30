@@ -132,6 +132,19 @@ def check(doc):
         for mark in t.get("leaves", []):
             history.setdefault(mark["resource"], []).append((t["id"], mark))
 
+    heat = {}
+    for t in order:
+        if t.get("kind") == "preheat":
+            heat[t["heats"]["resource"]] = num(t["heats"]["temp"])
+            continue
+        needs = {n["resource"]: num(n["temp"]) for n in t.get("needs", [])}
+        for rid in t.get("uses", []):
+            if rid not in needs:
+                heat[rid] = None
+            elif heat.get(rid) is None or heat[rid] < needs[rid]:
+                out.append(("preheat", f"task {t['id']} needs {rid} at {needs[rid]} but it is heated to {heat.get(rid)}"))
+                heat[rid] = needs[rid]
+
     cleanup = doc.get("cleanup", "none")
     if cleanup != "none":
         for rid, tid in sorted(used.items()):

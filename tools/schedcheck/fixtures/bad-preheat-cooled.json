@@ -1,0 +1,116 @@
+{
+ "schemaVersion": 1,
+ "cooks": 1,
+ "cleanup": "none",
+ "rules": [],
+ "waves": [],
+ "dishes": [],
+ "resources": [
+  {
+   "id": "oven",
+   "kind": "Oven",
+   "capacity": 1,
+   "category": "place"
+  }
+ ],
+ "holds": [],
+ "tasks": [
+  {
+   "id": 1,
+   "kind": "op",
+   "op": "roast",
+   "deps": [],
+   "start": {
+    "num": 1800,
+    "den": 1
+   },
+   "endHi": {
+    "num": 3600,
+    "den": 1
+   },
+   "endLo": {
+    "num": 3600,
+    "den": 1
+   },
+   "cook": null,
+   "uses": [
+    "oven"
+   ],
+   "leaves": [],
+   "food": null,
+   "targets": [],
+   "unattended": true,
+   "wave": null,
+   "needs": [
+    {
+     "resource": "oven",
+     "temp": {
+      "num": 200,
+      "den": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "kind": "op",
+   "op": "crisp",
+   "deps": [],
+   "start": {
+    "num": 1200,
+    "den": 1
+   },
+   "endHi": {
+    "num": 1800,
+    "den": 1
+   },
+   "endLo": {
+    "num": 1800,
+    "den": 1
+   },
+   "cook": null,
+   "uses": [
+    "oven"
+   ],
+   "leaves": [],
+   "food": null,
+   "targets": [],
+   "unattended": true,
+   "wave": null
+  },
+  {
+   "id": 3,
+   "kind": "preheat",
+   "op": "preheat",
+   "deps": [],
+   "start": {
+    "num": 0,
+    "den": 1
+   },
+   "endHi": {
+    "num": 1200,
+    "den": 1
+   },
+   "endLo": {
+    "num": 1200,
+    "den": 1
+   },
+   "cook": null,
+   "uses": [
+    "oven"
+   ],
+   "leaves": [],
+   "food": null,
+   "targets": [],
+   "unattended": true,
+   "wave": null,
+   "heats": {
+    "resource": "oven",
+    "temp": {
+     "num": 200,
+     "den": 1
+    }
+   }
+  }
+ ]
+}
