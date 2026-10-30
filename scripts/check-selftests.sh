@@ -23,7 +23,7 @@ fi
 cd "$root" || exit 2
 
 list=scripts/selftests.txt
-dirs="scripts proto/scripts tools tests/samples tests/props renderers/tools bindings"
+dirs="scripts tools tests/samples tests/props renderers/tools bindings"
 
 declare -A test_of=()
 if [ -f "$list" ]; then

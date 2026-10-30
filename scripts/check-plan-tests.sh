@@ -32,10 +32,9 @@ ctest_names() {
   [ -d "$dir" ] || return 0
   ctest --test-dir "$dir" -N 2>/dev/null | sed -nE 's/^ *Test +#[0-9]+: +//p'
 }
-c_names=$(ctest_names build/gcc-debug-san)
 cunit_names=$(ctest_names build/core-gcc-debug-san)
 
-C_NAMES="$c_names" CUNIT_NAMES="$cunit_names" exec python3 -B - "$plan" "$mode" <<'PY'
+CUNIT_NAMES="$cunit_names" exec python3 -B - "$plan" "$mode" <<'PY'
 import fnmatch
 import glob
 import os
@@ -92,7 +91,6 @@ if os.path.exists("scripts/retired-tests.txt"):
         if l and not l.startswith("#"):
             retired.add(l.split()[0])
 
-c_names = os.environ.get("C_NAMES", "").split("\n")
 cunit_names = os.environ.get("CUNIT_NAMES", "").split("\n")
 
 
@@ -117,8 +115,6 @@ def golden_like(base, rest):
 
 
 def resolve(cat, rest):
-    if cat == "golden":
-        return golden_like("proto/tests/golden", rest)
     if cat == "cgolden":
         return golden_like("tests/golden", rest)
     if cat == "fx":
@@ -130,12 +126,10 @@ def resolve(cat, rest):
             return []
         module, func = rest.split(".", 1)
         return py_defs(module, func)
-    if cat == "c":
-        return [n for n in c_names if n and fnmatch.fnmatchcase(n, rest)]
     if cat == "cunit":
         return [n for n in cunit_names if n and fnmatch.fnmatchcase(n, rest)]
     if cat == "sh":
-        return sorted(glob.glob(f"scripts/{rest}") + glob.glob(f"proto/scripts/{rest}"))
+        return sorted(glob.glob(f"scripts/{rest}"))
     if cat == "prop":
         return sorted(glob.glob(f"tests/props/{rest}.py"))
     if cat == "cli":

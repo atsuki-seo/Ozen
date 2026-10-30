@@ -62,10 +62,16 @@ expect all-present "$r" "" "plan-tests: 2 names, 0 missing" 0
 
 r=$(new_repo)
 plan "$r" '| S1 | 正常系 | `fx/vocab-ng/a` | 壊す | P1 |
-| S2 | 正常系 | `golden/syntax/b` | 壊す | P1 |'
+| S2 | 正常系 | `cgolden/syntax/b` | 壊す | P1 |'
 put "$r" spec/fixtures/vocab-ng/a.yaml
-put "$r" proto/tests/golden/syntax/b.ozen
+put "$r" tests/golden/syntax/b.ozen
 expect golden-without-out "$r" "" "plan-tests: 2 names, 1 missing" 1
+
+r=$(new_repo)
+plan "$r" '| S1 | 正常系 | `golden/syntax/b`、`c/unit_a` | 壊す | P1 |'
+put "$r" tests/golden/syntax/b.ozen
+put "$r" tests/golden/syntax/b.out
+expect prototype-categories "$r" "" "plan-tests: 2 names, 2 missing" 1
 
 r=$(new_repo)
 plan "$r" '| S1 | 正常系 | `cgolden/decl/*`（種類ごとに 2 個） | 壊す | P7 |'
@@ -89,7 +95,7 @@ expect star-without-count "$r" "" "plan-tests: 0 names, 0 missing" 1
 
 r=$(new_repo)
 plan "$r" '| S1 | 正常系 | `sh/test-x.sh`、`prop/p`、`cli/c`、`sample/s`、`rtest/t` | 壊す | P1 |'
-put "$r" proto/scripts/test-x.sh
+put "$r" scripts/test-x.sh
 put "$r" tests/props/p.py
 put "$r" tests/cli/c.sh
 put "$r" samples/s/expect.yaml

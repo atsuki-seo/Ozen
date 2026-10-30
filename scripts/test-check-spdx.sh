@@ -37,7 +37,7 @@ expect() {
   rm -rf "$repo"
 }
 
-r=$(new_repo); put "$r" proto/src/a.c "/* $code */"
+r=$(new_repo); put "$r" tools/a.c "/* $code */"
 expect good-first-line "$r" "spdx: 1 files checked, 0 missing, 0 wrong" 0
 
 r=$(new_repo); put "$r" tools/x.py "$(printf '#\n#\n#\n#\n#\n# %s' "$code")"
@@ -68,10 +68,10 @@ expect samples "$r" "spdx: 2 files checked, 0 missing, 1 wrong" 1
 r=$(new_repo); put "$r" phrases/ja.ftl "# SPDX-License-Identifier: CC-BY-4.0"; put "$r" renderers/tools/x.mjs "no header"
 expect phrases-and-renderers "$r" "spdx: 2 files checked, 1 missing, 0 wrong" 1
 
-r=$(new_repo); put "$r" proto/README.md "no header"; put "$r" docs/x.c "no header"; put "$r" tools/vendor/lib.py "no header"
+r=$(new_repo); put "$r" core/README.md "no header"; put "$r" docs/x.c "no header"; put "$r" tools/vendor/lib.py "no header"
 expect not-targets "$r" "spdx: 0 files checked, 0 missing, 0 wrong" 0
 
-r=$(new_repo); put "$r" .gitignore "build/"; put "$r" proto/build/gen.c "no header"; put "$r" proto/src/b.c "no header"
+r=$(new_repo); put "$r" .gitignore "build/"; put "$r" core/build/gen.c "no header"; put "$r" core/src/b.c "no header"
 expect ignored-and-untracked "$r" "spdx: 1 files checked, 1 missing, 0 wrong" 1
 
 cases=$((cases + 1))
