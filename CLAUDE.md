@@ -11,6 +11,7 @@
 
 - The implementation plan is `plans/ozen-roadmap.md`. Task completion conditions are the goals defined in its §5, and the judgment commands in the §5 code blocks are authoritative.
 - Work happens on `main` only; ranges for history checks start at the tag `plan-start`.
+- The follow-up plan for the syntax refresh, the test rewrite and the prototype removal is `plans/ozen-syntax-refresh.md`. Its goals are the `G-RF-*` goals in its §5, its history range starts at the tag `refresh-start`, and the roadmap goals it lists in §5 remain prerequisites.
 
 ## Publishing
 
