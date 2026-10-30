@@ -1,0 +1,8 @@
+// args: debug steps -s 2
+recipe misoSoup(servings: Count = 4) {
+  ingredients {
+    dashi: 150 ml per serving
+    miso: 40 g
+  }
+  let soup = simmer([dashi, miso], 3 min)
+}

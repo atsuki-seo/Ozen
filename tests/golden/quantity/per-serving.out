@@ -1,0 +1,7 @@
+recipe gohan
+  rice : Rice 300 g
+  %1 = wash(rice) : Rice<prep has washed> 300 g
+  %2 = soak(%1) : Rice<prep has washed, prep has soaked(1800 s)> 300 g
+  %3 = cookRice(%2) : CookedRice 300 g
+result ok errors=0 warnings=0 infos=0
+exit 0

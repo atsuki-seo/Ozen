@@ -1,0 +1,24 @@
+bundle {
+  std: "{{STD_VERSION}}"
+  entry: dinner
+  from: book "1.0.0"
+}
+
+module book.menus.dinner {
+import recipes.gohan.{gohan}
+
+menu dinner(people: 2) {
+  let rice = make gohan
+  serve main {
+    plate perPerson on RiceBowl { rice }
+  }
+}
+}
+
+module book.recipes.gohan {
+recipe gohan(servings: Count = 2) {
+  ingredients { rice: 75 g per serving }
+  let cooked = rice |> wash |> soak(20 min) |> cookRice
+}
+}
+exit 0

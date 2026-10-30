@@ -1,0 +1,7 @@
+recipe misoSoup
+  dashi : Dashi 300 ml
+  miso : Miso 40 g
+  %1 = combine([dashi, miso]) : Mixture 340..343 g
+  %2 = simmer(%1, 180 s) : Mixture<doneness: done> 340..343 g
+result ok errors=0 warnings=0 infos=0
+exit 0

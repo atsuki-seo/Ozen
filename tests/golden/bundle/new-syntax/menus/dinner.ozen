@@ -1,0 +1,8 @@
+import recipes.gohan.{gohan}
+
+menu dinner(people: 2) {
+  let rice = make gohan
+  serve main {
+    plate perPerson on RiceBowl { rice }
+  }
+}

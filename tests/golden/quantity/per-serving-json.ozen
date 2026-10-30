@@ -1,0 +1,5 @@
+// args: check --format json --emit ir
+recipe gohan(servings: Count = 4) {
+  ingredients { rice: 75 g per serving }
+  let cooked = rice |> wash |> soak |> cookRice
+}

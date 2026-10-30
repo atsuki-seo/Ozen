@@ -1,0 +1,4 @@
+recipe gohan(servings: Count = 2) {
+  ingredients { rice: 75 g per serving }
+  let cooked = rice |> wash |> soak(20 min) |> cookRice
+}

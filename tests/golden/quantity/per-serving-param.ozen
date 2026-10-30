@@ -1,0 +1,6 @@
+// args: debug steps
+recipe tamagoyaki(servings: Count = 3) {
+  ingredients { egg: 2 pcs per serving }
+  let beaten = egg |> mix
+  let rolled = fry(beaten, 4 min)
+}

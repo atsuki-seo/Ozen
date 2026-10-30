@@ -1,0 +1,6 @@
+recipe tamagoyaki
+  egg : Egg 6 pcs
+  %1 = mix(egg) : Egg 6 pcs
+  %2 = fry(%1, 240 s) : Egg<doneness: done> 6 pcs
+result ok errors=0 warnings=0 infos=0
+exit 0
