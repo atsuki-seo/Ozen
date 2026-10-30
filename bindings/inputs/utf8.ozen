@@ -1,6 +1,6 @@
 // 日本語のコメント 🍛
 property note = "カレーと🍛ごはん"
-recipe curry() {
+recipe curry {
   ingredients {
     pork: 200 g
     onion: 1 pcs

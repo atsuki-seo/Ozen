@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-recipe stew() {
+recipe stew {
   ingredients {
     pork: 300 g
     water: 600 ml
   }
   let s = simmer([pork, water], 30 min)
 }
-recipe jelly() {
+recipe jelly {
   ingredients {
     milk: 300 ml
     sugar: Sugar 2 tbsp
@@ -14,9 +14,9 @@ recipe jelly() {
   let m = mix([milk, sugar])
   let c = chill(m, 60 min)
 }
-menu dinner() {
-  let a = make stew()
-  let b = make jelly()
+menu dinner {
+  let a = make stew
+  let b = make jelly
   serve main {
     plate perPerson on DeepPlate { a }
   }
