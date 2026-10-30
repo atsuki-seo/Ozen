@@ -1,0 +1,7 @@
+recipe tomatoSalad
+  tomato : Tomato 2 pcs
+  %1 = cut(tomato, style: dice) : Tomato<shape: cut(dice, 3 mm)> 2 pcs
+menu dinner
+  %1 = make tomatoSalad() : TomatoSalad<shape: cut(dice, 3 mm)> 2 pcs
+result ok errors=0 warnings=0 infos=0
+exit 0
