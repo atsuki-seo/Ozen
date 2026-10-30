@@ -91,14 +91,14 @@ File recipe.ozen
                 Name servings
               Number 0
           Block
-            For x
+            For dish
               List
                 Name rice
                 Name curry
               Block
                 Call
                   Name taste
-                  Name x
+                  Name dish
           Block
             Call
               Name rest

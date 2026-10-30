@@ -18,7 +18,7 @@ recipe curryRice(servings: Count in 1..20 = 4) -> Curry requires Oven<maxTemp >=
   if servings > 4 and not small {
     repeat ceil(servings / 4) { stir(curry) }
   } else if servings == 4 or -servings < 0 {
-    for x in [rice, curry] { taste(x) }
+    for dish in [rice, curry] { taste(dish) }
   } else {
     rest(curry, 5 min)
   }
