@@ -623,7 +623,9 @@ goal_G_RF_SAMPLES_UNUSED() {
 }
 
 goal_G_RF_NAMES() {
-  not_yet "check-test-names.py" P5-0
+  want_re "names" '^names: [0-9]+ declarations, [0-9]+ bindings, 0 one-letter, 0 unlisted exceptions$' \
+    "$(python3 -B scripts/check-test-names.py --exceptions scripts/test-names-exceptions.txt \
+      tests core/tests/unit bindings/inputs 2>/dev/null | tail -n 1)"
 }
 
 goal_G_RF_PATHS() {
@@ -640,8 +642,15 @@ goal_G_RF_SEPARATION() {
     "$(scripts/check-commit-separation.sh "$RF" '^tests/golden/.*\.out$' '^(core/src|core/include|cli/src|stdlib|phrases|schemas|tools/schedcheck|renderers/lib)/' 2>&1 | tail -n 1)"
 }
 
+rewrite_head() {
+  if git rev-parse -q --verify refs/tags/rewrite-end >/dev/null; then echo rewrite-end; else echo HEAD; fi
+}
+
 goal_G_RF_EQUIVALENCE() {
-  not_yet "check-rewrite-equivalence.py" P5-0
+  want_re "equivalence" \
+    '^equivalence: [0-9]+ rewritten, 0 changed results, [0-9]+ changed steps; records: [0-9]+ roadmap rows, 0 missing$' \
+    "$(python3 -B scripts/check-rewrite-equivalence.py --base rewrite-start --head "$(rewrite_head)" \
+      --records "$PLAN_RF" tests/golden 2>/dev/null | tail -n 1)"
 }
 
 goal_G_RF_SAMPLES_PIPE() {
