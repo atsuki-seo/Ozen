@@ -595,7 +595,9 @@ goal_G_RF_README_PIPE() {
 }
 
 goal_G_RF_NO_EMPTY_PARENS() {
-  not_yet "check-test-names.py --empty-parens" P3-2
+  want_re "empty parens" '^empty-parens: [0-9]+ sources, 0 found, 0 unlisted exceptions$' \
+    "$(python3 -B scripts/check-test-names.py --empty-parens --exceptions scripts/empty-parens-exceptions.txt \
+      tests core/tests/unit bindings/inputs renderers/test/inputs README.md 2>/dev/null | tail -n 1)"
 }
 
 goal_G_RF_CONCEPT_PARENS() {
