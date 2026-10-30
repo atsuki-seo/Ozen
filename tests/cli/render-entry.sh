@@ -16,7 +16,7 @@ import zsoup.{zsoup}
 menu dinner(people: 2) {
   let soupBowl = make zsoup
   serve main {
-    plate perPerson on SoupBowl { s }
+    plate perPerson on SoupBowl { soupBowl }
   }
 }
 OZEN
@@ -35,7 +35,7 @@ import zsoup.{zsoup}
 menu lunch(people: 1) {
   let soupBowl = make zsoup
   serve main {
-    plate perPerson on SoupBowl { s }
+    plate perPerson on SoupBowl { soupBowl }
   }
 }
 OZEN
