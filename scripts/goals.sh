@@ -28,6 +28,9 @@ R=plan-start..HEAD
 CFGS="gcc-debug-san clang-debug-san gcc-release clang-release"
 CCFGS="core-gcc-debug-san core-clang-debug-san core-gcc-release core-clang-release"
 PLAN=plans/ozen-roadmap.md
+RF=refresh-start..HEAD
+PLAN_RF=plans/ozen-syntax-refresh.md
+RF_N0=363
 NOREPLY=146819854+atsuki-seo@users.noreply.github.com
 
 fct_source() {
@@ -686,6 +689,152 @@ goal_G_BUNDLE_STABLE() {
   want_ok "bundle twice identical" sh -c 'build/core-gcc-release/ozen bundle samples/menuD --output build/b1.ozen && build/core-gcc-release/ozen bundle samples/menuD --output build/b2.ozen && cmp build/b1.ozen build/b2.ozen'
   want_eq "order-by-name golden" "golden: 1 passed, 0 failed, 0 timed out" \
     "$(scripts/run-golden.sh build/core-gcc-release/ozen tests/golden --only bundle/order-by-name 2>&1 | tail -n 1)"
+}
+
+not_yet() { fail "$1: script added in $2"; }
+
+goal_G_RF_DECISIONS() {
+  want_eq "decided" 17 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_RF)"
+  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*【未決】' $PLAN_RF)"
+  want_eq "decision lines" 17 "$(grep -c '^- \*\*決定:' $PLAN_RF)"
+}
+
+goal_G_RF_COVERAGE() {
+  want_eq "S items without coverage rows" "" \
+    "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_RF | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
+            <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_RF | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u))"
+  want_eq "handoff items without reason" 0 \
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_RF | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
+}
+
+goal_G_RF_PLAN_TESTS() {
+  local out m
+  want_re "plan-tests" '^plan-tests: [0-9]+ names, 0 missing$' "$(scripts/check-plan-tests.sh $PLAN_RF 2>/dev/null | tail -n 1)"
+  out=$(scripts/check-plan-tests.sh --mutations $PLAN_RF 2>/dev/null | tail -n 1)
+  m=$(last_num "$out" 1)
+  want_eq "mutations" "mutations: $m rows, $m recorded" "$out"
+}
+
+goal_G_RF_TAGS() {
+  local t
+  want_eq "tags" 4 "$(for t in refresh-start proto-final rewrite-start rewrite-end; do git rev-parse -q --verify "refs/tags/$t" >/dev/null && echo ok; done | wc -l)"
+}
+
+goal_G_RF_PROTO_GONE() {
+  want_eq "tracked prototype files" 0 "$(git ls-files proto .github/workflows/ios-proto.yml | wc -l)"
+  want_eq "proto-final is the parent of the deletion" same \
+    "$([ "$(git rev-parse -q --verify proto-final^{commit})" = "$(git rev-parse -q --verify "$(git log --diff-filter=D --format=%H -1 -- proto)^")" ] && echo same)"
+  want_eq "proto/ in moved goals" 0 \
+    "$(sed -n '/^goal_G_CORE_\(FLAGS\|PURE\|NOGLOBAL\|DIAG_REGISTRY\)()/,/^}/p' scripts/goals.sh | grep -c 'prot[o]/')"
+  want_ge1 "proto-final in report header" "$(sed -n '1,10p' docs/prototype-report.md | grep -c 'proto-final')"
+  want_eq "proto/ in scripts and .github" 0 \
+    "$(git grep -nE '(^|[^-a-z])prot[o]/' -- scripts .github ':!scripts/check-red-first.sh' | wc -l)"
+}
+
+goal_G_RF_NO_PROTO_GOALS() {
+  want_eq "G-PROTO goals" 0 "$(all_ids | grep -c '^G-PROTO-')"
+}
+
+goal_G_RF_README_NO_PROTO() {
+  want_eq "prototype section" 0 "$(grep -c '^## Evaluator prototype' README.md)"
+}
+
+goal_G_RF_README_EXAMPLE() {
+  want_re "readme" '^readme: [1-9][0-9]* examples, 0 mismatches$' \
+    "$(scripts/check-readme-example.sh --readme README.md --ozen build/core-gcc-release/ozen 2>&1 | tail -n 1)"
+}
+
+goal_G_RF_README_PIPE() {
+  want_ge1 "pipes in README examples" "$(sed -n '/^```ozen/,/^```/p' README.md | grep -c '|>')"
+}
+
+goal_G_RF_NO_EMPTY_PARENS() {
+  not_yet "check-test-names.py --empty-parens" P3-2
+}
+
+goal_G_RF_CONCEPT_PARENS() {
+  want_eq "empty parens in concept" 0 \
+    "$(sed -n '/^```/,/^```/p' docs/concept.md | grep -cE '\b(recipe|menu) +[A-Za-z_][A-Za-z0-9_]* *\( *\)|\bmake +[A-Za-z_.]+ *\( *\)')"
+}
+
+goal_G_RF_FUZZ_DICT() {
+  local w
+  for w in '"|>"' '"per"' '"serving"'; do
+    want_eq "fuzz dict $w" 1 "$(grep -cxF "$w" core/fuzz/ozen.dict)"
+  done
+}
+
+goal_G_RF_STD_PREHEAT() {
+  not_yet "check-std-preheat.py" P7-1
+}
+
+goal_G_RF_SAMPLES_UNUSED() {
+  local s
+  want_eq "unusedValue in samples" 0 \
+    "$(for s in samples/*/; do build/core-gcc-release/ozen check --format json "$s" 2>/dev/null; done | grep -o '"name":"unusedValue"' | wc -l)"
+}
+
+goal_G_RF_NAMES() {
+  not_yet "check-test-names.py" P5-0
+}
+
+goal_G_RF_PATHS() {
+  want_eq "added, deleted or renamed goldens" 0 \
+    "$(git diff --name-status --no-renames rewrite-start..rewrite-end -- tests/golden 2>&1 | grep -v '^M' | wc -l)"
+}
+
+goal_G_RF_TYPEARGS_STABLE() {
+  want_ok "typeargs unchanged" git diff --exit-code refresh-start rewrite-start -- tests/golden/typeargs tests/golden/decl/alias.out
+}
+
+goal_G_RF_SEPARATION() {
+  want_re "separation" '^separation: [1-9][0-9]* commits, 0 mixed$' \
+    "$(scripts/check-commit-separation.sh "$RF" '^tests/golden/.*\.out$' '^(core/src|core/include|cli/src|stdlib|phrases|schemas|tools/schedcheck|renderers/lib)/' 2>&1 | tail -n 1)"
+}
+
+goal_G_RF_EQUIVALENCE() {
+  not_yet "check-rewrite-equivalence.py" P5-0
+}
+
+goal_G_RF_SAMPLES_PIPE() {
+  not_yet "check-test-names.py --samples-pipe" P5-8
+}
+
+goal_G_RF_SAMPLES_SAME() {
+  not_yet "check-rewrite-equivalence.py --samples" P5-8
+}
+
+goal_G_RF_SAMPLES_EXPECT() {
+  want_ok "sample expectations unchanged" git diff --exit-code rewrite-start rewrite-end -- 'samples/*/expect.yaml' renderers/test
+}
+
+goal_G_RF_LIMIT_PAIRS() {
+  not_yet "check-limit-pairs.py" P5-2
+}
+
+goal_G_RF_GOLDEN_COUNT() {
+  want_eq "golden entries" $((RF_N0 + 66)) "$(scripts/golden-entries.sh tests/golden | wc -l)"
+}
+
+goal_G_RF_CONCEPT() {
+  want_ge1 "concept 4.4 pipe or per serving" "$(sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md | grep -cE '\|>|per serving')"
+  want_ge1 "concept 4.1 unusedValue" "$(sed -n '/^### 4\.1/,/^### 4\.2/p' docs/concept.md | grep -c 'unusedValue')"
+  want_ge1 "concept 4.2 preheat" "$(sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -c 'preheat')"
+  want_ge1 "concept 4.5 useWithin" "$(sed -n '/^### 4\.5/,/^### 4\.6/p' docs/concept.md | grep -c 'useWithin')"
+  want_ge1 "concept 6.1 new codes" "$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cE 'servingsUnknown|useWithinMissed')"
+}
+
+goal_G_RF_CLAUDEMD() {
+  want_ge1 "plan named in CLAUDE.md" "$(grep -c 'plans/ozen-syntax-refresh.md' CLAUDE.md)"
+}
+
+goal_G_RF_CI_NO_PROTO() {
+  want_eq "ios-proto runs on HEAD" 0 \
+    "$(gh run list --workflow ios-proto.yml --commit "$(git rev-parse HEAD)" --json databaseId --jq length 2>&1)"
+}
+
+goal_G_RF_AUDIT() {
+  want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_RF)"
 }
 
 all_ids() {

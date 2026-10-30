@@ -573,9 +573,9 @@ for t in refresh-start proto-final rewrite-start rewrite-end; do git rev-parse -
 # G-RF-PROTO-GONE
 git ls-files proto .github/workflows/ios-proto.yml | wc -l                                   # → 0
 [ "$(git rev-parse proto-final)" = "$(git rev-parse "$(git log --diff-filter=D --format=%H -1 -- proto)^")" ] && echo same   # → same
-sed -n '/^goal_G_CORE_\(FLAGS\|PURE\|NOGLOBAL\|DIAG_REGISTRY\)()/,/^}/p' scripts/goals.sh | grep -c 'proto/'   # → 0
+sed -n '/^goal_G_CORE_\(FLAGS\|PURE\|NOGLOBAL\|DIAG_REGISTRY\)()/,/^}/p' scripts/goals.sh | grep -c 'prot[o]/'   # → 0
 sed -n '1,10p' docs/prototype-report.md | grep -c 'proto-final'                              # → 1 以上
-git grep -nE '(^|[^-a-z])proto/' -- scripts .github ':!scripts/check-red-first.sh' | wc -l    # → 0
+git grep -nE '(^|[^-a-z])prot[o]/' -- scripts .github ':!scripts/check-red-first.sh' | wc -l    # → 0
 # G-RF-NO-PROTO-GOALS
 scripts/goals.sh --list | grep -c '^G-PROTO-'      # → 0
 # G-RF-README-NO-PROTO
@@ -970,6 +970,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - LIN005 が出る既存の golden の数（P6-1。書き直しの前の見積もりは 131）と、サンプルと書き直した golden の LIN005 の数（P6-3）
 - 網羅の監査（P9-4）: 行頭を「網羅の監査」に続けてコロンにした箇条書きで、指摘の件数と取り込んだ件数を書く
 - 計画を書いた直後の監査（2026-10-28）: 独立したサブエージェントの指摘 61 件（ゴールが落ちる・判定できないもの 9、壊しても落ちないもの 12、網羅表に無い主張 13、分けるべき項目 22、判定が一意でない完了条件 6、§8 から移せる項目 5、事実の食い違い 4。分類の重なりを含む）。60 件を取り込み、1 件は §5.3 の末尾に取り込まない理由を書いた
+- `G-RF-PROTO-GONE` の grep（P0-3、2026-10-30）: `proto/` をそのまま書くと、`goals.sh` に置いたこのゴール自身の行が数えられて 0 にならない。§5.1 の 2 つの grep を `prot[o]/` に直した。一致する文字列は同じ
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
