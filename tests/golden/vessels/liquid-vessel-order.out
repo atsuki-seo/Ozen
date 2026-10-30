@@ -1,6 +1,6 @@
 info ASM004 unlimitedEquipment liquid-vessel-order.ozen:6:6-6:12: unlimited equipment
-error TYP014 vesselLiquid liquid-vessel-order.ozen:12:36-12:37 args=["b", "FlatPlate"]: vessel liquid
-error TYP014 vesselLiquid liquid-vessel-order.ozen:12:36-12:37 args=["b", "Platter"]: vessel liquid
-error TYP014 vesselLiquid liquid-vessel-order.ozen:13:36-13:37 args=["c", "smallBowl"]: vessel liquid
+error TYP014 vesselLiquid liquid-vessel-order.ozen:12:36-12:46 args=["secondSoup", "FlatPlate"]: vessel liquid
+error TYP014 vesselLiquid liquid-vessel-order.ozen:12:36-12:46 args=["secondSoup", "Platter"]: vessel liquid
+error TYP014 vesselLiquid liquid-vessel-order.ozen:13:36-13:45 args=["thirdSoup", "smallBowl"]: vessel liquid
 result error errors=3 warnings=0 infos=1
 exit 1

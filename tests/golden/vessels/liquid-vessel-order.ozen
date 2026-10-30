@@ -1,15 +1,15 @@
 // args: check --entry dinner
-recipe soup() {
+recipe soup {
   ingredients { water: 300 ml }
-  let w = boilWater(water)
+  let boiled = boilWater(water)
 }
 menu dinner(people: 2) {
-  let a = make soup()
-  let b = make soup()
-  let c = make soup()
+  let firstSoup = make soup
+  let secondSoup = make soup
+  let thirdSoup = make soup
   serve main {
-    plate perPerson on deepPlate { a }
-    plate perPerson on flatPlate { b }
-    plate perPerson on smallBowl { c }
+    plate perPerson on deepPlate { firstSoup }
+    plate perPerson on flatPlate { secondSoup }
+    plate perPerson on smallBowl { thirdSoup }
   }
 }

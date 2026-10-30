@@ -1,3 +1,3 @@
-error KIT003 vesselShortage count-short.ozen:14:5-14:37 args=["Donburi", "4", "3"]: vessel shortage
+error KIT003 vesselShortage count-short.ozen:14:5-14:44 args=["Donburi", "4", "3"]: vessel shortage
 result error errors=1 warnings=0 infos=0
 exit 1

@@ -2,16 +2,16 @@
 action stewB(x: T) -> T<doneness: done> {
   uses hands for 30 min
 }
-recipe stew() {
+recipe stew {
   ingredients {
     pork: 300 g
   }
-  let s = stewB(pork)
+  let stewed = stewB(pork)
 }
 menu dinner(people: 4) {
-  let c = make stew()
+  let stewPot = make stew
   serve main {
-    plate shared on Platter { c }
+    plate shared on Platter { stewPot }
   }
 }
 kitchen home {

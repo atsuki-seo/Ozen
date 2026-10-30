@@ -1,7 +1,7 @@
-recipe soup() {
+recipe soup {
   ingredients { dashi: 300 ml, miso: 20 g }
-  let s = boil([dashi, miso], 5 min)
+  let boiled = boil([dashi, miso], 5 min)
   serve main {
-    plate perPerson on FlatPlate { s }
+    plate perPerson on FlatPlate { boiled }
   }
 }

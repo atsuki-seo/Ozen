@@ -12,8 +12,8 @@ kitchen home {
 }
 recipe soup(servings: Count = 2) {
   ingredients { dashi: 600 ml }
-  let s = boil(dashi, 5 min)
+  let boiled = boil(dashi, 5 min)
   serve main {
-    plate perPerson on SoupBowl { s }
+    plate perPerson on SoupBowl { boiled }
   }
 }

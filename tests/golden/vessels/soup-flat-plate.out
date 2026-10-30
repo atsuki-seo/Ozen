@@ -1,3 +1,3 @@
-error TYP014 vesselLiquid soup-flat-plate.ozen:5:36-5:37 args=["s", "FlatPlate"]: vessel liquid
+error TYP014 vesselLiquid soup-flat-plate.ozen:5:36-5:42 args=["boiled", "FlatPlate"]: vessel liquid
 result error errors=1 warnings=0 infos=0
 exit 1

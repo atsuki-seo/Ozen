@@ -1,3 +1,3 @@
-info LIN003 leftoverPart shared-leftover.ozen:13:11-13:12 args=["b", "100 g"]: leftover part
+info LIN003 leftoverPart shared-leftover.ozen:13:16-13:24 args=["leftover", "100 g"]: leftover part
 result ok errors=0 warnings=0 infos=1
 exit 0
