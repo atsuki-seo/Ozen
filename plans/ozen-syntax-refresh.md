@@ -1000,6 +1000,10 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S494・`cgolden/quantity/count-kitchen`（P2-1、2026-10-30）。`entry_field` で台所の項目の無次元の値にだけ Count の次元を付けると、`count-kitchen` だけが落ちた。戻すと合格した
 - わざと壊す確認: S495・`cgolden/quantity/count-compare`（P2-1、2026-10-30）。比較の評価で、左辺が名前の無次元の値に Count の次元を付け直すと、`count-compare` だけが落ちた。戻すと合格した
 - わざと壊す確認: S496・`cgolden/quantity/count-with-pcs`（P2-1、2026-10-30）。`typed_qty` で `pcs` の次元を外す処理を消すと、`count-with-pcs` だけが落ちた。戻すと合格した
+- わざと壊す確認: S497・`cgolden/quantity/ingredient-dimension`（P2-2、2026-10-30）。材料の量の次元の検査を外すと、`rice: 3 min` が通り「result ok」になって落ちた。戻すと合格した
+- わざと壊す確認: S498・`cgolden/quantity/ingredient-dimension`（P2-2、2026-10-30）。診断の位置を材料の名前から始まる項目の節にすると、位置が量の式と合わなくなって落ちた。戻すと合格した
+- わざと壊す確認: S499・`cgolden/quantity/ingredient-dimension-ok`（P2-2、2026-10-30）。受け付ける次元から体積を外すと、`milk: 200 ml` が `TYP001` になって落ちた（体積の材料を持つ既存の golden 51 本も一緒に落ちた）。戻すと合格した
+- `ingredient-dimension-ok` の red-first（P2-2、2026-10-30）: 検査の前は材料の量を何も検査しないので、通る量の golden は直す前から合格する。エラーの golden と別のコミットにし、`scripts/red-first-exceptions.txt` に理由を書いた
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
