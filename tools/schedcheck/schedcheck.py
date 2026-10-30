@@ -116,7 +116,7 @@ def check(doc):
             best = max(best, LEVELS.index(level))
         return best
 
-    order = sorted(tasks.values(), key=lambda t: (t["start"], t["id"]))
+    order = sorted(tasks.values(), key=lambda t: (t["start"], t.get("kind") != "preheat", t["id"]))
     history = {}
     cleaned = {}
     used = {}
