@@ -712,7 +712,7 @@ golden の入口は、着手点の N0 = 363（§9）から 66 増える（`quant
 | S519 | 前提の固定 | `cunit/span_nesting` | 組み替えた呼び出しの span の終わりを左辺の終わりにする | P3-1 |
 | S520 | 副作用とコスト | `cgolden/pipe/nodes`（1 つ足りない）・`cgolden/pipe/nodes-exact`（ちょうど） | 右辺が名前のとき既存の Name のノードを Call に書き換え、ノードを増やさない | P3-1 |
 | S521 | データの完全性 | `G-RF-FUZZ-DICT` | 辞書から `"\|>"` を消す | P3-1 |
-| S522 | 正常系 | `cgolden/syntax/omit-parens` | `()` の無い宣言では引数の既定値を束縛しない | P3-2 |
+| S522 | 正常系 | `cgolden/syntax/omit-parens` | `recipe`・`menu` の `()` を必須にする | P3-2 |
 | S523 | データの完全性 | `G-RF-NO-EMPTY-PARENS`、`sh/test-check-test-names.sh` | `tests/` に `recipe salad() {` を 1 つ戻す | P3-2・P5-7 |
 | S524 | 文書との一致 | `G-RF-CONCEPT-PARENS` | concept の例に `make cookedRice()` を戻す | P9-1 |
 | S525 | 正常系 | `cgolden/quantity/per-serving` | 人数を掛けない | P4-1 |
@@ -1032,6 +1032,9 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S521・`G-RF-FUZZ-DICT`（P3-1、2026-10-30）。辞書から `"|>"` を消すと「fuzz dict "|>": got '0'」で落ちた。戻すと合格した
 - 文法の網羅の検査の穴（P3-1、2026-10-30）: `check-grammar-coverage.py` は、`ozen debug ast --rules` が出したのに文法に無い規則を「unknown rule」として終了コード 1 にするが、ゴールが読む最後の行は「0 not covered」のままだった。そのため S517 の壊し方では `G-CORE-GRAMMAR` が落ちなかった。文法に無い規則があるときだけ、最後の行に「, <n> unknown」を足すように直し、自己テストの `unknown-rule` の期待を先に変えた。無いときの行はロードマップの書式のまま
 - `G-RF-FUZZ-DICT` の P3-1 での扱い（2026-10-30）: このゴールは `"|>"`・`"per"`・`"serving"` の 3 つを見る。P3-1 で足すのは `"|>"` だけで、残りの 2 つは P4-1 で足すので、それまでこのゴールは 2 つの確かめで落ちる。P3-1 では `"|>"` の確かめが合格することを見た
+- S522 の壊し方（P3-2、2026-10-30）: 網羅表は「`()` の無い宣言では引数の既定値を束縛しない」としたが、`()` の無い宣言は引数を持たないので、この壊し方は起こりえない。`recipe x()` と `recipe x` はもともと同じ構文木になり（`paren_params(p, n, false)`）、`make x` は P2-3 で `make x()` と同じになった。そのため `omit-parens` は直す前から合格し、`scripts/red-first-exceptions.txt` に理由を書いた。壊し方を「`recipe`・`menu` の `()` を必須にする」に直した
+- わざと壊す確認: S522・`cgolden/syntax/omit-parens`（P3-2、2026-10-30）。`paren_params(p, n, false)` を `true` にして `()` を必須にすると、`()` を省いた宣言が構文の誤りになり `omit-parens` が落ちた。戻すと合格した
+- 空の `()` の数（P3-2、2026-10-30）: `check-test-names.py --empty-parens` で、`tests` に 434 か所、`core/tests/unit` に 2 か所（§3.2 の見積もり 454 行は 1 行に 2 か所ある行や `.out` の行を含む数え方で、こちらは `.ozen`・`.sh`・`.c` の一致の数。`syntax/omit-parens` は例外）。`renderers/test/inputs` の 11 か所、`bindings/inputs` の 1 か所、README の `ozen` の塊の 4 か所は P3-2 で消し、README の束ねる例の出力の `recipe soup()` も合わせて直した。`G-RF-NO-EMPTY-PARENS` は P5-7 まで落ちる
 - ユーザーに報告するだけで本計画では直さないもの:
   - ロードマップの見出しの D33・D34 の重複（124・325 行目、135・334 行目）
   - ロードマップ §4.20.1 の文法の規則の数（130 と書いてあるが、実測は 131）
