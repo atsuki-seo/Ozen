@@ -62,6 +62,9 @@ printf 'recipe salad() {\n}\n' > "$work/tests/golden/salad.ozen"
 printf 'tests/golden/salad.ozen\n' >> "$work/exceptions.txt"
 expect exception-without-reason "empty-parens: 6 sources, 1 found, 1 unlisted exceptions" 1
 reset
+printf 'recipe broken() {\n  // \377\n}\n' > "$work/tests/golden/broken.ozen"
+expect invalid-utf8 "empty-parens: 6 sources, 1 found, 0 unlisted exceptions" 1
+reset
 rm "$work/README.md"
 expect missing-path "" 2
 
