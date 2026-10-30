@@ -654,7 +654,8 @@ goal_G_RF_EQUIVALENCE() {
 }
 
 goal_G_RF_SAMPLES_PIPE() {
-  not_yet "check-test-names.py --samples-pipe" P5-8
+  want_re "samples pipe" '^samples-pipe: [1-9][0-9]* samples, 0 without pipe, 0 unlisted exceptions$' \
+    "$(python3 -B scripts/check-test-names.py --samples-pipe --exceptions scripts/samples-pipe-exceptions.txt samples 2>/dev/null | tail -n 1)"
 }
 
 goal_G_RF_SAMPLES_SAME() {

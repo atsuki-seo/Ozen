@@ -1,0 +1,1 @@
+# Samples that keep no pipe, with the reason.

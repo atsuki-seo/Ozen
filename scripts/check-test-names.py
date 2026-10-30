@@ -47,6 +47,27 @@ def load_exceptions(path):
     return listed, unlisted
 
 
+def without_comments(text):
+    return re.sub(r"//[^\n]*|/\*.*?\*/", "", text, flags=re.S)
+
+
+def samples_pipe(paths, listed, unlisted):
+    samples = sorted(os.path.join(p, d) for p in paths for d in os.listdir(p) if os.path.isdir(os.path.join(p, d)))
+    missing = 0
+    for sample in samples:
+        if os.path.normpath(sample) in listed:
+            continue
+        texts = [without_comments(open(f, encoding="utf-8", errors="replace").read()) for f in sources([sample])
+                 if f.endswith(".ozen")]
+        if not any("|>" in t for t in texts):
+            missing += 1
+            print(f"{sample}: no pipe", file=sys.stderr)
+    for path in unlisted:
+        print(f"exception without a reason: {path}", file=sys.stderr)
+    print(f"samples-pipe: {len(samples)} samples, {missing} without pipe, {len(unlisted)} unlisted exceptions")
+    return 0 if missing == 0 and not unlisted else 1
+
+
 def names(files, listed, unlisted):
     declarations = bindings = short = 0
     for path in files:
@@ -73,11 +94,14 @@ def names(files, listed, unlisted):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--empty-parens", action="store_true")
+    ap.add_argument("--samples-pipe", action="store_true")
     ap.add_argument("--exceptions", required=True)
     ap.add_argument("paths", nargs="+")
     a = ap.parse_args()
     try:
         listed, unlisted = load_exceptions(a.exceptions)
+        if a.samples_pipe:
+            return samples_pipe(a.paths, listed, unlisted)
         files = list(sources(a.paths))
     except FileNotFoundError as e:
         print(f"no such file: {e}", file=sys.stderr)
