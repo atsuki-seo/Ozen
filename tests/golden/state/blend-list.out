@@ -1,4 +1,4 @@
-recipe r
+recipe strawberryMilk
   strawberry : Strawberry 100 g
   milk : Milk 200 ml
   %1 = combine([strawberry, milk]) : Mixture 305.6..308 g with Allergen(milk), RawEdible

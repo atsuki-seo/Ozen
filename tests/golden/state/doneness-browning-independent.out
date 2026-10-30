@@ -1,4 +1,4 @@
-recipe r
+recipe searedOnion
   onion : Onion 1 pcs
   %1 = sear(onion) : Onion<browning: golden> 1 pcs
 result ok errors=0 warnings=0 infos=0

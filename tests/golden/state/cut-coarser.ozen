@@ -1,5 +1,5 @@
-recipe r() {
+recipe kinpira {
   ingredients { carrot: 1 pcs }
-  let a = cut(carrot, style: dice)
-  let b = cut(a, style: roughChop)
+  let diced = cut(carrot, style: dice)
+  let chopped = cut(diced, style: roughChop)
 }

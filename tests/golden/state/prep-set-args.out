@@ -1,4 +1,4 @@
-recipe r
+recipe gohan
   rice : Rice 300 g
   %1 = wash(rice) : Rice<prep has washed> 300 g
   %2 = soak(%1, 1800 s) : Rice<prep has washed, prep has soaked(1800 s)> 300 g

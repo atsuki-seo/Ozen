@@ -4,11 +4,11 @@ ingredient Kinugoshi : Vegetable {
 }
 action press(x: T) -> T<firmness: firm>
 action slab(x: T<firmness >= firm>) -> T
-recipe r() {
+recipe hiyayakko {
   ingredients {
-    a: Kinugoshi 1 pcs
-    b: Kinugoshi 1 pcs
+    softTofu: Kinugoshi 1 pcs
+    pressedTofu: Kinugoshi 1 pcs
   }
-  let bad = slab(a)
-  let good = slab(press(b))
+  let bad = slab(softTofu)
+  let good = slab(press(pressedTofu))
 }

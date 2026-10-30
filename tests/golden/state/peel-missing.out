@@ -1,3 +1,3 @@
-error TYP006 stateRequired peel-missing.ozen:3:15-3:20 args=["cut", "x", "onion"]: state required
+error TYP006 stateRequired peel-missing.ozen:3:20-3:25 args=["cut", "x", "onion"]: state required
 result error errors=1 warnings=0 infos=0
 exit 1

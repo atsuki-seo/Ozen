@@ -1,4 +1,4 @@
-recipe r
+recipe carrotSalad
   carrot : Carrot 1 pcs
   %1 = cut(carrot, style: slice) : Carrot<shape: cut(slice, 3 mm)> 1 pcs
   %2 = cut(%1, style: julienne) : Carrot<shape: cut(julienne, 3 mm)> 1 pcs

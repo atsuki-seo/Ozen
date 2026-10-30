@@ -1,5 +1,5 @@
 // args: debug steps
-recipe r() {
+recipe bananaSmoothie {
   ingredients { banana: 1 pcs }
-  let b = blend(banana)
+  let pureed = banana |> blend
 }

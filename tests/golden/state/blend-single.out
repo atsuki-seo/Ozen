@@ -1,4 +1,4 @@
-recipe r
+recipe bananaSmoothie
   banana : Banana 1 pcs
   %1 = blend(banana) : Banana<shape: pureed> 1 pcs
 result ok errors=0 warnings=0 infos=0

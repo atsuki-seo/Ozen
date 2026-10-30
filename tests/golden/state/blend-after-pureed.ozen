@@ -1,5 +1,5 @@
-recipe r() {
+recipe strawberrySauce {
   ingredients { strawberry: 100 g }
-  let p = blend(strawberry)
-  let c = cut(p, style: slice)
+  let puree = blend(strawberry)
+  let sliced = cut(puree, style: slice)
 }

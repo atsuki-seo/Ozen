@@ -1,6 +1,5 @@
 // args: debug steps
-recipe r() {
+recipe carrotSalad {
   ingredients { carrot: 1 pcs }
-  let a = cut(carrot, style: slice)
-  let b = cut(a, style: julienne)
+  let julienned = carrot |> cut(style: slice) |> cut(style: julienne)
 }

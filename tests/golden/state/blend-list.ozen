@@ -1,8 +1,8 @@
 // args: debug steps
-recipe r() {
+recipe strawberryMilk {
   ingredients {
     strawberry: 100 g
     milk: 200 ml
   }
-  let j = blend([strawberry, milk])
+  let shake = blend([strawberry, milk])
 }

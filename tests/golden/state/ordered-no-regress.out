@@ -1,4 +1,4 @@
-recipe r
+recipe potatoes
   potato : Potato 1 pcs
   %1 = boil(potato, 1200 s) : Potato<doneness: done> 1 pcs
   %2 = parboil(%1, 300 s) : Potato<doneness: done> 1 pcs

@@ -1,4 +1,4 @@
-recipe r
+recipe potatoSalad
   potato : Potato 2 pcs
   %1 = boil(potato, 1200 s) : Potato<doneness: done> 2 pcs
   %2 = peel(%1) : Potato<doneness: done, shape: peeled> 2 pcs

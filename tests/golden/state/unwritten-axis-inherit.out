@@ -1,4 +1,4 @@
-recipe r
+recipe carrotSticks
   carrot : Carrot 1 pcs
   %1 = wash(carrot) : Carrot<prep has washed> 1 pcs
   %2 = cut(%1, style: slice) : Carrot<shape: cut(slice, 3 mm), prep has washed> 1 pcs

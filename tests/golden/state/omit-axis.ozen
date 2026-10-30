@@ -1,5 +1,5 @@
 // args: debug steps
-recipe r() {
+recipe hotWater {
   ingredients { water: 500 ml }
-  let h = fry(water, 1 min)
+  let heated = water |> fry(1 min)
 }

@@ -1,4 +1,4 @@
-recipe r() {
+recipe onionSalad {
   ingredients { onion: 1 pcs }
-  let s = cut(onion, style: slice)
+  let sliced = cut(onion, style: slice)
 }

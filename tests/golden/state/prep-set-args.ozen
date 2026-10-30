@@ -1,7 +1,5 @@
 // args: debug steps
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let w = wash(rice)
-  let s = soak(w, 30 min)
-  let t = soak(s, 45 min)
+  let soaked = rice |> wash |> soak(30 min) |> soak(45 min)
 }

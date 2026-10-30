@@ -1,6 +1,6 @@
 // args: debug steps
 action sear(x: T) -> T<browning: golden>
-recipe r() {
+recipe searedOnion {
   ingredients { onion: 1 pcs }
-  let s = sear(onion)
+  let seared = onion |> sear
 }
