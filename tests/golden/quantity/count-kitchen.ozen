@@ -1,0 +1,20 @@
+// args: debug steps --kitchen home
+kitchen home {
+  places {
+    stove: GasStove { burners: 2 }
+  }
+  tools {
+    pan: FryingPan
+  }
+}
+recipe karaage {
+  ingredients {
+    chicken: Chicken 600 g
+  }
+  if kitchen.stove.burners >= 2 {
+    let first = fry(chicken, 4 min)
+    let fried = fry(first, 1 min)
+  } else {
+    let fried = fry(chicken, 6 min)
+  }
+}

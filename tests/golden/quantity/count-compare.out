@@ -1,0 +1,5 @@
+recipe kakuni
+  pork : Pork 600 g
+  %1 = simmer(pork, 5400 s) : Pork<doneness: done> 600 g
+result ok errors=0 warnings=0 infos=0
+exit 0

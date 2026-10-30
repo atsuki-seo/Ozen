@@ -1,0 +1,11 @@
+// args: debug steps
+recipe kakuni(servings: Count = 6) {
+  ingredients {
+    pork: 100 g * servings
+  }
+  if servings > 4 {
+    let braised = simmer(pork, 90 min)
+  } else {
+    let braised = simmer(pork, 60 min)
+  }
+}

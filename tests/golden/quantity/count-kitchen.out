@@ -1,0 +1,7 @@
+recipe karaage
+  chicken : Chicken 600 g
+  %1 = fry(chicken, 240 s) : Chicken<doneness: done, browning: light> 600 g
+  %2 = fry(%1, 60 s) : Chicken<doneness: done, browning: light> 600 g
+info SCH002 kitchenDependent count-kitchen.ozen:14:6-14:27 args=["kitchen.stove.burners"]: kitchen dependent
+result ok errors=0 warnings=0 infos=1
+exit 0
