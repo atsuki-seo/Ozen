@@ -1,5 +1,5 @@
 File paren-newline.ozen
-  Property p
+  Property cups
     Binary *
       Binary +
         Number 1

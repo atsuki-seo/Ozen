@@ -1,5 +1,5 @@
-recipe a() {
-  let 1 = x
+recipe nikujaga {
+  let 1 = potato
   stir(pot) )
-  let y = *
+  let seasoned = *
 }

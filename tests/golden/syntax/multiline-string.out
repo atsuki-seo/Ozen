@@ -1,6 +1,6 @@
 File multiline-string.ozen
   Phrases ja
-    MlString "\na = あ\nb = い\n"
-  Recipe r
+    MlString "\ndish-gohan = ごはん\ndish-miso = みそ汁\n"
+  Recipe gohan
     Block
 exit 0

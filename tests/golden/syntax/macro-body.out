@@ -1,3 +1,3 @@
-error SYN014 macroBody macro-body.ozen:1:12-3:2: macro body
+error SYN014 macroBody macro-body.ozen:1:22-3:2: macro body
 result error errors=1 warnings=0 infos=0
 exit 1

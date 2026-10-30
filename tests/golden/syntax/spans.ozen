@@ -1,4 +1,4 @@
 // args: debug ast
-recipe r(n: 2) {
+recipe misoSoup(servings: 2) {
   stir(pot, 5 min)
 }

@@ -1,6 +1,6 @@
-macro m(x) {
-  quote { stir($x) }
+macro stirIn(pot) {
+  quote { stir($pot) }
 }
-recipe r() {
+recipe misoSoup {
   stir($pot)
 }

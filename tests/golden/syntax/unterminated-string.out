@@ -1,3 +1,3 @@
-error SYN005 unterminatedString unterminated-string.ozen:1:14-1:18: unterminated string
+error SYN005 unterminatedString unterminated-string.ozen:1:18-1:23: unterminated string
 result error errors=1 warnings=0 infos=0
 exit 1

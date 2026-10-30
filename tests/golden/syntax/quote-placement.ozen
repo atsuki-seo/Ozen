@@ -1,6 +1,6 @@
-recipe r() {
+recipe misoSoup {
   quote { stir(pot) }
 }
-macro m(x) {
-  quote { quote { stir($x) } }
+macro stirNested(pot) {
+  quote { quote { stir($pot) } }
 }

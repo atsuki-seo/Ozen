@@ -1,6 +1,6 @@
 // args: debug ast --no-spans
 phrases ja """
-a = あ
-b = い
+dish-gohan = ごはん
+dish-miso = みそ汁
 """
-recipe r() {}
+recipe gohan {}

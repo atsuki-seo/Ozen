@@ -1,5 +1,5 @@
-recipe r() {
+recipe gohan {
   ingredients { rice: 300 g }
-  let n = 5 g @unattended
-  let s = soak(rice) @unattended
+  let saltAmount = 5 g @unattended
+  let soaked = soak(rice) @unattended
 }
