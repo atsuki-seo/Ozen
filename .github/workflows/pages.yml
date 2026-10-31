@@ -32,7 +32,8 @@ jobs:
 
       - name: Stamp the version and commit into the page
         run: |
-          mkdir -p out/site
+          mkdir -p out
+          cp -R site out/site
           sed -e "s/@VERSION@/$(tr -d '[:space:]' < VERSION)/" \
               -e "s/@COMMIT@/${GITHUB_SHA::7}/" \
               site/index.html > out/site/index.html
