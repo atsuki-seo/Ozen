@@ -2,12 +2,12 @@ schedule dinner level=2 cooks=1
   0..60 (60) %2 trim by cook1 [counter#1, board#1]
   0..300 (300) %4 rest unattended
   60..120 (78) %5 plate perPerson by cook1
-  120..5520 (3720) run dw#1 after use unattended [dw#1, board#1]
+  120..7320 (5220) run dw#1 after use unattended [dw#1, board#1]
   1920..1980 (1938) %6 plate perPerson by cook1
   1980..2040 (2010) wipe counter#1 after use by cook1 [counter#1]
   serve main at 120
   serve sweets at 1980
-  total 5520
+  total 7320
 info ASM007 provisionalValue dishwasher-during-meal.ozen:22:5-22:48 args=["plate"]: provisional value
 result ok errors=0 warnings=0 infos=1
 exit 0
