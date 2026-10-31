@@ -446,8 +446,29 @@ goal_G_PLAT_WASM() {
   want_eq "wasm digest" "$(scripts/digest.sh build/core-gcc-release/ozen tests/golden samples)" "$(scripts/digest.sh 'node build/core-wasm/ozen.js' tests/golden samples)"
 }
 
+# Pathspecs that exclude the paths-ignore list of ci.yml.
+ci_ignored() {
+  awk '/^    paths-ignore:/ { on = 1; next } on && /^      - / { print ":(exclude,glob)" $2; next } !/^ *#/ { on = 0 }' \
+    .github/workflows/ci.yml
+}
+
+# The newest ci.yml run on HEAD or on an earlier commit that differs from HEAD only in ignored paths.
 ci_run_id() {
-  gh run list --workflow ci.yml --commit "$(git rev-parse HEAD)" --json databaseId -q '.[0].databaseId'
+  local base runs sha ignored
+  mapfile -t ignored < <(ci_ignored)
+  base=$(git log -1 --format=%H HEAD -- . "${ignored[@]}")
+  runs=$(gh run list --workflow ci.yml -L 200 --json databaseId,headSha -q '.[] | .headSha + " " + (.databaseId | tostring)')
+  for sha in $(git rev-list "$base~1..HEAD"); do
+    awk -v s="$sha" '$1 == s { print $2; found = 1; exit } END { exit !found }' <<< "$runs" && return
+  done
+}
+
+# Changes between the run's commit and HEAD outside the ignored paths; empty when the run covers HEAD.
+ci_uncovered() {
+  local sha ignored
+  sha=$(gh run view "$1" --json headSha -q .headSha)
+  mapfile -t ignored < <(ci_ignored)
+  git diff --name-only "$sha" HEAD -- . "${ignored[@]}" 2>&1
 }
 
 ci_download() {
@@ -459,7 +480,8 @@ ci_download() {
 goal_G_PLAT_IOS() {
   local id
   id=$(ci_run_id)
-  want_eq "ci run" "success $(git rev-parse HEAD)" "$(gh run view "$id" --json conclusion,headSha -q '.conclusion + " " + .headSha')"
+  want_eq "ci run" "success" "$(gh run view "$id" --json conclusion -q .conclusion)"
+  want_eq "ci covers HEAD" "" "$(ci_uncovered "$id")"
   ci_download "$id"
   want_eq "ios digest" "$(scripts/digest.sh build/core-gcc-release/ozen tests/golden samples)" "$(cat build/ci/digest-ios/digest.txt 2>/dev/null)"
   want_eq "xcframework slices" 3 "$(unzip -l build/ci/xcframework/Ozen.xcframework.zip | grep -oE '(ios-arm64-simulator|ios-arm64|macos-arm64_x86_64)/' | sort -u | wc -l)"
@@ -469,7 +491,8 @@ goal_G_PLAT_IOS() {
 goal_G_PLAT_ANDROID() {
   local id
   id=$(ci_run_id)
-  want_eq "ci run" "success $(git rev-parse HEAD)" "$(gh run view "$id" --json conclusion,headSha -q '.conclusion + " " + .headSha')"
+  want_eq "ci run" "success" "$(gh run view "$id" --json conclusion -q .conclusion)"
+  want_eq "ci covers HEAD" "" "$(ci_uncovered "$id")"
   ci_download "$id"
   want_eq "android digest" "$(scripts/digest.sh build/core-gcc-release/ozen tests/golden samples)" "$(cat build/ci/digest-android/digest.txt 2>/dev/null)"
   want_eq "android ABIs" "arm64-v8a armeabi-v7a x86 x86_64 " \
