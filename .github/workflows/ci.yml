@@ -4,7 +4,19 @@ name: ci
 on:
   push:
     branches: [main]
+    # Files that no job builds or tests. scripts/goals.sh reads this list to find the run
+    # that covers HEAD, so keep one unquoted path pattern per line.
+    paths-ignore:
+      - site/**
+      - plans/**
+      - docs/**
+      - .github/workflows/pages.yml
   workflow_dispatch:
+
+# A newer push to the same branch cancels the run still in progress.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   linux:
