@@ -216,10 +216,11 @@ jobs:
             OZEN_SIM_CLI="$PWD/build/ios-iphonesimulator/ozen"
           runner="$PWD/bindings/apple/sim-run.sh"
           mkdir -p out/digest
-          bash scripts/run-golden.sh "$runner" tests/golden > out/digest/golden.txt || { cat out/digest/golden.txt; exit 1; }
+          bash scripts/run-golden.sh "$runner" tests/golden --jobs 4 --keep build/sim-runs > out/digest/golden.txt \
+            || { cat out/digest/golden.txt; exit 1; }
           tail -n 1 out/digest/golden.txt
           grep -qx "golden: $(bash scripts/golden-entries.sh tests/golden | wc -l | tr -d " ") passed, 0 failed, 0 timed out" out/digest/golden.txt
-          bash scripts/digest.sh "$runner" tests/golden samples > out/digest/digest.txt
+          bash scripts/digest.sh "$runner" tests/golden samples --jobs 4 --reuse build/sim-runs > out/digest/digest.txt
           cat out/digest/digest.txt
 
       - uses: actions/upload-artifact@v4
