@@ -459,3 +459,29 @@ searches:
       - kinds.Blender.props.washTime
       - property.nominalCutSize
       - property.tablewareWashTime
+  - date: "2026-11-01"
+    queries:
+      - "東京都中央卸売市場 水産物歩留調査 ぶり"
+      - "山梨県青果物標準出荷規格 キャベツ トマト レタス いちご"
+      - "文部科学省 調理場における衛生管理＆調理技術マニュアル ざく切り"
+    consulted:
+      - "東京都中央卸売市場「R7水産物歩留調査結果表 広報用」（PDF を取得、sha256 8bff39ba8b1c44de787b8b1690936951982d2485d4e79e1f524a5b46e0cbfa88。ぶりの３枚おろしの正味の割合が年度ごとに 48.8〜64.9。頭・内臓などの部位ごとの割合は無い）"
+      - "山梨県青果物標準出荷規格 キャベツ（PDF を取得、sha256 408484d3650280aa825d35b0ace02cde0fa548a254f9b36629a7f6605ca729dd。Ｍ「１，０００～１，１００ｇ未満」からＬ「１，３００～１，７００ｇ未満」。3 けた区切りのカンマで、書き写しの数の照合が数を分けて読む）"
+      - "山梨県青果物標準出荷規格 いちご（PDF を取得、sha256 6e11ddf5c6772dc74170ad88adbade6d66aa37a78236cc83a420795c88b1b038。Ｌは「１５ｇ以上」で上限が無い）"
+      - "山梨県青果物標準出荷規格 トマト・レタス（PDF を取得。大玉のトマトとレタスは 1 箱の個数で分け、1 個の重さは無い）"
+      - "文部科学省「調理場における衛生管理＆調理技術マニュアル」第 3 章（PDF を取得、sha256 bf9fba29d14920f821b45b1cbac1c0dc2f88abaa5fb03fc5015ef0ed1122716b。8 ページに「キャベツや青菜を幅3〜4cmくらいに、ざくざく切る。」。乱切りと一口大の大きさは無い）"
+    reason: "ぶりの部位ごとの割合は無い。キャベツは数の書き方で照合を通らず、いちごは範囲の上限が無く、トマトとレタスは重さで分けていない。ざく切りの幅は見つかったが、nominalCutSize は 3 つの切り方を 1 つの出どころで持つので、ざく切りだけを一次情報にできない"
+    covers:
+      - traits.RoundFish.parts.head.props.yield
+      - traits.RoundFish.parts.collar.props.yield
+      - traits.RoundFish.parts.back.props.yield
+      - traits.RoundFish.parts.belly.props.yield
+      - traits.RoundFish.parts.frame.props.yield
+      - traits.RoundFish.parts.skin.props.yield
+      - traits.RoundFish.parts.guts.props.yield
+      - traits.RoundFish.parts.scales.props.yield
+      - ingredients.Cabbage.props.unitWeight
+      - ingredients.Strawberry.props.unitWeight
+      - ingredients.Tomato.props.unitWeight
+      - ingredients.Lettuce.props.unitWeight
+      - property.nominalCutSize
