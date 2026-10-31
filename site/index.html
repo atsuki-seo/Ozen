@@ -385,17 +385,19 @@ strong {
 
 /* Three type checks */
 
+/* Each column spans the heading, sentence and code rows of the parent grid, so the code
+   boxes side by side start on the same line and end on the same line. */
 .trio {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 12px;
+	gap: 6px 12px;
 	margin-top: 12px;
 }
 
 .trio > div {
 	display: grid;
-	grid-template-rows: auto auto 1fr;
-	gap: 6px;
+	grid-row: span 3;
+	grid-template-rows: subgrid;
 	min-width: 0;
 }
 
@@ -407,6 +409,7 @@ strong {
 
 @media (max-width: 859px) {
 	.trio { grid-template-columns: minmax(0, 1fr); }
+	.trio > div + div { margin-top: 12px; }
 }
 
 .pair {
@@ -414,7 +417,6 @@ strong {
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	gap: 12px;
 	margin-top: 12px;
-	align-items: start;
 }
 
 @media (max-width: 859px) {
