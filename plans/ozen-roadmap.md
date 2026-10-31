@@ -3096,6 +3096,12 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
   - わざと壊す確認: `G-VOCAB-SAMPLE`（S57・データの完全性）— `actions.yaml` の `simmer` の `doneness` の効果を消すと落ちた（`4 failed`）。戻して合格
   - わざと壊す確認: `G-VOCAB-SAMPLE`（S57・時間と順序）— `actions.yaml` の `fry` の `browning` の効果を消すと落ちた（`4 failed`）。戻して合格
 - 期待値の直し（2026-10-26）: P3-5 で牛乳の密度の暫定の範囲を `1.02..1.04` から `1.028..1.040 g/ml` に直したため、`fx/sample-ok/blend-list-mixture` の期待の量を `304..358 g` から `305.6..358 g`（バナナ `100..150 g` + 牛乳 `200 ml × 1.028..1.040`）に直した。手計算の誤りではなく表の値の変更による直しで、追加ではないので `G-REPO-RED-FIRST` の対象外
+- 暫定の値の置き換え（2026-11-01、P3-5 の続き。concept §12.3 の「一次情報が見つかりしだい置き換える」）: `std` の暫定の値 95 件を分野ごとに調べ直し、一次情報で 6 件を置き換えた（`stdlib/sources.ozen` に登録。どれも HTML のページか論文の本文で、書き写しは取得した文字列と照らした。PDF は取得していない）
+  - 水の密度 `0.99..1.00` → `0.99565..0.99997 g/ml`（NIST Chemistry WebBook の 1 気圧の表の 5 ℃と 30 ℃の行）、油の密度 `0.90..0.93` → `0.91..0.92 g/ml`（日清オイリオの Q&A「植物油の比重は、約0.91～0.92」）、米のかさ密度 `0.80..0.86` → `0.77..0.87 g/ml`（Nádvorníková ら 2018、精白米 8 品種。日本の品種ではない）、豚肉の密度 `1.00..1.10` → `1.0052..1.0622 g/ml`（Molecules 25(7):1736、静水の秤量で 75 試料）、氷の密度 `0.91..0.92` → `0.92 g/ml`（FAO『Ice in Fisheries』の 0 ℃の淡水の氷。1 点）、食洗機の運転時間 `60..90` → `85..120 min`（パナソニックの比較表の 9 機種の洗浄〜乾燥）
+  - 見つからなかった値は、調べた資料と理由を `spec/sources/search-log.yaml` に 2026-11-01 の 13 件の記録として足した。鶏卵の M の重さは農林水産省の告示（別表第一「五八グラム以上六四グラム未満」）で確かめたが、数が漢数字で書き写しの照合を通らないので暫定のままにした。蒸し麺・ナンは 1 商品の値だけ、豆腐は業界団体の説明なので使わなかった
+  - 期待値の直し: 値の変更で量と時間が変わる golden 7 件（`api/ir-display`・`api/local-not-listed`・`cleanup/dishwasher-during-meal`・`dim/density-convert`・`mix/amount-sum`・`serve/use-within-ir`・`std/prelude-contents`）を直した。量は手で計算して一致を確かめた（例: 卵 `58..64 g` + 水 `200 ml × 0.99565..0.99997` = `257.13..263.994 g`、食洗機は `120 s` + `85..120 min` で終わりが `5220..7320 s`）。値の変更による直しで、追加ではないので `G-REPO-RED-FIRST` の対象外
+  - `scripts/test-stdcheck.sh` の 2 つの書き換え（暫定の値を 1 点にする・探した記録を消す）は米の密度を対象にしていたので、暫定のままの砂糖の密度に移した
+  - `G-STD-SOURCES` は `sources: 7 primary, 89 provisional, 0 missing fields, 0 quote mismatches, 0 provisional without search, 0 pdf in repo`
 - `G-VOCAB-TESTS` の数の照合（2026-10-26）: `check-plan-tests.sh` が `fx/vocab-ng/undefined-twice` を `undefined-*` と二重に数えていたので、分類ごとの数はファイルの重複を除いて数えるように直した。網羅表に無かった自作のテスト 3 件（`py/test_qty.test_non_string_is_error`・`py/test_extract.test_rejects_wrong_headers`・`py/test_extract.test_writes_sorted_csv_and_checks`）は、S8・S58・S141 の行に足した。`Ran 122 tests` = `fx=106` + `py=16`
 - 実装中に見つかった concept の食い違い（R2）
 
