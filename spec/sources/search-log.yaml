@@ -217,3 +217,245 @@ searches:
     covers:
       - kinds.Oven.props.preheatTime
       - kinds.OvenRange.props.preheatTime
+  - date: "2026-11-01"
+    queries:
+      - "オーブンレンジ 予熱時間 \"200℃\" \"約\" 分 仕様 公式 sharp.co.jp OR toshiba-lifestyle.com"
+      - "東芝 石窯ドーム 予熱 \"200℃\" \"約\" \"分\""
+      - "リンナイ ガスオーブン コンベック 予熱 200℃ 約 分 特長"
+    consulted:
+      - "日立 MRO-W1E の特長 kadenfan.hitachi.co.jp（「200℃まで約4分50秒」、周囲温度 23 ℃。1 機種・1 温度の値）"
+      - "日立 FAQ「予熱を設定する方法を知りたいです。」（予熱にかかる時間の記載は無い）"
+      - "シャープ・東芝・パナソニックの現行のオーブンレンジの製品・仕様・特長のページ（予熱にかかる時間の記載は無い）"
+    reason: "見つかった値は 1 機種・200 ℃・周囲温度 23 ℃ の 1 点で、機種と温度によらない範囲として使えない。日本の上位機種は暫定の下限を下回ることがある。暫定の範囲のままにする"
+    covers:
+      - kinds.Oven.props.preheatTime
+      - kinds.OvenRange.props.preheatTime
+  - date: "2026-11-01"
+    queries:
+      - "ストウブ ご飯 炊き方 公式 中火 弱火 分 蒸らし"
+      - "長谷園 かまどさん 炊き方 中強火 分 蒸らし 20分 公式"
+      - "農林水産省 OR 米穀機構 鍋 で ご飯 を 炊く 方法"
+      - "電子レンジ 炊飯器 容器 炊き方 600W 分 蒸らし 公式 曙産業 OR イノマタ OR ニトリ"
+    consulted:
+      - "Zwilling（ストウブ）ラ・ココット de GOHAN の商品ページ（炊飯の時間は無い）"
+      - "日立 電子レンジのレシピ「炊飯（ごはん）」（4 人分で 600W 約10分と 200W 20〜25分のリレー加熱の後に蒸らす。合計の時間は無い）"
+      - "HARIO・T-fal の炊飯の鍋の取扱説明書、大阪市・岐阜県・大分市の土鍋の炊き方（PDF。取得はしていない）"
+    reason: "鍋と電子レンジで炊く時間の合計を 1 つの数で示すメーカー公式・公的機関の HTML は見つからなかった。段階ごとの時間の足し算は計算になるので使わない"
+    covers:
+      - actions.cookRice.variants[1].time
+      - actions.cookRice.variants[2].time
+  - date: "2026-11-01"
+    queries:
+      - "お湯を沸かす 時間 1L 何分 ガスコンロ 東京ガス OR 大阪ガス OR リンナイ OR パロマ 公式"
+      - "パナソニック IHクッキングヒーター お湯 沸かす 時間 約 分 水 1L 仕様 湯沸かし"
+    consulted:
+      - "BCN の記事（パナソニック IH の火力 9 で 1 L が約 2 分強。報道で二次情報）"
+      - "東京電力 家庭の省エネ 調理の調査資料（PDF。取得はしていない）"
+    reason: "メーカーの値は特定の機種の最大火力の 1 点だけで、量と熱源によらない範囲を示す一次情報の HTML は見つからなかった"
+    covers:
+      - actions.boilWater.time
+  - date: "2026-11-01"
+    queries:
+      - "冷凍ナン 温め方 電子レンジ オーブントースター フライパン 公式 テーブルマーク OR ニチレイ OR 日本ハム"
+      - "ナン 商品情報 召し上がり方 公式 食品メーカー"
+    consulted:
+      - "無印良品「フライパンでつくる ナン」（生地から焼く商品で、温め直しではない）"
+      - "日立 冷凍食品の加熱の目安（ナン固有の値は無い）"
+    reason: "市販のナンの温め時間を示すメーカー公式の HTML は見つからなかった。値は商品ごとの包装の表示に依存する"
+    covers:
+      - actions.warm.variants[0].time
+      - actions.warm.variants[1].time
+      - actions.warm.variants[2].time
+  - date: "2026-11-01"
+    queries:
+      - "ミキサー 取扱説明書 かくはん時間 目安 秒 スムージー ポタージュ 公式 パナソニック OR テスコム OR 象印"
+      - "vitamix.jp レシピ スムージー \"秒\""
+    consulted:
+      - "パナソニック ハンドブレンダー MX-S102・MX-S302 の仕様（定格時間 1 分。連続運転の上限で、かくはんの目安ではない）"
+      - "T-fal・テスコム・シロカのミキサーの取扱説明書（PDF。取得はしていない）"
+    reason: "かくはんの目安の時間を示すメーカー公式の HTML は見つからなかった"
+    covers:
+      - actions.blend.time
+  - date: "2026-11-01"
+    queries:
+      - "鍋 焦げ付き 落とし方 お手入れ 公式 ぬるま湯 浸け置き 分 アサヒ軽金属 OR 宮崎製作所 OR 和平フレイズ OR ティファール"
+      - "内なべ こびりつき 水 つけて 分 象印 OR タイガー OR パナソニック"
+    consulted:
+      - "Zwilling「調理器具のお手入れ」（煮立てる 5～10 分、重曹で 1 時間・2〜3 時間。水やぬるま湯に浸ける時間は無い）"
+      - "三菱電機「炊飯器での洗剤を使ったお手入れ」（浸け置きは無い）"
+    reason: "水やぬるま湯に浸け置く時間を示す鍋のメーカー公式の HTML は見つからなかった。見つかった時間は別の方法（煮立てる・重曹）の時間"
+    covers:
+      - property.soakTime
+  - date: "2026-11-01"
+    queries:
+      - "鶏卵規格取引要綱 M サイズ 58g 64g 農林水産省 重量区分"
+    consulted:
+      - "農林水産省 告示「畜産物の価格安定に関する法律施行規則の規定に基づく鶏卵の規格」maff.go.jp/j/kokuji_tuti/kokuji/k0000481.html 別表第一（「M 五八グラム以上六四グラム未満」）"
+    reason: "一次情報（告示）で M の区分を確かめ、暫定の値と一致した。ただし本文の数が漢数字で、書き写しの数の照合（アラビア数字だけを読む）を通らないので、暫定のままにする"
+    covers:
+      - ingredients.Egg.props.unitWeight
+  - date: "2026-11-01"
+    queries:
+      - "マルちゃん焼そば 内容量 めん g"
+      - "ナン 1枚 g 公式 商品情報"
+      - "豆腐 1丁 重さ g 量目"
+    consulted:
+      - "農林水産省 SV早見表（焼きそばの主材料「中華蒸しめん150」。1 人前の材料の量）"
+      - "東洋水産 マルちゃん焼そば 塩 3人前（めん 150 g × 3）としょうゆ味（めん 135 g × 3）の商品ページ（2 つのページにまたがる）"
+      - "トップバリュ 手のばしナン の商品情報（「1枚は約90g」。1 商品）"
+      - "全国豆腐連合会「流通形態、量目、表示項目」（通常 300～350 g。業界団体で、メーカーでも公的機関でもない）"
+    reason: "蒸し麺とナンは 1 商品の値しか無く、メーカーによって違う量を 1 つの資料で示すものが無い。豆腐の量目は業界団体の説明で、一次情報の定義に入らない。暫定の範囲のままにする"
+    covers:
+      - ingredients.SteamedNoodles.props.unitWeight
+      - ingredients.Naan.props.unitWeight
+      - ingredients.Tofu.props.unitWeight
+  - date: "2026-11-01"
+    queries:
+      - "野菜 1個 重さ 目安 たまねぎ にんじん じゃがいも トマト 約 g 農林水産省"
+      - "\"1玉重\" キャベツ g 野菜情報 alic"
+      - "青果物 全国標準規格 階級 1個の重量"
+      - "農研機構 いちご 新品種 平均一果重 g 対照品種 研究成果"
+      - "バナナ 1本 皮付き 重さ g 平均 調査"
+    consulted:
+      - "農林水産省 aff の記事（「中くらい 1/2 個」など分数の量だけ）"
+      - "山梨県青果物標準出荷規格、国立健康・栄養研究所の重量目安表（PDF。取得はしていない）"
+      - "農研機構「そよかの」のプレスリリース（特定の極晩生の品種の平均 1 果重だけ）"
+      - "スミフル・日本バナナ輸入組合（可食部の重さだけで、皮付きの重さは無い）"
+    reason: "家庭で買う野菜・果物の 1 つの重さを HTML の数で示す一次情報は見つからなかった。出荷規格と重量目安表は PDF にしか無い"
+    covers:
+      - ingredients.Onion.props.unitWeight
+      - ingredients.Carrot.props.unitWeight
+      - ingredients.Potato.props.unitWeight
+      - ingredients.Cabbage.props.unitWeight
+      - ingredients.Lettuce.props.unitWeight
+      - ingredients.Tomato.props.unitWeight
+      - ingredients.Cucumber.props.unitWeight
+      - ingredients.Strawberry.props.unitWeight
+      - ingredients.Banana.props.unitWeight
+  - date: "2026-11-01"
+    queries:
+      - "ブリ 部位別 重量比 頭部 内臓 フィレー 歩留まり 養殖ブリ 論文"
+      - "Seriola quinqueradiata fillet yield percentage head viscera weight ratio"
+      - "ブリ 1本 さばき方 所要時間 分 県 水産 OR 漁協 OR 水産庁"
+    consulted:
+      - "東京都中央卸売市場「歩留調査（可食部割合調査）」（令和7年度にぶりを含む 9 魚種を調べたとある。数値は PDF にしか無く、取得はしていない）"
+      - "FAO「Yield and nutritional value of the commercially more important fish species」（Seriola grandis のフィレーの歩留まりだけ。ブリの部位の割合は無い）"
+      - "東京都中央卸売市場「ぶり（刺身）」のさばき方（手順だけで、時間は無い）"
+    reason: "ブリの部位ごとの割合と、1 尾を捌く時間を HTML で示す一次情報は見つからなかった"
+    covers:
+      - traits.RoundFish.parts.head.props.yield
+      - traits.RoundFish.parts.collar.props.yield
+      - traits.RoundFish.parts.back.props.yield
+      - traits.RoundFish.parts.belly.props.yield
+      - traits.RoundFish.parts.frame.props.yield
+      - traits.RoundFish.parts.skin.props.yield
+      - traits.RoundFish.parts.guts.props.yield
+      - traits.RoundFish.parts.scales.props.yield
+      - actions.fillet.time
+  - date: "2026-11-01"
+    queries:
+      - "牛乳 比重 1.032 日本乳業協会 よくある質問"
+      - "生クリーム 比重 メーカー よくある質問 乳脂肪 比重 約"
+      - "ウスターソース 比重 よくある質問 メーカー"
+      - "キユーピー よくある質問 ドレッシング 比重"
+      - "かつおだし 比重 測定 論文"
+      - "砂糖 かさ比重 上白糖 グラニュー糖 精糖工業会 OR 農畜産業振興機構"
+      - "diced carrot OR diced onion OR potato cubes bulk density g/cm3 fresh measured"
+      - "chicken breast density \"g/cm3\" raw measured value pycnometer OR Archimedes"
+      - "beef muscle density \"g/cm3\" hydrostatic OR pycnometer raw beef longissimus"
+      - "fish fillet density g/cm3 measured raw yellowtail"
+    consulted:
+      - "厚生労働省 薬事・食品衛生審議会の乳等省令の見直しの資料（PDF。検索の抜粋に生乳の比重 1.027～1.035。取得はしていない）"
+      - "FSANZ「NPC specific gravities」（クリーム・ウスターソース・ドレッシングの 1 点の目安。本文は取得できなかった）"
+      - "Sakazaki ほか「Powder Characteristics of Granulated Sugar in Japan」Food Science and Technology Research 25(1), 2019（かさ密度を測ったが、表に数は無い）"
+      - "Kassama & Ngadi, Food and Nutrition Sciences 7(10), 2016（鶏の胸肉のかさ密度 1.15 g/cm3 が骨格密度より大きく、値が矛盾する）"
+      - "Torres-Vargas ほか, Rev. Invest. Univ. Quindío 21(1), 2010（牛・鶏の密度。本文は PDF で、取得はしていない）"
+    reason: "これらの食品の密度を、HTML の本文で確かめられる一次情報は見つからなかった。刻んだ野菜と砂糖のかさ密度は、数を示す資料が無い"
+    covers:
+      - ingredients.Milk.props.density
+      - ingredients.Cream.props.density
+      - ingredients.Dashi.props.density
+      - ingredients.WorcesterSauce.props.density
+      - ingredients.Dressing.props.density
+      - ingredients.ChocolateSauce.props.density
+      - ingredients.Sugar.props.density
+      - ingredients.Onion.props.density
+      - ingredients.Carrot.props.density
+      - ingredients.Potato.props.density
+      - ingredients.Chicken.props.density
+      - ingredients.Beef.props.density
+      - ingredients.Buri.props.density
+  - date: "2026-11-01"
+    queries:
+      - "タマネギ 煮熟 軟化 加熱時間 分 硬さ 煮る 調理科学"
+      - "ジャガイモ ニンジン 適度な硬さ 加熱時間 cm角 沸騰 分 予測 香西"
+      - "キャベツ 炒め 加熱時間 分 硬さ 研究 調理科学 野菜炒め もやし"
+    consulted:
+      - "島田「タマネギの調理に関する研究 (第1報)」家政学雑誌 17(1):389, 1966（みじん切りを炒めて 2 分で透明、5 分で香り・甘味、7～8 分で本格的な色。3 mm の薄切りではなく、硬さも測っていない）"
+      - "「スチームコンベクションオーブンを用いたジャガイモの最適加熱時間」日本調理科学会大会研究発表要旨集 28:53, 2016（2 cm 角を蒸して 10.2 分。煮た値ではない）"
+      - "香西・島田「煮熟によるジャガイモの軟化度と最適加熱時間の予測」日本食品工業学会誌 32(5):360, 1985（大きさから時間を出す回帰式だけで、20 mm の値は計算になる）"
+      - "堀江・平本 2009 日本調理科学会誌 42(3):194、遠藤ら 2013 同 46(1):31（抄録に柔らかくなる時間の数は無い）"
+    reason: "野菜と調理法の組み合わせで、基準の厚さでの時間を示す研究は見つからなかった。近い値は切り方か加熱の方法が属性の意味とずれる"
+    covers:
+      - ingredients.Onion.props.heating.simmer.heatUp
+      - ingredients.Onion.props.heating.simmer.soften
+      - ingredients.Onion.props.heating.fry.heatUp
+      - ingredients.Onion.props.heating.fry.soften
+      - ingredients.Carrot.props.heating.simmer.heatUp
+      - ingredients.Carrot.props.heating.simmer.soften
+      - ingredients.Potato.props.heating.simmer.heatUp
+      - ingredients.Potato.props.heating.simmer.soften
+      - ingredients.Cabbage.props.heating.fry.direct
+      - ingredients.Cabbage.props.heating.simmer.direct
+      - ingredients.BeanSprouts.props.heating.fry.direct
+  - date: "2026-11-01"
+    queries:
+      - "調理作業 所要時間 測定 下ごしらえ 切る 洗う 秒 家庭 調理 動作分析"
+      - "生クリーム 泡立て 手動 泡立て器 時間 分 起泡性 オーバーラン"
+      - "まな板 包丁 スポンジ 洗浄 秒間 こすり洗い 家庭 洗い方 実態 調査 時間"
+      - "後片付け 食器洗い 所要時間 実測 食器 点数 家事労働 研究 秒"
+      - "一口大 2～3cm 角 切り方 学校給食 マニュアル 文部科学省"
+    consulted:
+      - "山本・澤井「調理現場における食材切り込み業務の数値化と時間効率化への基礎的検討」日本調理科学会大会研究発表要旨集 36:96, 2025（給食の 1 kg あたりの時間で、洗浄から器具の洗浄までを含む）"
+      - "平野ら「生クリームの起泡性について (第1報)」家政学雑誌 22(1):24, 1971 の抄録（手で泡立てる時間の数は無い）"
+      - "パナソニック「手洗いVS食洗機 節約シミュレーション」（食器と小物を合わせた 1 回分の時間だけで、1 枚あたりの値は割り算になる）"
+      - "文部科学省「調理場における衛生管理＆調理技術マニュアル」第 3 章（ざく切りの幅の記述は PDF にあり、取得はしていない）"
+      - "大阪市「材料の切り方」（乱切りの形の説明だけで、大きさは無い）"
+    reason: "家庭の 1 回の手作業・道具を洗う・場所を拭く・食器 1 枚を洗う時間と、切り方の大きさを HTML の数で示す一次情報は見つからなかった"
+    covers:
+      - actions.wash.time
+      - actions.peel.time
+      - actions.cut.time
+      - actions.tear.time
+      - actions.mix.time
+      - actions.toss.time
+      - actions.whip.time
+      - actions.season.time
+      - actions.plate.time
+      - actions.layer.time
+      - actions.store.time
+      - actions.discard.time
+      - actions.loosen.time
+      - actions.drain.time
+      - actions.dissolve.time
+      - kinds.Counter.props.wipeTime
+      - kinds.Stove.props.wipeTime
+      - kinds.Oven.props.wipeTime
+      - kinds.Microwave.props.wipeTime
+      - kinds.Toaster.props.wipeTime
+      - kinds.OvenRange.props.wipeTime
+      - kinds.CuttingBoard.props.washTime
+      - kinds.Knife.props.washTime
+      - kinds.Peeler.props.washTime
+      - kinds.FryingPan.props.washTime
+      - kinds.Pot.props.washTime
+      - kinds.MixingBowl.props.washTime
+      - kinds.Colander.props.washTime
+      - kinds.CookingChopsticks.props.washTime
+      - kinds.Ladle.props.washTime
+      - kinds.Whisk.props.washTime
+      - kinds.MeasuringSpoon.props.washTime
+      - kinds.RiceCooker.props.washTime
+      - kinds.Blender.props.washTime
+      - property.nominalCutSize
+      - property.tablewareWashTime
