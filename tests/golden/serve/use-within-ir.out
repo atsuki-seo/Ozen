@@ -1,8 +1,8 @@
 ir potatoTempura
   %1 = in egg : Egg 1 pcs
   %2 = in water : Water 200 ml
-  %3 = op combine %1, %2 : Egg, Water -> Mixture 256..264 g with Allergen(egg), Hazard [0 s]
-  %4 = op whisk %3 : Mixture -> Mixture 256..264 g with Allergen(egg), Hazard [hands; 300 s]
+  %3 = op combine %1, %2 : Egg, Water -> Mixture 257.13..263.994 g with Allergen(egg), Hazard [0 s]
+  %4 = op whisk %3 : Mixture -> Mixture 257.13..263.994 g with Allergen(egg), Hazard [hands; 300 s]
   %5 = in potato : Potato 2 pcs
   %6 = op slice %5 : Potato -> Potato 2 pcs [hands; 1200 s]
   %7 = op coat %6, %4 : Potato, Mixture -> Potato 2 pcs [hands; 120 s]
