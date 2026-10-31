@@ -8,6 +8,7 @@ resource-constrained schedule. The app built on it is called Ozendate.
 
 - Design concept (Japanese): [docs/concept.md](docs/concept.md)
 - Implementation plan (Japanese): [plans/ozen-roadmap.md](plans/ozen-roadmap.md)
+- Introduction page (Japanese): <https://atsuki-seo.github.io/Ozen/>
 
 ## Status
 
@@ -225,6 +226,15 @@ recipe soup {
 }
 ```
 
+## Introduction page
+
+`site/index.html` is a one-page introduction to Ozen in Japanese. It has no build
+step and loads only the DotGothic16 font from Google Fonts. On every push to `main`
+that changes `site/`, `VERSION`, or the workflow, `.github/workflows/pages.yml`
+writes the version and the commit into the footer and deploys the page to GitHub
+Pages. The code examples and outputs on the page are copied from runs of
+`build/core-gcc-release/ozen`; update them by hand when the language changes.
+
 ## Credits
 
 - Refuse rates: 日本食品標準成分表（八訂）増補2023年から引用 (Standard Tables of Food
@@ -241,7 +251,7 @@ recipe soup {
 | `tools/`, `scripts/`, `spec/vocab/`, `spec/schema/`, `spec/coverage/`, `spec/fixtures/` | MIT OR Apache-2.0 |
 | `core/`, `cli/`, `stdlib/`, `bindings/`, `renderers/`, `schemas/`, `tests/`, `fuzz/` | MIT OR Apache-2.0 |
 | `docs/`, `plans/`, `spec/samples/` | CC-BY-4.0 |
-| `samples/`, `phrases/` | CC-BY-4.0 |
+| `samples/`, `phrases/`, `site/` | CC-BY-4.0 |
 | `data/mext-fct-2023/` | See its README (source data from MEXT, used under MEXT's terms) |
 | `*/vendor/` | The license of each vendored component, kept with it |
 
