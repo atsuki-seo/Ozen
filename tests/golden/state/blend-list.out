@@ -1,7 +1,7 @@
 recipe strawberryMilk
   strawberry : Strawberry 100 g
   milk : Milk 200 ml
-  %1 = combine([strawberry, milk]) : Mixture 305.6..308 g with Allergen(milk), RawEdible
-  %2 = blend(%1) : Mixture 305.6..308 g with Allergen(milk), RawEdible
+  %1 = combine([strawberry, milk]) : Mixture 305.4..307 g with Allergen(milk), RawEdible
+  %2 = blend(%1) : Mixture 305.4..307 g with Allergen(milk), RawEdible
 result ok errors=0 warnings=0 infos=0
 exit 0
