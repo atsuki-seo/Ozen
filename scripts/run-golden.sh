@@ -4,7 +4,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: $0 COMMAND DIR [--only NAME] [--save ENV] [--std-version V] [--json OUT] [--sarif OUT]" >&2
+  echo "usage: $0 COMMAND DIR [--only NAME] [--save ENV] [--std-version V] [--json OUT] [--sarif OUT] [--jobs N] [--keep OUT]" >&2
   exit 2
 }
 
@@ -19,6 +19,8 @@ save=""
 version=""
 json=""
 sarif=""
+jobs=1
+keep=""
 [ -f "$root/VERSION" ] && version=$(tr -d '\n' < "$root/VERSION")
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -27,9 +29,12 @@ while [ $# -gt 0 ]; do
     --std-version) version="$2"; shift 2 ;;
     --json) json="$2"; shift 2 ;;
     --sarif) sarif="$2"; shift 2 ;;
+    --jobs) jobs="$2"; shift 2 ;;
+    --keep) keep="$2"; shift 2 ;;
     *) usage ;;
   esac
 done
+[[ $jobs =~ ^[1-9][0-9]*$ ]] || usage
 
 read -r -a runner <<< "$cmd"
 for i in "${!runner[@]}"; do
@@ -39,13 +44,12 @@ done
 [ -n "$json" ] && json=$(cd "$json" && pwd)
 [ -n "$sarif" ] && mkdir -p "$sarif" && rm -f "$sarif"/*.json
 [ -n "$sarif" ] && sarif=$(cd "$sarif" && pwd)
+[ -n "$keep" ] && mkdir -p "$keep"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
-passed=0
-failed=0
-timedout=0
-report=""
-while IFS= read -r entry; do
+
+parse_entry() {
+  entry=$1
   rel=${entry#"$dir"/}
   args=(check)
   if [ -d "$entry" ]; then
@@ -63,9 +67,11 @@ while IFS= read -r entry; do
     rundir=$(dirname "$entry")
     target=("$(basename "$entry")")
   fi
-  if [ -n "$only" ] && [ "$rel" != "$only" ]; then
-    continue
-  fi
+}
+
+run_entry() {
+  local n=$1 status
+  parse_entry "$2"
   if [ -n "$json" ] || [ -n "$sarif" ]; then
     flags=()
     for ((k = 0; k < ${#args[@]}; k++)); do
@@ -76,36 +82,60 @@ while IFS= read -r entry; do
     name=$(printf '%s' "$rel" | sed 's#/#-#g')
     if [ -n "$json" ]; then
       (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" check --format json \
-        --emit ir,schedule,steps,signatures,definitions,types "${flags[@]}" "${target[@]}") > "$work/json" 2>/dev/null
-      if head -c 1 "$work/json" | grep -q '{'; then
-        cp "$work/json" "$json/$name.result.json"
+        --emit ir,schedule,steps,signatures,definitions,types "${flags[@]}" "${target[@]}") > "$work/$n.json" 2>/dev/null
+      if head -c 1 "$work/$n.json" | grep -q '{'; then
+        cp "$work/$n.json" "$json/$name.result.json"
       fi
     fi
     if [ -n "$sarif" ]; then
       (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" check --format sarif "${flags[@]}" \
-        "${target[@]}") > "$work/sarif" 2>/dev/null
-      if grep -q '"results":\[{' "$work/sarif"; then
-        cp "$work/sarif" "$sarif/$name.json"
+        "${target[@]}") > "$work/$n.sarif" 2>/dev/null
+      if grep -q '"results":\[{' "$work/$n.sarif"; then
+        cp "$work/$n.sarif" "$sarif/$name.json"
       fi
     fi
   fi
-  (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" "${args[@]}" "${target[@]}") > "$work/out" 2>/dev/null
+  (cd "$rundir" && timeout "${OZP_RUN_TIMEOUT:-10}" "${runner[@]}" "${args[@]}" "${target[@]}") > "$work/$n.out" 2>/dev/null
   status=$?
-  if [ "$status" -eq 124 ]; then
+  printf 'exit %s\n' "$status" >> "$work/$n.out"
+  [ -n "$keep" ] && cp "$work/$n.out" "$keep/$(printf '%s' "$entry" | sed 's#/#%#g')"
+  echo "$status" > "$work/$n.status"
+}
+
+entries=()
+while IFS= read -r e; do
+  parse_entry "$e"
+  if [ -n "$only" ] && [ "$rel" != "$only" ]; then
+    continue
+  fi
+  entries+=("$e")
+done < <("$here/golden-entries.sh" "$dir")
+for n in "${!entries[@]}"; do
+  while [ "$(jobs -pr | wc -l)" -ge "$jobs" ]; do wait -n; done
+  run_entry "$n" "${entries[$n]}" &
+done
+wait
+
+passed=0
+failed=0
+timedout=0
+report=""
+for n in "${!entries[@]}"; do
+  parse_entry "${entries[$n]}"
+  if [ "$(cat "$work/$n.status")" -eq 124 ]; then
     timedout=$((timedout + 1))
     report+="TIMEOUT $rel"$'\n'
     continue
   fi
-  printf 'exit %s\n' "$status" >> "$work/out"
   sed "s/{{STD_VERSION}}/$version/g" "$expected" > "$work/want" 2>/dev/null
-  if cmp -s "$work/out" "$work/want"; then
+  if cmp -s "$work/$n.out" "$work/want"; then
     passed=$((passed + 1))
   else
     failed=$((failed + 1))
     report+="FAIL $rel"$'\n'
-    diff "$work/want" "$work/out" | head -n 10 >&2
+    diff "$work/want" "$work/$n.out" | head -n 10 >&2
   fi
-done < <("$here/golden-entries.sh" "$dir")
+done
 printf '%s' "$report" >&2
 summary="golden: $passed passed, $failed failed, $timedout timed out"
 if [ -n "$save" ]; then
