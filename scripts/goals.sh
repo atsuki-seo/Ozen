@@ -446,13 +446,11 @@ goal_G_PLAT_WASM() {
   want_eq "wasm digest" "$(scripts/digest.sh build/core-gcc-release/ozen tests/golden samples)" "$(scripts/digest.sh 'node build/core-wasm/ozen.js' tests/golden samples)"
 }
 
-# Pathspecs that exclude the paths-ignore list of ci.yml.
 ci_ignored() {
   awk '/^    paths-ignore:/ { on = 1; next } on && /^      - / { print ":(exclude,glob)" $2; next } !/^ *#/ { on = 0 }' \
     .github/workflows/ci.yml
 }
 
-# The newest ci.yml run on HEAD or on an earlier commit that differs from HEAD only in ignored paths.
 ci_run_id() {
   local base runs sha ignored
   mapfile -t ignored < <(ci_ignored)
@@ -463,7 +461,6 @@ ci_run_id() {
   done
 }
 
-# Changes between the run's commit and HEAD outside the ignored paths; empty when the run covers HEAD.
 ci_uncovered() {
   local sha ignored
   sha=$(gh run view "$1" --json headSha -q .headSha)
