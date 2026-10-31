@@ -274,7 +274,7 @@ ingredient Rice : Grain {
   axes: doneness, prep
   leaves: starch
   props {
-    density: 0.80..0.86 g/ml @source(provisional)
+    density: 0.77..0.87 g/ml @source(nadvornikovaRice2018)
   }
 }
 ingredient SteamedNoodles : Noodle, Allergen(wheat) {
@@ -297,7 +297,7 @@ ingredient Pork : Meat, Hazard, SkinEdible {
   axes: doneness, browning, shape, prep
   leaves: rawMeat
   props {
-    density: 1.00..1.10 g/ml @source(provisional)
+    density: 1.0052..1.0622 g/ml @source(porkTrimmingsDensity2020)
   }
   parts {
     shoulder
@@ -521,7 +521,7 @@ ingredient Oil : Seasoning, Liquid {
   axes: []
   leaves: oil
   props {
-    density: 0.90..0.93 g/ml @source(provisional)
+    density: 0.91..0.92 g/ml @source(nisshinOillioOilQa)
   }
 }
 ingredient CurryRoux : Seasoning, Allergen(wheat), Allergen(milk) {
@@ -603,14 +603,14 @@ ingredient Ice : Frozen, RawEdible {
   axes: []
   leaves: light
   props {
-    density: 0.91..0.92 g/ml @source(provisional)
+    density: 0.92 g/ml @source(faoIceInFisheries)
   }
 }
 ingredient Water : Liquid, RawEdible {
   axes: doneness
   leaves: light
   props {
-    density: 0.99..1.00 g/ml @source(provisional)
+    density: 0.99565..0.99997 g/ml @source(nistWaterIsobaric)
   }
 }
 ingredient CookedRice : Grain {

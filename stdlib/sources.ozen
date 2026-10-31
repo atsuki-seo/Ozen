@@ -17,3 +17,48 @@ source panasonicSrPw109Spec {
   location: "仕様表「炊飯時間」の白米のコース（エコ炊飯・銀シャリ）"
   quote: "エコ炊飯 42分、銀シャリ ふつう 48分、銀シャリ かため 43分、銀シャリ やわらか 54分、銀シャリ もちもち 51分、銀シャリ 少量 47分"
 }
+source nistWaterIsobaric {
+  kind: primary
+  title: "Isobaric Properties for Water (NIST Chemistry WebBook, SRD 69, Thermophysical Properties of Fluid Systems)"
+  publisher: "National Institute of Standards and Technology (NIST)"
+  url: "https://webbook.nist.gov/cgi/fluid.cgi?Action=Load&ID=C7732185&Type=IsoBar&Digits=5&P=0.101325&THigh=30&TLow=5&TInc=5&RefState=DEF&TUnit=C&PUnit=MPa&DUnit=g%2Fml&HUnit=kJ%2Fmol&WUnit=m%2Fs&VisUnit=uPa*s&STUnit=N%2Fm"
+  retrieved: "2026-11-01"
+  location: "Fluid Data, Isobaric Data for P = 0.10132 MPa, rows for 5 C and 30 C (columns Temperature (C), Pressure (MPa), Density (g/ml), Phase)"
+  quote: "5.0000 0.10132 0.99997 liquid; 30.000 0.10132 0.99565 liquid"
+}
+source nisshinOillioOilQa {
+  kind: primary
+  title: "油に関するQ&A（Q.表示の見方を教えて！）"
+  publisher: "日清オイリオグループ"
+  url: "https://www.nisshin-oillio.com/oil/qa/qa16.html"
+  retrieved: "2026-11-01"
+  location: "Q.表示の見方を教えて！の「油の表示は重量表示」"
+  quote: "ちなみに、植物油の比重は、約0.91～0.92です。"
+}
+source nadvornikovaRice2018 {
+  kind: primary
+  title: "Evaluation of physical properties of rice used in traditional Kyrgyz Cuisine (Food Science & Nutrition 6(6):1778-1787, 2018, doi:10.1002/fsn3.746)"
+  publisher: "Nádvorníková M., Banout J., Herák D., Verner V."
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC6145214/"
+  retrieved: "2026-11-01"
+  location: "Abstract (bulk density of eight milled rice cultivars)"
+  quote: "bulk density values were 0.77-0.87 g/cm3"
+}
+source porkTrimmingsDensity2020 {
+  kind: primary
+  title: "Estimation of Chemical Composition of Pork Trimmings by Use of Density Measurement-Hydrostatic Method (Molecules 25(7):1736, 2020, doi:10.3390/molecules25071736)"
+  publisher: "Molecules (MDPI)"
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC7180915/"
+  retrieved: "2026-11-01"
+  location: "Results, first paragraph (75 samples, hydrostatic weighing)"
+  quote: "The fat content, in accordance with the assumptions, varied in a wide range from 5.0% to 46.9%, with a density of 1.0052 to 1.0622 g cm−3."
+}
+source faoIceInFisheries {
+  kind: primary
+  title: "Ice in Fisheries (FAO Fisheries Technical Paper No. 331, 1992), 12. Some useful facts about water and ice"
+  publisher: "Food and Agriculture Organization of the United Nations (FAO)"
+  url: "https://www.fao.org/4/T0713E/T0713E0c.htm"
+  retrieved: "2026-11-01"
+  location: "Table in section 12, row Freshwater ice (density)"
+  quote: "Freshwater ice 0.92 kg/l At 0°C"
+}
