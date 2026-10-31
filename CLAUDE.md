@@ -4,6 +4,7 @@
 
 - Design documents under `docs/` are written in Japanese. This includes `docs/concept.md` (kept as is, not translated) and the prototype report `docs/prototype-report.md`.
 - Plans under `plans/` are written in Japanese, because the user reviews them.
+- The introduction page `site/index.html` is written in Japanese for its readers; its CSS and script comments stay in English.
 - Everything else committed to this repository is written in English: source code, comments, developer-facing strings, commit messages, README, YAML comments, scripts, and build files.
 - Exceptions: the MEXT attribution wording is written in Japanese as MEXT requires; values in `phrases/ja.ftl` are Japanese and values in `phrases/en.ftl` are English.
 

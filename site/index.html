@@ -1,0 +1,1278 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ozen は料理のレシピを書くプログラミング言語です。">
+<title>Ozen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap">
+<style>
+/* Layout: a game-inventory screen. Grey bevelled panels on a dark lacquer ground, slots for inputs,
+   a crafting row for "recipe × kitchen × today → schedule". --p is one screen pixel of the GUI. */
+:root {
+	--p: 2px;
+	--bg: #24232a;
+	--panel: #c6c6c6;
+	--panel-light: #ffffff;
+	--panel-dark: #555555;
+	--text: #3f3f3f;
+	--ink: #000000;
+	--slot: #8b8b8b;
+	--slot-dark: #373737;
+	--slot-light: #ffffff;
+	--term: #1d1c22;
+	--term-text: #e8e8e8;
+	--term-dim: #9a9a9a;
+	--lacquer: #b8322a;
+	--gold: #ffaa00;
+	--green: #55ff55;
+	--aqua: #55ffff;
+	--red: #ff5555;
+	--yellow: #ffff55;
+	--hands: #e2a64a;
+	--hands-light: #ffd78a;
+	--hands-dark: #9c6a20;
+	--idle: #5b7fd6;
+	--idle-light: #9db4f0;
+	--idle-dark: #33509a;
+	--link: #9fb4ff;
+	--muted: #aaaaaa;
+	--font: "DotGothic16", "Osaka-Mono", "MS Gothic", monospace;
+	color-scheme: dark;
+}
+
+@media (min-width: 1024px) {
+	:root { --p: 3px; }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: #e8e8e8;
+	font-family: var(--font);
+	font-size: 16px;
+	line-height: 1.65;
+}
+
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0 0 auto;
+	height: env(safe-area-inset-top, 0px);
+	z-index: 10;
+	background: var(--bg);
+}
+
+canvas.icon {
+	width: calc(var(--p) * 16);
+	height: calc(var(--p) * 16);
+	image-rendering: crisp-edges;
+	image-rendering: pixelated;
+	flex: none;
+}
+
+/* Tabs, after the creative inventory's */
+
+.tabs {
+	position: sticky;
+	top: env(safe-area-inset-top, 0px);
+	z-index: 9;
+	display: flex;
+	gap: calc(var(--p) * 2);
+	padding-top: 8px;
+	padding-left: max(8px, env(safe-area-inset-left, 0px));
+	padding-right: max(8px, env(safe-area-inset-right, 0px));
+	overflow-x: auto;
+	scrollbar-width: none;
+	background: var(--bg);
+	border-bottom: var(--p) solid var(--ink);
+}
+
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab:first-child { margin-left: auto; }
+.tab:last-child { margin-right: auto; }
+
+.tab {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 6px;
+	min-height: 44px;
+	padding: 4px 14px;
+	white-space: nowrap;
+	background: var(--slot);
+	color: var(--text);
+	text-decoration: none;
+	border: var(--p) solid var(--ink);
+	border-bottom: none;
+	border-radius: calc(var(--p) * 3) calc(var(--p) * 3) 0 0;
+	box-shadow: inset var(--p) var(--p) 0 #a8a8a8;
+}
+
+.tab:hover,
+.tab[aria-current="true"] {
+	background: var(--panel);
+	box-shadow: inset calc(var(--p) * 2) calc(var(--p) * 2) 0 var(--panel-light);
+}
+
+a:focus-visible,
+.slot:focus-visible,
+.bar:focus-visible {
+	outline: var(--p) solid var(--yellow);
+	outline-offset: var(--p);
+}
+
+@media (max-width: 599px) {
+	.tabs { gap: 4px; padding-top: 6px; }
+	.tab {
+		min-width: 60px;
+		flex-direction: column;
+		gap: 0;
+		padding: 4px 4px;
+		font-size: 12px;
+		line-height: 1.3;
+	}
+}
+
+/* Page */
+
+main {
+	max-width: 1040px;
+	margin: 0 auto;
+	padding-block: 8px 24px;
+	padding-left: max(16px, env(safe-area-inset-left, 0px));
+	padding-right: max(16px, env(safe-area-inset-right, 0px));
+	display: grid;
+	gap: 16px;
+}
+
+section { scroll-margin-top: 72px; }
+
+/* Parent groups: a title on the dark ground, like the reference's page title, then their panels */
+
+.group {
+	display: grid;
+	gap: 16px;
+	scroll-margin-top: 72px;
+}
+
+.group-title {
+	margin: 20px 0 0;
+	color: #fff;
+	font-size: 1.6rem;
+	font-weight: normal;
+	text-wrap: balance;
+	text-shadow: var(--p) var(--p) 0 #3f3f3f;
+}
+
+.hero {
+	display: grid;
+	gap: 6px;
+	padding-block: 20px 4px;
+}
+
+.hero h1 {
+	margin: 0;
+	color: #fff;
+	font-size: clamp(3rem, 12vw, 5.5rem);
+	font-weight: normal;
+	line-height: 1;
+	letter-spacing: 0.04em;
+	text-shadow: calc(var(--p) * 2) calc(var(--p) * 2) 0 var(--lacquer), calc(var(--p) * 4) calc(var(--p) * 4) 0 #3f3f3f;
+}
+
+.hero .lead {
+	margin: 10px 0 0;
+	max-width: 36em;
+	color: #fff;
+	font-size: 1.2rem;
+	text-wrap: balance;
+	text-shadow: var(--p) var(--p) 0 #3f3f3f;
+}
+
+.hero .sub {
+	margin: 0;
+	color: var(--muted);
+}
+
+.hero .sub code { color: var(--yellow); }
+
+.panel {
+	padding: calc(var(--p) * 6) calc(var(--p) * 7);
+	background: var(--panel);
+	color: var(--text);
+	border: var(--p) solid var(--ink);
+	border-radius: calc(var(--p) * 3);
+	box-shadow: inset calc(var(--p) * 2) calc(var(--p) * 2) 0 var(--panel-light), inset calc(var(--p) * -2) calc(var(--p) * -2) 0 var(--panel-dark);
+	overflow-wrap: anywhere;
+	min-width: 0;
+}
+
+@media (max-width: 599px) {
+	.panel { padding: calc(var(--p) * 5) calc(var(--p) * 4); }
+}
+
+.panel h2 {
+	margin: 0 0 0.3em;
+	font-size: 1.35rem;
+	font-weight: normal;
+	text-wrap: balance;
+}
+
+.panel h3 {
+	margin: 0 0 0.2em;
+	font-size: 1.08rem;
+	font-weight: normal;
+}
+
+.panel p { margin: 0.5em 0; max-width: 42em; }
+
+.panel code {
+	padding: 0 0.25em;
+	background: rgb(0 0 0 / 0.12);
+	font-family: inherit;
+}
+
+strong {
+	font-weight: normal;
+	color: var(--ink);
+	background: linear-gradient(transparent 60%, #ffff9f 60%);
+}
+
+
+/* Slots and the crafting row */
+
+.slot {
+	position: relative;
+	display: inline-grid;
+	place-items: center;
+	flex: none;
+	width: calc(var(--p) * 18);
+	height: calc(var(--p) * 18);
+	background: var(--slot);
+	box-shadow: inset var(--p) var(--p) 0 var(--slot-dark), inset calc(var(--p) * -1) calc(var(--p) * -1) 0 var(--slot-light);
+	cursor: help;
+}
+
+.slot.big {
+	width: calc(var(--p) * 26);
+	height: calc(var(--p) * 26);
+}
+
+.slot.big canvas.icon {
+	width: calc(var(--p) * 22);
+	height: calc(var(--p) * 22);
+}
+
+.slot:hover::after {
+	content: "";
+	position: absolute;
+	inset: var(--p);
+	background: rgb(255 255 255 / 0.4);
+}
+
+.craft {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: center;
+	gap: calc(var(--p) * 6) calc(var(--p) * 5);
+	margin: 14px 0 6px;
+}
+
+.craft figure {
+	display: grid;
+	justify-items: center;
+	gap: 4px;
+	margin: 0;
+	width: 7.5em;
+	text-align: center;
+	font-size: 0.85rem;
+	line-height: 1.35;
+}
+
+.craft figcaption small {
+	display: block;
+	color: #5e5e5e;
+	font-size: 0.75rem;
+}
+
+.op {
+	align-self: flex-start;
+	margin-top: calc(var(--p) * 4);
+	color: #5e5e5e;
+	font-size: 1.4rem;
+	line-height: 1;
+}
+
+.arrow {
+	display: inline-block;
+	align-self: flex-start;
+	margin-top: calc(var(--p) * 6);
+	width: calc(var(--p) * 22);
+	height: calc(var(--p) * 15);
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 15' shape-rendering='crispEdges'%3E%3Cpath fill='%238b8b8b' d='M0 6h14V0h1v1h1v1h1v1h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v1h-1v1h-1v1h-1v1h-1V9H0z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+
+@media (max-width: 599px) {
+	.craft { gap: 8px 2px; }
+	.craft figure { width: 4.9em; font-size: 0.75rem; }
+	.craft figcaption small { display: none; }
+	.op { font-size: 1.1rem; margin-top: calc(var(--p) * 5); }
+	.arrow { width: calc(var(--p) * 14); height: calc(var(--p) * 10); margin-top: calc(var(--p) * 7); }
+}
+
+/* Code, set like the in-game chat: dark, inset, coloured by formatting code */
+
+.code {
+	margin: 0;
+	min-width: 0;
+	background: var(--term);
+	color: var(--term-text);
+	border: var(--p) solid var(--ink);
+	box-shadow: inset var(--p) var(--p) 0 #000, inset calc(var(--p) * -1) calc(var(--p) * -1) 0 #4a4950;
+	overflow-x: auto;
+}
+
+.code .file {
+	display: block;
+	padding: 4px 12px;
+	border-bottom: var(--p) solid #000;
+	color: var(--term-dim);
+	font-size: 0.75rem;
+	letter-spacing: 0.04em;
+}
+
+.code .file .dish {
+	display: block;
+	color: var(--term-text);
+	font-size: 0.85rem;
+	font-weight: normal;
+	letter-spacing: 0;
+}
+
+.code pre {
+	margin: 0;
+	padding: 10px 12px;
+	font-family: var(--font);
+	font-size: 0.86rem;
+	line-height: 1.55;
+	white-space: pre;
+	tab-size: 2;
+}
+
+.code pre.out {
+	border-top: var(--p) dashed #3c3b42;
+	color: var(--term-dim);
+}
+
+.kw { color: var(--gold); }
+.ty { color: var(--green); }
+.nu { color: var(--aqua); }
+.cm { color: #7c7b84; }
+.er { color: var(--red); }
+.ok { color: var(--green); }
+.in { color: var(--aqua); }
+.hl { color: var(--yellow); }
+
+/* Three type checks */
+
+.trio {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.trio > div {
+	display: grid;
+	grid-template-rows: auto auto 1fr;
+	gap: 6px;
+	min-width: 0;
+}
+
+.trio p { margin: 0; font-size: 0.92rem; }
+
+@media (min-width: 860px) {
+	.trio.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 859px) {
+	.trio { grid-template-columns: minmax(0, 1fr); }
+}
+
+.pair {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 12px;
+	margin-top: 12px;
+	align-items: start;
+}
+
+@media (max-width: 859px) {
+	.pair { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Schedule chart */
+
+.charts {
+	display: grid;
+	gap: 14px;
+	margin-top: 14px;
+}
+
+.chart-wrap {
+	overflow-x: auto;
+	padding-bottom: 4px;
+}
+
+.chart {
+	min-width: 620px;
+	display: grid;
+	grid-template-columns: 6.2em minmax(0, 1fr);
+	gap: calc(var(--p) * 2) 8px;
+	align-items: center;
+	font-size: 0.82rem;
+}
+
+.chart-head {
+	grid-column: 1 / -1;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 14px;
+}
+
+.chart-head h3 { margin: 0; }
+
+.chart-head span { color: #5e5e5e; font-size: 0.85rem; }
+
+.chart-head b {
+	font-weight: normal;
+	color: var(--ink);
+	font-variant-numeric: tabular-nums;
+}
+
+.lane-name { color: #4a4a4a; text-align: right; white-space: nowrap; }
+
+.lane {
+	position: relative;
+	height: calc(var(--p) * 13);
+	background: var(--slot);
+	box-shadow: inset var(--p) var(--p) 0 var(--slot-dark), inset calc(var(--p) * -1) calc(var(--p) * -1) 0 var(--slot-light);
+	background-image: repeating-linear-gradient(90deg, transparent 0 calc(100% / 6 - 1px), rgb(0 0 0 / 0.18) calc(100% / 6 - 1px) calc(100% / 6));
+}
+
+.bar {
+	position: absolute;
+	top: var(--p);
+	bottom: var(--p);
+	display: grid;
+	place-items: center;
+	overflow: hidden;
+	white-space: nowrap;
+	font-size: 0.78rem;
+	line-height: 1;
+	cursor: help;
+	border-right: var(--p) solid #000;
+}
+
+.bar.hands {
+	background: var(--hands);
+	color: #2a1a00;
+	box-shadow: inset var(--p) var(--p) 0 var(--hands-light), inset calc(var(--p) * -1) calc(var(--p) * -1) 0 var(--hands-dark);
+}
+
+.bar.idle {
+	background: var(--idle) repeating-linear-gradient(135deg, transparent 0 calc(var(--p) * 3), rgb(255 255 255 / 0.14) calc(var(--p) * 3) calc(var(--p) * 6));
+	color: #fff;
+	text-shadow: 1px 1px 0 var(--idle-dark);
+	box-shadow: inset var(--p) var(--p) 0 var(--idle-light), inset calc(var(--p) * -1) calc(var(--p) * -1) 0 var(--idle-dark);
+}
+
+.axis {
+	position: relative;
+	height: 1.3em;
+	color: #5e5e5e;
+	font-size: 0.75rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.axis span {
+	position: absolute;
+	top: 0;
+	transform: translateX(-50%);
+	white-space: nowrap;
+}
+
+.axis span:first-child { transform: none; }
+.axis span:last-child { transform: translateX(-100%); }
+
+.legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	margin-top: 8px;
+	font-size: 0.82rem;
+	color: #4a4a4a;
+}
+
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.legend i {
+	display: inline-block;
+	width: calc(var(--p) * 8);
+	height: calc(var(--p) * 6);
+	border: var(--p) solid #000;
+}
+
+.legend i.hands { background: var(--hands); }
+.legend i.idle { background: var(--idle); }
+
+
+
+/* Tooltip, after the game's item tooltip */
+
+.tooltip {
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 20;
+	max-width: min(92vw, 340px);
+	padding: calc(var(--p) * 3) calc(var(--p) * 4);
+	background: rgb(16 0 16 / 0.95);
+	color: #fff;
+	border: var(--p) solid transparent;
+	border-image: linear-gradient(#5000ff, #28007f) 1;
+	box-shadow: 0 0 0 var(--p) #100010;
+	font-size: 14px;
+	line-height: 1.5;
+	pointer-events: none;
+	white-space: pre-line;
+}
+
+.tooltip .t-name { display: block; color: #fff; }
+.tooltip .t-body { display: block; color: #a8a8a8; }
+
+/* Footer */
+
+.footer {
+	max-width: 1040px;
+	margin: 0 auto;
+	padding-block: 4px 32px;
+	padding-left: max(16px, env(safe-area-inset-left, 0px));
+	padding-right: max(16px, env(safe-area-inset-right, 0px));
+	color: var(--muted);
+	font-size: 0.8rem;
+}
+
+.footer p { margin: 0.3em 0; }
+
+.footer a { color: var(--link); }
+
+@media (prefers-reduced-motion: no-preference) {
+	html { scroll-behavior: smooth; }
+}
+</style>
+</head>
+<body>
+
+
+<nav class="tabs" aria-label="セクション">
+	<a class="tab" href="#about" aria-current="true"><canvas class="icon" data-icon="tray" width="16" height="16"></canvas><span>仕組み</span></a>
+	<a class="tab" href="#coding"><canvas class="icon" data-icon="paper" width="16" height="16"></canvas><span>書く</span></a>
+	<a class="tab" href="#check"><canvas class="icon" data-icon="lens" width="16" height="16"></canvas><span>確かめる</span></a>
+	<a class="tab" href="#plan"><canvas class="icon" data-icon="chart" width="16" height="16"></canvas><span>段取り</span></a>
+	<a class="tab" href="#write"><canvas class="icon" data-icon="book" width="16" height="16"></canvas><span>文章</span></a>
+</nav>
+
+<main>
+	<header class="hero">
+		<h1>Ozen</h1>
+		<p class="lead">料理のレシピを書くプログラミング言語。</p>
+		<p class="sub">レシピをコードで書きます。そのコードをもとに、作る前にまちがいを見つけ、誰がいつ何をするかまで決められます。</p>
+	</header>
+
+	<section class="panel" id="about">
+		<h2>仕組み</h2>
+		<p>レシピ・台所・作る人・何人分・出す時刻から、段取り表を作ります。同じレシピでも、台所や人数が変われば段取りも変わります。</p>
+		<div class="craft" role="group" aria-label="コンパイルの入力と出力">
+			<figure>
+				<span class="slot big" tabindex="0" data-tip-name="レシピ" data-tip-body=".ozen ファイルに書く"><canvas class="icon" data-icon="paper" width="16" height="16"></canvas></span>
+				<figcaption>レシピ<small>何を作るか</small></figcaption>
+			</figure>
+			<span class="op" aria-hidden="true">×</span>
+			<figure>
+				<span class="slot big" tabindex="0" data-tip-name="台所" data-tip-body="-k / --kitchen で渡す"><canvas class="icon" data-icon="stove" width="16" height="16"></canvas></span>
+				<figcaption>台所<small>場所と道具</small></figcaption>
+			</figure>
+			<span class="op" aria-hidden="true">×</span>
+			<figure>
+				<span class="slot big" tabindex="0" data-tip-name="作る人" data-tip-body="-c / --cooks で渡す"><canvas class="icon" data-icon="cook" width="16" height="16"></canvas></span>
+				<figcaption>作る人<small>何人で作るか</small></figcaption>
+			</figure>
+			<span class="op" aria-hidden="true">×</span>
+			<figure>
+				<span class="slot big" tabindex="0" data-tip-name="何人分" data-tip-body="-s / --servings で渡す"><canvas class="icon" data-icon="bowl" width="16" height="16"></canvas></span>
+				<figcaption>何人分<small>何人分作るか</small></figcaption>
+			</figure>
+			<span class="op" aria-hidden="true">×</span>
+			<figure>
+				<span class="slot big" tabindex="0" data-tip-name="出す時刻" data-tip-body="-t / --serve-at で渡す"><canvas class="icon" data-icon="clock" width="16" height="16"></canvas></span>
+				<figcaption>出す時刻<small>いつ出すか</small></figcaption>
+			</figure>
+			<span class="arrow" aria-hidden="true"></span>
+			<figure>
+				<span class="slot big" tabindex="0" data-tip-name="段取り表" data-tip-body="ここから、レシピの文章と買い物リストも作れる"><canvas class="icon" data-icon="chart" width="16" height="16"></canvas></span>
+				<figcaption>段取り表<small>誰がいつ何をするか</small></figcaption>
+			</figure>
+		</div>
+	</section>
+
+	<div class="group" id="coding">
+		<h2 class="group-title">料理のコードを書く</h2>
+		<section class="panel" id="recipe">
+			<h2>レシピを書く</h2>
+			<p>手順は <code>|&gt;</code> でつなぎます。量は 1 人分で書けます。</p>
+			<div class="code">
+				<span class="file"><b class="dish">ご飯と野菜炒め（2 人分）</b>yasaiItame.ozen</span>
+<pre><span class="kw">recipe</span> yasaiItame(servings: <span class="nu">2</span>) {
+  <span class="kw">ingredients</span> {
+    rice: <span class="nu">75 g</span> <span class="kw">per serving</span>
+    onion: <span class="nu">1 pcs</span>
+    carrot: <span class="nu">1 pcs</span>
+  }
+  <span class="kw">let</span> gohan = rice <span class="hl">|&gt;</span> wash <span class="hl">|&gt;</span> soak <span class="hl">|&gt;</span> cookRice
+  <span class="kw">let</span> onionCut = onion <span class="hl">|&gt;</span> peel <span class="hl">|&gt;</span> cut(style: slice)
+  <span class="kw">let</span> carrotCut = carrot <span class="hl">|&gt;</span> cut(style: julienne)
+  <span class="kw">let</span> itame = fry([onionCut, carrotCut], <span class="nu">5 min</span>)
+  <span class="kw">serve</span> main {
+    <span class="kw">plate</span> perPerson <span class="kw">on</span> <span class="ty">Bowl</span> { gohan }
+    <span class="kw">plate</span> shared <span class="kw">on</span> <span class="ty">FlatPlate</span> { itame }
+  }
+}
+<span class="kw">kitchen</span> duo : <span class="ty">Options</span> {
+  cooks: <span class="nu">2</span>
+  serveAt: <span class="nu">60 min</span>
+}</pre>
+			</div>
+		</section>
+
+		<section class="panel" id="vocab">
+			<h2>食材や動作を足す</h2>
+			<p>標準にない食材や動作は自分で定義できます。足したものにも同じ検査が効きます。</p>
+			<div class="pair">
+				<div class="code">
+					<span class="file"><b class="dish">マンゴーラッシー</b>mango.ozen</span>
+<pre><span class="kw">axis</span> ripeness : <span class="kw">ordered</span> { green, ripe }
+<span class="kw">ingredient</span> <span class="ty">Mango</span> : <span class="ty">Fruit</span> {
+  <span class="kw">axes</span>: ripeness, shape
+}
+<span class="kw">action</span> ripen(x: <span class="ty">T</span>, time: <span class="ty">Time</span>)
+  -&gt; <span class="ty">T&lt;ripeness: ripe&gt;</span> <span class="hl">@unattended</span>
+<span class="kw">action</span> scoop(x: <span class="ty">T&lt;ripeness &gt;= ripe&gt;</span>)
+  -&gt; <span class="ty">T&lt;shape: cut(biteSize)&gt;</span> {
+  <span class="kw">uses</span> hands <span class="kw">for</span> <span class="nu">2 min</span>
+}
+<span class="kw">recipe</span> mangoLassi {
+  <span class="kw">ingredients</span> { mango: <span class="ty">Mango</span> <span class="nu">1 pcs</span> }
+  <span class="kw">let</span> scooped = mango <span class="hl">|&gt;</span> scoop
+}</pre>
+				</div>
+				<div class="code">
+					<span class="file">ozen check mango.ozen</span>
+<pre class="out" style="border-top:0"><span class="er">error TYP006</span> stateRequired
+  11:17-11:22 args=["scoop", "x", "mango"]
+<span class="er">result error</span> errors=1</pre>
+					<span class="file" style="border-top:var(--p) solid #000">mango |&gt; ripen(48 h) |&gt; scoop にすると</span>
+<pre class="out" style="border-top:0">%1 = ripen(mango, 172800 s)
+  : <span class="ty">Mango&lt;ripeness: ripe&gt;</span> 1 pcs
+%2 = scoop(%1)
+  : <span class="ty">Mango&lt;ripeness: ripe,
+          shape: cut(biteSize)&gt;</span> 1 pcs
+<span class="ok">result ok</span> errors=0</pre>
+				</div>
+			</div>
+		</section>
+	</div>
+
+	<div class="group" id="check">
+		<h2 class="group-title">料理のコードを確かめる</h2>
+		<section class="panel" id="types">
+			<p style="margin-top:0">作り始める前に、量・食材の状態・材料の使い方のまちがいを知らせます。</p>
+			<div class="trio">
+				<div>
+					<h3>単位</h3>
+					<p>グラムと大さじは足せません。</p>
+					<div class="code">
+						<span class="file"><b class="dish">照り焼きのたれ</b>add-mismatch.ozen</span>
+<pre><span class="kw">recipe</span> teriyakiSauce {
+  <span class="kw">let</span> sauce = <span class="nu">200 g</span> + <span class="nu">2 tbsp</span>
+}</pre>
+<pre class="out"><span class="er">error TYP001</span> dimension
+  2:15-2:29 args=["Mass", "Volume"]</pre>
+					</div>
+				</div>
+				<div>
+					<h3>食材の状態</h3>
+					<p>皮をむく前の玉ねぎは切れません。</p>
+					<div class="code">
+						<span class="file"><b class="dish">玉ねぎのサラダ</b>peel-missing.ozen</span>
+<pre><span class="kw">recipe</span> onionSalad {
+  <span class="kw">ingredients</span> { onion: <span class="nu">1 pcs</span> }
+  <span class="kw">let</span> sliced = cut(onion, style: slice)
+}</pre>
+<pre class="out"><span class="er">error TYP006</span> stateRequired
+  3:20-3:25 args=["cut", "x", "onion"]</pre>
+					</div>
+				</div>
+				<div>
+					<h3>使った材料</h3>
+					<p>同じ米は 2 回洗えません。</p>
+					<div class="code">
+						<span class="file"><b class="dish">ご飯</b>double-use.ozen</span>
+<pre><span class="kw">recipe</span> gohan {
+  <span class="kw">ingredients</span> { rice: <span class="nu">300 g</span> }
+  <span class="kw">let</span> washed = wash(rice)
+  <span class="kw">let</span> washedAgain = wash(rice)
+}</pre>
+<pre class="out"><span class="hl">warning LIN005</span> unusedValue
+  3:7-3:13 args=["washed",
+    "Rice&lt;prep has washed&gt;"]
+<span class="er">error LIN001</span> doubleUse
+  4:26-4:30 args=["rice"]</pre>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+
+	<div class="group" id="plan">
+		<h2 class="group-title">料理のコードを段取りにする</h2>
+		<section class="panel" id="schedule">
+			<h2>人数と出す時刻に合わせる</h2>
+			<p>作る人数と出す時刻から、誰がいつ何をするかを決めます。下は「レシピを書く」のご飯と野菜炒めの段取りです。</p>
+			<div class="charts" id="charts" aria-label="段取りの比較"></div>
+			<div class="legend">
+				<span><i class="hands"></i>手を使う作業</span>
+				<span><i class="idle"></i>待つだけの作業</span>
+				<span>目盛り: 10 分</span>
+			</div>
+			<p>出す時刻を決めると、炒め物は出す直前に作ります。</p>
+			<div class="trio two" style="margin-top:1.4em">
+				<div>
+					<h3>作ったらすぐ使う</h3>
+					<p>かき揚げの衣のように時間がたつと悪くなるものには <code>@useWithin</code> を付けます。衣は混ぜてから 5 分以内に使えるよう、玉ねぎを切った後に混ぜます。</p>
+				<div class="code">
+					<span class="file"><b class="dish">玉ねぎとにんじんのかき揚げ</b>kakiage.ozen（抜粋）</span>
+<pre><span class="kw">recipe</span> kakiage {
+  <span class="kw">ingredients</span> {
+    egg: <span class="nu">1 pcs</span>
+    water: <span class="nu">200 ml</span>
+    onion: <span class="nu">1 pcs</span>
+    carrot: <span class="nu">1 pcs</span>
+  }
+  <span class="kw">let</span> batter = whisk([egg, water]) <span class="hl">@useWithin(5 min)</span>
+  <span class="kw">let</span> onionCut = onion <span class="hl">|&gt;</span> peel <span class="hl">|&gt;</span> cut(style: slice)
+  <span class="kw">let</span> carrotCut = carrot <span class="hl">|&gt;</span> cut(style: julienne)
+  <span class="kw">let</span> coated = coat([onionCut, carrotCut], batter)
+  <span class="kw">let</span> fried = deepFry(coated)
+}</pre>
+<pre class="out">schedule kakiage level=1 cooks=1
+  0..120 (60) %6 peel by cook1
+  120..300 (180) %7 cut by cook1
+  <span class="hl">300..600</span> (600) %4 whisk by cook1
+  600..780 (660) %9 cut by cook1
+  780..900 (900) %11 coat by cook1
+  900..1500 (1500) %12 deepFry by cook1</pre>
+				</div>
+				</div>
+				<div>
+					<h3>オーブンを温めておく</h3>
+					<p>オーブンを使う動作には温度を書きます。焼き始めに間に合うように、予熱を段取りに入れます。</p>
+				<div class="code">
+					<span class="file"><b class="dish">じゃがいものグラタン</b>preheat-backward.ozen（抜粋）</span>
+<pre><span class="kw">action</span> bake(x: <span class="ty">T</span>) -&gt; <span class="ty">T&lt;doneness: done&gt;</span> {
+  <span class="kw">uses</span> <span class="ty">HeatSource&lt;oven, heated: <span class="nu">180 degC</span>&gt;</span>
+    <span class="kw">for</span> <span class="nu">25 min</span> <span class="hl">@unattended</span>
+}
+<span class="kw">recipe</span> potatoGratin {
+  <span class="kw">ingredients</span> { potato: <span class="nu">2 pcs</span> }
+  <span class="kw">let</span> prepared = prepare(potato)
+  <span class="kw">let</span> baked = bake(prepared)
+}</pre>
+<pre class="out">schedule potatoGratin level=2 cooks=1
+  300..2100 (2100) %2 prepare by cook1
+  <span class="hl">900..2100</span> (1500) preheat oven#1
+    to 180 degC unattended [oven#1]
+  2100..3600 (3600) %3 bake unattended [oven#1]
+  total 3600</pre>
+				</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="panel" id="kitchen">
+			<h2>台所に合わせる</h2>
+			<p>フライパンに 250 g しか入らないので、600 g の豚肉を 3 回に分けて焼きます。</p>
+			<div class="pair">
+				<div class="code">
+					<span class="file"><b class="dish">豚の生姜焼き（600 g）</b>capacity-compile-time.ozen</span>
+<pre><span class="kw">kitchen</span> home {
+  <span class="kw">places</span> {
+    stove: <span class="ty">IHStove</span>
+  }
+  <span class="kw">tools</span> {
+    pan: <span class="ty">FryingPan</span> { capacity: <span class="nu">250 g</span> }
+  }
+}
+<span class="kw">recipe</span> porkGinger {
+  <span class="kw">ingredients</span> { pork: <span class="nu">600 g</span> }
+  <span class="kw">let</span> batches = ceil(pork / kitchen.pan.capacity)
+  <span class="kw">repeat</span> batches {
+    <span class="kw">let</span> fried = fry(pork / batches, <span class="nu">8 min</span>)
+  }
+}</pre>
+				</div>
+				<div class="code">
+					<span class="file">ozen debug steps --kitchen home capacity-compile-time.ozen</span>
+<pre class="out" style="border-top:0">%1 = fry(pork/3, 480 s)
+  : <span class="ty">Pork&lt;doneness: done,
+         browning: light&gt;</span> 200 g
+%2 = fry(pork/3, 480 s)
+  : <span class="ty">Pork&lt;doneness: done,
+         browning: light&gt;</span> 200 g
+%3 = fry(pork/3, 480 s)
+  : <span class="ty">Pork&lt;doneness: done,
+         browning: light&gt;</span> 200 g
+<span class="in">info SCH002</span> kitchenDependent
+  args=["kitchen.pan.capacity"]</pre>
+				</div>
+			</div>
+		</section>
+	</div>
+
+	<div class="group" id="write">
+		<h2 class="group-title">料理のコードを文章にする</h2>
+		<section class="panel" id="render-recipe">
+			<h2>レシピ</h2>
+			<p>人が読める材料と作り方の文章にします。</p>
+			<div class="code">
+				<span class="file">ozen render --kind recipe --lang ja yasaiItame.ozen</span>
+<pre class="out" style="border-top:0;color:var(--term-text)"># yasai itame
+
+## 材料
+- 米 150 g
+- 玉ねぎ 1個
+- にんじん 1本
+
+## 作り方
+1. 米を研ぐ、30 分浸す、炊く。
+2. 玉ねぎの皮をむく、薄切りにする（3 mm）。
+3. にんじんをせん切りにする（3 mm）。
+4. 玉ねぎ、にんじんを中火で5 分炒める。
+5. 米を盛り付ける。
+6. 玉ねぎ、にんじんを盛り付ける。</pre>
+			</div>
+		</section>
+
+		<section class="panel" id="render-shopping">
+			<h2>買い物リスト</h2>
+			<p>人数分の材料を、買うものの一覧にします。</p>
+			<div class="code">
+				<span class="file">ozen render --kind shopping --lang ja yasaiItame.ozen</span>
+<pre class="out" style="border-top:0;color:var(--term-text)"># 買い物リスト
+- 米 150 g
+- 玉ねぎ 1個
+- にんじん 1本</pre>
+			</div>
+		</section>
+	</div>
+</main>
+
+<footer class="footer">
+	<p><a href="https://github.com/atsuki-seo/Ozen">github.com/atsuki-seo/Ozen</a>・Ozen @VERSION@・コミット @COMMIT@</p>
+	<p>コード: MIT OR Apache-2.0・文書: CC BY 4.0</p>
+	<p>語彙表の廃棄率: 日本食品標準成分表（八訂）増補2023年から引用</p>
+</footer>
+
+<div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+<script>
+(() => {
+	// 16×16 pixel icons, drawn into canvases so nothing is fetched.
+	const ICONS = {
+		tray: {
+			pal: { k: "#2b1a14", w: "#f4f2ea", r: "#9c2a22", y: "#c8963c", B: "#3a2a28", R: "#c8382e", d: "#7a1d18" },
+			px: [
+				"................",
+				"................",
+				"................",
+				"..kkkkk...kkkkk.",
+				".kwwwwwk.kyyyyyk",
+				".kwwwwwk.kyyyyyk",
+				".krrrrrk.kBBBBBk",
+				"..krrrk...kBBBk.",
+				"...kkk.....kkk..",
+				"kkkkkkkkkkkkkkkk",
+				"kRRRRRRRRRRRRRRk",
+				"kddddddddddddddk",
+				".kRk........kRk.",
+				".kRk........kRk.",
+				".kkk........kkk.",
+				"................",
+			],
+		},
+		clock: {
+			pal: { k: "#2a2a2a", w: "#f4f2ea", h: "#c8382e", g: "#b8b8b0" },
+			px: [
+				"................",
+				".....kkkkkk.....",
+				"...kkwwwwwwkk...",
+				"..kwwwwkwwwwwk..",
+				".kwwwwwhwwwwwgk.",
+				".kwwwwwhwwwwwgk.",
+				"kwwwwwwhwwwwwwgk",
+				"kwkwwwwhwwwwkwgk",
+				"kwwwwwwhhhhhwwgk",
+				"kwwwwwwwwwwwwwgk",
+				".kwwwwwwwwwwwgk.",
+				".kwwwwwwwwwwwgk.",
+				"..kwwwwkwwwwgk..",
+				"...kkggggggkk...",
+				".....kkkkkk.....",
+				"................",
+			],
+		},
+		stove: {
+			pal: { k: "#1e1e1e", f: "#ff8a1a", F: "#ffd23c", S: "#d8d8d8", s: "#a8a8a8", D: "#3a3a46", G: "#5a5a6a" },
+			px: [
+				"................",
+				"...f.......f....",
+				"..fFf.....fFf...",
+				"..fFf.....fFf...",
+				".kkkkk...kkkkk..",
+				"kkkkkkkkkkkkkkkk",
+				"kSSSSSSSSSSSSSSk",
+				"kssssssssssssssk",
+				"kkkkkkkkkkkkkkkk",
+				"kSkkkkkkkkkkkkSk",
+				"kSkGDDDDDDDDDkSk",
+				"kSkDDDDDDDDDDkSk",
+				"kSkkkkkkkkkkkkSk",
+				"kSSSSSSSSSSSSSSk",
+				"kkkkkkkkkkkkkkkk",
+				".kk..........kk.",
+			],
+		},
+		paper: {
+			pal: { k: "#2a2a2a", w: "#f4f2ea", g: "#9a9a9a", s: "#d4d0c4" },
+			px: [
+				"................",
+				"..kkkkkkkkk.....",
+				"..kwwwwwwwkk....",
+				"..kwgggggwkwk...",
+				"..kwwwwwwwkkkk..",
+				"..kwggggwwwssk..",
+				"..kwwwwwwwwwwk..",
+				"..kwgggggggwwk..",
+				"..kwwwwwwwwwwk..",
+				"..kwggggggwwwk..",
+				"..kwwwwwwwwwwk..",
+				"..kwgggggwwwwk..",
+				"..kwwwwwwwwwwk..",
+				"..kssssssssssk..",
+				"..kkkkkkkkkkkk..",
+				"................",
+			],
+		},
+		book: {
+			pal: { k: "#1e1420", b: "#5a2a7a", B: "#7a3aa0", y: "#ffd23c", w: "#f4f2ea", g: "#b8b4a8" },
+			px: [
+				"................",
+				"..kkkkkkkkkkk...",
+				".kbbbbbbbbbbbk..",
+				".kbBBBBBBBBBbk..",
+				".kbByyyyyyyBbk..",
+				".kbByyyyyyyBbk..",
+				".kbBBBBBBBBBbk..",
+				".kbBBBBBBBBBbk..",
+				".kbBBBBBBBBBbk..",
+				".kbBBBBBBBBBbk..",
+				".kbBBBBBBBBBbk..",
+				".kbbbbbbbbbbbk..",
+				".kwwwwwwwwwwwk..",
+				".kgggggggggggk..",
+				"..kkkkkkkkkkk...",
+				"................",
+			],
+		},
+		lens: {
+			pal: { k: "#2a2a2a", G: "#bfe3f0", W: "#ffffff", h: "#7a4a24" },
+			px: [
+				"................",
+				"....kkkkkk......",
+				"...kGGGGGGk.....",
+				"..kGWWGGGGGk....",
+				".kGWWGGGGGGGk...",
+				".kGWGGGGGGGGk...",
+				".kGGGGGGGGGGk...",
+				".kGGGGGGGGGGk...",
+				".kGGGGGGGGGGk...",
+				"..kGGGGGGGGk....",
+				"...kGGGGGGkhh...",
+				"....kkkkkkkhhh..",
+				"...........hhhh.",
+				"............hhhh",
+				".............hhh",
+				"..............h.",
+			],
+		},
+		cook: {
+			pal: { k: "#2a1e14", W: "#f4f2ea", s: "#f0c8a0", c: "#5b7fd6" },
+			px: [
+				".....kkkkk......",
+				"....kWWWWWk.....",
+				"...kWWWWWWWk....",
+				"...kWWWWWWWk....",
+				"....kkkkkkk.....",
+				"....ksssssk.....",
+				"....ksksksk.....",
+				"....ksssssk.....",
+				".....ksssk......",
+				"...kkkkkkkkk....",
+				"..kcccWWWccck...",
+				"..kcccWWWccck...",
+				"..kcckWWWkcck...",
+				"..kkkkWWWkkkk...",
+				"....kWWWWWk.....",
+				"....kkkkkkk.....",
+			],
+		},
+		bowl: {
+			pal: { k: "#2a1a14", w: "#f4f2ea", R: "#c8382e", d: "#7a1d18" },
+			px: [
+				"................",
+				"................",
+				"................",
+				".....kkkkkk.....",
+				"...kkwwwwwwkk...",
+				"..kwwwwwwwwwwk..",
+				".kkkkkkkkkkkkkk.",
+				".kRRRRRRRRRRRRk.",
+				".kRRRRRRRRRRRRk.",
+				"..kRRRRRRRRRRk..",
+				"...kddddddddk...",
+				"....kkkkkkkk....",
+				".....kddddk.....",
+				".....kkkkkk.....",
+				"................",
+				"................",
+			],
+		},
+		chart: {
+			pal: { k: "#2a2a2a", w: "#f4f2ea", a: "#e2a64a", b: "#5b7fd6" },
+			px: [
+				"................",
+				".kkkkkkkkkkkkkk.",
+				".kwwwwwwwwwwwwk.",
+				".kwaaaaawwwwwwk.",
+				".kwwwwwwwwwwwwk.",
+				".kwwwwbbbbbbbwk.",
+				".kwwwwwwwwwwwwk.",
+				".kwwaaaawwwwwwk.",
+				".kwwwwwwwwwwwwk.",
+				".kwwwwwwwbbbbwk.",
+				".kwwwwwwwwwwwwk.",
+				".kwwwwwwwwaaawk.",
+				".kwwwwwwwwwwwwk.",
+				".kkkkkkkkkkkkkk.",
+				"................",
+				"................",
+			],
+		},
+	};
+
+	for (const c of document.querySelectorAll("canvas[data-icon]")) {
+		const icon = ICONS[c.dataset.icon];
+		if (!icon) continue;
+		const ctx = c.getContext("2d");
+		icon.px.forEach((row, y) => {
+			for (let x = 0; x < 16; x++) {
+				const color = icon.pal[row[x]];
+				if (!color) continue;
+				ctx.fillStyle = color;
+				ctx.fillRect(x, y, 1, 1);
+			}
+		});
+	}
+
+	// Schedules from `ozen debug schedule` (seconds from the start).
+	const TOTAL = 3600;
+	const NAMES = {
+		wash: ["洗", "米を洗う"],
+		soak: ["浸水 30 分", "米を浸す"],
+		peel: ["剥", "玉ねぎの皮をむく"],
+		cutOnion: ["切", "玉ねぎを薄切りにする"],
+		cutCarrot: ["切", "にんじんをせん切りにする"],
+		fry: ["炒 5 分", "玉ねぎとにんじんを炒める"],
+		cookRice: ["炊飯 20 分", "米を炊く（電子レンジ）"],
+		plateShared: ["盛", "野菜炒めを盛る"],
+		platePer: ["盛", "ご飯をよそう"],
+	};
+	const RUNS = [
+		{
+			title: "1 人・できるだけ早く",
+			serve: 3240,
+			fryEnd: 960,
+			lanes: [
+				["作り手 1", [["wash", 0, 180], ["peel", 180, 300], ["cutOnion", 300, 480], ["cutCarrot", 480, 660], ["fry", 660, 960], ["plateShared", 960, 1020], ["platePer", 3180, 3240]]],
+				["放置", [["soak", 180, 1980], ["cookRice", 1980, 3180]]],
+			],
+		},
+		{
+			title: "1 人・60 分後に出す",
+			serve: 3600,
+			fryEnd: 3480,
+			lanes: [
+				["作り手 1", [["wash", 360, 540], ["peel", 2700, 2820], ["cutCarrot", 2820, 3000], ["cutOnion", 3000, 3180], ["fry", 3180, 3480], ["plateShared", 3480, 3540], ["platePer", 3540, 3600]]],
+				["放置", [["soak", 540, 2340], ["cookRice", 2340, 3540]]],
+			],
+		},
+		{
+			title: "2 人・60 分後に出す",
+			serve: 3600,
+			fryEnd: 3540,
+			lanes: [
+				["作り手 1", [["wash", 360, 540], ["peel", 2940, 3060], ["cutOnion", 3060, 3240], ["fry", 3240, 3540], ["platePer", 3540, 3600]]],
+				["作り手 2", [["cutCarrot", 3060, 3240], ["plateShared", 3540, 3600]]],
+				["放置", [["soak", 540, 2340], ["cookRice", 2340, 3540]]],
+			],
+		},
+	];
+
+	const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+	const charts = document.getElementById("charts");
+
+	for (const run of RUNS) {
+		const wrap = document.createElement("div");
+		wrap.className = "chart-wrap";
+		const chart = document.createElement("div");
+		chart.className = "chart";
+		chart.innerHTML = `<div class="chart-head"><h3>${run.title}</h3><span>出す <b>${mmss(run.serve)}</b></span><span>炒め物の待ち <b>${Math.round((run.serve - run.fryEnd) / 60)} 分</b></span></div>`;
+		for (const [name, bars] of run.lanes) {
+			const label = document.createElement("div");
+			label.className = "lane-name";
+			label.textContent = name;
+			const lane = document.createElement("div");
+			lane.className = "lane";
+			for (const [key, from, to] of bars) {
+				const [short, long] = NAMES[key];
+				const bar = document.createElement("span");
+				bar.className = "bar " + (name === "放置" ? "idle" : "hands");
+				bar.style.left = `${(from / TOTAL) * 100}%`;
+				bar.style.width = `${((to - from) / TOTAL) * 100}%`;
+				bar.textContent = short;
+				bar.tabIndex = 0;
+				bar.dataset.tipName = long;
+				bar.dataset.tipBody = `${mmss(from)} → ${mmss(to)}（${Math.round((to - from) / 60)} 分）`;
+				lane.append(bar);
+			}
+			chart.append(label, lane);
+		}
+		const axisPad = document.createElement("div");
+		const axis = document.createElement("div");
+		axis.className = "axis";
+		for (const m of [0, 10, 20, 30, 40, 50, 60]) {
+			const t = document.createElement("span");
+			t.style.left = `${((m * 60) / TOTAL) * 100}%`;
+			t.textContent = m === 0 ? "0 分" : `${m}`;
+			axis.append(t);
+		}
+		chart.append(axisPad, axis);
+		wrap.append(chart);
+		charts.append(wrap);
+	}
+
+	// Tooltip, after the game's: follows the pointer, and taps toggle it on touch screens.
+	const tip = document.getElementById("tooltip");
+	let current = null;
+
+	function show(el, x, y) {
+		current = el;
+		tip.innerHTML = "";
+		const n = document.createElement("span");
+		n.className = "t-name";
+		n.textContent = el.dataset.tipName;
+		const b = document.createElement("span");
+		b.className = "t-body";
+		b.textContent = el.dataset.tipBody || "";
+		tip.append(n, b);
+		tip.hidden = false;
+		place(x, y);
+	}
+
+	function place(x, y) {
+		const r = tip.getBoundingClientRect();
+		let left = x + 14;
+		let top = y - r.height - 10;
+		if (left + r.width > innerWidth - 8) left = Math.max(8, x - r.width - 14);
+		if (top < 8) top = y + 18;
+		tip.style.transform = `translate(${left}px, ${top}px)`;
+	}
+
+	function hide() {
+		current = null;
+		tip.hidden = true;
+	}
+
+	document.addEventListener("pointermove", (e) => {
+		if (e.pointerType !== "mouse") return;
+		const el = e.target.closest("[data-tip-name]");
+		if (el) show(el, e.clientX, e.clientY);
+		else if (current) hide();
+	});
+
+	document.addEventListener("click", (e) => {
+		const el = e.target.closest("[data-tip-name]");
+		if (el && el !== current) {
+			const r = el.getBoundingClientRect();
+			show(el, r.left + r.width / 2, r.top);
+		} else if (!el || el === current) {
+			if (e.pointerType !== "mouse") hide();
+		}
+	});
+
+	document.addEventListener("focusin", (e) => {
+		const el = e.target.closest("[data-tip-name]");
+		if (!el) return;
+		const r = el.getBoundingClientRect();
+		show(el, r.left + r.width / 2, r.top);
+	});
+
+	document.addEventListener("focusout", hide);
+	addEventListener("scroll", () => { if (current) hide(); }, { passive: true });
+
+	// Mark the tab of the section in view.
+	const tabs = [...document.querySelectorAll(".tab")];
+	const sections = tabs.map((t) => document.querySelector(t.getAttribute("href")));
+	const observer = new IntersectionObserver((entries) => {
+		for (const entry of entries) {
+			if (!entry.isIntersecting) continue;
+			const i = sections.indexOf(entry.target);
+			tabs.forEach((t, j) => t.setAttribute("aria-current", String(i === j)));
+		}
+	}, { rootMargin: "-40% 0px -55% 0px" });
+	sections.forEach((s) => s && observer.observe(s));
+})();
+</script>
+</body>
+</html>
