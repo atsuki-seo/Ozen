@@ -62,3 +62,12 @@ source faoIceInFisheries {
   location: "Table in section 12, row Freshwater ice (density)"
   quote: "Freshwater ice 0.92 kg/l At 0°C"
 }
+source panasonicDishLineup {
+  kind: primary
+  title: "食器洗い乾燥機（食洗機） | 比較表"
+  publisher: "Panasonic"
+  url: "https://panasonic.jp/dish/lineup.html"
+  retrieved: "2026-11-01"
+  location: "比較表の行「運転時間※4（約）<50 Hz/60 Hz>」（NP-TZ500, NP-TH5, NP-TA5, NP-TSK2, NP-TSP2, NP-TSP1, NP-TCR5, NP-TML1, NP-TMLK1 の順）"
+  quote: "（洗浄～乾燥）88分／85分、（洗浄～乾燥）88分／85分、（洗浄～乾燥）88分／85分、93分／88分、93分／88分、93分／88分、（洗浄～乾燥）99分／94分、120分／120分、120分／120分"
+}

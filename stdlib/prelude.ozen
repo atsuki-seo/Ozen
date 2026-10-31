@@ -166,7 +166,7 @@ kind Fridge : Place, Chilling
 kind Freezer : Place, Freezing
 kind Dishwasher : Place, Washing {
   props {
-    runTime: 60..90 min @source(provisional)
+    runTime: 85..120 min @source(panasonicDishLineup)
   }
 }
 kind CuttingBoard : Tool, CuttingSurface {
