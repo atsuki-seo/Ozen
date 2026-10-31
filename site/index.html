@@ -59,6 +59,9 @@ body {
 	font-family: var(--font);
 	font-size: 16px;
 	line-height: 1.65;
+	/* Break Japanese lines between phrases rather than inside a word. */
+	word-break: auto-phrase;
+	text-wrap: pretty;
 }
 
 body::before {
@@ -293,7 +296,7 @@ strong {
 	justify-items: center;
 	gap: 4px;
 	margin: 0;
-	width: 7.5em;
+	min-width: 7.5em;
 	text-align: center;
 	font-size: 0.85rem;
 	line-height: 1.35;
@@ -301,6 +304,7 @@ strong {
 
 .craft figcaption small {
 	display: block;
+	white-space: nowrap;
 	color: #5e5e5e;
 	font-size: 0.75rem;
 }
@@ -324,7 +328,7 @@ strong {
 
 @media (max-width: 599px) {
 	.craft { gap: 8px 2px; }
-	.craft figure { width: 4.9em; font-size: 0.75rem; }
+	.craft figure { width: 4.9em; min-width: 0; font-size: 0.75rem; }
 	.craft figcaption small { display: none; }
 	.op { font-size: 1.1rem; margin-top: calc(var(--p) * 5); }
 	.arrow { width: calc(var(--p) * 14); height: calc(var(--p) * 10); margin-top: calc(var(--p) * 7); }
@@ -605,7 +609,7 @@ strong {
 
 	<section class="panel" id="about">
 		<h2>仕組み</h2>
-		<p>レシピ・台所・作る人・何人分・出す時刻から、段取り表を作ります。同じレシピでも、台所や人数が変われば段取りも変わります。</p>
+		<p>レシピ・台所・作る人・何人分・出す時刻から、段取り表を作ります。<br>同じレシピでも、台所や人数が変われば段取りも変わります。</p>
 		<div class="craft" role="group" aria-label="コンパイルの入力と出力">
 			<figure>
 				<span class="slot big" tabindex="0" data-tip-name="レシピ" data-tip-body=".ozen ファイルに書く"><canvas class="icon" data-icon="paper" width="16" height="16"></canvas></span>
