@@ -1850,8 +1850,12 @@ scripts/run-golden.sh 'node build/core-wasm/ozen.js' tests/golden
 bindings/wasm/worker-test.sh                          # → worker: <k> inputs, 0 mismatches
 [ "$(scripts/digest.sh 'node build/core-wasm/ozen.js' tests/golden samples)" = "$(scripts/digest.sh build/core-gcc-release/ozen tests/golden samples)" ]
 # G-PLAT-IOS・G-PLAT-ANDROID（D19。ワークフロー ci.yml のジョブ ios と android）
-id=$(gh run list --workflow ci.yml --commit "$(git rev-parse HEAD)" --json databaseId -q '.[0].databaseId')
-gh run view "$id" --json conclusion,headSha -q '.conclusion + " " + .headSha'      # → success <HEAD の sha>
+# ci.yml は paths-ignore の道（site/ など）だけの push では動かない。HEAD から遡り、ci.yml の実行がある最も新しいコミットの実行を使う
+ignored=($(awk '/^    paths-ignore:/ { on = 1; next } on && /^      - / { print ":(exclude,glob)" $2; next } !/^ *#/ { on = 0 }' .github/workflows/ci.yml))
+base=$(git log -1 --format=%H HEAD -- . "${ignored[@]}")
+for sha in $(git rev-list "$base~1..HEAD"); do id=$(gh run list --workflow ci.yml --commit "$sha" --json databaseId -q '.[0].databaseId'); [ -n "$id" ] && break; done
+gh run view "$id" --json conclusion -q .conclusion      # → success
+git diff --name-only "$(gh run view "$id" --json headSha -q .headSha)" HEAD -- . "${ignored[@]}"   # → 出力が空（実行のコミットと HEAD の差が無視する道だけ）
 rm -rf build/ci && gh run download "$id" -D build/ci
 for e in ios android; do [ "$(cat build/ci/digest-$e/digest.txt)" = "$(scripts/digest.sh build/core-gcc-release/ozen tests/golden samples)" ] || exit 1; done
 unzip -l build/ci/xcframework/Ozen.xcframework.zip | grep -oE '(ios-arm64-simulator|ios-arm64|macos-arm64_x86_64)/' | sort -u | wc -l   # → 3
