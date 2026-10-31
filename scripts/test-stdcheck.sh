@@ -34,7 +34,7 @@ def field(members, name):
 if what == "upper-action":
     find("action", "wash")["name"] = "Wash"
 elif what == "provisional-point":
-    field(find("ingredient", "Sugar")["members"], "density")["values"][0]["text"] = "0.70 g/ml"
+    field(find("ingredient", "ChocolateSauce")["members"], "density")["values"][0]["text"] = "1.30 g/ml"
 elif what == "fct-inline":
     chicken = find("ingredient", "Chicken")
     parts = next(m for m in chicken["members"] if m.get("section") == "parts")
@@ -84,7 +84,7 @@ S=(python3 -B "$tools/sources.py")
 expect sources-ok ' 0 missing fields, 0 quote mismatches, 0 provisional without search, 0 pdf in repo$' "${S[@]}" "$work/defs.json" "$root/stdlib/sources.ozen" "$work/log.yaml"
 mutate quote
 expect sources-quote ' 1 quote mismatches,' "${S[@]}" "$work/m.json" "$root/stdlib/sources.ozen" "$work/log.yaml"
-sed -i '/ingredients\.Sugar\.props\.density/d' "$work/log.yaml"
+sed -i '/ingredients\.ChocolateSauce\.props\.density/d' "$work/log.yaml"
 expect sources-unsearched ' 1 provisional without search,' "${S[@]}" "$work/defs.json" "$root/stdlib/sources.ozen" "$work/log.yaml"
 
 echo "test-stdcheck: $cases cases, $failed failed"

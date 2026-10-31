@@ -71,3 +71,30 @@ source panasonicDishLineup {
   location: "比較表の行「運転時間※4（約）<50 Hz/60 Hz>」（NP-TZ500, NP-TH5, NP-TA5, NP-TSK2, NP-TSP2, NP-TSP1, NP-TCR5, NP-TML1, NP-TMLK1 の順）"
   quote: "（洗浄～乾燥）88分／85分、（洗浄～乾燥）88分／85分、（洗浄～乾燥）88分／85分、93分／88分、93分／88分、93分／88分、（洗浄～乾燥）99分／94分、120分／120分、120分／120分"
 }
+source nibiohnWeightTable {
+  kind: primary
+  title: "『栄養摂取状況調査のための標準的図版ツール（2009年版）』に基づく重量目安表（2009年版）"
+  publisher: "独立行政法人 国立健康・栄養研究所"
+  url: "https://www.nibiohn.go.jp/eiken/chosa/pdf/jyuryomeyasuhyo2009_2013ver.pdf"
+  retrieved: "2026-11-01"
+  location: "計量カップ・計量スプーンの表（資料の 3〜5 ページ）。列は食品名、食品番号、ＭＣ１ 200ml、ＭＣ２ 200ml、ＭＳ１ 1ml、ＭＳ２ 2.5ml、ＭＳ３ 5ml、ＭＳ４ 15ml（単位 ｇ）。取得した PDF の sha256 は fdff6ed23419863730ef82a880d839d541c75f38dd35a4e03c8b9b1028dffa2b"
+  quote: "上白糖 03003 130 130 3 9; グラニュー糖 03005 180 180 4 12; 生クリーム － 210 210 5 15; ウスターソース 17001 240 240 6 17; 中濃ソース 17002 240 240 6 17; 濃厚ソース 17003 240 240 6 17; ノンオイルドレッシング 17039 5 15; 分離型ドレッシング 17040 6 17"
+}
+source mhlwMilkGravity2014 {
+  kind: primary
+  title: "資料１ 乳比重などの改正について（薬事・食品衛生審議会 食品衛生分科会 乳肉水産食品部会、2014年2月）"
+  publisher: "厚生労働省"
+  url: "https://www.mhlw.go.jp/file/05-Shingikai-11121000-Iyakushokuhinkyoku-Soumuka/0000036781.pdf"
+  retrieved: "2026-11-01"
+  location: "1 ページ「２．生乳、牛乳及び特別牛乳の比重について」の最初の項目。取得した PDF の sha256 は 7be3c479722f914383d1dfab777531910531e3061aa53e5b65c889a99e1954b0"
+  quote: "正常な生乳の比重は 1.027～1.035（平均 1.032（15℃））である。"
+}
+source yamanashiCucumberStandard {
+  kind: primary
+  title: "山梨県青果物標準出荷規格 きゅうり"
+  publisher: "山梨県"
+  url: "https://www.pref.yamanashi.jp/documents/24527/18_kyu-ri.pdf"
+  retrieved: "2026-11-01"
+  location: "２ 階級区分 （１）５ kg ダンボール規格（69 ページ）。取得した PDF の sha256 は 7938c3cee9c0cbbd6c49fb32fa11eeb5f465fcd1605fb81f089c2882051116a5"
+  quote: "２Ｌ １５０～２００ｇ未満、Ｌ １２０～１５０ｇ未満、Ｍ １００ｇ以上、Ｓ ９０ｇ以上、２Ｓ ７０ｇ以上"
+}

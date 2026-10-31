@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
+import std.units.jp.{cup}
 dimension Mass, Volume, Length, Time, Temperature, Count
 unit g : Mass = base
 unit kg : Mass = 1000 g
@@ -486,7 +487,7 @@ ingredient Cucumber : Vegetable, SkinEdible, RawEdible {
   leaves: light
   props {
     refuse: fct(mextFct2023, food: "06065", field: refuse)
-    unitWeight: 90..110 g/pcs @source(provisional)
+    unitWeight: 70..200 g/pcs @source(yamanashiCucumberStandard)
   }
 }
 ingredient Miso : Seasoning {
@@ -533,14 +534,14 @@ ingredient WorcesterSauce : Seasoning, Sauce {
   axes: []
   leaves: stain
   props {
-    density: 1.15..1.25 g/ml @source(provisional)
+    density: 240 g/cup @source(nibiohnWeightTable)
   }
 }
 ingredient Dressing : Seasoning, Sauce, RawEdible {
   axes: []
   leaves: oil
   props {
-    density: 0.95..1.10 g/ml @source(provisional)
+    density: 15..17 g/tbsp @source(nibiohnWeightTable)
   }
 }
 ingredient VanillaIce : Dairy, Frozen, RawEdible, Allergen(milk) {
@@ -551,7 +552,7 @@ ingredient Cream : Dairy, Refrigerated, RawEdible, Liquid, Allergen(milk) {
   axes: []
   leaves: oil, allergen
   props {
-    density: 1.00..1.03 g/ml @source(provisional)
+    density: 210 g/cup @source(nibiohnWeightTable)
   }
 }
 ingredient WhippedCream : Dairy, Refrigerated, RawEdible {
@@ -562,7 +563,7 @@ ingredient Sugar : Seasoning {
   axes: []
   leaves: starch
   props {
-    density: 0.60..0.85 g/ml @source(provisional)
+    density: 130..180 g/cup @source(nibiohnWeightTable)
   }
 }
 ingredient Strawberry : Fruit, RawEdible, SkinEdible {
@@ -596,7 +597,7 @@ ingredient Milk : Dairy, Liquid, Refrigerated, RawEdible, Allergen(milk) {
   axes: doneness
   leaves: light, allergen
   props {
-    density: 1.028..1.040 g/ml @source(provisional)
+    density: 1.027..1.035 g/ml @source(mhlwMilkGravity2014)
   }
 }
 ingredient Ice : Frozen, RawEdible {
