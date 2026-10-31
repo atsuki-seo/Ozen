@@ -35,6 +35,15 @@ check hex '[[ $base =~ ^[0-9a-f]{64}$ ]]'
 check exit-code-counts '[ "$base" != "$(d "$work/b" "$work/g" "$work/s")" ]'
 check output-counts '[ "$base" != "$(d "$work/c" "$work/g" "$work/s")" ]'
 check second-dir-counts '[ "$base" != "$(d "$work/a" "$work/g")" ]'
+check jobs-same '[ "$base" = "$(d "$work/a" "$work/g" "$work/s" --jobs 3)" ]'
+"$here/run-golden.sh" "$work/a" "$work/g" --keep "$work/kept" >/dev/null 2>&1 || true
+check reuse-all '[ "$(d "$work/a" "$work/g")" = "$(d "$work/b" "$work/g" --reuse "$work/kept")" ]'
+check reuse-runs-the-rest '[ "$base" != "$(d "$work/b" "$work/g" "$work/s" --reuse "$work/kept")" ]'
+check reuse-with-jobs '[ "$base" = "$(d "$work/a" "$work/g" "$work/s" --reuse "$work/kept" --jobs 3)" ]'
+printf '#!/bin/sh\nsleep 3\n' > "$work/slow"
+chmod +x "$work/slow"
+OZP_RUN_TIMEOUT=1 "$here/run-golden.sh" "$work/slow" "$work/g" --keep "$work/kept-slow" >/dev/null 2>&1 || true
+check reuse-timeout '[ "$(OZP_RUN_TIMEOUT=1 d "$work/slow" "$work/g")" = "$(d "$work/a" "$work/g" --reuse "$work/kept-slow")" ]'
 printf 'y\n' > "$work/g/x/proj/extra.ozen"
 check project-files-not-entries '[ "$base" = "$(d "$work/a" "$work/g" "$work/s")" ]'
 mkdir -p "$work/t/curry"

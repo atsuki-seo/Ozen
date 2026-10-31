@@ -45,6 +45,8 @@ expect() {
 }
 
 expect all-pass "golden: 3 passed, 0 failed, 0 timed out" 0
+expect jobs-all-pass "golden: 3 passed, 0 failed, 0 timed out" 0 --jobs 3
+expect jobs-only "golden: 1 passed, 0 failed, 0 timed out" 0 --jobs 2 --only syntax/args
 expect only-folder "golden: 1 passed, 0 failed, 0 timed out" 0 --only modules/project
 expect only-file "golden: 1 passed, 0 failed, 0 timed out" 0 --only syntax/args
 cases=$((cases + 1))
@@ -52,10 +54,17 @@ got=$("$here/run-golden.sh" "$work/fake" "$g" --std-version 1.0.0 --only modules
 [ "$got" = "golden: 0 passed, 1 failed, 0 timed out" ] || { echo "FAIL version-replaced: got '$got'" >&2; failed=$((failed + 1)); }
 printf 'args: wrong\nexit 0\n' > "$g/syntax/plain.out"
 expect mismatch "golden: 2 passed, 1 failed, 0 timed out" 1
+expect jobs-mismatch "golden: 2 passed, 1 failed, 0 timed out" 1 --jobs 3
+cases=$((cases + 1))
+fails=$("$here/run-golden.sh" "$work/fake" "$g" --std-version 9.8.7 --jobs 3 2>&1 >/dev/null | grep -c '^FAIL ') || true
+[ "$fails" = 1 ] || { echo "FAIL jobs-report: got $fails FAIL lines" >&2; failed=$((failed + 1)); }
 printf '// args: slow\n' > "$g/syntax/plain.ozen"
 cases=$((cases + 1))
 got=$(OZP_RUN_TIMEOUT=1 "$here/run-golden.sh" "$work/fake" "$g" --std-version 9.8.7 2>/dev/null | tail -n 1) || true
 [ "$got" = "golden: 2 passed, 0 failed, 1 timed out" ] || { echo "FAIL timeout: got '$got'" >&2; failed=$((failed + 1)); }
+cases=$((cases + 1))
+got=$(OZP_RUN_TIMEOUT=1 "$here/run-golden.sh" "$work/fake" "$g" --std-version 9.8.7 --jobs 3 2>/dev/null | tail -n 1) || true
+[ "$got" = "golden: 2 passed, 0 failed, 1 timed out" ] || { echo "FAIL jobs-timeout: got '$got'" >&2; failed=$((failed + 1)); }
 rm -rf "$g"/*
 expect empty "golden: 0 passed, 0 failed, 0 timed out" 1
 
