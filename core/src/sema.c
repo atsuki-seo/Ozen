@@ -4942,6 +4942,18 @@ static value eval_inner(sema *s, ozni_index node) {
       value out = {.kind = V_QTY};
       return fv.kind == V_FOOD && to_volume(s, fv.f, &out.q) ? out : unknown();
     }
+    if (callee->kind == OZNI_N_Member) {
+      const ozni_node *step = callee;
+      while (step->first != 0 && nd(s, s->file, step->first)->kind == OZNI_N_Member) {
+        step = nd(s, s->file, step->first);
+      }
+      const ozni_node *base = step->first != 0 ? nd(s, s->file, step->first) : nullptr;
+      value bv;
+      if (base != nullptr && base->kind == OZNI_N_Name && lookup_local(s, base->text, &bv)) {
+        ozni_str args[2] = {S(s, base->text), S(s, step->text)};
+        diag_node(s, OZNI_D_NAM_methodCall, s->file, step, args, 2);
+      }
+    }
     for (ozni_index c = callee->next; c != 0; c = nd(s, s->file, c)->next) {
       eval(s, c);
     }
