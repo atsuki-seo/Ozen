@@ -1,7 +1,7 @@
 # The `ozen` command
 
 `cli/` is the `ozen` command. It reads the files, calls the compiler in
-[`core/`](../core/README.md), and prints the result. `ozen render` passes the result to
+[`core/`](../core/README.md), and prints or writes the result. `ozen render` passes the result to
 the [renderer](../renderers/README.md) through node.
 
 ## Commands

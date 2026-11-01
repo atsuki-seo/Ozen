@@ -3,7 +3,8 @@
 `core/` is the compiler in C23 with no I/O of its own: parsing, imports, compile-time
 evaluation, type checking (dimensions, states, linear use of quantities and resources),
 the IR, and the scheduler. The [`ozen` command](../cli/README.md) reads the files and
-calls it, and the [platform bindings](../bindings/README.md) call it on other platforms.
+calls it, and the [platform bindings](../bindings/README.md) call it from Swift,
+JavaScript, and JNI.
 
 ## Public API
 
