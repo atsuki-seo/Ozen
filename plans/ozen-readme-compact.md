@@ -10,7 +10,7 @@
 - 本計画は記法の計画の後に続く作業の計画で、番号を引き継ぐ。設計判断は **D57** から、仕様項目は **S637** から付ける（記法の計画の最後は D56・S636）。
 - タスクの完了条件は、すべて **コマンドで合否が決まる形** で書く。人による確認はタスクにせず、§8 の引き渡しリストに回す。
 - 完了条件は、§5 で列挙する前提ゴールと、本計画 §5 で定義する `G-RD-*` で参照する。判定コマンドは §5 のコードブロックが正。表には書かない（表の中では `|` が `\|` になるため）。
-- §2 の D57〜D59 は、計画を書く前の 2026-11-01 にユーザーが決めた。D60〜D66 は、計画を書いた後の 2026-11-01 にユーザーに 1 件ずつ確認して決めた（7 件すべて個別確認。D64 は代替を選んだ）。D67 は、別の作業が README に足した節の扱いとして、同じ日に P0-2 の前に決めた。各節の先頭に「決定:」の行があり、推奨と代替の比較は経緯として残す（P0-1）。
+- §2 の D57〜D59 は、計画を書く前の 2026-11-01 にユーザーが決めた。D60〜D66 は、計画を書いた後の 2026-11-01 にユーザーに 1 件ずつ確認して決めた（7 件すべて個別確認。D64 は代替を選んだ）。D67 は、別の作業が README に足した節の扱いとして、同じ日に P0-2 の前に決めた。D68 は、最終ゲートで別の作業のコミットが範囲に入ったときの扱いとして、同じ日に P3-2 の途中で決めた。各節の先頭に「決定:」の行があり、推奨と代替の比較は経緯として残す（P0-1）。
 - 実装先の事実は、2026-11-01 に `7e3e8a5` のファイルを読み、`build/core-gcc-release/ozen` で実行して確かめた（§3）。書き終えた後に独立したサブエージェントの監査を 1 回受け、指摘を取り込んだ（§9）。
 - §4 の確かめられる主張には仕様項目 ID を付けてある。§5.3 の網羅表が、S 項目ごとにテストか §8 への引き渡し（理由付き）を示す。
 
@@ -131,6 +131,12 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 - **決定:** Introduction page の節（`site/index.html` と GitHub Pages への公開の説明）は `site/README.md` に移す。README には、紹介ページの URL を Documentation の節に 1 行だけ残す。（2026-11-01、ユーザー確認。計画を書いた後に別の作業がこの節を足したので、P0-2 の前に足した判断）
 - **推奨**: 上のとおり。D58 の「説明はそれが扱うフォルダの README に置く」と揃い、`site/` を開くと説明が表示される。紹介ページそのものは利用者向けの入口なので、README からリンクする。
 - 代替: README に節のまま残す。見出しが 4 つになり、紹介ページの公開の仕組み（ワークフロー・フォントの読み込み）という開発者向けの説明が README に残る。
+
+### D68. 範囲に入った別の作業のコミット 【決定済み】
+
+- **決定:** 推奨のとおり、範囲 `RD` に入った別の作業のコミットを §9 の `- 範囲に入った別の作業のコミット: <SHA>` の行に書き、`G-RD-SCOPE` はそのコミットが変えたファイルを数えない。core の停止（`G-CORE-FUZZ`）は別のセッションで直し、そのコミットも同じ行に書く。（2026-11-01、ユーザー確認。最終ゲートで `83db656` が範囲に入って `G-RD-SCOPE` が落ちたときに足した判断）
+- **推奨**: 上のとおり。本計画の作業は `main` を別の作業と分け合う（R3）。タグを付け替える方法（P0-2）は、本計画のコミットが既に範囲にあるので使えない。除外するコミットを計画の中に名指しで書くので、何を除いたかを後から確かめられる。書いた SHA が範囲に無い・実在しないときは `G-RD-SCOPE` が落ちる。
+- 代替: ゴールを変えず、落ちたことを既知の失敗として記録する。完了条件が満たされないまま残る。
 
 ---
 
@@ -261,6 +267,7 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 - **S680** 9 つの文書の ```` ```ozen ```` の塊に、空の `()` を持つ `recipe`・`menu` の宣言と `make` が無い。
 - **S681** 9 つの文書に日本語の文字（漢字・ひらがな・カタカナ）が無い（`CLAUDE.md` の言語の規則）。
 - **S682** 本計画の範囲（`RD`）でコミットされたファイルは、9 つの文書・`CLAUDE.md`・`scripts/goals.sh`・本ファイルだけ。
+- **S694** §9 の `- 範囲に入った別の作業のコミット: ` の行に書いたコミットは、どれも実在し、範囲 `RD` の中にある。S682 は、範囲のコミットのうちこの行に書いたものを除いて数える（D68）。
 - **S683** タグ `readme-start` がある（D60。無いと S682 の範囲が空になり、何も確かめずに合格するため）。
 - **S684** 本計画の範囲で、`scripts/goals.sh` と `CLAUDE.md` から消えた行が無い（足すだけ。既存のゴールを緩めない）。
 - **S685** 版は `0.1.0` のまま（D66）。
@@ -318,7 +325,7 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 
 | ID | 何を判定するか | 合格条件 |
 | --- | --- | --- |
-| `G-RD-DECISIONS` | D57〜D67 が確定しているか | 決定済み 11、未決 0、決定の行 11 |
+| `G-RD-DECISIONS` | D57〜D68 が確定しているか | 決定済み 12、未決 0、決定の行 12 |
 | `G-RD-COVERAGE` | S 項目すべてが網羅表に行を持ち、§8 の各項目に理由がある | 差分が空、理由の無い項目 0 |
 | `G-RD-PLAN-TESTS` | わざと壊す確認の記録が網羅表の行の数だけある | `mutations: <m> rows, <m> recorded` |
 | `G-RD-HEADINGS` | S637 | 見出しの並びが `Build Documentation License ` |
@@ -344,7 +351,7 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 | `G-RD-LINKS` | S679 | 先の無いリンク 0 |
 | `G-RD-NO-EMPTY-PARENS` | S680 | `empty-parens: <n> sources, 0 found, 0 unlisted exceptions` |
 | `G-RD-ENGLISH` | S681 | 0 |
-| `G-RD-SCOPE` | S682・S683 | `ok`、範囲の外のファイル 0 |
+| `G-RD-SCOPE` | S682・S683・S694 | `ok`、範囲に無い除外のコミット 0、範囲の外のファイル 0 |
 | `G-RD-ADD-ONLY` | S684 | 0 |
 | `G-RD-VERSION` | S685 | `0.1.0` |
 | `G-RD-CLAUDEMD` | S686 | 1 以上 |
@@ -354,9 +361,9 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 ```bash
 sec() { awk -v h="## $1" '/^```/{f=!f} !f&&$0==h{s=1;next} s&&!f&&/^## /{exit} s' README.md; }   # README の節の中身
 # G-RD-DECISIONS
-grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_RD   # → 11
+grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_RD   # → 12
 grep -c '^### D[0-9]*\. .*【未決】' $PLAN_RD       # → 0
-grep -c '^- \*\*決定:' $PLAN_RD                    # → 11
+grep -c '^- \*\*決定:' $PLAN_RD                    # → 12
 # G-RD-COVERAGE
 diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_RD | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
      <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_RD | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u)   # → 空
@@ -568,9 +575,14 @@ python3 -B scripts/check-test-names.py --empty-parens --exceptions scripts/empty
 grep -shP '[\p{Han}\p{Hiragana}\p{Katakana}]' $DOCS_RD | wc -l   # → 0
 # G-RD-SCOPE（タグが無いと git diff が何も出さずに合格するので、先にタグを確かめる）
 git rev-parse -q --verify refs/tags/readme-start >/dev/null && echo ok   # → ok
-git diff --no-renames --name-only $RD | grep -vxF -e README.md -e CONTRIBUTING.md -e cli/README.md -e core/README.md \
+ex=$(grep -oE '^- 範囲に入った別の作業のコミット: [0-9a-f]{7,40}' $PLAN_RD | awk '{print $NF}' |
+     while IFS= read -r c; do git rev-parse -q --verify "$c^{commit}" || echo "unknown:$c"; done)   # D68 の除外
+while IFS= read -r c; do [ -n "$c" ] || continue; git rev-list $RD | grep -qxF -- "$c" || echo "$c"; done <<< "$ex" | wc -l   # → 0
+git rev-list --no-merges $RD | grep -vxF -e "${ex:-none}" | while IFS= read -r c; do
+  git diff-tree --no-commit-id --no-renames --name-only -r "$c"
+done | sort -u | grep -vxF -e README.md -e CONTRIBUTING.md -e cli/README.md -e core/README.md \
   -e stdlib/README.md -e renderers/README.md -e bindings/README.md -e spec/README.md -e site/README.md \
-  -e CLAUDE.md -e scripts/goals.sh -e plans/ozen-readme-compact.md | wc -l   # → 0
+  -e CLAUDE.md -e scripts/goals.sh -e plans/ozen-readme-compact.md | wc -l   # → 0（コミットごとのファイルを数える）
 # G-RD-ADD-ONLY
 git diff --no-renames $RD -- scripts/goals.sh CLAUDE.md | grep '^-' | grep -vc '^---'   # → 0
 # G-RD-VERSION
@@ -671,6 +683,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S680 | 効かない条件 | `G-RD-NO-EMPTY-PARENS` | `cli/README.md` の束ねる例の `recipe tea` を `recipe tea()` にする | P2-1 |
 | S681 | 効かない条件 | `G-RD-ENGLISH` | `spec/README.md` に `日本食品標準成分表` を足す | P2-1 |
 | S682 | 副作用とコスト | `G-RD-SCOPE` | 作業用のコミットで `samples/` のファイルを 1 つ変える（確かめた後に取り消す） | P3-2 |
+| S694 | 前提の固定 | `G-RD-SCOPE` | §9 の除外の行に、範囲に無いコミット（`da0fb67`）を足す | P3-2 |
 | S683 | 前提の固定 | `G-RD-SCOPE` | タグ `readme-start` を一時的に別名に付け替える（確かめた後に戻す） | P3-2 |
 | S684 | 副作用とコスト | `G-RD-ADD-ONLY` | 作業用のコミットで `goal_G_REPO_README_LICENSE` の 1 行を消す（確かめた後に取り消す） | P3-2 |
 | S685 | 副作用とコスト | `G-RD-VERSION` | `VERSION` を `0.1.1` にする（確かめた後に戻す） | P3-2 |
@@ -844,6 +857,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S676・G-RD-DOC-CONTENT（P3-1、2026-11-01）。`CONTRIBUTING.md` の `--only core-gcc-release` を `--only core-gcc-relase` にする で落ちた。戻すと合格した
 - 網羅の監査: 指摘 15 件、取り込み 15 件（2026-11-01、P3-1、独立したサブエージェント）。ゴールが主張より弱いもの 12 件は、`G-RD-NO-PLAN-LINKS`（フォルダへのリンク・リンクの形によらない URL・参照形式のリンク）、`G-RD-INTRO`（`IR`）、`G-RD-PIPE-ALL`（空白を挟んだ入れ子の呼び出し）、`G-RD-DOC-EXAMPLES`（run の行の固定と旧 README との比較）、`G-RD-RENDER-SAME`（`renderers/README.md` との比較）、`G-RD-DOC-CONTENT`（cli・core・renderers・CONTRIBUTING の組を 15 足した）を強め、外した説明が README に戻らないことを見る `G-RD-NO-MOVED`（S690・S691）を足した。旧 README から消えた説明 1 件（Status の節の「実装し、テストした」の文）は、D65 で節ごと消す意図なので §4.5 に明記した。事実の食い違い 2 件（`core/README.md` の「別のプラットフォームで呼ぶ」、`cli/README.md` の「出力する」だけの説明）は文書を直した。監査が参考として挙げた 2 点（ライセンスの表の `fuzz/` が根に無いこと、例の検査が CI で回らないこと）は旧 README からの既存の事柄で、本計画の範囲の外とした
 - 最終ゲート（P3-2、2026-11-01、`ca0c4a0` の後、HEAD は `83db656`）: 手元の前提ゴール 62 個と `G-RD-*` 31 個のうち 91 個が合格し、2 個が落ちた（約 65 分）。`G-RD-SCOPE` は、別の作業のコミット `83db656`（`site/index.html` の例を分ける）が範囲に入ったため（R3）で、範囲の外のファイルは `site/index.html` だけ。`G-CORE-FUZZ` は `fuzz-schedule` が corpus の読み込み中に 5 秒の時間切れを出した（成果物 `build/fuzz-core/artifacts/schedule-timeout-bacbf149…`。`capacity: 001 g` で 500 回の `repeat` になる入力で、単独で流しても 30 秒で打ち切られる）。範囲で core・cli・stdlib・renderers のコードは変わっておらず（変わったのは各フォルダの `README.md` だけ）、着手前からある scheduler の遅さが、育った corpus で表に出たもの。本計画の範囲（文書だけ、S682）の外なので直さず、ユーザーに報告する。push は別の作業が `83db656` と一緒に済ませていた。`G-REPO-NOREPLY`・`G-RD-GH-READMES`・`G-PLAT-CI`（`83db656` の ci が全ジョブ成功）は合格
+- 範囲に入った別の作業のコミット: 83db656（`site/index.html` の紹介ページの例を、レシピと献立に分ける。D68）
 - わざと壊す確認の記録（各タスク）: `- わざと壊す確認: S<n>・<ゴール>（<タスク>、<日付>）。<壊し方> で落ちた。戻すと合格した` の形で書く
 - 網羅の監査（P3-1）: `- 網羅の監査: 指摘 <k> 件、取り込み <m> 件` の形で書く
 

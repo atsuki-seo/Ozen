@@ -738,9 +738,9 @@ rd_blk() { awk -v r="$1" '$0==r{s=1;next} s&&/^```text$/{t=1;next} t&&/^```$/{ex
 rd_example() { awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md; }
 
 goal_G_RD_DECISIONS() {
-  want_eq "decided" 11 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_RD)"
+  want_eq "decided" 12 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_RD)"
   want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*【未決】' $PLAN_RD)"
-  want_eq "decision lines" 11 "$(grep -c '^- \*\*決定:' $PLAN_RD)"
+  want_eq "decision lines" 12 "$(grep -c '^- \*\*決定:' $PLAN_RD)"
 }
 
 goal_G_RD_COVERAGE() {
@@ -1063,10 +1063,21 @@ goal_G_RD_ENGLISH() {
   want_eq "Japanese lines" 0 "$(LC_ALL=C.UTF-8 grep -shP '[\p{Han}\p{Hiragana}\p{Katakana}]' $DOCS_RD | wc -l)"
 }
 
+rd_excluded() {
+  grep -oE '^- 範囲に入った別の作業のコミット: [0-9a-f]{7,40}' $PLAN_RD | awk '{print $NF}' |
+    while IFS= read -r c; do git rev-parse -q --verify "$c^{commit}" || echo "unknown:$c"; done
+}
+
 goal_G_RD_SCOPE() {
+  local ex c
   want_eq "tag readme-start" ok "$(git rev-parse -q --verify refs/tags/readme-start >/dev/null && echo ok)"
+  ex=$(rd_excluded)
+  want_eq "excluded commits outside the range" 0 \
+    "$(while IFS= read -r c; do [ -n "$c" ] || continue; git rev-list $RD | grep -qxF -- "$c" || echo "$c"; done <<< "$ex" | wc -l)"
   want_eq "files outside scope" 0 \
-    "$(git diff --no-renames --name-only $RD | grep -vxF -e README.md -e CONTRIBUTING.md -e cli/README.md -e core/README.md \
+    "$(git rev-list --no-merges $RD | grep -vxF -e "${ex:-none}" | while IFS= read -r c; do
+         git diff-tree --no-commit-id --no-renames --name-only -r "$c"
+       done | sort -u | grep -vxF -e README.md -e CONTRIBUTING.md -e cli/README.md -e core/README.md \
          -e stdlib/README.md -e renderers/README.md -e bindings/README.md -e spec/README.md -e site/README.md \
          -e CLAUDE.md -e scripts/goals.sh -e plans/ozen-readme-compact.md | wc -l)"
 }
