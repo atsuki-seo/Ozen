@@ -10,7 +10,8 @@ in node and in browsers. `node renderers/tools/bundle.mjs` makes one file for We
 
 ## Example
 
-`ozen render` calls the renderer through node. With this recipe:
+`ozen render` calls the renderer through node. With this recipe,
+`ozen render --kind recipe --lang en soup.ozen` prints:
 
 <!-- file: soup.ozen -->
 ```ozen
@@ -44,5 +45,5 @@ recipe soup(servings: 2) {
 ## Phrases
 
 Phrases are layered as `std`, then the dependencies, then the project's own
-`phrases/<lang>.ftl`; a missing phrase falls back to English and then to a name made
-from the identifier. The phrases of `std` are in [`phrases/`](../phrases/).
+`phrases/<lang>.ftl`; a missing phrase falls back to English and then to
+a name made from the identifier. The phrases of `std` are in [`phrases/`](../phrases/).
