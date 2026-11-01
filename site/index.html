@@ -650,25 +650,40 @@ strong {
 		<h2 class="group-title">料理のコードを書く</h2>
 		<section class="panel" id="recipe">
 			<h2>レシピを書く</h2>
-			<p>手順は <code>|&gt;</code> でつなぎます。量は 1 人分で書けます。</p>
+			<p>料理ごとにレシピを書き、献立で 1 つの食事にまとめます。手順は <code>|&gt;</code> でつなぎ、量は 1 人分で書けます。</p>
 			<div class="code">
-				<span class="file"><b class="dish">ご飯と野菜炒め（2 人分）</b>yasaiItame.ozen</span>
-<pre><span class="kw">recipe</span> yasaiItame(servings: <span class="nu">2</span>) {
+				<span class="file"><b class="dish">野菜炒め定食（2 人分）</b>teishoku.ozen</span>
+<pre><span class="cm">// ご飯のレシピ</span>
+<span class="kw">recipe</span> gohan(servings: <span class="nu">2</span>) {
   <span class="kw">ingredients</span> {
-    rice: <span class="nu">75 g</span> <span class="kw">per serving</span>
-    onion: <span class="nu">1 pcs</span>
-    carrot: <span class="nu">1 pcs</span>
+    rice: <span class="nu">75 g</span> <span class="kw">per serving</span>  <span class="cm">// 1 人分の量</span>
   }
-  <span class="kw">let</span> gohan = rice <span class="hl">|&gt;</span> wash <span class="hl">|&gt;</span> soak <span class="hl">|&gt;</span> cookRice
+  <span class="kw">let</span> cooked = rice <span class="hl">|&gt;</span> wash <span class="hl">|&gt;</span> soak <span class="hl">|&gt;</span> cookRice
+}
+
+<span class="cm">// 野菜炒めのレシピ</span>
+<span class="kw">recipe</span> yasaiItame(servings: <span class="nu">2</span>) {
+  <span class="kw">ingredients</span> {
+    onion: <span class="nu">0.5 pcs</span> <span class="kw">per serving</span>
+    carrot: <span class="nu">0.5 pcs</span> <span class="kw">per serving</span>
+  }
   <span class="kw">let</span> onionCut = onion <span class="hl">|&gt;</span> peel <span class="hl">|&gt;</span> cut(style: slice)
   <span class="kw">let</span> carrotCut = carrot <span class="hl">|&gt;</span> cut(style: julienne)
   <span class="kw">let</span> itame = fry([onionCut, carrotCut], <span class="nu">5 min</span>)
+}
+
+<span class="cm">// 献立: ご飯と野菜炒めを定食にする</span>
+<span class="kw">menu</span> yasaiItameTeishoku(people: <span class="nu">2</span>) {
+  <span class="kw">let</span> rice = <span class="kw">make</span> gohan(servings: <span class="nu">2</span>)
+  <span class="kw">let</span> itame = <span class="kw">make</span> yasaiItame(servings: <span class="nu">2</span>)
   <span class="kw">serve</span> main {
-    <span class="kw">plate</span> perPerson <span class="kw">on</span> <span class="ty">Bowl</span> { gohan }
-    <span class="kw">plate</span> shared <span class="kw">on</span> <span class="ty">FlatPlate</span> { itame }
+    <span class="kw">plate</span> perPerson <span class="kw">on</span> <span class="ty">Bowl</span> { rice }     <span class="cm">// 1 人ずつ</span>
+    <span class="kw">plate</span> shared <span class="kw">on</span> <span class="ty">FlatPlate</span> { itame }  <span class="cm">// 大皿で</span>
   }
 }
-<span class="kw">kitchen</span> duo : <span class="ty">Options</span> {
+
+<span class="cm">// 今日の条件: 2 人で作り、60 分後に出す</span>
+<span class="kw">kitchen</span> twoCooks : <span class="ty">Options</span> {
   cooks: <span class="nu">2</span>
   serveAt: <span class="nu">60 min</span>
 }</pre>
@@ -768,7 +783,7 @@ strong {
 		<h2 class="group-title">料理のコードを段取りにする</h2>
 		<section class="panel" id="schedule">
 			<h2>人数と出す時刻に合わせる</h2>
-			<p>作る人数と出す時刻から、誰がいつ何をするかを決めます。下は「レシピを書く」のご飯と野菜炒めの段取りです。</p>
+			<p>作る人数と出す時刻から、誰がいつ何をするかを決めます。下は「レシピを書く」の野菜炒め定食の段取りです。</p>
 			<div class="charts" id="charts" aria-label="段取りの比較"></div>
 			<div class="legend">
 				<span><i class="hands"></i>手を使う作業</span>
@@ -875,8 +890,8 @@ strong {
 			<h2>レシピ</h2>
 			<p>人が読める材料と作り方の文章にします。</p>
 			<div class="code">
-				<span class="file">ozen render --kind recipe --lang ja yasaiItame.ozen</span>
-<pre class="out" style="border-top:0;color:var(--term-text)"># yasai itame
+				<span class="file">ozen render --kind recipe --lang ja teishoku.ozen</span>
+<pre class="out" style="border-top:0;color:var(--term-text)"># yasai itame teishoku
 
 ## 材料
 - 米 150 g
@@ -897,7 +912,7 @@ strong {
 			<h2>買い物リスト</h2>
 			<p>人数分の材料を、買うものの一覧にします。</p>
 			<div class="code">
-				<span class="file">ozen render --kind shopping --lang ja yasaiItame.ozen</span>
+				<span class="file">ozen render --kind shopping --lang ja teishoku.ozen</span>
 <pre class="out" style="border-top:0;color:var(--term-text)"># 買い物リスト
 - 米 150 g
 - 玉ねぎ 1個
