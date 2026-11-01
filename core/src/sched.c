@@ -369,6 +369,14 @@ static uint8_t first_cost(const ozni_sched *s, uint32_t i, uint32_t j) {
   return worst;
 }
 
+static bool spend(const ozni_sched *s, uint64_t work) {
+  if (s->steps_used == nullptr) {
+    return true;
+  }
+  *s->steps_used += work;
+  return *s->steps_used <= s->max_steps;
+}
+
 static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const uint32_t *dep_count,
                 const uint32_t *deps) {
   uint32_t n = s->ntasks;
@@ -466,6 +474,9 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
       if (ok) {
         ready[nready++] = i;
       }
+    }
+    if (!spend(s, (uint64_t)n + (uint64_t)nready * nready)) {
+      return false;
     }
     for (uint32_t r = 0; r < nready; r++) {
       defer[ready[r]] = false;

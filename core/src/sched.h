@@ -134,6 +134,8 @@ typedef struct ozni_sched {
   bool tie_reverse;
   bool reuse_units;
   const ozni_rat *rank;
+  uint64_t *steps_used;
+  uint64_t max_steps;
 } ozni_sched;
 
 [[nodiscard]] bool ozni_schedule(ozni_arena *ar, ozni_sched *s);

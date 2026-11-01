@@ -253,7 +253,7 @@ static void diag(sema *s, ozni_diag_id id, ozni_index file, uint32_t start, uint
 
 static bool printing(const sema *s) { return s->steps && s->out != nullptr && s->quiet == 0; }
 
-static void limit_diag(sema *s, ozni_diag_id id, ozni_index file, const ozni_node *n, uint64_t limit) {
+static void limit_diag_at(sema *s, ozni_diag_id id, ozni_index file, uint32_t start, uint32_t end, uint64_t limit) {
   char num[24], rev[24];
   size_t len = 0;
   do {
@@ -264,10 +264,14 @@ static void limit_diag(sema *s, ozni_diag_id id, ozni_index file, const ozni_nod
     num[k] = rev[len - 1 - k];
   }
   ozni_str arg = {num, (uint32_t)len};
-  if (!ozni_diag_add(s->c, id, (ozni_span){file, n->span.start, n->span.end}, s->trail, &arg, 1)) {
+  if (!ozni_diag_add(s->c, id, (ozni_span){file, start, end}, s->trail, &arg, 1)) {
     s->c->oom = true;
   }
   s->c->limit_hit = true;
+}
+
+static void limit_diag(sema *s, ozni_diag_id id, ozni_index file, const ozni_node *n, uint64_t limit) {
+  limit_diag_at(s, id, file, n->span.start, n->span.end, limit);
 }
 
 static bool tick(sema *s, ozni_index file, const ozni_node *n) {
@@ -8197,6 +8201,16 @@ static bool hot_enough(sema *s, const sched_unit *su, const ozni_ir_req *req) {
   return true;
 }
 
+static void sched_fuel_diag(sema *s) {
+  if (s->c->limit_hit || s->c->steps_used <= s->c->lim.steps || s->dish_node == 0) {
+    return;
+  }
+  const ozni_node *dish = nd(s, s->dish_file, s->dish_node);
+  uint32_t start, end;
+  name_span(dish, S(s, dish->text), &start, &end);
+  limit_diag_at(s, OZNI_D_MAC_fuelExhausted, s->dish_file, start, end, s->c->lim.steps);
+}
+
 static void schedule_dish(sema *s, ozni_index name) {
   uint32_t total = ozni_table_count(s->ir.nodes) - s->ir_base;
   ozni_sched_task *tasks = ozni_arena_alloc(s->c->arena, (total + 1) * sizeof *tasks);
@@ -8499,7 +8513,9 @@ static void schedule_dish(sema *s, ozni_index name) {
                           .soak_hi = has_soak ? soak.v.hi : ozni_rat_int(0),
                           .cleanup = str_is(cleanup_text, "beforeMeal")  ? OZNI_CLEANUP_BEFORE_MEAL
                                      : str_is(cleanup_text, "afterMeal") ? OZNI_CLEANUP_AFTER_MEAL
-                                                                         : OZNI_CLEANUP_NONE},
+                                                                         : OZNI_CLEANUP_NONE,
+                          .steps_used = s->dish_file < s->c->nuser ? &s->c->steps_used : nullptr,
+                          .max_steps = s->c->lim.steps},
                  .node_of = node_of,
                  .units = units,
                  .alt_variant = alt_variant,
@@ -8604,6 +8620,7 @@ static void schedule_dish(sema *s, ozni_index name) {
       o.plan.first_serve = serves[0];
       o.plan.last_serve = nwaves > 0 ? serves[nwaves - 1] : ozni_rat_int(0);
       if (!ozni_schedule(s->c->arena, &o.plan)) {
+        sched_fuel_diag(s);
         return;
       }
       bool changed = !known;
@@ -8731,6 +8748,7 @@ static void schedule_dish(sema *s, ozni_index name) {
       o.plan.backward = false;
       o.plan.serve_at = ozni_rat_int(0);
       if (!ok) {
+        sched_fuel_diag(s);
         return;
       }
       for (uint32_t i = 0; i < ntasks; i++) {
