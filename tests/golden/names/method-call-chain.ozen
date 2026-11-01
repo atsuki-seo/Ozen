@@ -1,0 +1,4 @@
+recipe negiTopping {
+  ingredients { negi: Onion 1 pcs }
+  let sliced = negi.peel.cut(slice, 2 mm)
+}

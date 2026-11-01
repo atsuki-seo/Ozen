@@ -1,0 +1,4 @@
+warning LIN005 unusedValue method-call-chain.ozen:2:17-2:21 args=["negi", "Onion"]: unused value
+error NAM019 methodCall method-call-chain.ozen:3:16-3:25 args=["negi", "peel"]: method call
+result error errors=1 warnings=1 infos=0
+exit 1
