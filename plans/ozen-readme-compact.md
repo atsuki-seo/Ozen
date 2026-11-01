@@ -826,6 +826,23 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S685・G-RD-VERSION（P3-2、2026-11-01）。`VERSION` を `0.1.1` にする で落ちた。戻すと合格した
 - 壊し方とゴールの直し（2026-11-01）: 網羅表の方法のうち 3 つが最初は落ちなかった。S648 の `cut(peel(carrot), …)` は `G-RD-PIPE-ALL` の正規表現（名前の後に空白を求める）に掛からないので、名前や入れ子の呼び出しを第 1 引数に取る `let` の行を数える検査を足した（ゴールの弱さ）。S652 は `build-core.sh --only` が既定の一覧を見ないので一覧から外しても壊れず、場合分けを狭める方法に変えた。S661 は段落の中の注釈が GFM でも見えないままなので、字下げのコードの塊にする方法に変えた（どちらも壊し方の誤りで、ゴールは変えていない）
 - P1・P2 の判定（2026-11-01）: 8 つの文書と README を書いた後、`G-RD-GH-READMES`・`G-RD-AUDIT`・`G-RD-PLAN-TESTS` を除く `G-RD-*` 28 個と、`G-REPO-README-LICENSE`・`G-RF-README-EXAMPLE`・`G-RF-README-PIPE`・`G-RF-README-NO-PROTO`・`G-RF-NO-EMPTY-PARENS` がすべて合格した。README は 77 行
+- わざと壊す確認: S639・G-RD-NO-PLAN-LINKS（P3-1、2026-11-01）。README に `[Plans](plans)` を足す で落ちた。戻すと合格した
+- わざと壊す確認: S639・G-RD-NO-PLAN-LINKS（P3-1、2026-11-01）。README に `<https://github.com/atsuki-seo/Ozen/tree/main/docs/>` を足す で落ちた。戻すと合格した
+- わざと壊す確認: S690・G-RD-NO-MOVED（P3-1、2026-11-01）。README に `### Status` の節を足す で落ちた。戻すと合格した
+- わざと壊す確認: S690・G-RD-NO-MOVED（P3-1、2026-11-01）。README の Build の節に言語名の無いコマンドの書式の塊を貼る で落ちた。戻すと合格した
+- わざと壊す確認: S691・G-RD-NO-MOVED（P3-1、2026-11-01）。README に `provisionalValue` の文を足す で落ちた。戻すと合格した
+- わざと壊す確認: S644・G-RD-INTRO（P3-1、2026-11-01）。冒頭の段落から `an IR and` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S648・G-RD-PIPE-ALL（P3-1、2026-11-01）。carrot の行を `cut( peel(carrot), rollCut, 20 mm)` にする で落ちた。戻すと合格した
+- わざと壊す確認: S692・G-RD-RENDER-SAME（P3-1、2026-11-01）。`renderers/README.md` の例の `slice` を `dice` にし、期待の出力を実行の出力に合わせる で落ちた。戻すと合格した
+- わざと壊す確認: S693・G-RD-DOC-EXAMPLES（P3-1、2026-11-01）。`cli/README.md` の段取りの例の run の行を `cat kitchen.ozen` にし、出力の塊を `kitchen.ozen` の中身にする で落ちた。戻すと合格した
+- わざと壊す確認: S693・G-RD-DOC-EXAMPLES（P3-1、2026-11-01）。`cli/README.md` の `package.ozen` の版と期待の出力の `from:` の版を `0.2.0` にする で落ちた。戻すと合格した
+- わざと壊す確認: S668・G-RD-DOC-CONTENT（P3-1、2026-11-01）。`cli/README.md` から `Times are in seconds.` だけを消す で落ちた。戻すと合格した
+- わざと壊す確認: S669・G-RD-DOC-CONTENT（P3-1、2026-11-01）。`cli/README.md` から `, except `std`,` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S670・G-RD-DOC-CONTENT（P3-1、2026-11-01）。`core/README.md` から `with no I/O of its own` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S673・G-RD-DOC-CONTENT（P3-1、2026-11-01）。`renderers/README.md` から `and runs in node and in browsers` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S676・G-RD-DOC-CONTENT（P3-1、2026-11-01）。`CONTRIBUTING.md` の 4 構成の文を「builds the core with ASan and UBSan」にする で落ちた。戻すと合格した
+- わざと壊す確認: S676・G-RD-DOC-CONTENT（P3-1、2026-11-01）。`CONTRIBUTING.md` の `--only core-gcc-release` を `--only core-gcc-relase` にする で落ちた。戻すと合格した
+- 網羅の監査: 指摘 15 件、取り込み 15 件（2026-11-01、P3-1、独立したサブエージェント）。ゴールが主張より弱いもの 12 件は、`G-RD-NO-PLAN-LINKS`（フォルダへのリンク・リンクの形によらない URL・参照形式のリンク）、`G-RD-INTRO`（`IR`）、`G-RD-PIPE-ALL`（空白を挟んだ入れ子の呼び出し）、`G-RD-DOC-EXAMPLES`（run の行の固定と旧 README との比較）、`G-RD-RENDER-SAME`（`renderers/README.md` との比較）、`G-RD-DOC-CONTENT`（cli・core・renderers・CONTRIBUTING の組を 15 足した）を強め、外した説明が README に戻らないことを見る `G-RD-NO-MOVED`（S690・S691）を足した。旧 README から消えた説明 1 件（Status の節の「実装し、テストした」の文）は、D65 で節ごと消す意図なので §4.5 に明記した。事実の食い違い 2 件（`core/README.md` の「別のプラットフォームで呼ぶ」、`cli/README.md` の「出力する」だけの説明）は文書を直した。監査が参考として挙げた 2 点（ライセンスの表の `fuzz/` が根に無いこと、例の検査が CI で回らないこと）は旧 README からの既存の事柄で、本計画の範囲の外とした
 - わざと壊す確認の記録（各タスク）: `- わざと壊す確認: S<n>・<ゴール>（<タスク>、<日付>）。<壊し方> で落ちた。戻すと合格した` の形で書く
 - 網羅の監査（P3-1）: `- 網羅の監査: 指摘 <k> 件、取り込み <m> 件` の形で書く
 
