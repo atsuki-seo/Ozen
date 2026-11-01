@@ -322,7 +322,7 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 | `G-RD-NO-OZENDATE` | S641 | 0 |
 | `G-RD-INTRO` | S642〜S645 | 5 つの語の数がすべて 1 以上、文の数が 2〜3 |
 | `G-RD-EXAMPLE` | S646・S647・S649 | 塊 1、`recipe soup` 1、`run:` の行 1、`before`、`readme: 1 examples, 0 mismatches` |
-| `G-RD-PIPE-ALL` | S648 | パイプの無い `let` の行 0、パイプの数 2 以上 |
+| `G-RD-PIPE-ALL` | S648 | パイプの無い `let` の行 0、名前を第 1 引数に取る呼び出しの `let` の行 0、パイプの数 2 以上 |
 | `G-RD-RENDER-SAME` | S650 | 差分が空、出力の塊の行 5 以上 |
 | `G-RD-BUILD` | S651・S653・S654 | 4 つの数がすべて 1 以上 |
 | `G-RD-BUILD-RUN` | S652 | `core-build: 1 configs, 0 failed` |
@@ -379,6 +379,7 @@ grep -cxF '<!-- run: ozen render --kind recipe --lang en soup.ozen -->' README.m
 scripts/check-readme-example.sh --readme README.md --ozen $OZ | tail -n 1   # → readme: 1 examples, 0 mismatches
 # G-RD-PIPE-ALL（例の中で、材料から始まる let の行はすべてパイプで書く。simmer などの関数呼び出しの行は除く）
 awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md | grep -E '^ *let [A-Za-z]+ = [a-z]+ ' | grep -v '= make ' | grep -vc '|>'   # → 0
+awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md | grep -cE '^ *let [A-Za-z]+ = [a-z]+\([A-Za-z]+[(,]'   # → 0（cut(peel(carrot), …) のような、名前や入れ子の呼び出しを第 1 引数に取る行）
 awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md | grep -o '|>' | wc -l   # → 2 以上
 # G-RD-RENDER-SAME
 blk() { awk -v r="$1" '$0==r{s=1;next} s&&/^```text$/{t=1;next} t&&/^```$/{exit} t'; }

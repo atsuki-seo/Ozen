@@ -798,6 +798,8 @@ goal_G_RD_EXAMPLE() {
 goal_G_RD_PIPE_ALL() {
   want_eq "let lines without pipe" 0 \
     "$(rd_example | grep -E '^ *let [A-Za-z]+ = [a-z]+ ' | grep -v '= make ' | grep -vc '|>')"
+  want_eq "let lines with a call on a name" 0 \
+    "$(rd_example | grep -cE '^ *let [A-Za-z]+ = [a-z]+\([A-Za-z]+[(,]')"
   want_re "pipes" '^([2-9]|[1-9][0-9]+)$' "$(rd_example | grep -o '|>' | wc -l)"
 }
 
