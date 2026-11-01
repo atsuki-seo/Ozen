@@ -298,6 +298,7 @@ diag-serve-within-missed = { $arg1 }は出すまで{ $arg2 }待ち、上限の{ 
 diag-servings-unknown = 人数が決まらないので、1 人あたりの量から総量を出せません
 diag-unused-value = { $arg1 }（{ $arg2 }）を使っていません
 diag-use-within-missed = { $arg1 }は作ってから使うまで{ $arg2 }待ち、上限の{ $arg3 }を守れません
+diag-method-call = { $arg1 }.{ $arg2 } とは書けません。動作は { $arg1 } |> { $arg2 } のように |> でつなぎます
 
 ## 文章の部品
 heading-ingredients = 材料
