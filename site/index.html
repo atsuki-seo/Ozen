@@ -454,20 +454,33 @@ strong {
 
 .chart-head {
 	grid-column: 1 / -1;
-	display: flex;
-	flex-wrap: wrap;
-	align-items: baseline;
-	gap: 4px 14px;
+	position: relative;
 }
 
 .chart-head h3 { margin: 0; }
 
-.chart-head span { color: #5e5e5e; font-size: 0.85rem; }
+/* The serve flag sits over the lanes' column, ending at the serve line. */
+.serve-flag {
+	position: absolute;
+	bottom: 0;
+	left: calc(6.2em + 8px + (100% - 6.2em - 8px) * var(--at));
+	transform: translateX(-100%);
+	padding-right: 4px;
+	color: var(--lacquer);
+	font-size: 0.85rem;
+	line-height: 1;
+	white-space: nowrap;
+}
 
-.chart-head b {
-	font-weight: normal;
-	color: var(--ink);
-	font-variant-numeric: tabular-nums;
+.serve-line {
+	position: absolute;
+	z-index: 1;
+	top: calc(var(--p) * -2);
+	bottom: 0;
+	left: calc(var(--at) * 100% - var(--p));
+	width: var(--p);
+	background: var(--lacquer);
+	pointer-events: none;
 }
 
 .lane-name { color: #4a4a4a; text-align: right; white-space: nowrap; }
@@ -790,7 +803,7 @@ strong {
 				<span><i class="idle"></i>待つだけの作業</span>
 				<span>目盛り: 10 分</span>
 			</div>
-			<p>出す時刻を決めると、炒め物は出す直前に作ります。</p>
+			<p>できるだけ早く作ると炒め物は 38 分冷めて待ちますが、出す時刻を決めると出す直前に炒めます。</p>
 			<div class="trio two" style="margin-top:1.4em">
 				<div>
 					<h3>作ったらすぐ使う</h3>
@@ -1156,7 +1169,6 @@ strong {
 		{
 			title: "1 人・できるだけ早く",
 			serve: 3240,
-			fryEnd: 960,
 			lanes: [
 				["作り手 1", [["wash", 0, 180], ["peel", 180, 300], ["cutOnion", 300, 480], ["cutCarrot", 480, 660], ["fry", 660, 960], ["plateShared", 960, 1020], ["platePer", 3180, 3240]]],
 				["放置", [["soak", 180, 1980], ["cookRice", 1980, 3180]]],
@@ -1165,7 +1177,6 @@ strong {
 		{
 			title: "1 人・60 分後に出す",
 			serve: 3600,
-			fryEnd: 3480,
 			lanes: [
 				["作り手 1", [["wash", 360, 540], ["peel", 2700, 2820], ["cutCarrot", 2820, 3000], ["cutOnion", 3000, 3180], ["fry", 3180, 3480], ["plateShared", 3480, 3540], ["platePer", 3540, 3600]]],
 				["放置", [["soak", 540, 2340], ["cookRice", 2340, 3540]]],
@@ -1174,7 +1185,6 @@ strong {
 		{
 			title: "2 人・60 分後に出す",
 			serve: 3600,
-			fryEnd: 3540,
 			lanes: [
 				["作り手 1", [["wash", 360, 540], ["peel", 2940, 3060], ["cutOnion", 3060, 3240], ["fry", 3240, 3540], ["platePer", 3540, 3600]]],
 				["作り手 2", [["cutCarrot", 3060, 3240], ["plateShared", 3540, 3600]]],
@@ -1183,7 +1193,6 @@ strong {
 		},
 	];
 
-	const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 	const charts = document.getElementById("charts");
 
 	for (const run of RUNS) {
@@ -1191,7 +1200,8 @@ strong {
 		wrap.className = "chart-wrap";
 		const chart = document.createElement("div");
 		chart.className = "chart";
-		chart.innerHTML = `<div class="chart-head"><h3>${run.title}</h3><span>出す <b>${mmss(run.serve)}</b></span><span>炒め物の待ち <b>${Math.round((run.serve - run.fryEnd) / 60)} 分</b></span></div>`;
+		chart.style.setProperty("--at", run.serve / TOTAL);
+		chart.innerHTML = `<div class="chart-head"><h3>${run.title}</h3><span class="serve-flag">出す</span></div>`;
 		for (const [name, bars] of run.lanes) {
 			const label = document.createElement("div");
 			label.className = "lane-name";
@@ -1207,9 +1217,12 @@ strong {
 				bar.textContent = short;
 				bar.tabIndex = 0;
 				bar.dataset.tipName = long;
-				bar.dataset.tipBody = `${mmss(from)} → ${mmss(to)}（${Math.round((to - from) / 60)} 分）`;
+				bar.dataset.tipBody = `${from / 60}〜${to / 60} 分`;
 				lane.append(bar);
 			}
+			const line = document.createElement("i");
+			line.className = "serve-line";
+			lane.append(line);
 			chart.append(label, lane);
 		}
 		const axisPad = document.createElement("div");
