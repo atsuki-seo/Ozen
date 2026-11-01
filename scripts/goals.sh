@@ -31,6 +31,11 @@ RF=refresh-start..HEAD
 PLAN_RF=plans/ozen-syntax-refresh.md
 RF_N0=363
 NOREPLY=146819854+atsuki-seo@users.noreply.github.com
+RD=readme-start..HEAD
+PLAN_RD=plans/ozen-readme-compact.md
+OZ=build/core-gcc-release/ozen
+OLD="git show readme-start:README.md"
+DOCS_RD="README.md CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md"
 
 fct_source() {
   local f
@@ -726,6 +731,317 @@ goal_G_RF_CI_NO_PROTO() {
 
 goal_G_RF_AUDIT() {
   want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_RF)"
+}
+
+rd_sec() { awk -v h="## $1" '/^```/{f=!f} !f&&$0==h{s=1;next} s&&!f&&/^## /{exit} s' README.md; }
+rd_blk() { awk -v r="$1" '$0==r{s=1;next} s&&/^```text$/{t=1;next} t&&/^```$/{exit} t'; }
+rd_example() { awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md; }
+
+goal_G_RD_DECISIONS() {
+  want_eq "decided" 11 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_RD)"
+  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*【未決】' $PLAN_RD)"
+  want_eq "decision lines" 11 "$(grep -c '^- \*\*決定:' $PLAN_RD)"
+}
+
+goal_G_RD_COVERAGE() {
+  want_eq "S items without coverage rows" "" \
+    "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_RD | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
+            <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_RD | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u))"
+  want_eq "handoff items without reason" 0 \
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_RD | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
+}
+
+goal_G_RD_PLAN_TESTS() {
+  local out m
+  out=$(scripts/check-plan-tests.sh --mutations $PLAN_RD 2>/dev/null | tail -n 1)
+  m=$(last_num "$out" 1)
+  want_eq "mutations" "mutations: $m rows, $m recorded" "$out"
+}
+
+goal_G_RD_HEADINGS() {
+  want_eq "README headings" "Build Documentation License " \
+    "$(awk '/^```/{f=!f;next} !f&&/^## /{sub(/^## /,"");printf "%s ",$0}' README.md)"
+}
+
+goal_G_RD_NO_PLAN_LINKS() {
+  want_eq "links into docs/ or plans/" 0 \
+    "$(grep -cE '\]\((https://github\.com/atsuki-seo/Ozen/(blob|tree)/[^/)]+/|\./|\.\./)?(docs|plans)/' README.md)"
+  want_eq "design and plan file names" 0 \
+    "$(grep -cE 'docs/concept\.md|docs/prototype-report\.md|plans/ozen-[a-z-]+\.md' README.md)"
+}
+
+goal_G_RD_NO_OZENDATE() {
+  want_eq "Ozendate lines" 0 "$(grep -sh 'Ozendate' $DOCS_RD | wc -l)"
+}
+
+goal_G_RD_INTRO() {
+  local intro t
+  intro=$(awk 'NR==1{next} /^$/{if(p)exit; next} {p=1; print}' README.md | tr '\n' ' ')
+  for t in 'a language and compiler for cooking procedures' 'dimension types' 'state types' 'linear types' 'schedule'; do
+    want_ge1 "intro: $t" "$(grep -cF -- "$t" <<< "$intro")"
+  done
+  want_re "intro sentences" '^[23]$' "$(grep -oE '[.!?]( |$)' <<< "$intro" | wc -l)"
+}
+
+goal_G_RD_EXAMPLE() {
+  local ex build
+  want_eq "ozen blocks" 1 "$(grep -c '^```ozen$' README.md)"
+  want_eq "recipe soup" 1 "$(grep -c '^recipe soup' README.md)"
+  want_eq "render run line" 1 "$(grep -cxF '<!-- run: ozen render --kind recipe --lang en soup.ozen -->' README.md)"
+  ex=$(grep -n '^```ozen$' README.md | head -n 1 | cut -d: -f1)
+  build=$(grep -n '^## Build$' README.md | cut -d: -f1)
+  want_eq "example before Build" before "$([ "$ex" -lt "$build" ] 2>/dev/null && echo before)"
+  want_eq "readme" "readme: 1 examples, 0 mismatches" \
+    "$(scripts/check-readme-example.sh --readme README.md --ozen $OZ 2>&1 | tail -n 1)"
+}
+
+goal_G_RD_PIPE_ALL() {
+  want_eq "let lines without pipe" 0 \
+    "$(rd_example | grep -E '^ *let [A-Za-z]+ = [a-z]+ ' | grep -v '= make ' | grep -vc '|>')"
+  want_re "pipes" '^([2-9]|[1-9][0-9]+)$' "$(rd_example | grep -o '|>' | wc -l)"
+}
+
+goal_G_RD_RENDER_SAME() {
+  local new='<!-- run: ozen render --kind recipe --lang en soup.ozen -->'
+  want_eq "render differs from the old README" "" \
+    "$(diff <($OLD | rd_blk '<!-- run: ozen render --kind recipe --lang en --entry lunch soup.ozen -->' | grep -vE '^(# |4\. )') \
+            <(rd_blk "$new" < README.md | grep -v '^# '))"
+  want_re "render lines" '^([5-9]|[1-9][0-9]+)$' "$(rd_blk "$new" < README.md | wc -l)"
+}
+
+goal_G_RD_BUILD() {
+  local b
+  b=$(rd_sec Build)
+  want_ge1 "build command" "$(grep -cF 'scripts/build-core.sh --only core-gcc-release' <<< "$b")"
+  want_ge1 "build config exists" "$(grep -cF 'core-gcc-release' scripts/build-core.sh)"
+  want_ge1 "toolchain link" "$(grep -cF '](toolchain.txt)' <<< "$b")"
+  want_ge1 "node" "$(grep -cw 'node' <<< "$b")"
+}
+
+goal_G_RD_BUILD_RUN() {
+  want_eq "core build" "core-build: 1 configs, 0 failed" \
+    "$(scripts/build-core.sh --only core-gcc-release 2>&1 | tail -n 1)"
+}
+
+goal_G_RD_DOC_LINKS() {
+  local d p
+  d=$(rd_sec Documentation)
+  want_eq "documents without a link" 0 \
+    "$(for p in CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md; do
+         grep -qF "]($p)" <<< "$d" || echo "$p"
+       done | wc -l)"
+  want_ge1 "introduction page link" "$(grep -cF '](https://atsuki-seo.github.io/Ozen/)' <<< "$d")"
+}
+
+goal_G_RD_LICENSE() {
+  local lic l p
+  lic=$(rd_sec License)
+  want_eq "old license table rows" 8 "$($OLD | grep -c '^| ')"
+  want_eq "license table rows missing" 0 \
+    "$($OLD | grep '^| ' | while IFS= read -r l; do grep -qxF -- "$l" <<< "$lic" || echo "$l"; done | wc -l)"
+  want_eq "output rights sentence" 1 \
+    "$(grep -cF 'Recipes you write in Ozen and the schedules and IR the compiler produces are yours; the Ozen licenses do not apply to them.' <<< "$lic")"
+  want_eq "license file links missing" 0 \
+    "$(for p in LICENSE-MIT LICENSE-APACHE LICENSE-CC-BY-4.0; do grep -qF "]($p)" <<< "$lic" || echo "$p"; done | wc -l)"
+  want_ge1 "NOTICE link" "$(grep -cF '](NOTICE)' <<< "$lic")"
+}
+
+goal_G_RD_NOTICE() {
+  want_ge1 "Fluent in NOTICE" "$(grep -c 'Fluent' NOTICE)"
+  want_ge1 "SARIF in NOTICE" "$(grep -c 'SARIF' NOTICE)"
+}
+
+goal_G_RD_GFM() {
+  local tmp
+  tmp=$(mktemp -d)
+  gh api -X POST /markdown -f mode=gfm -f context=atsuki-seo/Ozen -F text=@README.md > "$tmp/readme.html" 2>/dev/null
+  want_eq "h2 headings" 3 "$(grep -o '<h2' "$tmp/readme.html" | wc -l)"
+  want_eq "escaped comments" 0 "$(grep -c '&lt;!--' "$tmp/readme.html")"
+  rm -rf "$tmp"
+}
+
+goal_G_RD_DOC_TITLES() {
+  local f
+  want_eq "documents without a title" 0 \
+    "$(for f in CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md; do
+         head -n 1 "$f" 2>/dev/null | grep -q '^# ' || echo "$f"
+       done | wc -l)"
+}
+
+goal_G_RD_FACTS() {
+  local facts n l f
+  facts=$($OLD | awk '/^```/{ if(!f){f=1; n++; plain=($0=="```")} else f=0; next} f&&plain{print n"\t"$0}')
+  want_eq "old plain block lines" 11 "$(wc -l <<< "$facts")"
+  want_eq "facts missing" 0 \
+    "$(while IFS=$'\t' read -r n l; do
+         f=$([ "$n" = 1 ] && echo spec/README.md || echo cli/README.md)
+         grep -sqxF -- "$l" "$f" || echo "$f: $l"
+       done <<< "$facts" | wc -l)"
+}
+
+goal_G_RD_DOC_EXAMPLES() {
+  want_eq "cli readme" "readme: 2 examples, 0 mismatches" \
+    "$(scripts/check-readme-example.sh --readme cli/README.md --ozen $OZ 2>&1 | tail -n 1)"
+  want_eq "renderers readme" "readme: 1 examples, 0 mismatches" \
+    "$(scripts/check-readme-example.sh --readme renderers/README.md --ozen $OZ 2>&1 | tail -n 1)"
+}
+
+rd_content_pairs() {
+  cat <<'EOF'
+cli/README.md|`-k`
+cli/README.md|--options
+cli/README.md|`-s`, `-c`, `-t`
+cli/README.md|level 0
+cli/README.md|level 1
+cli/README.md|level 2
+cli/README.md|latest start
+cli/README.md|inline `module`
+cli/README.md|`std` version
+cli/README.md|never overwrites
+core/README.md|C23
+core/README.md|core/include/ozen.h
+core/README.md|recipe_build
+core/README.md|schemas/
+core/README.md|2020-12
+core/README.md|SARIF 2.1.0
+stdlib/README.md|`std`
+stdlib/README.md|embedded
+stdlib/README.md|stdlib/units/
+stdlib/README.md|`Kitchen`
+stdlib/README.md|`Options`
+stdlib/README.md|ozen debug definitions
+stdlib/README.md|stdlib/sources.ozen
+stdlib/README.md|phrases/ja.ftl
+stdlib/README.md|phrases/en.ftl
+stdlib/README.md|provisionalValue
+renderers/README.md|Gantt
+renderers/README.md|shopping list
+renderers/README.md|print
+renderers/README.md|book
+renderers/README.md|settings form
+renderers/README.md|no build step
+renderers/README.md|WebView
+renderers/README.md|renderers/tools/bundle.mjs
+renderers/README.md|renderers/vendor/fluent-bundle/
+renderers/README.md|phrases/<lang>.ftl
+renderers/README.md|falls back to English
+bindings/README.md|Linux
+bindings/README.md|WebAssembly
+bindings/README.md|iOS
+bindings/README.md|Android
+bindings/README.md|bindings/linux/
+bindings/README.md|bindings/wasm/
+bindings/README.md|bindings/swift/
+bindings/README.md|bindings/android/
+bindings/README.md|Swift
+bindings/README.md|Web Worker
+bindings/README.md|XCFramework
+bindings/README.md|JNI
+bindings/README.md|scripts/build-wasm.sh
+bindings/README.md|digest
+spec/README.md|spec/vocab/
+spec/README.md|tools/vocabcheck/
+spec/README.md|data/mext-fct-2023/
+spec/README.md|tools/fct/extract.py --check --xlsx
+spec/README.md|spec/sources/search-log.yaml
+spec/README.md|spec/notes/prior-work.md
+spec/README.md|four papers
+CONTRIBUTING.md|scripts/build-core.sh
+CONTRIBUTING.md|ASan
+CONTRIBUTING.md|UBSan
+CONTRIBUTING.md|scripts/run-golden.sh build/core-gcc-release/ozen tests/golden
+CONTRIBUTING.md|scripts/goals.sh
+CONTRIBUTING.md|.github/workflows/ci.yml
+site/README.md|site/index.html
+site/README.md|no build step
+site/README.md|DotGothic16
+site/README.md|.github/workflows/pages.yml
+site/README.md|GitHub Pages
+site/README.md|footer
+site/README.md|by hand
+site/README.md|https://atsuki-seo.github.io/Ozen/
+EOF
+}
+
+goal_G_RD_DOC_CONTENT() {
+  local f t
+  want_eq "missing file and term pairs" 0 \
+    "$(rd_content_pairs | while IFS='|' read -r f t; do grep -sqF -- "$t" "$f" || echo "$f: $t"; done | wc -l)"
+}
+
+goal_G_RD_CI_JOBS() {
+  local j
+  want_ge1 "jobs in ci/jobs.txt" "$(grep -c . ci/jobs.txt)"
+  want_eq "jobs missing from CONTRIBUTING.md" 0 \
+    "$(while IFS= read -r j; do grep -sqw -- "$j" CONTRIBUTING.md || echo "$j"; done < ci/jobs.txt | wc -l)"
+}
+
+goal_G_RD_TERMS() {
+  local t
+  want_eq "missing terms" 0 \
+    "$(for t in 'ozen check' 'ozen build' 'ozen render' 'ozen bundle' 'ozen unbundle' 'ozen debug' '--format' 'sarif' \
+         'core/include/ozen.h' 'recipe_build' 'schemas/' 'SARIF 2.1.0' 'scripts/build-core.sh' 'scripts/run-golden.sh' \
+         'scripts/build-wasm.sh' 'bindings/wasm/ozen.mjs' 'bindings/wasm/worker.js' 'XCFramework' 'JNI' \
+         '.github/workflows/ci.yml' 'renderers/vendor/fluent-bundle/' 'renderers/tools/bundle.mjs' 'phrases/<lang>.ftl' \
+         'ozen debug definitions' 'stdlib/sources.ozen' 'provisionalValue' 'spec/sources/search-log.yaml' \
+         'spec/notes/prior-work.md' 'tools/fct/extract.py' 'data/mext-fct-2023/' \
+         'site/index.html' '.github/workflows/pages.yml' 'https://atsuki-seo.github.io/Ozen/'; do
+         grep -sqF -- "$t" $DOCS_RD || echo "$t"
+       done | wc -l)"
+}
+
+goal_G_RD_LINKS() {
+  local f p x
+  want_eq "dead links" 0 \
+    "$(for f in $DOCS_RD; do
+         grep -soE '\]\([^)]+\)' "$f" | sed -E 's/^\]\(//; s/\)$//; s/ .*$//; s/#.*$//' | grep -vE '^(https?:|mailto:|$)' |
+           while IFS= read -r p; do
+             x=$(realpath -m --relative-to=. "$(dirname "$f")/$p")
+             { [ -e "$x" ] && ! git check-ignore -q "$x"; } || echo "$f: $p"
+           done
+       done | wc -l)"
+}
+
+goal_G_RD_NO_EMPTY_PARENS() {
+  want_re "empty parens" '^empty-parens: [0-9]+ sources, 0 found, 0 unlisted exceptions$' \
+    "$(python3 -B scripts/check-test-names.py --empty-parens --exceptions scripts/empty-parens-exceptions.txt $DOCS_RD 2>/dev/null | tail -n 1)"
+}
+
+goal_G_RD_ENGLISH() {
+  want_eq "Japanese lines" 0 "$(LC_ALL=C.UTF-8 grep -shP '[\p{Han}\p{Hiragana}\p{Katakana}]' $DOCS_RD | wc -l)"
+}
+
+goal_G_RD_SCOPE() {
+  want_eq "tag readme-start" ok "$(git rev-parse -q --verify refs/tags/readme-start >/dev/null && echo ok)"
+  want_eq "files outside scope" 0 \
+    "$(git diff --no-renames --name-only $RD | grep -vxF -e README.md -e CONTRIBUTING.md -e cli/README.md -e core/README.md \
+         -e stdlib/README.md -e renderers/README.md -e bindings/README.md -e spec/README.md -e site/README.md \
+         -e CLAUDE.md -e scripts/goals.sh -e plans/ozen-readme-compact.md | wc -l)"
+}
+
+goal_G_RD_ADD_ONLY() {
+  want_eq "removed lines in goals.sh and CLAUDE.md" 0 \
+    "$(git diff --no-renames $RD -- scripts/goals.sh CLAUDE.md | grep '^-' | grep -vc '^---')"
+}
+
+goal_G_RD_VERSION() {
+  want_eq "VERSION" 0.1.0 "$(cat VERSION)"
+}
+
+goal_G_RD_CLAUDEMD() {
+  want_ge1 "plan line in CLAUDE.md" "$(grep -F 'plans/ozen-readme-compact.md' CLAUDE.md | grep -c 'G-RD-.*readme-start')"
+}
+
+goal_G_RD_GH_READMES() {
+  local d
+  want_eq "folders whose GitHub readme differs" 0 \
+    "$(for d in cli core stdlib renderers bindings spec site; do
+         [ "$(gh api "repos/atsuki-seo/Ozen/readme/$d" --jq .path 2>/dev/null)" = "$d/README.md" ] || echo "$d"
+       done | wc -l)"
+}
+
+goal_G_RD_AUDIT() {
+  want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_RD)"
 }
 
 all_ids() {
