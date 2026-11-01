@@ -226,6 +226,8 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 - **S658** License の節は、`LICENSE-MIT`・`LICENSE-APACHE`・`LICENSE-CC-BY-4.0` にリンクする。
 - **S659** License の節は `NOTICE` にリンクする（D62）。
 - **S660** `NOTICE` に、Fluent と SARIF のスキーマの項目が残る（README の Credits を消しても出典が失われない。成分表は `G-REPO-NOTICE` が確かめる）。
+- **S690** README に、コードの塊の外の `### ` の見出しと、言語名の無いコードの塊が無い（外した説明の節や、コマンドの書式の塊を README に戻さない）。
+- **S691** README に、移し先へ移した固有の語（`ozen debug`・`ozen bundle`・`ozen unbundle`・`provisionalValue`・`vocabcheck`・`XCFramework`・`DotGothic16`・`recipe_build`・`Gantt`・`run-golden`）が無い。
 - **S661** GitHub の Markdown の描画（`gh api /markdown`、GFM）で、README の `<h2>` は 3 つで、`<!-- file: … -->` などの注釈が文字として見えない。
 
 ### 4.2 移し先の文書（D58）
@@ -243,10 +245,12 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 - **S670** `core/README.md` に、C23 で書いた入出力を持たない本体、公開 API の `core/include/ozen.h` と `recipe_build`、JSON のスキーマ（`schemas/`、draft 2020-12）、`SARIF 2.1.0` の説明がある。
 - **S671** `stdlib/README.md` に、パッケージ `std` がコンパイラに embedded であること、`stdlib/units/`、`Kitchen`・`Options` の型、`ozen debug definitions`、`stdlib/sources.ozen`、`phrases/ja.ftl`・`phrases/en.ftl`、暫定の値（`provisionalValue`）の説明がある（D65）。
 - **S672** `renderers/README.md` の描画の例の出力の塊は、実行した出力と一致する。
+- **S692** `renderers/README.md` の描画の例のレシピと出力の塊は、README の例と同じ。
+- **S693** `cli/README.md` の段取りと束ねる例の出力の塊は、旧 README の同じコマンドの出力の塊と同じ。また、3 つの例（cli の 2 つ・renderers の 1 つ）の `<!-- run: … -->` の行は決まったコマンドで、本文にも同じコマンドを書く。
 - **S673** `renderers/README.md` に、出力の種類（レシピ、段取りと Gantt 図、shopping list、print の書式を持つ HTML、book、settings form）、no build step で node とブラウザで動くこと、WebView 向けの 1 ファイル（`renderers/tools/bundle.mjs`）、Fluent（`renderers/vendor/fluent-bundle/`）、言い回しの重ね方（`phrases/<lang>.ftl`）と、足りないときに falls back to English の順の説明がある。
 - **S674** `bindings/README.md` に、4 つのプラットフォーム（Linux・WebAssembly・iOS・Android）、それぞれのパス（`bindings/linux/`・`bindings/wasm/`・`bindings/swift/`・`bindings/android/`）、Swift・Web Worker・XCFramework・JNI・`scripts/build-wasm.sh`、結果の digest をネイティブのビルドと比べることの説明がある。
 - **S675** `spec/README.md` に、`spec/vocab/`、`tools/vocabcheck/`、成分表のデータ（`data/mext-fct-2023/`）と取り出し直し（`tools/fct/extract.py --check --xlsx`）、調査の記録（`spec/sources/search-log.yaml`）、先行研究の対応（`spec/notes/prior-work.md`、four papers）の説明がある。
-- **S676** `CONTRIBUTING.md` に、ビルドの 4 構成（`scripts/build-core.sh`、ASan・UBSan）、golden の実行（`scripts/run-golden.sh build/core-gcc-release/ozen tests/golden`）、ゴールの回し方（`scripts/goals.sh`）、CI（`.github/workflows/ci.yml`）の説明がある。
+- **S676** `CONTRIBUTING.md` に、ビルドの 4 構成（`scripts/build-core.sh`、ASan・UBSan）、golden の実行（`scripts/run-golden.sh build/core-gcc-release/ozen tests/golden`）、ゴールの回し方（`scripts/goals.sh`）、CI（`.github/workflows/ci.yml`）の説明がある。1 つの構成だけを作る `scripts/build-core.sh --only core-gcc-release` と、ゴールの一覧を出す `scripts/goals.sh --list` も書く。
 - **S677** `CONTRIBUTING.md` は、`ci/jobs.txt` の CI のジョブ（`linux`・`fuzz`・`wasm`・`ios`・`android`）をすべて挙げる。
 - **S688** `site/README.md` に、紹介ページ（`site/index.html`、日本語）、no build step、DotGothic16 のフォント、`.github/workflows/pages.yml` による GitHub Pages への公開と版・コミットのフッター、例と出力を by hand で写すこと、公開先の `https://atsuki-seo.github.io/Ozen/` の説明がある（D67）。
 
@@ -279,7 +283,7 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 | 冒頭の段落 | README（2〜3 文に縮める。型の 3 つの柱と IR・段取りは残し、Ozendate の文を消す） |
 | concept・ロードマップへのリンク | 消す |
 | 紹介ページへのリンク | README の Documentation の節に URL を 1 行（D67） |
-| Status | 消す。暫定の値の説明は `stdlib/README.md`（D65） |
+| Status | 消す。暫定の値の説明は `stdlib/README.md`（D65）。版の記述と「計画のものは実装し、テストした」の文も移さずに消す |
 | Vocabulary table | `spec/README.md`（コマンドの塊はそのまま） |
 | Core and CLI | コマンドの書式（塊はそのまま）・レベル・段取りの例と読み方は `cli/README.md`。本体の説明・公開 API・スキーマ・SARIF は `core/README.md`。ビルドの 4 構成と golden は `CONTRIBUTING.md` |
 | Standard library | `stdlib/README.md` |
@@ -318,12 +322,13 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 | `G-RD-COVERAGE` | S 項目すべてが網羅表に行を持ち、§8 の各項目に理由がある | 差分が空、理由の無い項目 0 |
 | `G-RD-PLAN-TESTS` | わざと壊す確認の記録が網羅表の行の数だけある | `mutations: <m> rows, <m> recorded` |
 | `G-RD-HEADINGS` | S637 | 見出しの並びが `Build Documentation License ` |
-| `G-RD-NO-PLAN-LINKS` | S639・S640 | 2 つの数がどちらも 0 |
+| `G-RD-NO-MOVED` | S690・S691 | 3 つの数がすべて 0 |
+| `G-RD-NO-PLAN-LINKS` | S639・S640 | 4 つの数がすべて 0 |
 | `G-RD-NO-OZENDATE` | S641 | 0 |
-| `G-RD-INTRO` | S642〜S645 | 5 つの語の数がすべて 1 以上、文の数が 2〜3 |
+| `G-RD-INTRO` | S642〜S645 | 5 つの語と `IR` の数がすべて 1 以上、文の数が 2〜3 |
 | `G-RD-EXAMPLE` | S646・S647・S649 | 塊 1、`recipe soup` 1、`run:` の行 1、`before`、`readme: 1 examples, 0 mismatches` |
-| `G-RD-PIPE-ALL` | S648 | パイプの無い `let` の行 0、名前を第 1 引数に取る呼び出しの `let` の行 0、パイプの数 2 以上 |
-| `G-RD-RENDER-SAME` | S650 | 差分が空、出力の塊の行 5 以上 |
+| `G-RD-PIPE-ALL` | S648 | パイプの無い `let` の行 0、名前を第 1 引数に取る呼び出しの `let` の行 0、`make`・`simmer(` 以外で `= 名前 \|>` で始まらない `let` の行 0、パイプの数 2 以上 |
+| `G-RD-RENDER-SAME` | S650・S692 | 3 つの差分が空、出力の塊の行 5 以上 |
 | `G-RD-BUILD` | S651・S653・S654 | 4 つの数がすべて 1 以上 |
 | `G-RD-BUILD-RUN` | S652 | `core-build: 1 configs, 0 failed` |
 | `G-RD-DOC-LINKS` | S655・S689 | リンクの無い文書 0、紹介ページへのリンク 1 以上 |
@@ -332,7 +337,7 @@ recipe soup(servings: 2) { ... onion |> peel |> cut(slice, 3 mm) ... }
 | `G-RD-GFM` | S661 | `<h2` が 3、`&lt;!--` が 0 |
 | `G-RD-DOC-TITLES` | S662 | 見出しで始まらない文書 0 |
 | `G-RD-FACTS` | S663・S664 | 旧 README の言語名の無い塊の行が 11、欠け 0 |
-| `G-RD-DOC-EXAMPLES` | S666・S667・S672 | `cli/README.md` が `readme: 2 examples, 0 mismatches`、`renderers/README.md` が `readme: 1 examples, 0 mismatches` |
+| `G-RD-DOC-EXAMPLES` | S666・S667・S672・S693 | `cli/README.md` が `readme: 2 examples, 0 mismatches`、`renderers/README.md` が `readme: 1 examples, 0 mismatches`、欠けた run の行 0、旧 README との差分が空 |
 | `G-RD-DOC-CONTENT` | S665・S668〜S671・S673〜S676・S688 | 見つからない組 0 |
 | `G-RD-CI-JOBS` | S677 | 挙げていないジョブ 0 |
 | `G-RD-TERMS` | S678 | 見つからない語 0 |
@@ -360,9 +365,16 @@ sed -n '/^## 8\./,/^## 9\./p' $PLAN_RD | grep '^- ' | grep -v '機械で決め�
 scripts/check-plan-tests.sh --mutations $PLAN_RD   # → mutations: <m> rows, <m> recorded
 # G-RD-HEADINGS（コードの塊の中の行は数えない）
 awk '/^```/{f=!f;next} !f&&/^## /{sub(/^## /,"");printf "%s ",$0}' README.md   # → "Build Documentation License "
+# G-RD-NO-MOVED
+awk '/^```/{f=!f;next} !f&&/^### /' README.md | wc -l                                      # → 0
+awk '/^```/{ if(!f){f=1; if($0=="```") n++} else f=0 } END{print n+0}' README.md           # → 0
+for t in 'ozen debug' 'ozen bundle' 'ozen unbundle' 'provisionalValue' 'vocabcheck' 'XCFramework' 'DotGothic16' \
+         'recipe_build' 'Gantt' 'run-golden'; do grep -qF -- "$t" README.md && echo "$t"; done | wc -l   # → 0
 # G-RD-NO-PLAN-LINKS
-grep -cE '\]\((https://github\.com/atsuki-seo/Ozen/(blob|tree)/[^/)]+/|\./|\.\./)?(docs|plans)/' README.md   # → 0
+grep -cE '\]\((https://github\.com/atsuki-seo/Ozen/(blob|tree)/[^/)]+/|\./|\.\./|/)?(docs|plans)(/|\)|#)' README.md   # → 0
 grep -cE 'docs/concept\.md|docs/prototype-report\.md|plans/ozen-[a-z-]+\.md' README.md                      # → 0
+grep -cE 'atsuki-seo/Ozen/(blob|tree)/[^/ )>]+/(docs|plans)\b' README.md                                     # → 0（リンクの形によらない URL）
+grep -cE '^ *\[[^]]+\]: *(\./|/)?(docs|plans)(/| |$)' README.md                                              # → 0（参照形式のリンク）
 # G-RD-NO-OZENDATE
 grep -sh 'Ozendate' $DOCS_RD | wc -l               # → 0
 # G-RD-INTRO（冒頭の段落 = 1 行目の後の最初の段落）
@@ -370,6 +382,7 @@ intro=$(awk 'NR==1{next} /^$/{if(p)exit; next} {p=1; print}' README.md | tr '\n'
 for t in 'a language and compiler for cooking procedures' 'dimension types' 'state types' 'linear types' 'schedule'; do
   grep -cF -- "$t" <<< "$intro"
 done                                               # → 5 行とも 1 以上
+grep -cw 'IR' <<< "$intro"                         # → 1 以上
 grep -oE '[.!?]( |$)' <<< "$intro" | wc -l         # → 2〜3
 # G-RD-EXAMPLE
 grep -c '^```ozen$' README.md                      # → 1
@@ -380,12 +393,17 @@ scripts/check-readme-example.sh --readme README.md --ozen $OZ | tail -n 1   # �
 # G-RD-PIPE-ALL（例の中で、材料から始まる let の行はすべてパイプで書く。simmer などの関数呼び出しの行は除く）
 awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md | grep -E '^ *let [A-Za-z]+ = [a-z]+ ' | grep -v '= make ' | grep -vc '|>'   # → 0
 awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md | grep -cE '^ *let [A-Za-z]+ = [a-z]+\([A-Za-z]+[(,]'   # → 0（cut(peel(carrot), …) のような、名前や入れ子の呼び出しを第 1 引数に取る行）
+awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md | grep -E '^ *let [A-Za-z0-9_]+ = ' | grep -vE '= (make |simmer\()' | grep -vEc '= [a-z][A-Za-z0-9_]* \|>'   # → 0
 awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md | grep -o '|>' | wc -l   # → 2 以上
 # G-RD-RENDER-SAME
 blk() { awk -v r="$1" '$0==r{s=1;next} s&&/^```text$/{t=1;next} t&&/^```$/{exit} t'; }
 diff <($OLD | blk '<!-- run: ozen render --kind recipe --lang en --entry lunch soup.ozen -->' | grep -vE '^(# |4\. )') \
      <(blk '<!-- run: ozen render --kind recipe --lang en soup.ozen -->' < README.md | grep -v '^# ')   # → 空
 blk '<!-- run: ozen render --kind recipe --lang en soup.ozen -->' < README.md | wc -l   # → 5 以上
+diff <(blk '<!-- run: ozen render --kind recipe --lang en soup.ozen -->' < README.md) \
+     <(blk '<!-- run: ozen render --kind recipe --lang en soup.ozen -->' < renderers/README.md)   # → 空（S692）
+diff <(awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md) \
+     <(awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' renderers/README.md)                    # → 空（S692）
 # G-RD-BUILD
 sec Build | grep -cF 'scripts/build-core.sh --only core-gcc-release'   # → 1 以上
 grep -cF 'core-gcc-release' scripts/build-core.sh                      # → 1 以上（構成の名前が実在する）
@@ -424,6 +442,16 @@ done <<< "$facts" | wc -l                          # → 0
 # G-RD-DOC-EXAMPLES
 scripts/check-readme-example.sh --readme cli/README.md --ozen $OZ | tail -n 1         # → readme: 2 examples, 0 mismatches
 scripts/check-readme-example.sh --readme renderers/README.md --ozen $OZ | tail -n 1   # → readme: 1 examples, 0 mismatches
+while IFS='|' read -r f r; do   # run の行が 1 つだけあり、本文にも同じコマンドがある（S693）
+  [ "$(grep -cxF "<!-- run: $r -->" "$f")" = 1 ] && grep -qF "\`$r\`" "$f" || echo "$f: $r"
+done <<'EOF' | wc -l                               # → 0
+cli/README.md|ozen debug schedule --entry lunch -k kitchen.ozen soup.ozen
+cli/README.md|ozen bundle --entry soup
+renderers/README.md|ozen render --kind recipe --lang en soup.ozen
+EOF
+for r in 'ozen debug schedule --entry lunch -k kitchen.ozen soup.ozen' 'ozen bundle --entry soup'; do
+  diff <($OLD | blk "<!-- run: $r -->") <(blk "<!-- run: $r -->" < cli/README.md)
+done                                               # → 空（S693）
 # G-RD-DOC-CONTENT（ファイルと語の組。見つからない組を数える。P1 の各タスクでは自分のファイルの組だけを数える）
 while IFS='|' read -r f t; do grep -sqF -- "$t" "$f" || echo "$f: $t"; done <<'EOF' | wc -l   # → 0
 cli/README.md|`-k`
@@ -436,7 +464,13 @@ cli/README.md|latest start
 cli/README.md|inline `module`
 cli/README.md|`std` version
 cli/README.md|never overwrites
+cli/README.md|in seconds
+cli/README.md|start..end
+cli/README.md|the cook
+cli/README.md|the equipment
+cli/README.md|except `std`
 core/README.md|C23
+core/README.md|no I/O
 core/README.md|core/include/ozen.h
 core/README.md|recipe_build
 core/README.md|schemas/
@@ -463,6 +497,9 @@ renderers/README.md|renderers/tools/bundle.mjs
 renderers/README.md|renderers/vendor/fluent-bundle/
 renderers/README.md|phrases/<lang>.ftl
 renderers/README.md|falls back to English
+renderers/README.md|in node and in browsers
+renderers/README.md|then the dependencies
+renderers/README.md|name made from the identifier
 bindings/README.md|Linux
 bindings/README.md|WebAssembly
 bindings/README.md|iOS
@@ -490,6 +527,11 @@ CONTRIBUTING.md|UBSan
 CONTRIBUTING.md|scripts/run-golden.sh build/core-gcc-release/ozen tests/golden
 CONTRIBUTING.md|scripts/goals.sh
 CONTRIBUTING.md|.github/workflows/ci.yml
+CONTRIBUTING.md|four configurations
+CONTRIBUTING.md|gcc and clang
+CONTRIBUTING.md|Release
+CONTRIBUTING.md|scripts/build-core.sh --only core-gcc-release
+CONTRIBUTING.md|scripts/goals.sh --list
 site/README.md|site/index.html
 site/README.md|no build step
 site/README.md|DotGothic16
@@ -565,14 +607,21 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S639 | 効かない条件 | `G-RD-NO-PLAN-LINKS` | README に `[docs/concept.md](docs/concept.md)` を戻す | P2-1 |
 | S639 | 効かない条件 | `G-RD-NO-PLAN-LINKS` | README に `https://github.com/atsuki-seo/Ozen/tree/main/plans/` へのリンクを足す | P2-1 |
 | S640 | 効かない条件 | `G-RD-NO-PLAN-LINKS` | README に、リンクにしない文字で `Design concept: docs/concept.md` を足す | P2-1 |
+| S639 | 効かない条件 | `G-RD-NO-PLAN-LINKS` | README に、フォルダへの相対リンク `[Plans](plans)` を足す | P3-1 |
+| S639 | 効かない条件 | `G-RD-NO-PLAN-LINKS` | README に `<https://github.com/atsuki-seo/Ozen/tree/main/docs/>` を足す | P3-1 |
+| S690 | 効かない条件 | `G-RD-NO-MOVED` | README の Documentation の節の下に `### Status` の節を足す | P3-1 |
+| S690 | 効かない条件 | `G-RD-NO-MOVED` | README の Build の節に、旧 README のコマンドの書式の塊（言語名の無い塊）を貼る | P3-1 |
+| S691 | 効かない条件 | `G-RD-NO-MOVED` | README の冒頭の段落の後に `provisionalValue` の文を足す | P3-1 |
 | S641 | 効かない条件 | `G-RD-NO-OZENDATE` | `stdlib/README.md` に Ozendate の文を足す | P2-1 |
 | S642 | 正常系 | `G-RD-INTRO` | 冒頭の段落の `cooking procedures` を `recipes` に変える | P2-1 |
 | S643 | 正常系 | `G-RD-INTRO` | 冒頭の段落から `linear types` を消す | P2-1 |
 | S644 | 正常系 | `G-RD-INTRO` | 冒頭の段落から段取りの文を消す | P2-1 |
+| S644 | 正常系 | `G-RD-INTRO` | 冒頭の段落から `an IR and` を消す | P3-1 |
 | S645 | 境界・上限 | `G-RD-INTRO` | 冒頭の段落に 4 つ目の文を足す | P2-1 |
 | S646 | 正常系 | `G-RD-EXAMPLE` | README に `kitchen.ozen` の ```` ```ozen ```` の塊を足す | P2-1 |
 | S647 | 正常系 | `G-RD-EXAMPLE` | 例を `## Build` の節の後ろに動かす | P2-1 |
 | S648 | 文書との一致 | `G-RD-PIPE-ALL` | carrot の行だけをパイプを使わない `cut(peel(carrot), rollCut, 20 mm)` の形にする | P2-1 |
+| S648 | 文書との一致 | `G-RD-PIPE-ALL` | carrot の行を、空白を挟んだ `cut( peel(carrot), rollCut, 20 mm)` にする | P3-1 |
 | S648 | 文書との一致 | `G-RF-README-PIPE` | 例のすべてのパイプを関数呼び出しの形に変える | P2-1 |
 | S649 | 文書との一致 | `G-RD-EXAMPLE` | 期待の出力の `(3 mm)` を `(4 mm)` にする | P2-1 |
 | S649 | 文書との一致 | `G-RF-README-EXAMPLE` | 期待の出力から 3 つ目の手順の行を消す | P2-1 |
@@ -597,14 +646,23 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S666 | 文書との一致 | `G-RD-DOC-EXAMPLES` | 段取りの期待の出力の `total 1560` を `total 1561` にする | P1-1 |
 | S667 | 文書との一致 | `G-RD-DOC-EXAMPLES` | 束ねる例の期待の出力から `from: kitchenBook "0.1.0"` の行を消す | P1-1 |
 | S668 | 正常系 | `G-RD-DOC-CONTENT` | `cli/README.md` から段取りの出力の読み方の文を消す | P1-1 |
+| S668 | 正常系 | `G-RD-DOC-CONTENT` | `cli/README.md` から `Times are in seconds.` だけを消す | P3-1 |
 | S669 | 正常系 | `G-RD-DOC-CONTENT` | `cli/README.md` から `never overwrites` の文を消す | P1-1 |
+| S669 | 正常系 | `G-RD-DOC-CONTENT` | `cli/README.md` から `, except `std`,` を消す | P3-1 |
 | S670 | 正常系 | `G-RD-DOC-CONTENT` | `core/README.md` から `2020-12` を消す | P1-2 |
+| S670 | 正常系 | `G-RD-DOC-CONTENT` | `core/README.md` から `with no I/O of its own` を消す | P3-1 |
 | S671 | 正常系 | `G-RD-DOC-CONTENT` | `stdlib/README.md` から `phrases/ja.ftl` を消す | P1-2 |
 | S672 | 文書との一致 | `G-RD-DOC-EXAMPLES` | 描画の期待の出力の `rolling wedges` を `wedges` にする | P1-3 |
+| S692 | 文書との一致 | `G-RD-RENDER-SAME` | `renderers/README.md` の例の `slice` を `dice` にし、期待の出力を実行の出力に合わせる | P3-1 |
+| S693 | 文書との一致 | `G-RD-DOC-EXAMPLES` | `cli/README.md` の段取りの例の run の行を `<!-- run: cat kitchen.ozen -->` にし、出力の塊を `kitchen.ozen` の中身にする | P3-1 |
+| S693 | 文書との一致 | `G-RD-DOC-EXAMPLES` | `cli/README.md` の `package.ozen` の版と、束ねる例の期待の出力の `from:` の版を、どちらも `0.2.0` にする | P3-1 |
 | S673 | 正常系 | `G-RD-DOC-CONTENT` | `renderers/README.md` から `falls back to English` の文を消す | P1-3 |
+| S673 | 正常系 | `G-RD-DOC-CONTENT` | `renderers/README.md` から `and runs in node and in browsers` を消す | P3-1 |
 | S674 | 正常系 | `G-RD-DOC-CONTENT` | `bindings/README.md` から digest の文を消す | P1-4 |
 | S675 | 正常系 | `G-RD-DOC-CONTENT` | `spec/README.md` から `four papers` の文を消す | P1-4 |
 | S676 | 正常系 | `G-RD-DOC-CONTENT` | `CONTRIBUTING.md` の golden のコマンドから引数を消す | P1-6 |
+| S676 | 正常系 | `G-RD-DOC-CONTENT` | `CONTRIBUTING.md` の 4 構成の文を「builds the core with ASan and UBSan」にする | P3-1 |
+| S676 | 正常系 | `G-RD-DOC-CONTENT` | `CONTRIBUTING.md` の `--only core-gcc-release` を `--only core-gcc-relase` にする | P3-1 |
 | S677 | データの完全性 | `G-RD-CI-JOBS` | `CONTRIBUTING.md` から `fuzz` のジョブを消す | P1-6 |
 | S688 | 正常系 | `G-RD-DOC-CONTENT` | `site/README.md` から `.github/workflows/pages.yml` の文を消す | P1-5 |
 | S678 | データの完全性 | `G-RD-TERMS` | 9 つの文書から `bindings/wasm/worker.js` を消す | P2-1 |
@@ -629,7 +687,7 @@ S687 は push した後の GitHub の状態を見るので、わざと壊す確�
 
 - 文書の中のリンクのアンカー（`#節`）が実在するかの検査 — 移し先の文書はアンカーへのリンクをほとんど持たない見込みで、見出しから GitHub のアンカーを作る規則を再現する手間に見合わない。アンカーを使ったら P3-1 で検査を足す
 - §3.4 の事実（`stdlib/README.md` がコンパイラに埋め込まれないことなど）を固定するゴール — 崩れたら `G-CORE-BUILD`・`G-CORE-GOLDEN`・`G-REPO-SPDX` が落ちるので、間接に検出できる
-- 参照形式のリンク（`[x]: docs/…`）と `<https://…>` の形のリンクの検査 — ファイル名を文字として探す S640 の検査が、リンクの形によらず検出する
+- 参照形式のリンク（`[x]: docs/…`）と `<https://…>` の形のリンクの検査 — ファイル名を文字として探す S640 の検査が、リンクの形によらず検出する（P3-1 の監査で、フォルダへのリンクには成り立たないと分かったので、リンクの形によらない URL と参照形式のリンクの検査を `G-RD-NO-PLAN-LINKS` に足した）
 
 ---
 

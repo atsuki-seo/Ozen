@@ -763,11 +763,26 @@ goal_G_RD_HEADINGS() {
     "$(awk '/^```/{f=!f;next} !f&&/^## /{sub(/^## /,"");printf "%s ",$0}' README.md)"
 }
 
+goal_G_RD_NO_MOVED() {
+  local t
+  want_eq "level-3 headings outside code" 0 "$(awk '/^```/{f=!f;next} !f&&/^### /' README.md | wc -l)"
+  want_eq "plain code blocks" 0 "$(awk '/^```/{ if(!f){f=1; if($0=="```") n++} else f=0 } END{print n+0}' README.md)"
+  want_eq "moved terms in README" 0 \
+    "$(for t in 'ozen debug' 'ozen bundle' 'ozen unbundle' 'provisionalValue' 'vocabcheck' 'XCFramework' 'DotGothic16' \
+         'recipe_build' 'Gantt' 'run-golden'; do
+         grep -qF -- "$t" README.md && echo "$t"
+       done | wc -l)"
+}
+
 goal_G_RD_NO_PLAN_LINKS() {
   want_eq "links into docs/ or plans/" 0 \
-    "$(grep -cE '\]\((https://github\.com/atsuki-seo/Ozen/(blob|tree)/[^/)]+/|\./|\.\./)?(docs|plans)/' README.md)"
+    "$(grep -cE '\]\((https://github\.com/atsuki-seo/Ozen/(blob|tree)/[^/)]+/|\./|\.\./|/)?(docs|plans)(/|\)|#)' README.md)"
   want_eq "design and plan file names" 0 \
     "$(grep -cE 'docs/concept\.md|docs/prototype-report\.md|plans/ozen-[a-z-]+\.md' README.md)"
+  want_eq "repository URLs into docs/ or plans/" 0 \
+    "$(grep -cE 'atsuki-seo/Ozen/(blob|tree)/[^/ )>]+/(docs|plans)\b' README.md)"
+  want_eq "reference links into docs/ or plans/" 0 \
+    "$(grep -cE '^ *\[[^]]+\]: *(\./|/)?(docs|plans)(/| |$)' README.md)"
 }
 
 goal_G_RD_NO_OZENDATE() {
@@ -780,6 +795,7 @@ goal_G_RD_INTRO() {
   for t in 'a language and compiler for cooking procedures' 'dimension types' 'state types' 'linear types' 'schedule'; do
     want_ge1 "intro: $t" "$(grep -cF -- "$t" <<< "$intro")"
   done
+  want_ge1 "intro: IR" "$(grep -cw 'IR' <<< "$intro")"
   want_re "intro sentences" '^[23]$' "$(grep -oE '[.!?]( |$)' <<< "$intro" | wc -l)"
 }
 
@@ -800,6 +816,8 @@ goal_G_RD_PIPE_ALL() {
     "$(rd_example | grep -E '^ *let [A-Za-z]+ = [a-z]+ ' | grep -v '= make ' | grep -vc '|>')"
   want_eq "let lines with a call on a name" 0 \
     "$(rd_example | grep -cE '^ *let [A-Za-z]+ = [a-z]+\([A-Za-z]+[(,]')"
+  want_eq "let lines not starting with an ingredient pipe" 0 \
+    "$(rd_example | grep -E '^ *let [A-Za-z0-9_]+ = ' | grep -vE '= (make |simmer\()' | grep -vEc '= [a-z][A-Za-z0-9_]* \|>')"
   want_re "pipes" '^([2-9]|[1-9][0-9]+)$' "$(rd_example | grep -o '|>' | wc -l)"
 }
 
@@ -809,6 +827,10 @@ goal_G_RD_RENDER_SAME() {
     "$(diff <($OLD | rd_blk '<!-- run: ozen render --kind recipe --lang en --entry lunch soup.ozen -->' | grep -vE '^(# |4\. )') \
             <(rd_blk "$new" < README.md | grep -v '^# '))"
   want_re "render lines" '^([5-9]|[1-9][0-9]+)$' "$(rd_blk "$new" < README.md | wc -l)"
+  want_eq "renderers example differs from the README" "" \
+    "$(diff <(rd_blk "$new" < README.md) <(rd_blk "$new" < renderers/README.md))"
+  want_eq "renderers recipe differs from the README" "" \
+    "$(diff <(rd_example) <(awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' renderers/README.md))"
 }
 
 goal_G_RD_BUILD() {
@@ -886,6 +908,20 @@ goal_G_RD_DOC_EXAMPLES() {
     "$(scripts/check-readme-example.sh --readme cli/README.md --ozen $OZ 2>&1 | tail -n 1)"
   want_eq "renderers readme" "readme: 1 examples, 0 mismatches" \
     "$(scripts/check-readme-example.sh --readme renderers/README.md --ozen $OZ 2>&1 | tail -n 1)"
+  local r f
+  want_eq "run lines missing" 0 \
+    "$(while IFS='|' read -r f r; do
+         [ "$(grep -cxF "<!-- run: $r -->" "$f")" = 1 ] && grep -qF "\`$r\`" "$f" || echo "$f: $r"
+       done <<'EOF' | wc -l
+cli/README.md|ozen debug schedule --entry lunch -k kitchen.ozen soup.ozen
+cli/README.md|ozen bundle --entry soup
+renderers/README.md|ozen render --kind recipe --lang en soup.ozen
+EOF
+)"
+  want_eq "cli outputs differ from the old README" "" \
+    "$(for r in 'ozen debug schedule --entry lunch -k kitchen.ozen soup.ozen' 'ozen bundle --entry soup'; do
+         diff <($OLD | rd_blk "<!-- run: $r -->") <(rd_blk "<!-- run: $r -->" < cli/README.md)
+       done)"
 }
 
 rd_content_pairs() {
@@ -900,7 +936,13 @@ cli/README.md|latest start
 cli/README.md|inline `module`
 cli/README.md|`std` version
 cli/README.md|never overwrites
+cli/README.md|in seconds
+cli/README.md|start..end
+cli/README.md|the cook
+cli/README.md|the equipment
+cli/README.md|except `std`
 core/README.md|C23
+core/README.md|no I/O
 core/README.md|core/include/ozen.h
 core/README.md|recipe_build
 core/README.md|schemas/
@@ -927,6 +969,9 @@ renderers/README.md|renderers/tools/bundle.mjs
 renderers/README.md|renderers/vendor/fluent-bundle/
 renderers/README.md|phrases/<lang>.ftl
 renderers/README.md|falls back to English
+renderers/README.md|in node and in browsers
+renderers/README.md|then the dependencies
+renderers/README.md|name made from the identifier
 bindings/README.md|Linux
 bindings/README.md|WebAssembly
 bindings/README.md|iOS
@@ -954,6 +999,11 @@ CONTRIBUTING.md|UBSan
 CONTRIBUTING.md|scripts/run-golden.sh build/core-gcc-release/ozen tests/golden
 CONTRIBUTING.md|scripts/goals.sh
 CONTRIBUTING.md|.github/workflows/ci.yml
+CONTRIBUTING.md|four configurations
+CONTRIBUTING.md|gcc and clang
+CONTRIBUTING.md|Release
+CONTRIBUTING.md|scripts/build-core.sh --only core-gcc-release
+CONTRIBUTING.md|scripts/goals.sh --list
 site/README.md|site/index.html
 site/README.md|no build step
 site/README.md|DotGothic16
