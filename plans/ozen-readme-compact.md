@@ -578,7 +578,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S649 | 文書との一致 | `G-RF-README-EXAMPLE` | 期待の出力から 3 つ目の手順の行を消す | P2-1 |
 | S650 | 文書との一致 | `G-RD-RENDER-SAME` | 期待の出力と例の両方の `slice` を `dice` 系に変えて実行と一致させたまま、旧 README との差を作る | P2-1 |
 | S651 | 正常系 | `G-RD-BUILD` | Build の節のコマンドを `scripts/build-core.sh` だけにする | P2-1 |
-| S652 | 実際の経路 | `G-RD-BUILD-RUN` | `build-core.sh` の構成の一覧から `core-gcc-release` を一時的に外す（確かめた後に戻す） | P2-1 |
+| S652 | 実際の経路 | `G-RD-BUILD-RUN` | `build-core.sh` の `core-gcc-*` の場合分けを `core-gcc-debug-*` に狭め、`core-gcc-release` を未知の構成にする（確かめた後に戻す） | P2-1 |
 | S653 | 正常系 | `G-RD-BUILD` | `toolchain.txt` へのリンクを Documentation の節に動かす | P2-1 |
 | S654 | 正常系 | `G-RD-BUILD` | Build の節から node の文を消す | P2-1 |
 | S655 | データの完全性 | `G-RD-DOC-LINKS` | Documentation の節から `spec/README.md` へのリンクを消す | P2-1 |
@@ -589,7 +589,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S658 | データの完全性 | `G-RD-LICENSE` | `LICENSE-CC-BY-4.0` へのリンクを消す | P2-1 |
 | S659 | 正常系 | `G-RD-LICENSE` | License の節の `NOTICE` へのリンクを消す | P2-1 |
 | S660 | 副作用とコスト | `G-RD-NOTICE` | `NOTICE` の Fluent の項目を一時的に消す（確かめた後に戻す） | P2-1 |
-| S661 | 実際の経路 | `G-RD-GFM` | 例の前の `<!-- file: soup.ozen -->` の行を、前後に空行の無い段落の中に移して文字として描画させる | P2-1 |
+| S661 | 実際の経路 | `G-RD-GFM` | 例の前の `<!-- file: soup.ozen -->` の行を 4 つの空白で字下げし、字下げのコードの塊として文字で描画させる | P2-1 |
 | S662 | データの完全性 | `G-RD-DOC-TITLES` | `core/README.md` の 1 行目の見出しを消す | P1-2 |
 | S663 | 文書との一致 | `G-RD-FACTS` | `cli/README.md` の `ozen unbundle FILE [-o DIR]` の行を `ozen unbundle FILE` にする | P1-1 |
 | S664 | 文書との一致 | `G-RD-FACTS` | `spec/README.md` の `sample` のコマンドの引数を消す | P1-4 |
@@ -710,6 +710,64 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - タグの付け替え（P0-2、2026-11-01）: 本ファイルをコミットした `f0e894a` に最初のタグを打った。その後、別の作業が `stdlib/`・`tests/golden/`・`scripts/goals.sh`・`.github/workflows/ci.yml`・`plans/ozen-roadmap.md` などに 17 コミットを入れた（`911bb35`〜`da0fb67`）。範囲に入ったままでは `G-RD-SCOPE` と `G-RD-ADD-ONLY` が本計画の作業と関係なく落ちるので、ユーザーに確認してタグを `da0fb67` に付け替え、リモートのタグも上書きした（途中で別の作業が `626be31` に動かしていた）。旧 README の中身は `f0e894a` と同じ。最初の前提ゴールの実行（`f0e894a` の後）は、作業ツリーと `goals.sh` が実行中に変わったので使わず、`da0fb67` で回し直した。回し直しは、実行中の書き換えを避けるため `git show HEAD:scripts/goals.sh` の写しを `--root` 付きで実行した
 - P0-3 の時点の `G-RD-*`（2026-11-01、文書を変える前）: 31 個のうち 19 個が落ち、12 個が合格した。落ちたのは `G-RD-PLAN-TESTS`（`mutations: 57 rows, 0 recorded`）・`HEADINGS`（旧 README の 10 節）・`NO-PLAN-LINKS`（2 と 2）・`NO-OZENDATE`（2）・`INTRO`（文が 4）・`EXAMPLE`（`ozen` の塊 4、例 3）・`RENDER-SAME`（新しい描画の例が無い。旧 README の側は 10 行を取り出せた）・`BUILD`（Build の節が無い）・`DOC-LINKS`・`GFM`（`<h2` が 10）・`DOC-TITLES`（8）・`FACTS`（欠け 11。旧 README の側は 11 行を取り出せた）・`DOC-EXAMPLES`（文書が無い）・`DOC-CONTENT`（欠け 72）・`CI-JOBS`（5）・`NO-EMPTY-PARENS`（文書が無いので検査が出力を出さない）・`ENGLISH`（README の 1 行）・`GH-READMES`（7）・`AUDIT`。合格したのは `DECISIONS`・`COVERAGE`・`BUILD-RUN`・`LICENSE`（旧 README が既に満たす）・`NOTICE`・`LINKS`・`PIPE-ALL`（旧 README の例もすべてパイプ）・`TERMS`・`SCOPE`・`ADD-ONLY`・`VERSION`・`CLAUDEMD`。§6 の想定（`TERMS` は合格する）のとおり
 - わざと壊す確認: S686・G-RD-CLAUDEMD（P0-3、2026-11-01）。`CLAUDE.md` の本計画の行から「, and its history range starts at the tag `readme-start`」を消すと `plan line in CLAUDE.md: got '0'` で落ちた。戻すと合格した
+- わざと壊す確認: S637・G-RD-HEADINGS（P2-1、2026-11-01）。README の License の前に `## Credits` の見出しを戻す で落ちた。戻すと合格した
+- わざと壊す確認: S637・G-RD-HEADINGS（P2-1、2026-11-01）。`goals.sh` の写しで見出しの判定を `grep '^## '` に変える（`Ingredients Steps Build …` になった） で落ちた。戻すと合格した
+- わざと壊す確認: S639・G-RD-NO-PLAN-LINKS（P2-1、2026-11-01）。README に `[docs/concept.md](docs/concept.md)` を戻す で落ちた。戻すと合格した
+- わざと壊す確認: S639・G-RD-NO-PLAN-LINKS（P2-1、2026-11-01）。README に `https://github.com/atsuki-seo/Ozen/tree/main/plans/` へのリンクを足す で落ちた。戻すと合格した
+- わざと壊す確認: S640・G-RD-NO-PLAN-LINKS（P2-1、2026-11-01）。README にリンクでない `Design concept: docs/concept.md` を足す で落ちた。戻すと合格した
+- わざと壊す確認: S641・G-RD-NO-OZENDATE（P2-1、2026-11-01）。`stdlib/README.md` に Ozendate の文を足す で落ちた。戻すと合格した
+- わざと壊す確認: S642・G-RD-INTRO（P2-1、2026-11-01）。冒頭の段落の `cooking procedures` を `recipes` に変える で落ちた。戻すと合格した
+- わざと壊す確認: S643・G-RD-INTRO（P2-1、2026-11-01）。冒頭の段落から `linear types` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S644・G-RD-INTRO（P2-1、2026-11-01）。冒頭の段落から段取りの文を消す で落ちた。戻すと合格した
+- わざと壊す確認: S645・G-RD-INTRO（P2-1、2026-11-01）。冒頭の段落に 4 つ目の文を足す で落ちた。戻すと合格した
+- わざと壊す確認: S646・G-RD-EXAMPLE（P2-1、2026-11-01）。README に `kitchen.ozen` の塊を足す で落ちた。戻すと合格した
+- わざと壊す確認: S647・G-RD-EXAMPLE（P2-1、2026-11-01）。例を Build の節の後ろに動かす で落ちた。戻すと合格した
+- わざと壊す確認: S648・G-RD-PIPE-ALL（P2-1、2026-11-01）。carrot の行を `cut(peel(carrot), rollCut, 20 mm)` にする（最初は合格のままだったので、ゴールに入れ子の呼び出しの検査を足した後） で落ちた。戻すと合格した
+- わざと壊す確認: S648・G-RF-README-PIPE（P2-1、2026-11-01）。例のすべてのパイプを関数呼び出しの形に変える で落ちた。戻すと合格した
+- わざと壊す確認: S649・G-RD-EXAMPLE（P2-1、2026-11-01）。期待の出力の `(3 mm)` を `(4 mm)` にする で落ちた。戻すと合格した
+- わざと壊す確認: S649・G-RF-README-EXAMPLE（P2-1、2026-11-01）。期待の出力から 3 つ目の手順の行を消す で落ちた。戻すと合格した
+- わざと壊す確認: S650・G-RD-RENDER-SAME（P2-1、2026-11-01）。例の `slice` を `dice` にし、期待の出力を実行の出力に合わせる で落ちた。戻すと合格した
+- わざと壊す確認: S651・G-RD-BUILD（P2-1、2026-11-01）。Build の節のコマンドを `scripts/build-core.sh` だけにする で落ちた。戻すと合格した
+- わざと壊す確認: S652・G-RD-BUILD-RUN（P2-1、2026-11-01）。`build-core.sh` の `core-gcc-*` の場合分けを `core-gcc-debug-*` に狭める（`core-build: 1 configs, 1 failed`） で落ちた。戻すと合格した
+- わざと壊す確認: S653・G-RD-BUILD（P2-1、2026-11-01）。`toolchain.txt` へのリンクを Documentation の節に動かす で落ちた。戻すと合格した
+- わざと壊す確認: S654・G-RD-BUILD（P2-1、2026-11-01）。Build の節から node の文を消す で落ちた。戻すと合格した
+- わざと壊す確認: S655・G-RD-DOC-LINKS（P2-1、2026-11-01）。Documentation の節から `spec/README.md` へのリンクを消す で落ちた。戻すと合格した
+- わざと壊す確認: S689・G-RD-DOC-LINKS（P2-1、2026-11-01）。Documentation の節から紹介ページのリンクを消す で落ちた。戻すと合格した
+- わざと壊す確認: S656・G-RD-LICENSE（P2-1、2026-11-01）。ライセンスの表から `*/vendor/` の行を消す で落ちた。戻すと合格した
+- わざと壊す確認: S656・G-REPO-README-LICENSE（P2-1、2026-11-01）。ライセンスの表から `docs/` の行を消す で落ちた。戻すと合格した
+- わざと壊す確認: S657・G-RD-LICENSE（P2-1、2026-11-01）。出力の権利の一文を Build の節の後ろに動かす で落ちた。戻すと合格した
+- わざと壊す確認: S658・G-RD-LICENSE（P2-1、2026-11-01）。`LICENSE-CC-BY-4.0` へのリンクを消す で落ちた。戻すと合格した
+- わざと壊す確認: S659・G-RD-LICENSE（P2-1、2026-11-01）。License の節の `NOTICE` へのリンクを消す で落ちた。戻すと合格した
+- わざと壊す確認: S660・G-RD-NOTICE（P2-1、2026-11-01）。`NOTICE` の Fluent の行を消す で落ちた。戻すと合格した
+- わざと壊す確認: S661・G-RD-GFM（P2-1、2026-11-01）。`<!-- file: soup.ozen -->` の行を 4 つの空白で字下げする（`&lt;!--` が 1） で落ちた。戻すと合格した
+- わざと壊す確認: S678・G-RD-TERMS（P2-1、2026-11-01）。`bindings/README.md` から `bindings/wasm/worker.js` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S679・G-RD-LINKS（P2-1、2026-11-01）。`cli/README.md` に `[x](missing.md)` を足す で落ちた。戻すと合格した
+- わざと壊す確認: S679・G-RD-LINKS（P2-1、2026-11-01）。`CONTRIBUTING.md` に `[build](build/core-gcc-release/ozen)` を足す で落ちた。戻すと合格した
+- わざと壊す確認: S680・G-RD-NO-EMPTY-PARENS（P2-1、2026-11-01）。`cli/README.md` の `recipe tea` を `recipe tea()` にする で落ちた。戻すと合格した
+- わざと壊す確認: S681・G-RD-ENGLISH（P2-1、2026-11-01）。`spec/README.md` に日本語の成分表の名前を足す で落ちた。戻すと合格した
+- わざと壊す確認: S662・G-RD-DOC-TITLES（P1-2、2026-11-01）。`core/README.md` の 1 行目の見出しを消す で落ちた。戻すと合格した
+- わざと壊す確認: S663・G-RD-FACTS（P1-1、2026-11-01）。`cli/README.md` の `ozen unbundle FILE [-o DIR]` を `ozen unbundle FILE` にする で落ちた。戻すと合格した
+- わざと壊す確認: S664・G-RD-FACTS（P1-4、2026-11-01）。`spec/README.md` の `sample` のコマンドの引数を消す で落ちた。戻すと合格した
+- わざと壊す確認: S665・G-RD-DOC-CONTENT（P1-1、2026-11-01）。`cli/README.md` から `level 1` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S666・G-RD-DOC-EXAMPLES（P1-1、2026-11-01）。段取りの期待の出力の `total 1560` を `total 1561` にする で落ちた。戻すと合格した
+- わざと壊す確認: S667・G-RD-DOC-EXAMPLES（P1-1、2026-11-01）。束ねる例の期待の出力から `from: kitchenBook "0.1.0"` の行を消す で落ちた。戻すと合格した
+- わざと壊す確認: S668・G-RD-DOC-CONTENT（P1-1、2026-11-01）。`cli/README.md` から段取りの出力の読み方の文を消す で落ちた。戻すと合格した
+- わざと壊す確認: S669・G-RD-DOC-CONTENT（P1-1、2026-11-01）。`cli/README.md` から `never overwrites` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S670・G-RD-DOC-CONTENT（P1-2、2026-11-01）。`core/README.md` から `2020-12` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S671・G-RD-DOC-CONTENT（P1-2、2026-11-01）。`stdlib/README.md` から `phrases/ja.ftl` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S672・G-RD-DOC-EXAMPLES（P1-3、2026-11-01）。描画の期待の出力の `rolling wedges` を `wedges` にする で落ちた。戻すと合格した
+- わざと壊す確認: S673・G-RD-DOC-CONTENT（P1-3、2026-11-01）。`renderers/README.md` から `falls back to English` の文を消す で落ちた。戻すと合格した
+- わざと壊す確認: S674・G-RD-DOC-CONTENT（P1-4、2026-11-01）。`bindings/README.md` から digest の文を消す で落ちた。戻すと合格した
+- わざと壊す確認: S675・G-RD-DOC-CONTENT（P1-4、2026-11-01）。`spec/README.md` から `four papers` の文を消す で落ちた。戻すと合格した
+- わざと壊す確認: S676・G-RD-DOC-CONTENT（P1-6、2026-11-01）。`CONTRIBUTING.md` の golden のコマンドから引数を消す で落ちた。戻すと合格した
+- わざと壊す確認: S677・G-RD-CI-JOBS（P1-6、2026-11-01）。`CONTRIBUTING.md` から `fuzz` のジョブを消す で落ちた。戻すと合格した
+- わざと壊す確認: S688・G-RD-DOC-CONTENT（P1-5、2026-11-01）。`site/README.md` から `.github/workflows/pages.yml` を消す で落ちた。戻すと合格した
+- わざと壊す確認: S682・G-RD-SCOPE（P3-2、2026-11-01）。作業用のコミットで `samples/` のファイルを 1 つ変える（`git reset --hard HEAD~1` で取り消した） で落ちた。戻すと合格した
+- わざと壊す確認: S683・G-RD-SCOPE（P3-2、2026-11-01）。タグ `readme-start` を手元で別名に付け替える（戻した後も `da0fb67`） で落ちた。戻すと合格した
+- わざと壊す確認: S684・G-RD-ADD-ONLY（P3-2、2026-11-01）。作業用のコミットで `goal_G_REPO_README_LICENSE` の 1 行を消す（取り消した） で落ちた。戻すと合格した
+- わざと壊す確認: S685・G-RD-VERSION（P3-2、2026-11-01）。`VERSION` を `0.1.1` にする で落ちた。戻すと合格した
+- 壊し方とゴールの直し（2026-11-01）: 網羅表の方法のうち 3 つが最初は落ちなかった。S648 の `cut(peel(carrot), …)` は `G-RD-PIPE-ALL` の正規表現（名前の後に空白を求める）に掛からないので、名前や入れ子の呼び出しを第 1 引数に取る `let` の行を数える検査を足した（ゴールの弱さ）。S652 は `build-core.sh --only` が既定の一覧を見ないので一覧から外しても壊れず、場合分けを狭める方法に変えた。S661 は段落の中の注釈が GFM でも見えないままなので、字下げのコードの塊にする方法に変えた（どちらも壊し方の誤りで、ゴールは変えていない）
+- P1・P2 の判定（2026-11-01）: 8 つの文書と README を書いた後、`G-RD-GH-READMES`・`G-RD-AUDIT`・`G-RD-PLAN-TESTS` を除く `G-RD-*` 28 個と、`G-REPO-README-LICENSE`・`G-RF-README-EXAMPLE`・`G-RF-README-PIPE`・`G-RF-README-NO-PROTO`・`G-RF-NO-EMPTY-PARENS` がすべて合格した。README は 77 行
 - わざと壊す確認の記録（各タスク）: `- わざと壊す確認: S<n>・<ゴール>（<タスク>、<日付>）。<壊し方> で落ちた。戻すと合格した` の形で書く
 - 網羅の監査（P3-1）: `- 網羅の監査: 指摘 <k> 件、取り込み <m> 件` の形で書く
 
