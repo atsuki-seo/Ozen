@@ -1420,6 +1420,9 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S843・データの完全性・`G-FB-PHRASES`（P4-3、2026-11-03）。`until-browning-dark` の英語を消すと「en until-browning-dark: got '0'」で落ちた。戻すと合格した
 - わざと壊す確認: S869・実際の経路・`G-FB-SAMPLE-OYAKODON`（P4-4、2026-11-03）。親子丼を `egg |> mix` に戻すと「crack and beat: got '0'」で落ちた。戻すと合格した
 - わざと壊す確認: S870・実際の経路・`G-SAMPLE-CHECK`（P4-4、2026-11-03）。`Egg` の `safeDoneness` を消すと、親子丼に `SAF001` が出て「samples: 11 samples, 238 expectations, 3 failed」で落ちた。戻すと合格した
+- 範囲に入った別の作業のコミット: f365878（別のセッションによる `README.md` のロゴの表示）
+- 範囲に入った別の作業のコミット: 591aabc（別のセッションによる `site/README.md` の注記）
+- Phase 4 のフェーズゲート（P4-4、2026-11-03）: `06090dd` で 4 つの構成を作り直し、本計画で触るファイルに関わる前提ゴール（`G-CORE-GOLDEN`・`G-CORE-DIAG-*`・`G-CORE-GRAMMAR`・`G-CORE-PROPS`・`G-CORE-UNIT`・`G-STD-*`・`G-API-SCHEMA`・`G-API-SARIF`・`G-SAMPLE-CHECK`・`G-REND-TESTS`・`G-REND-PHRASES-RENDER`・`G-CLI-TESTS`・`G-QC-PRELUDE`・`G-QC-GOLDEN-ARGS`・`G-QC-GOLDEN-BOUNDS`・`G-RF-SEPARATION`）と `G-FB-GOLDEN-CHANGED`・`G-FB-GOLDEN-EGG`・`G-FB-GOLDEN-UNTIL`・`G-FB-SCOPE` を回した。`G-FB-SCOPE` だけが、別のセッションの 2 つのコミットで落ち、除外の行に足すと合格した。前提ゴールすべては最終ゲートで回す
 ---
 
 ## 10. リスク
