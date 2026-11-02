@@ -910,6 +910,29 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S739・データの完全性・`G-QC-DIAG`（P3-2、2026-11-02）。`phrases/ja.ftl` の `diag-non-positive-amount` から `{ $arg2 }` を消すと「ja phrase: got '0'」で落ちた。戻すと合格した
 - わざと壊す確認: S739・データの完全性・`G-CORE-DIAG-REGISTRY`（P3-2、2026-11-02）。`core/tests/diag-names.txt` から `TYP:nonPositiveAmount` を消すと「1 unlisted」で落ちた。戻すと合格した
 - わざと壊す確認: S739・前提の固定・`G-CORE-DIAG-APPEND`（P3-2、2026-11-02）。一時的な worktree の作業用のコミットで `TYP021` を `TYP020` の次の行に入れ直すと「deleted registry lines: got '1'」で落ちた。`git reset --hard` で消し、worktree を消した（push していない）
+- 人数の経路の作り（P3-3、2026-11-02）: 見出しに自分で範囲を宣言していない人数（型の無い `servings: 0`、`servings: Count = 0`、献立の見出し、`make` の引数）は、標準ライブラリの `Options.servings` の型（`Count? in 1..`）を型として検査する。範囲の文字 `1..` はそこから出る。条件（`-s`・`--options`）の人数は条件の側の検査に落ちたら印を付け、見出しの側では検査せず、人数を未知として扱う。人数が範囲外や次元違いで未知になった料理では、`per serving` の総量に `TYP020` を出さず、`servings` を使う式の量は評価できず未知になる（`TYP021` も出ない）
+- S773 のわざと壊す方法の差し替え（P3-3、2026-11-02）: 網羅表の「判定を人数を掛けた後に動かす」は効かない。範囲外の人数は未知として扱うので、掛け算そのものが起きず `100 g per serving` は 0 g にならない。代わりに「範囲外の人数を未知にせず、そのまま使う」（`150 ml * servings` が `0 ml` になり `TYP021` が出る）と、「人数が範囲外でも `TYP020` を出す」の 2 つで確かめた
+- 期待を直した golden: `tests/golden/api/types-json.out` — `Options.servings` の `min` が `null` から `"1"` になった（S741、P3-1 で手で直した）
+- わざと壊す確認: S773・副作用とコスト・`cgolden/bounds/servings-invalid-amounts`（P3-3、2026-11-02）。範囲外の人数を未知にせずそのまま使うと `servings-invalid-amounts` が落ちた（`150 ml * servings` に `TYP021`）。人数が範囲外でも `TYP020` を出す形でも落ちた。戻すと合格した
+- わざと壊す確認: S785・効かない条件・`cgolden/bounds/servings-invalid-amounts`（P3-3、2026-11-02）。人数が範囲外のときは `per serving` の量の判定も飛ばすと `servings-invalid-amounts` が落ちた。戻すと合格した
+- わざと壊す確認: S741・データの完全性・`cgolden/api/types-json`（P3-3、2026-11-02）。`Options.servings` の範囲を消すと `types-json` が落ちた。戻すと合格した
+- わざと壊す確認: S774・実際の経路・`rtest/settings-servings-min`（P3-3、2026-11-02）。テストの入力（`api/types-json` の期待）の `Options.servings` の `min` を `null` に戻すと `settings-servings-min` が落ちた。戻すと合格した
+- わざと壊す確認: S742・境界・上限・`cgolden/bounds/optional-ranged`（P3-3、2026-11-02）。`base_type` の入れ子の外し方を元に戻すと `optional-ranged` を含む 11 本が落ちた。戻すと合格した
+- わざと壊す確認: S743・正常系・`cgolden/bounds/servings-header-zero`（P3-3、2026-11-02）。型の無い `servings` の検査を消すと `servings-header-zero`・`servings-menu-header`・`servings-invalid-amounts` が落ちた。戻すと合格した
+- わざと壊す確認: S744・正常系・`cgolden/bounds/servings-typed-zero`（P3-3、2026-11-02）。型だけの `servings` では検査しないと `servings-typed-zero` が落ちた。戻すと合格した
+- わざと壊す確認: S745・副作用とコスト・`cgolden/bounds/servings-own-range`（P3-3、2026-11-02）。宣言に範囲があっても `1..` で重ねて検査すると `servings-own-range` が落ちた（`0` に 2 つ出る）。戻すと合格した
+- わざと壊す確認: S746・実際の経路・`cgolden/bounds/servings-make-zero`（P3-3、2026-11-02）。`make` の引数の人数を検査しないと `servings-make-zero`・`servings-make-positional` が落ちた。戻すと合格した
+- わざと壊す確認: S775・実際の経路・`cgolden/bounds/servings-make-positional`（P3-3、2026-11-02）。`make` の照合を名前で渡した引数だけにすると `servings-make-positional` が落ちた。戻すと合格した
+- わざと壊す確認: S776・実際の経路・`cgolden/bounds/servings-menu-header`（P3-3、2026-11-02）。人数の検査をレシピの見出しだけにする（献立の見出しの `servings` を評価しない）と `servings-menu-header` が落ちた。戻すと合格した
+- わざと壊す確認: S747・実際の経路・`cgolden/bounds/servings-flag-zero`（P3-3、2026-11-02）。条件のフィールドの `check_value` を飛ばすと `servings-flag-zero`・`servings-options-zero` を含む 4 本が落ちた。戻すと合格した
+- わざと壊す確認: S747・境界・上限・`cgolden/bounds/servings-flag-negative`（P3-3、2026-11-02）。人数の判定を 0 ちょうどだけにする（負の値を通す）と `servings-flag-negative` が落ちた。戻すと合格した
+- わざと壊す確認: S777・副作用とコスト・`cgolden/bounds/servings-flag-header-range`（P3-3、2026-11-02）。条件の側で誤りでも見出しの側で検査すると `servings-flag-header-range`・`servings-flag-dimension` が落ちた。戻すと合格した
+- わざと壊す確認: S778・実際の経路・`cgolden/bounds/servings-flag-over-header`（P3-3、2026-11-02）。条件から来た人数では見出しの宣言の範囲を見ないと `servings-flag-over-header` が落ちた。戻すと合格した
+- わざと壊す確認: S779・副作用とコスト・`cgolden/bounds/servings-flag-dimension`（P3-3、2026-11-02）。重複を除く処理を消す（条件の側の誤りに関わらず見出しの型でも検査する）と `servings-flag-dimension`（今と同じ 2 行に戻る）・`servings-flag-header-range` が落ちた。戻すと合格した
+- わざと壊す確認: S748・実際の経路・`cgolden/bounds/servings-options-zero`（P3-3、2026-11-02）。条件のフィールドの `check_value` を飛ばすと `servings-options-zero` が落ちた（S747 と同じ壊し方）。戻すと合格した
+- わざと壊す確認: S749・境界・上限・`cgolden/bounds/servings-one-ok`（P3-3、2026-11-02）。`Options.servings` の範囲（型の無い見出しの人数の検査にも使う）を `1<..` にすると `servings-one-ok` が落ちた。戻すと合格した
+- わざと壊す確認: S780・境界・上限・`cgolden/bounds/servings-flag-one-ok`（P3-3、2026-11-02）。`Options.servings` の範囲を `1<..` にすると `servings-flag-one-ok` が落ちた。戻すと合格した
+- わざと壊す確認: S750・実際の経路・`cgolden/bounds/issue2`（P3-3、2026-11-02）。`boil` の範囲を消すと `issue2`・`time-negative` が落ちた。戻すと合格した
 
 ---
 
