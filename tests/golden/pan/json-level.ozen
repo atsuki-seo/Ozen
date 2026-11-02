@@ -1,0 +1,13 @@
+// args: check --format json --emit schedule --kitchen home
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pan: FryingPan
+  }
+}
+recipe friedPork {
+  ingredients { pork: 200 g }
+  let fried = pork |> fry(5 min)
+}

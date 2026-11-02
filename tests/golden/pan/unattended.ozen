@@ -1,0 +1,20 @@
+// args: debug schedule --kitchen home --options today
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pan: FryingPan
+  }
+}
+recipe porkAndOnion {
+  ingredients {
+    pork: 200 g
+    onion: 1 pcs
+  }
+  let fried = pork |> fry(5 min)
+  let peeled = onion |> peel
+}
+kitchen today : Options {
+  cooks: 1
+}

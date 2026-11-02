@@ -1,0 +1,8 @@
+schedule porkAndSoup level=2 cooks=1
+  0..600 (300) %2 boilWater unattended [stove#1, pot#1]
+  600..780 (660) preheat pan#1 to medium unattended [pan#1, stove#1]
+  780..1080 (1080) %4 fry by cook1 [stove#1, pan#1]
+  total 1080
+warning LIN005 unusedValue preheat-burner.ozen:16:7-16:13 args=["boiled", "Water<doneness: done>"]: unused value
+result ok errors=0 warnings=1 infos=0
+exit 0
