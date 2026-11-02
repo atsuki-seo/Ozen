@@ -1,0 +1,7 @@
+recipe seasoning {
+  ingredients {
+    salt: -1..2 g
+    pepper: -0.5..0.8 g
+  }
+  let mixed = combine([salt, pepper])
+}

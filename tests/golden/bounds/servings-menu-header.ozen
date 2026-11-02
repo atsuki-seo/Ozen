@@ -1,0 +1,9 @@
+recipe soup(servings: Count = 2) {
+  ingredients {
+    water: 200 ml
+  }
+  let warmed = warm(water)
+}
+menu dinner(servings: 0) {
+  let s = make soup
+}

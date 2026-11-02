@@ -1,0 +1,4 @@
+error TYP021 nonPositiveAmount amount-range-negative.ozen:3:11-3:18 args=["salt", "-1..2 g"]: non positive amount
+error TYP021 nonPositiveAmount amount-range-negative.ozen:4:13-4:24 args=["pepper", "-0.5..0.8 g"]: non positive amount
+result error errors=2 warnings=0 infos=0
+exit 1

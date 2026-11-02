@@ -1,0 +1,10 @@
+// args: check --options today
+recipe soup {
+  ingredients {
+    water: 200 ml
+  }
+  let warmed = warm(water)
+}
+kitchen today : Options {
+  servings: 0
+}

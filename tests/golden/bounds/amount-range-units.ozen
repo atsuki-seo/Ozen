@@ -1,0 +1,6 @@
+recipe seasoning {
+  ingredients {
+    sugar: -5 ml..-1 ml
+  }
+  let mixed = mix(sugar)
+}

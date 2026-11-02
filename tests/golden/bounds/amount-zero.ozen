@@ -1,0 +1,6 @@
+recipe hiyayakko {
+  ingredients {
+    tofu: Tofu 0 pcs
+  }
+  let chilled = chill(tofu, 10 min)
+}

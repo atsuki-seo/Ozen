@@ -1,0 +1,6 @@
+recipe a {
+  ingredients {
+    water: -100 ml
+  }
+  let x = boil(water, -300 s)
+}

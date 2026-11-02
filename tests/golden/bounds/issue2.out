@@ -1,0 +1,4 @@
+error TYP021 nonPositiveAmount issue2.ozen:3:12-3:19 args=["water", "-100 ml"]: non positive amount
+error TYP012 rangeViolation issue2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<.."]: range violation
+result error errors=2 warnings=0 infos=0
+exit 1

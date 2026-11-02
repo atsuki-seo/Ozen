@@ -1,0 +1,8 @@
+recipe seasoning(servings: 0) {
+  ingredients {
+    sugar: 100 g per serving
+    water: 150 ml * servings
+    salt: 0 g per serving
+  }
+  let mixed = combine([sugar, water, salt])
+}

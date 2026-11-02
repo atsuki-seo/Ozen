@@ -1,0 +1,3 @@
+error TYP021 nonPositiveAmount amount-range-units.ozen:3:12-3:24 args=["sugar", "-5 ml..-1 ml"]: non positive amount
+result error errors=1 warnings=0 infos=0
+exit 1

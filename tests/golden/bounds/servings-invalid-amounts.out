@@ -1,0 +1,4 @@
+error TYP012 rangeViolation servings-invalid-amounts.ozen:1:28-1:29 args=["servings", "0", "1.."]: range violation
+error TYP021 nonPositiveAmount servings-invalid-amounts.ozen:5:11-5:26 args=["salt", "0 g per serving"]: non positive amount
+result error errors=2 warnings=0 infos=0
+exit 1

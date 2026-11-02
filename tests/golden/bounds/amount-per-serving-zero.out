@@ -1,0 +1,3 @@
+error TYP021 nonPositiveAmount amount-per-serving-zero.ozen:3:11-3:26 args=["salt", "0 g per serving"]: non positive amount
+result error errors=1 warnings=0 infos=0
+exit 1

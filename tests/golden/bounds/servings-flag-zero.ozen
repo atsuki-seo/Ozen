@@ -1,0 +1,7 @@
+// args: check -s 0
+recipe soup {
+  ingredients {
+    water: 200 ml
+  }
+  let warmed = warm(water)
+}

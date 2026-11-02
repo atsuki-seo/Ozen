@@ -1,0 +1,6 @@
+recipe seasoning {
+  ingredients {
+    salt: 0..2 g
+  }
+  let mixed = mix(salt)
+}

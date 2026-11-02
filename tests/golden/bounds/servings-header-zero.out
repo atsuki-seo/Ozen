@@ -1,0 +1,3 @@
+error TYP012 rangeViolation servings-header-zero.ozen:1:23-1:24 args=["servings", "0", "1.."]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1
