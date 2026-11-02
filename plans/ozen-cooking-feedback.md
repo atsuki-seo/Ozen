@@ -1378,6 +1378,42 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S895・効かない条件・`G-CORE-GOLDEN`（P3-2、2026-11-03）。混ぜた物の行の末尾に材料を持つ印を出すと、`core-gcc-release` の golden が「559 passed, 21 failed」で落ちた（開発用の worktree ではほかの 3 つの構成をビルドしていないので、その 3 つは全件落ちとして数えられた）。戻すと合格した
 - Phase 2 のフェーズゲート（P2-5、2026-11-03）: `8700165` で、量の計画の基準値と同じ前提ゴール（`build/fb-gate-goals.txt` の 113 個。`G-CORE-FUZZ`・`G-PLAT-CI`・`G-QC-ISSUES` を除く）と `G-QC-GOLDEN-ARGS`・`G-QC-GOLDEN-BOUNDS`・`G-QC-PRELUDE`・`G-QC-DIAG`・`G-QC-SCOPE`・`G-QC-GOLDEN-CHANGED` を回し、115 個が合格した。落ちた 5 つのうち `G-CORE-GOLDEN`・`G-CORE-DETERMINISM`・`G-PLAT-WASM` は、`gcc-release` 以外の構成と wasm を作り直していなかったため（`scripts/build-core.sh`・`scripts/build-wasm.sh` で作り直すと合格した）、`G-REND-PHRASES-RENDER` は回す順でサンプルの JSON が古かったため（`G-SAMPLE-CHECK` の後に回すと合格した）、`G-REPO-SELFTESTS` は回している間に別の worktree でビルドとわざと壊す確認をしていたため（回し直すと合格した）。`G-CORE-FUZZ` は最終ゲートで回す
 - 開発用の worktree（P3、2026-11-03）: ゲートを回している間、一時的な worktree（ブランチ `fb-dev`）で Phase 3 を進め、終わった後に `main` の上に載せ直して早送りした。載せ直しでコミットの SHA が変わったので、対照の golden のコミットを `49e9172` に直した
+- `until:` の値の型と引数の数（P4-2、2026-11-03）: `until:` は、出力の型に順序つきの軸（`doneness`・`browning`）を宣言する動作の呼び出しでだけ、名前付き引数として評価せずに読む。値が `<軸> >= <値>`（`>=` の二項演算で、両辺が名前）なら状態の `until`、名前だけなら合図（P7）、それ以外は `TYP023`。`until:` があるときだけ `time` の引数が無くても `NAM012` を出さない。`time` の宣言の行は量の計画の形（`time: Time in 0 s<..`）のままで、`G-QC-PRELUDE` は合格した
+- `until` の時間（P4-2、2026-11-03）: 食材の props の `heating { <動作の名前> { <値>: <範囲> } }` から取る。混ぜた物は材料（平らにたどった `comps`）のうち欄を持つものの範囲を合わせた一番広い範囲。`done` で欄が無ければ加熱のモデル（`heatUp × (厚さ / at)^n + soften`）を n = 2 で使う（中まで火が通る時間は厚さの 2 乗に比例するとみる熱伝導の近似。`sched/heat-model` の小さい煮物も n = 2）。`time` も書いたときは段取りの時間は `time` で、状態だけを `until` にする。見積もった時間は IR の作業の時間（`[...; 60..120 s]`）に入れ、書いた引数ではないので IR の `args` と `debug steps` の引数には出さない
+- IR の `until`（P4-2、2026-11-03）: IR の節（`ozni_ir_node`）は大きさを単体テスト（`core/tests/unit/test_ir.c` の `static_assert`）で 96 バイトに固定しているので、`until` は節に足さず、`ir_meta` と同じ形の別の表（作業の番号と軸と値）に持つ。IR の行には `until=doneness >= par` を引数の後に出し、IR の JSON の作業には `until` が `{"axis": …, "value": …}`（合図は `{"cue": …}`）として、`until` のある作業にだけ出る。スキーマの IR の節に任意の欄 `until` を足した
+- `until` の作業の人（P4-2、2026-11-03、D114）: `until` の作業は IR で無人の印を外し、段取りでは `hands` を使わない動作（`simmer` など）でも作る人を 1 人つける（段取りは `hands` の要求があるときだけ人をつける作りのため）
+- 混ぜた物と `until`（P4-2、2026-11-03）: 加熱の動作の効果で混ぜた物の材料の火の通りが宣言の値（`simmer` なら `done`）まで上がった後に `until` で出力を `par` にすると、材料が `done` のまま残った（`nested-list` で `SAF005` が出なかった）。`until` を当てるときは、材料の火の通りを入力の材料の値から `until` の値まで上げ直すようにした
+- golden の IR の行の順（P4-1、2026-11-03）: `until/list-time`・`until/nested-list` の手で書いた期待は、材料の `in` の行を先にまとめて並べていたが、IR は材料を最初に使う手順の直前に `in` の行を置く作りなので、その順に直した（足した golden なので名指しの対象ではない）。`until/syntax-ast` の期待は、文法を変えないことを確かめる対照なので、着手点と同じ今のビルドの `debug ast` の出力を写し、位置を手で数えて確かめた
+- 対照の golden（P4-1、2026-11-03）: `until/syntax-ast`・`until/mix-until`・`until/missing-time` は、赤の 20 個と別のコミット `9f1f162` にし、`scripts/red-first-exceptions.txt` に載せた
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — P4-2 で `Egg` の props に `heating` が加わり、診断の一覧に `TYP022 untilTime`・`TYP023 untilTarget` が加わった
+- わざと壊す確認: S829・実際の経路・`cgolden/until/syntax-ast`（P4-1、2026-11-03）。`until` を予約語にするだけでは名前付き引数の名前に予約語も書けるので `debug ast` は変わらなかった。予約語にした上で名前付き引数の名前を識別子に限ると、`until: …` が名前付き引数として読めず `debug ast` が変わって落ちた。戻すと合格した
+- わざと壊す確認: S830・正常系・`cgolden/until/simmer-par`（P4-2、2026-11-03）。`until:` の値を出力の状態に当てないと `Egg<doneness: done, …>` になり `SAF005` も消えて落ちた。戻すと合格した
+- わざと壊す確認: S831・正常系・`cgolden/until/fry-golden`（P4-2、2026-11-03）。`until:` のときにほかの順序つきの軸を初期の値に戻すと `doneness: done` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S832・効かない条件・`cgolden/until/axis-not-declared`（P4-2、2026-11-03）。`until` を受け付ける動作なら出力が宣言していない軸も受け付けると、`TYP023` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S833・境界・上限・`cgolden/until/not-later`（P4-2、2026-11-03）。入力の値より前の値を許す（同じ値だけを誤りにする）と、ゆで卵に `TYP023` が出ず落ちた（`same-value` は合格のまま）。戻すと合格した
+- わざと壊す確認: S899・境界・上限・`cgolden/until/same-value`（P4-2、2026-11-03）。入力の値と同じ値を許すと `TYP023` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S834・効かない条件・`cgolden/until/unordered-axis`（P4-2、2026-11-03）。`until` に書いた軸については順序の無い軸も受け付けると、`shape >= pureed` の `TYP023` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S896・効かない条件・`cgolden/until/mix-until`（P4-2、2026-11-03）。すべての動作で `until:` を受け付けると、`NAM013` が `TYP023` に変わって落ちた。戻すと合格した
+- わざと壊す確認: S897・正常系・`cgolden/until/user-action`（P4-2、2026-11-03）。`until:` を受け付ける動作を std の `fry`・`simmer`・`boil`・`parboil` に限ると、利用者の `parCook` で `NAM013` が出て落ちた。戻すと合格した
+- わざと壊す確認: S898・効かない条件・`cgolden/until/value-only`（P4-2、2026-11-03）。値だけの `until: par` を、その値を持つ入力の最初の軸で読むと、`TYP023` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S835・正常系・`cgolden/until/time-from-data`（P4-2、2026-11-03）。時間のデータの欄の名前を `done` に固定すると、作業の時間が `180..300 s` になって落ちた。戻すと合格した
+- わざと壊す確認: S836・境界・上限・`cgolden/until/list-time`（P4-2、2026-11-03）。最初に見つかった材料の範囲だけを使うと `60..120 s` になって落ちた。戻すと合格した
+- わざと壊す確認: S902・境界・上限・`cgolden/until/nested-list`（P4-2、2026-11-03）。混ぜた物を混ぜるときに材料を平らにたどらず 1 段だけにすると、卵の時間のデータが見つからず `TYP022` が出て落ちた。戻すと合格した
+- わざと壊す確認: S900・正常系・`cgolden/until/boil-egg-done`（P4-2、2026-11-03）。卵の `heating` から `boil` を消すと `TYP022` が出て落ちた。戻すと合格した
+- わざと壊す確認: S901・正常系・`cgolden/until/model-done`（P4-2、2026-11-03）。`done` の欄が無いときに加熱のモデルを使わないと `TYP022` が出て落ちた。戻すと合格した
+- わざと壊す確認: S837・正常系・`cgolden/until/no-data`（P4-2、2026-11-03）。データが無いときに 0 秒にすると `TYP022` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S838・副作用とコスト・`cgolden/until/time-and-until`（P4-2、2026-11-03）。両方あるときデータの時間を使うと、作業の時間が `60..120 s` になって落ちた。戻すと合格した
+- わざと壊す確認: S839・効かない条件・`cgolden/until/missing-time`（P4-2、2026-11-03）。`until:` が無くても `time` を省けるようにすると `NAM012` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S840・時間と順序・`cgolden/until/schedule-range`（P4-2、2026-11-03）。段取りに範囲の下端だけを渡すと `simmer` が `90..150` になって落ちた。戻すと合格した
+- わざと壊す確認: S841・データの完全性・`cgolden/until/json-until`（P4-2、2026-11-03）。IR の JSON に `until` を出さないと落ちた。戻すと合格した
+- わざと壊す確認: S842・実際の経路・`cgolden/until/pipe`（P4-2、2026-11-03）。パイプで差し込んだ呼び出し（最初の引数の位置が呼ぶ名前より前）では `until:` を読まないと、`NAM012` と `NAM013` が出て落ちた（入れ子の呼び出しの `simmer-par` は合格のまま）。戻すと合格した
+- わざと壊す確認: S903・実際の経路・`cgolden/until/composite-until`（P4-2、2026-11-03）。合成の動作の `steps` の中の呼び出しでは `until:` を読まないと、`NAM012` と `NAM013` が出て落ちた。戻すと合格した
+- わざと壊す確認: S904・時間と順序・`cgolden/until/attended`（P4-2、2026-11-03）。`until` の作業に作る人をつけないと `simmer unattended` になって落ちた。戻すと合格した
+- わざと壊す確認: S844・前提の固定・`G-STD-PROVENANCE`（P4-2、2026-11-03）。`Egg` の `heating` の `simmer` の `par` から `@source(provisional)` を消すと「provenance: 117 values, 1 without source」で落ちた。戻すと合格した
+- わざと壊す確認: S844・前提の固定・`G-STD-SOURCES`（P4-2、2026-11-03）。`search-log.yaml` から `ingredients.Egg.props.heating.simmer.par` を消すと「1 provisional without search」で落ちた。戻すと合格した
+- わざと壊す確認: S867・データの完全性・`G-FB-DIAG`（P4-2、2026-11-03）。`diag-until-target` の日本語から `{ $arg2 }` を消すと「ja until: got '1', want '2'」で落ちた。戻すと合格した
+- わざと壊す確認: S867・データの完全性・`G-CORE-DIAG-REGISTRY`（P4-2、2026-11-03）。`diag-names.txt` から `TYP:untilTime` を消すと「1 unlisted」「diag codes = names: got '113', want '112'」で落ちた。戻すと合格した
+- わざと壊す確認: S917・前提の固定・`G-QC-PRELUDE`（P4-2、2026-11-03）。`fry` の宣言を `time: Time? in 0 s<..` にすると「time ranges: got '6', want '7'」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
