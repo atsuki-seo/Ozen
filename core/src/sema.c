@@ -2706,7 +2706,7 @@ static bool check_qty(sema *s, ozni_qty v, ozni_index tfile, ozni_index tnode, o
   }
   const ozni_node *rn = nd(s, tfile, range);
   ozni_qty lo = {0}, hi = {0};
-  bool has_lo = false, has_hi = false;
+  bool has_lo = false, has_hi = false, above = rn->kind == OZNI_N_RangeAbove;
   if (rn->kind == OZNI_N_NumberRange) {
     ozni_str txt = S(s, rn->text);
     ozni_ival iv;
@@ -2722,8 +2722,12 @@ static bool check_qty(sema *s, ozni_qty v, ozni_index tfile, ozni_index tnode, o
     has_lo = range_bound(s, tfile, rn->first, &lo);
   } else if (rn->kind == OZNI_N_RangeTo && rn->first != 0) {
     has_hi = range_bound(s, tfile, rn->first, &hi);
+  } else if (above && rn->first != 0) {
+    has_lo = range_bound(s, tfile, rn->first, &lo);
+    has_hi = nd(s, tfile, rn->first)->next != 0 && range_bound(s, tfile, nd(s, tfile, rn->first)->next, &hi);
   }
-  if ((has_lo && ozni_rat_cmp(v.v.lo, lo.v.lo) < 0) || (has_hi && ozni_rat_cmp(v.v.hi, hi.v.hi) > 0)) {
+  int below = has_lo ? ozni_rat_cmp(v.v.lo, lo.v.lo) : 1;
+  if ((has_lo && (below < 0 || (above && below == 0))) || (has_hi && ozni_rat_cmp(v.v.hi, hi.v.hi) > 0)) {
     ozni_str args[3] = {S(s, name), src_text(s, vfile, nd(s, vfile, vnode)), src_text(s, tfile, rn)};
     diag_node(s, OZNI_D_TYP_rangeViolation, vfile, nd(s, vfile, vnode), args, 3);
     return false;
