@@ -18,10 +18,10 @@ test('until is written as the stage the food reaches, with the estimated time', 
 });
 
 test('the subject of until in a mixture is the ingredient that has the time', () => {
-  assert.match(recipe('ja', 'eggSoup'), /^\d\. 水、卵を、卵が半熟になるまで弱火で煮る（約 1〜2 分）。$/m);
+  assert.match(recipe('ja', 'eggSoup'), /^\d\. 水、溶き卵を、卵が半熟になるまで弱火で煮る（約 1〜2 分）。$/m);
 });
 
 test('the English sentence says until the food reaches the stage', () => {
-  assert.match(recipe('en', 'softEgg'), /^2\. Simmer egg over low heat until egg is lightly cooked \(about 1–2 min\)\.$/m);
+  assert.match(recipe('en', 'softEgg'), /^2\. Simmer beaten egg over low heat until egg is lightly cooked \(about 1–2 min\)\.$/m);
   assert.match(recipe('en', 'goldenOnion'), /^\d\. Fry onion over medium heat until onion is golden brown \(about 5 min\)\.$/m);
 });

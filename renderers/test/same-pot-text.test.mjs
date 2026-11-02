@@ -18,7 +18,7 @@ test('a step that goes on in the same pot adds the new ingredients to the earlie
 });
 
 test('a step that goes on with nothing new is written as going on', () => {
-  assert.match(recipe('saltyPork'), /^3\. そのまま弱火で5 分煮込む。$/m);
+  assert.match(recipe('goldenPork'), /^2\. そのまま豚肉がきつね色になるまで中火で炒める（約 2 分）。$/m);
 });
 
 test('a step moved to a new pot is written as before', () => {

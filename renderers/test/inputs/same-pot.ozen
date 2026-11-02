@@ -8,14 +8,10 @@ recipe porkSoup {
   let soup = simmer([stock, onionCut], 5 min)
 }
 
-recipe saltyPork {
-  ingredients {
-    pork: 200 g
-    salt: 1 pinch
-  }
-  let stock = pork |> simmer(10 min)
-  let salted = season(stock, salt)
-  let cooked = salted |> simmer(5 min)
+recipe goldenPork {
+  ingredients { pork: 200 g }
+  let fried = pork |> fry(3 min)
+  let browned = fried |> fry(2 min, until: browning >= golden)
 }
 
 recipe newPot {
