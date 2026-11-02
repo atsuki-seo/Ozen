@@ -1257,6 +1257,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S882・文書との一致・`G-FB-SITE`（P1-2、2026-11-02）。グラタンの抜粋の `prepared |> bake` を元の golden に無い `prepared |> roast` にすると「mismatched code: preheat-backward.ozen」「site-examples: 18 examples, 1 mismatched」で落ちた。戻すと合格した
 - わざと壊す確認: S882・前提の固定・`G-REPO-SELFTESTS`（P1-2、2026-11-02）。照合の道具で出力の食い違いを数えないようにすると、自己テストの `golden-other-args`・`self-run-mismatch` が落ち「selftests: 46 scripts, 0 without test, 1 failed」で落ちた。戻すと合格した
 - 範囲に入った別の作業のコミット: 8f419ad（別のセッションによる `plans/ozen-dev-environment.md` の決定の記録）
+- わざと壊す確認: S790・効かない条件・`cgolden/names/method-call`（P1-3、2026-11-03）。`sema.c` の `NAM019` を出す `diag_node` を通らないようにしてビルドし直すと、`names/method-call` が `NAM019` の行を失って落ちた。戻してビルドし直すと合格した
+- わざと壊す確認: S791・文書との一致・`G-FB-CONCEPT`（P1-3、2026-11-03）。concept §4.4 の「材料を先に書く」を「材料が先」にすると「4.4 subject first: got '0'」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
