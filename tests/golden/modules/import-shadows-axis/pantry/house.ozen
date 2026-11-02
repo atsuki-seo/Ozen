@@ -1,0 +1,3 @@
+macro prep(x) {
+  quote { let soaked = $x |> wash |> soak(30 min) }
+}

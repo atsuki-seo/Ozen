@@ -1,0 +1,9 @@
+ir gohan
+  %1 = in rice : Rice 300 g
+  %2 = op wash %1 : Rice -> Rice<prep has washed> 300 g [hands, Washing; 60..180 s]
+  %3 = op soak %2 time=1800 s : Rice<prep has washed> -> Rice<prep has washed, prep has soaked(1800 s)> 300 g [Container; 1800 s; unattended]
+info ASM002 noPlating main.ozen:2:8-2:13 args=["gohan"]: no plating
+info ASM004 unlimitedEquipment main.ozen:2:8-2:13: unlimited equipment
+info NAM006 localOverride pantry/house.ozen:1:1-3:2 args=["prep", "std.prelude"]: local override
+result ok errors=0 warnings=0 infos=3
+exit 0

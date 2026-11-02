@@ -1,0 +1,3 @@
+error NAM021 valueField value-field-param.ozen:3:15-3:29 args=["servings", "count"]: value field
+result error errors=1 warnings=0 infos=0
+exit 1

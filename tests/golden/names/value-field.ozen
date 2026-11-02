@@ -1,0 +1,5 @@
+recipe salad {
+  ingredients { onion: 1 pcs }
+  let sliced = onion |> peel |> cut(slice, 3 mm)
+  let size = sliced.size
+}

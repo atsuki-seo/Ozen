@@ -1,0 +1,5 @@
+recipe salad(servings: 2) {
+  ingredients { onion: 1 pcs }
+  let count = servings.count
+  let washed = wash(onion)
+}

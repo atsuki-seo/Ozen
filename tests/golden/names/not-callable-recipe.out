@@ -1,0 +1,5 @@
+info ASM002 noPlating not-callable-recipe.ozen:6:8-6:14 args=["dinner"]: no plating
+info ASM004 unlimitedEquipment not-callable-recipe.ozen:6:8-6:14: unlimited equipment
+error NAM020 notCallable not-callable-recipe.ozen:7:14-7:19 args=["gohan", "recipe"]: not callable
+result error errors=1 warnings=0 infos=2
+exit 1

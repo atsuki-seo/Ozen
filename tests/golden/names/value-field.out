@@ -1,0 +1,3 @@
+error NAM021 valueField value-field.ozen:4:14-4:25 args=["sliced", "size"]: value field
+result error errors=1 warnings=0 infos=0
+exit 1

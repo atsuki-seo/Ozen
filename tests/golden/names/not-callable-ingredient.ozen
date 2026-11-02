@@ -1,0 +1,4 @@
+recipe salad {
+  ingredients { onion: 1 pcs }
+  let sliced = Onion(onion)
+}

@@ -1,0 +1,8 @@
+// args: check --entry dinner
+recipe gohan {
+  ingredients { rice: 300 g }
+  let washed = wash(rice)
+}
+recipe dinner {
+  let rice = gohan()
+}
