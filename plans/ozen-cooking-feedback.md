@@ -1917,6 +1917,21 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 期待を直した golden: `tests/golden/serve/use-within-on-ingredient.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
 - 期待を直した golden: `tests/golden/serve/use-within-range.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
 - 期待を直した golden: `tests/golden/serve/use-within-two-consumers.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
+- わざと壊す確認: S868・文書との一致・`G-TYPE-SEVERITY-TABLE`（P9-1、2026-11-03）。`severity-examples.txt` の `SAF:lightlyCookedEgg` の重さを `error` にすると「severity: 21 examples, 1 mismatched」で落ちた。戻すと合格した
+- わざと壊す確認: S868・文書との一致・`G-FB-DIAG`（P9-1、2026-11-03）。`severity-examples.txt` から `TYP:untilTarget` の行を消すと「severity example TYP023: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S876・文書との一致・`G-FB-CONCEPT`（P9-1、2026-11-03）。concept §4.1 の `inShell` を `shell` に変えると「4.1 inShell: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S877・文書との一致・`G-FB-CONCEPT`（P9-1、2026-11-03）。concept §4.2 の「同じ鍋のまま」を「同じ鍋で」に変えると「4.2 same vessel: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S918・文書との一致・`G-FB-CONCEPT`（P9-1、2026-11-03）。concept §4.1 の「材料ごとの火の通り」を「材料の火の通り」に変えると「4.1 per ingredient doneness: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S919・文書との一致・`G-FB-CONCEPT`（P9-1、2026-11-03）。concept §12.3 の「卵の殻」を「卵のから」に変えると「12.3 egg shell: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S921・文書との一致・`G-FB-CONCEPT`（P9-1、2026-11-03）。`concept-lists.yaml` から `Egg` の行を消すと「concept lists Egg: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S878・文書との一致・`G-FB-CONCEPT`（P9-1、2026-11-03）。concept §4.4 の `until: doneness >= par` を `until: …` に変えると「4.4 until: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S879・文書との一致・`G-FB-CONCEPT`（P9-1、2026-11-03）。concept §12.2 の「卵を割る」を「卵をわる」に変えると「12.2 crack: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S880・文書との一致・`G-FB-CLAUDEMD`（P0-3、2026-11-03）。`CLAUDE.md` から本計画の行を消すと「plan line in CLAUDE.md: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S915・前提の固定・`G-QC-SCOPE`（P0-2、2026-11-03）。一時的な worktree で `QC=` を `qc-start..HEAD` に戻すと、本計画のファイルが範囲の外に数えられて「files outside scope: got '50'」で落ちた。worktree を消した（push していない）
+- わざと壊す確認: S872・副作用とコスト・`G-FB-GOLDEN-CHANGED`（P9-2、2026-11-03）。§9 の `tests/golden/state/peel-missing.ozen` の `- 期待を直した golden: ` の行を消すと「changed expectations not named in the plan: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S873・副作用とコスト・`G-FB-SCOPE`（P9-2、2026-11-03）。一時的な worktree で `README.md` に 1 行足したコミットを作ると「files outside scope: got '1'」で落ちた。worktree を消した（push していない）
+- わざと壊す確認: S874・副作用とコスト・`G-RF-SEPARATION`（P9-2、2026-11-03）。一時的な worktree で `tests/golden/egg/allow-par.out` と `core/src/sema.c` を 1 つのコミットで変えると「separation: 102 commits, 1 mixed」で落ちた。worktree を消した（push していない）
+- わざと壊す確認: S875・データの完全性・`G-FB-VERSION`（P9-2、2026-11-03）。`VERSION` を `0.2.0` にすると「VERSION: got '0.2.0', want '0.1.0'」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
