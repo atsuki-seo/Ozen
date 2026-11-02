@@ -1,9 +1,9 @@
 ir twoEggs
   %1 = in egg : Egg 60 g
-  %2 = in quail : QuailEgg 20 g
-  %3 = op crack %1 : Egg -> Egg<shape: cracked> 60 g [hands, MixingBowl; 12..30 s]
-  %4 = op beat %3 : Egg<shape: cracked> -> Egg<shape: beaten> 60 g [hands, MixingBowl; 30..60 s]
-  %5 = op combine %4, %2 : Egg<shape: beaten>, QuailEgg -> Mixture 80 g with Allergen(egg), Hazard [0 s]
+  %2 = op crack %1 : Egg -> Egg<shape: cracked> 60 g [hands, MixingBowl; 12..30 s]
+  %3 = op beat %2 : Egg<shape: cracked> -> Egg<shape: beaten> 60 g [hands, MixingBowl; 30..60 s]
+  %4 = in quail : QuailEgg 20 g
+  %5 = op combine %3, %4 : Egg<shape: beaten>, QuailEgg -> Mixture 80 g with Allergen(egg), Hazard [0 s]
   %6 = op simmer %5 heat=low until=doneness >= par : Mixture -> Mixture<doneness: par> 80 g with Allergen(egg), Hazard [HeatSource<stovetop>, Pot; 60..240 s]
 error SAF001 undercooked list-time.ozen:18:16-18:63 args=["QuailEgg", "par"]: undercooked
 warning SAF005 lightlyCookedEgg list-time.ozen:18:16-18:63 args=["Egg"]: lightly cooked egg
