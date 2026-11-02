@@ -5,6 +5,7 @@
 - 要求: 人と AI が Ozen を使って開発するときの、文書の形と構成、それぞれの開発環境の作り方の設計が弱い。AI 向けの文書のルールも刷新したい（2026-11-02、ユーザーがチャットで依頼）。
 - 引き継ぎ: `plans/ozen-authoring-support.md`（以下「書きやすさの洗い出し」）から、C13（AI 向けの手引き）・C23（レシピを書く AI への手順書）・Q4（手引きの置き場と形）を移した。Q4 は「手引きは英日の 2 つにする」まで決まっている。
 - 確かめた事実: 2026-11-02 に `bb545b8` のファイルを読んで確かめた（§3）。外部の事実は §3 に出典を付けた。
+- 決定: 2026-11-02 にユーザーに 1 件ずつ確認して決めた（§6）。本ファイルは未実施の計画なので日本語のまま残す（EQ13）。
 - 番号: 候補は **E1** から、決めることは **EQ1** から付ける。書きやすさの洗い出しの C・Q、既存の計画の D・S とは別。
 
 ---
@@ -112,22 +113,32 @@ Ozen に当てはめると:
 | E17 | ライブラリの配布物（WebAssembly の npm パッケージ、XCFramework、Android のライブラリ） | 大 |
 | E18 | C API の参照を `core/include/ozen.h` から生成する | 中 |
 
+### E. 決める途中で足した候補
+
+| ID | 内容 | 大きさ |
+| --- | --- | --- |
+| E19 | 既存の文書を英語にする: `docs/concept.md`・`docs/prototype-report.md` と、完了した計画 4 つ（`plans/ozen-roadmap.md`・`plans/ozen-syntax-refresh.md`・`plans/ozen-readme-compact.md`・`plans/ozen-quantity-checks.md`）。計画と concept の日本語の文言を読む検査（`scripts/goals.sh`・`scripts/check-plan-tests.sh`・`scripts/check-rewrite-equivalence.py`・`scripts/check-lists-copy.py` など。例:【決定済み】、「わざと壊す方法」の列、concept §6.1 の「\| 警告」の行）も同時に英語の文言へ書き換え、全ゴールが合格のままであることを確かめる | 大 |
+| E20 | 版を上げる準備: 版の番号が `VERSION`・`stdlib/package.ozen`・`plans/ozen-roadmap.md` の「版:」の 3 か所にあり、`G-RD-VERSION`・`G-QC-VERSION` が 0.1.0 を固定で確かめている。版を上げるスクリプトと、それに合わせたゴールの直し | 小〜中 |
+| E21 | `ozen init <名前>`（新しいコマンド）: 料理本のフォルダ（= 1 パッケージ）に `package.ozen` と短い `AGENTS.md` を書き出す。`AGENTS.md` は「`ozen doc` で調べ、`ozen check --format json` で確かめ、`ozen render` で文章に戻す」だけを書き、詳しい書き方は入っている版の `ozen doc` に任せる | 中 |
+| E22 | CI でも `G-REPO-NOREPLY` を回し、pre-push hook を通らなかった push の後ろの守りにする | 小 |
+
 ## 6. 決めること
 
 | ID | 問い | 推奨 | 決定 |
 | --- | --- | --- | --- |
-| EQ1 | 今回の範囲にする読む人 | 本体を開発する人と、レシピを書く人。組み込む人（E17・E18）は後回し | 未決 |
-| EQ2 | リポジトリに置くものと、別にするもの | §4.1 のとおり。参照・手引き・手順書・環境の定義はリポジトリに置き、入門書や大きな Web サイトは今は作らない | 未決 |
-| EQ3 | 書き方の参照と AI 向けの手引きの置き場 | `docs/reference/{en,ja}/`。`docs/` は「設計（日本語）」と「参照（英日）」の 2 つの役割を持つ | 未決 |
-| EQ4 | 参照と AI 向けの手引きの関係 | 参照を正本にし、手引きは参照から作る 1 ファイルの要約にする。同じことを手で 2 か所に書かない | 未決 |
-| EQ5 | 生成した参照をコミットするか | コミットする。GitHub や clone で読め、ゴールで「生成し直しても差がない」を確かめる | 未決 |
-| EQ6 | AI への指示の正本 | `AGENTS.md` を正本にし、`CLAUDE.md` は `@AGENTS.md` と Claude 固有の分だけにする。rulesync は入れない | 未決 |
-| EQ7 | `.claude/` に何を置くか | `git push` の前の `G-REPO-NOREPLY` の hook（E8）。skill（E9）は様子を見る | 未決 |
-| EQ8 | 環境の定義の方式 | `toolchain.txt` を正本にした準備スクリプト（E10）。devcontainer・Nix・mise（E11）は足さない | 未決 |
-| EQ9 | `docs/concept.md` §16 の扱い | 本文を消し、「作業の入口は `AGENTS.md` と `plans/`」の 1 行に置き換える | 未決 |
-| EQ10 | GitHub Releases での配布を範囲に入れるか | 入れる。Linux x86_64 と WebAssembly から始め、macOS は CI の macOS で作れるなら足す | 未決 |
-| EQ11 | レシピを書く AI への手順書の配り方 | `ozen init` が `AGENTS.md` を書き出し、原本は参照に置く | 未決 |
-| EQ12 | `CLAUDE.md` の言語ルール | EQ3・EQ6 の決定に合わせて書き直す（参照・手引き・手順書は英日、`AGENTS.md` は英語） | 未決 |
+| EQ1 | 今回の範囲にする読む人 | 本体を開発する人と、レシピを書く人。組み込む人（E17・E18）は後回し | 推奨どおり。本体を開発する人と、レシピを書く人。組み込む人（E17・E18）は後回し |
+| EQ2 | リポジトリに置くものと、別にするもの | §4.1 のとおり。参照・手引き・手順書・環境の定義はリポジトリに置き、入門書や大きな Web サイトは今は作らない | 推奨どおり |
+| EQ3 | 書き方の参照と AI 向けの手引きの置き場 | `docs/reference/{en,ja}/`。`docs/` は「設計（日本語）」と「参照（英日）」の 2 つの役割を持つ | 最上位の `reference/{en,ja}/`。`docs/` は設計の文書だけにする |
+| EQ4 | 参照と AI 向けの手引きの関係 | 参照を正本にし、手引きは参照から作る 1 ファイルの要約にする。同じことを手で 2 か所に書かない | 推奨どおり。手引きは英日の 2 つ（例 `reference/en/ai-guide.md`・`reference/ja/ai-guide.md`） |
+| EQ5 | 生成した参照をコミットするか | コミットする。GitHub や clone で読め、ゴールで「生成し直しても差がない」を確かめる | 推奨どおり |
+| EQ6 | AI への指示の正本 | `AGENTS.md` を正本にし、`CLAUDE.md` は `@AGENTS.md` と Claude 固有の分だけにする。rulesync は入れない | **rulesync を入れる**。`.rulesync/` を正本にし、Claude Code・`AGENTS.md`・Codex CLI・Cursor・Copilot の設定を生成する。生成したファイルはコミットし、「生成し直しても差がない」をゴールと CI で確かめる。rulesync の版は `toolchain.txt` に書き、`npx rulesync@<版>` で動かす |
+| EQ7 | `.claude/` に何を置くか | `git push` の前の `G-REPO-NOREPLY` の hook（E8）。skill（E9）は様子を見る | 今の `CLAUDE.md` のルールを `.rulesync/` に移し、権限の設定（読むだけのコマンドの許可）を置く。push 前の検査は AI の hook ではなく **git の pre-push hook**（`.githooks/pre-push` が `G-REPO-NOREPLY` を回す。準備スクリプトが `core.hooksPath` を設定）にし、CI でも回す（E22）。skill（E9）は置かない |
+| EQ8 | 環境の定義の方式 | `toolchain.txt` を正本にした準備スクリプト（E10）。devcontainer・Nix・mise（E11）は足さない | 推奨どおり。`toolchain.txt` を正本にした準備スクリプト。rulesync の生成と pre-push hook の有効化まで行う |
+| EQ9 | `docs/concept.md` §16 の扱い | 本文を消し、「作業の入口は `AGENTS.md` と `plans/`」の 1 行に置き換える | **節ごと消す** |
+| EQ10 | GitHub Releases での配布を範囲に入れるか | 入れる。Linux x86_64 と WebAssembly から始め、macOS は CI の macOS で作れるなら足す | **正式版だけ**。`VERSION` を上げてタグを打ったとき、CI が Linux・macOS・WebAssembly の `ozen` を作って Releases に置く（`std` を同梱）。版を上げる準備（E20）を先に行う |
+| EQ11 | レシピを書く AI への手順書の配り方 | `ozen init` が `AGENTS.md` を書き出し、原本は参照に置く | 推奨どおり。新しい `ozen init` が毎回 `AGENTS.md` を書き出す（E21）。Claude Code は `CLAUDE.md` がなければ `AGENTS.md` を読むので、別に `CLAUDE.md` は作らない。自分の `CLAUDE.md` を持つ人には、`@AGENTS.md` を足すよう `init` の出力で案内する |
+| EQ12 | AI への指示（rulesync の正本 `.rulesync/`）の言語ルール | EQ3・EQ6 の決定に合わせて書き直す（参照・手引き・手順書は英日、`AGENTS.md` は英語） | EQ13 に合わせて書き直す。チャットの言語は各自の設定に任せると明記する |
+| EQ13 | コミットする、人がレビューする文書（`plans/`・`docs/`）の言語（決める途中で足した問い） | 日本語のまま固定 | **英語にそろえる**。例外は紹介ページ `site/`（と、今までどおり MEXT の出典の文言、`phrases/ja.ftl` の値、`reference/ja/`）。既存の文書は `docs/` と完了した計画 4 つを英語にし（E19）、未実施の計画（`plans/ozen-cooking-feedback.md`・`plans/ozen-authoring-support.md`・本ファイル）は訳さない |
 
 ## 7. 他の計画との関係
 
@@ -137,5 +148,5 @@ Ozen に当てはめると:
 
 ## 8. 次の一歩
 
-1. §6 の EQ1〜EQ12 を 1 件ずつ決める。
-2. 決まったものから `verifiable-plan` で実装計画を作る。
+1. ~~§6 の EQ1〜EQ13 を 1 件ずつ決める。~~ 2026-11-02 に決めた。
+2. 決まったものから `verifiable-plan` で実装計画を作る（EQ13 により英語で書く）。
