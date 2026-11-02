@@ -1,0 +1,8 @@
+recipe scrambledEgg
+  egg : Egg 1 pcs
+  %1 = crack(egg) : Egg<shape: cracked> 1 pcs
+  %2 = beat(%1) : Egg<shape: beaten> 1 pcs
+  %3 = mix(%2) : Egg<shape: beaten> 1 pcs
+  %4 = fry(%3, 120 s) : Egg<doneness: done, shape: beaten> 1 pcs
+result ok errors=0 warnings=0 infos=0
+exit 0

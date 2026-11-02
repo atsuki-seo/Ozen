@@ -1,0 +1,5 @@
+// args: debug steps
+recipe waterBowl {
+  ingredients { water: 200 ml }
+  let mixed = water |> mix
+}

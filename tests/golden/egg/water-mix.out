@@ -1,0 +1,5 @@
+recipe waterBowl
+  water : Water 200 ml
+  %1 = mix(water) : Water 200 ml
+result ok errors=0 warnings=0 infos=0
+exit 0

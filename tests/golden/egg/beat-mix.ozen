@@ -1,0 +1,5 @@
+// args: debug steps
+recipe scrambledEgg {
+  ingredients { egg: 1 pcs }
+  let cooked = egg |> crack |> beat |> mix |> fry(2 min)
+}

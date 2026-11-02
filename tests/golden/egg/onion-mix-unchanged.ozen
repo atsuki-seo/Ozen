@@ -1,0 +1,5 @@
+// args: debug steps
+recipe onionBowl {
+  ingredients { onion: 1 pcs }
+  let mixed = onion |> mix
+}
