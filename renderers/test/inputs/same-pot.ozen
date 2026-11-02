@@ -1,0 +1,29 @@
+recipe porkSoup {
+  ingredients {
+    pork: 200 g
+    onion: 1 pcs
+  }
+  let stock = pork |> simmer(10 min)
+  let onionCut = onion |> peel |> cut(slice, 5 mm)
+  let soup = simmer([stock, onionCut], 5 min)
+}
+
+recipe saltyPork {
+  ingredients {
+    pork: 200 g
+    salt: 1 pinch
+  }
+  let stock = pork |> simmer(10 min)
+  let salted = season(stock, salt)
+  let cooked = salted |> simmer(5 min)
+}
+
+recipe newPot {
+  ingredients {
+    pork: 200 g
+    onion: 1 pcs
+  }
+  let stock = pork |> simmer(10 min)
+  let onionCut = onion |> peel |> cut(slice, 5 mm)
+  let soup = simmer([stock, onionCut], 5 min) @newVessel
+}
