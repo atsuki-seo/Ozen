@@ -1,0 +1,4 @@
+error SAF001 undercooked mixture-chicken-par.ozen:11:17-11:41 args=["Chicken", "par"]: undercooked
+warning SAF005 lightlyCookedEgg mixture-chicken-par.ozen:11:17-11:41 args=["Egg"]: lightly cooked egg
+result error errors=1 warnings=1 infos=0
+exit 1

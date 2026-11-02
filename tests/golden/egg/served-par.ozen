@@ -1,0 +1,7 @@
+action coddle(x: T) -> T<doneness: par> {
+  uses hands for 3 min
+}
+recipe coddledEgg {
+  ingredients { egg: 1 pcs }
+  let coddled = egg |> coddle
+}

@@ -1,0 +1,12 @@
+action coddle(x: T) -> T<doneness: par> {
+  uses hands for 2 min
+}
+recipe oyakoTopping {
+  ingredients {
+    chicken: 100 g
+    egg: 1 pcs
+  }
+  let cooked = chicken |> cut(biteSize, 30 mm) |> simmer(10 min)
+  let beaten = egg |> crack |> beat
+  let topping = coddle([cooked, beaten])
+}

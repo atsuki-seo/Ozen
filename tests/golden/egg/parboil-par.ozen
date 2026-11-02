@@ -1,0 +1,4 @@
+recipe softBoiledEgg {
+  ingredients { egg: 1 pcs }
+  let softBoiled = egg |> parboil(3 min)
+}

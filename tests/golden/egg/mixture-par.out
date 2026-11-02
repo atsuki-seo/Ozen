@@ -1,0 +1,3 @@
+warning SAF005 lightlyCookedEgg mixture-par.ozen:11:17-11:41 args=["Egg"]: lightly cooked egg
+result ok errors=0 warnings=1 infos=0
+exit 0
