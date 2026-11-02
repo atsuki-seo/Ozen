@@ -2236,13 +2236,24 @@ static bool satisfies_alt(sema *s, const food *f, ozni_index afile, ozni_index a
         st = &f->axes[k];
       }
     }
+    ozni_str op = S(s, an->text2);
+    if (st == nullptr && str_is(op, "!=")) {
+      continue;
+    }
     if (st == nullptr || an->first == 0) {
       return false;
     }
     const ozni_node *v = nd(s, afile, an->first);
     ozni_index want = v->kind == OZNI_N_Call && v->first != 0 ? nd(s, afile, v->first)->text : v->text;
-    ozni_str op = S(s, an->text2);
-    if (str_is(op, "has")) {
+    if (str_is(op, "!=")) {
+      bool found = st->kind != AX_SET && st->value == want;
+      for (ozni_index i = 0; st->kind == AX_SET && st->set != nullptr && i < ozni_table_count(st->set); i++) {
+        found = found || ((const set_item *)ozni_table_get(st->set, i))->item == want;
+      }
+      if (found) {
+        return false;
+      }
+    } else if (str_is(op, "has")) {
       bool found = false;
       for (ozni_index i = 0; st->set != nullptr && i < ozni_table_count(st->set); i++) {
         found = found || ((const set_item *)ozni_table_get(st->set, i))->item == want;

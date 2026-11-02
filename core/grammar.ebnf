@@ -108,7 +108,7 @@ type_ref      := qual_name [ '(' args ')' ] [ '<' type_args '>' ] ;
 type_args     := type_alt { '|' type_alt } ;
 type_alt      := type_arg { ',' type_arg } ;
 type_arg      := state_arg | bare_arg ;
-state_arg     := IDENT ( ':' | '>=' | '<=' | 'has' ) sum ;
+state_arg     := IDENT ( ':' | '>=' | '<=' | '!=' | 'has' ) sum ;
 bare_arg      := IDENT ;
 
 block         := '{' { SEP } [ stmt { SEP { SEP } stmt } ] { SEP } '}' ;

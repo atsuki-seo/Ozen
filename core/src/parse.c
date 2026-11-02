@@ -990,6 +990,8 @@ static ozni_index type_args(parser *p, ozni_index parent) {
         op = ">=";
       } else if (kind_at(p, 1) == OZNI_T_LE) {
         op = "<=";
+      } else if (kind_at(p, 1) == OZNI_T_NE) {
+        op = "!=";
       } else if (kind_at(p, 1) == OZNI_T_IDENT && text_is(p, tok_at(p, 1), "has")) {
         op = "has";
       }
