@@ -1237,6 +1237,12 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 着手点の基準値（P0-2、2026-11-02）: 量の計画の最終ゲートは `8222779` で記録済み（その後の `e350725` まで量の計画のコミット）。`e350725` に `qc-end` と `fb-start` を打った。着手点の golden は 541 個（`scripts/run-golden.sh` で 541 合格）。量の計画の `G-QC-*` 18 個と `G-CORE-GOLDEN` は、`QC=` を閉じた後に全合格。
 - std の `Egg` を使う golden（P0-2、2026-11-02）: 25 個。`args/composite`・`args/issue1`・`args/macro-body`・`args/macro-splice`・`args/named-arg`・`args/ok-units`・`args/pipe-arg`・`args/range-units-dimension`・`args/range-units-mixed`・`args/range-units-steps`・`args/unitless-time`・`args/unknown-value`・`args/variable-arg`・`args/volume-for-time`・`bounds/composite-range`・`bounds/dimension-before-range`・`bounds/small-positive`・`quantity/per-serving-param`・`serve/use-within-backward`・`serve/use-within-basic`・`serve/use-within-ir`・`serve/use-within-json`・`serve/use-within-on-ingredient`・`serve/use-within-range`・`serve/use-within-two-consumers`。`safety/allergen-bowl`・`safety/allergen-in-portion` は自前の `ingredient Egg` を定義していて std の `Egg` を使わない。サンプルでは `samples/T2/oyakodon.ozen`・`samples/T2/options.ozen`
 
+- サンプルの書き直し（P1-1、2026-11-02）: 42 行（`let` の 40 行と、組の束縛 `fish |> fillet`・`let` でない文 `belly |> store`）をパイプに直し、`2e3c10c` にタグ `fb-pipe-end` を打った。`G-FB-SAMPLES-SAME` は `samples-same: 11 samples, 0 changed ir, 0 changed schedules, 0 changed renders`
+- わざと壊す確認: S786・正常系・`G-FB-SAMPLES-SUBJECT`（P1-1、2026-11-02）。`samples/T3a/stirFry.ozen` の 1 行を `cut(pork, biteSize, 30 mm)` に戻すと「subject-first calls now: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S787・副作用とコスト・`G-FB-SAMPLES-SAME`（P1-1、2026-11-02）。一時的な worktree で `fb-pipe-end` の `stirFry` の `30 mm` を `25 mm` にしたコミットを作り `--head` に渡すと「samples-same: 11 samples, 1 changed ir, 0 changed schedules, 4 changed renders」で落ちた。worktree を消した（push していない）
+- わざと壊す確認: S881・正常系・`G-FB-SAMPLES-SUBJECT`（P1-1、2026-11-02）。`belly |> store` を `store(belly)` に戻すと「subject-first calls now: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S881・境界・上限・`G-FB-SAMPLES-SUBJECT`（P1-1、2026-11-02）。組の束縛の `fish |> fillet` を `fillet(fish)` に戻すと「subject-first calls now: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S883・時間と順序・`G-FB-SAMPLES-SUBJECT`（P1-1、2026-11-02）。書き直しは 1 つのコミットなので、`fb-pipe-end` をその 1 つ前（`fb-start`）に付け替えると「subject-first calls at fb-pipe-end: got '42'」で落ちた。タグを `2e3c10c` に戻すと合格した
 ---
 
 ## 10. リスク
