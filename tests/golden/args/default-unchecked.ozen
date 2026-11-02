@@ -1,0 +1,9 @@
+action slowChill(x: T, time: Time = 3 ml) -> T {
+  uses hands
+}
+recipe hiyayakko {
+  ingredients {
+    tofu: Tofu 1 pcs
+  }
+  let chilled = slowChill(tofu)
+}

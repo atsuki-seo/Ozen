@@ -1,0 +1,9 @@
+recipe lunch {
+  ingredients {
+    egg: Egg 1 pcs
+    potato: Potato 1 pcs
+  }
+  let fried = egg |> fry(3 min) |> fry(1 h 30 min) |> fry(3..5 min) |> fry(2 * 90 s) |> fry(time: 3 min, heat: high)
+  let sliced = potato |> peel |> cut(slice, 3 mm) |> boil(10 min)
+  let dish = combine([fried, sliced])
+}

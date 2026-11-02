@@ -1,0 +1,6 @@
+recipe tamagoyaki(t: Time) {
+  ingredients {
+    egg: Egg 1 pcs
+  }
+  let fried = fry(egg, t)
+}
