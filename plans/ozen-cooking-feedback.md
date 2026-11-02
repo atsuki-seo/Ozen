@@ -1862,6 +1862,45 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 書き直したテスト: `tests/golden/vessels/soup-flat-plate.ozen` — 目的どおり、変更なし
 - 書き直したテスト: `tests/golden/wash/dirt-from-leaves.ozen` — 目的どおり、変更なし
 - 結果を変えたテスト: `tests/golden/api/local-not-listed.ozen` — 一覧に出る診断（`SAF005`・`TYP022`・`TYP023`）が増え、比較の道具が数える診断のコードの並びが変わった（D108）
+- 書き直しのわざと壊す確認: S196・効かない条件・`cgolden/state/peel-missing`（P8-4、2026-11-03）。状態の要求の検査（`check_food_arg`）を外すと `TYP006` が消えて落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S212・正常系・`cgolden/mix/mixture-hazard-allergen`（P8-4、2026-11-03）。混ぜた物にトレイトの和（`inherit_traits`）を付けないと、行末の `with Allergen(milk), Hazard` が消えて落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S213・効かない条件・`cgolden/linear/double-use`（P8-4、2026-11-03）。消費の記録（`consumed`）を付けないと `LIN001` が消えて落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S228・正常系・`cgolden/actions/requires-auto`（P8-4、2026-11-03）。`uses` から要求を集めず `requires` に書いたものだけにすると落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S285・正常系・`cgolden/ir/text-dump-format`（P8-4、2026-11-03）。IR の行の資源の欄を出さないと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S334・正常系・`cgolden/api/signatures-json`（P8-4、2026-11-03）。引数の型を出さない（`null`）と落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S425・効かない条件・`cgolden/api/local-not-listed`（P8-4、2026-11-03）。`local` の定義も一覧に出すと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S463・正常系・`cgolden/ir/kitchen-dependent-info`（P8-4、2026-11-03）。`SCH002 kitchenDependent` を出さないと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S527・正常系・`cgolden/quantity/per-serving-param`（P8-4、2026-11-03）。`serving_count` で料理の引数（`s->servings`）を見ないと落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S578・時間と順序・`cgolden/sched/preheat-backward`（P8-4、2026-11-03）。後ろ向きでも前向きと同じ置き方で予熱を置くと、`preheat-backward`・`preheat-hotter-backward`・`preheat-reuse-backward` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S592・時間と順序・`cgolden/serve/use-within-basic`（P8-4、2026-11-03）。期限の release を付けないと `use-within-basic` を含む 7 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S592・境界・上限・`cgolden/serve/use-within-range`（P8-4、2026-11-03）。作った作業の終わりの下限で待ちを計ると `use-within-range` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S593・境界・上限・`cgolden/serve/use-within-two-consumers`（P8-4、2026-11-03）。値を入力に取る最初の作業だけを見ると `use-within-two-consumers` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S596・時間と順序・`cgolden/serve/use-within-backward`（P8-4、2026-11-03）。後ろ向きのときは期限の release を付けないと `use-within-backward` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S597・効かない条件・`cgolden/serve/use-within-on-ingredient`（P8-4、2026-11-03）。材料そのものに付けても `TYP017` を出さないと `use-within-on-ingredient`・`use-within-on-alias` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S600・データの完全性・`cgolden/serve/use-within-json`（P8-4、2026-11-03）。段取りの JSON に `limits` を出さないと `use-within-json`・`use-within-missed-json` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S602・前提の固定・`cgolden/serve/use-within-ir`（P8-4、2026-11-03）。注釈の名前を値を作る作業の IR の名前にすると `use-within-ir` を含む 12 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S695・正常系・`cgolden/args/volume-for-time`（P8-4、2026-11-03）。`call_action` の照合の呼び出しを消すと `volume-for-time` を含む 14 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S696・境界・上限・`cgolden/args/unitless-time`（P8-4、2026-11-03）。次元の無い量を照合の前に読み飛ばすと `unitless-time` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S698・実際の経路・`cgolden/args/named-arg`（P8-4、2026-11-03）。照合を位置で渡した引数だけにすると `named-arg` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S699・実際の経路・`cgolden/args/pipe-arg`（P8-4、2026-11-03）。`pipe_into` で左辺を最後の引数に付けると `pipe-arg`・`mass-for-length` が落ちた（量の計画の記録では `ok-units` も落ちたが、`egg |> crack` の入れ替えで最初の引数が量でなくなったため落ちない）。戻すと合格した
+- 書き直しのわざと壊す確認: S700・正常系・`cgolden/args/variable-arg`（P8-4、2026-11-03）。照合の診断の位置を呼び出し全体にすると `variable-arg` を含む 14 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S701・実際の経路・`cgolden/args/macro-body`（P8-4、2026-11-03）。照合の診断の trail を空にすると `macro-body` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S758・実際の経路・`cgolden/args/macro-splice`（P8-4、2026-11-03）。照合の診断の位置を `arg_site` を通さず引数の節そのものにすると `macro-splice` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S702・実際の経路・`cgolden/args/composite`（P8-4、2026-11-03）。合成の動作のときは外の照合を飛ばすと `composite` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S759・副作用とコスト・`cgolden/args/composite`（P8-4、2026-11-03）。外で照合に落ちた引数でも中の呼び出しで照合の診断を出すと `composite` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S704・効かない条件・`cgolden/args/unknown-value`（P8-4、2026-11-03）。未知の量も照合し次元の無い量として扱うと `unknown-value`・`range-units-mixed` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S707・効かない条件・`cgolden/args/ok-units`（P8-4、2026-11-03）。区間の値をエラーにすると `ok-units`・`range-units-steps` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S707・効かない条件・`cgolden/args/ok-units`（P8-4、2026-11-03）。列挙の値も照合し次元でない型の引数にも次元の誤りを出すと `ok-units`・`mass-for-length` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S708・実際の経路・`cgolden/args/issue1`（P8-4、2026-11-03）。`TYP001` の重大度を警告にすると `issue1` を含む 17 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S760・正常系・`cgolden/args/range-units-steps`（P8-4、2026-11-03）。`eval_inner` の範囲の評価を消すと `range-units-steps` を含む 4 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S761・実際の経路・`cgolden/args/range-units-dimension`（P8-4、2026-11-03）。範囲の評価で結果の次元を記録しないと `range-units-dimension` を含む 3 本が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S762・境界・上限・`cgolden/args/range-units-mixed`（P8-4、2026-11-03）。両端の次元を比べず左の次元を使うと `range-units-mixed` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S786・境界・上限・`cgolden/args/range-units-steps`（P8-4、2026-11-03）。下端が上端より大きい範囲を未知の値にすると `range-units-steps` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S769・データの完全性・`cgolden/api/signatures-json`（P8-4、2026-11-03）。`--emit signatures` の引数の型の文字を範囲を除いた型の名前だけにすると `signatures-json` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S725・効かない条件・`cgolden/bounds/small-positive`（P8-4、2026-11-03）。`fry` の範囲を `1 min<..` にすると `small-positive`・`composite-range` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S727・副作用とコスト・`cgolden/bounds/dimension-before-range`（P8-4、2026-11-03）。次元が違っても範囲の判定を続けると `dimension-before-range`・`servings-flag-dimension` が落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S771・副作用とコスト・`cgolden/bounds/composite-range`（P8-4、2026-11-03）。合成の動作の中の照合の位置を呼び出し元に向けず中の呼び出しのまま出すと `composite-range` だけが落ちた。戻すと合格した
+- 書き直しのわざと壊す確認: S787・副作用とコスト・`cgolden/bounds/composite-range`（P8-4、2026-11-03）。中の照合で落ちたことを合成の動作の枠に記録しないと `composite-range` だけが落ちた。戻すと合格した
 ---
 
 ## 10. リスク
