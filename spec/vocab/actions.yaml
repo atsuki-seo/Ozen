@@ -118,6 +118,17 @@ actions:
     uses: ["HeatSource<stovetop>", Pot]
     unattended: true
     leaves: [{from: x, on: [Pot]}]
+  deepFry:
+    params:
+      - name: x
+        kind: food
+        effects: {doneness: done, browning: golden}
+      - {name: oil, kind: food, requires: [{traits: [Liquid]}]}
+      - {name: time, kind: quantity, dimension: Time}
+      - {name: temp, kind: quantity, dimension: Temperature, default: "170 degC"}
+    output: {param: x}
+    uses: [hands, "HeatSource<stovetop>", Pot]
+    leaves: [{from: oil, on: [Pot]}]
   boil:
     params:
       - {name: x, kind: food, effects: {doneness: done}}

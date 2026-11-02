@@ -636,7 +636,8 @@ P1-6 でこの表を `spec/coverage/concept-lists.yaml` に写し、S29 の検�
 | アレルゲンの種類 | 9 | `Allergen` の引数（消費者庁の特定原材料、令和 8 年 4 月時点。P1-4 で確かめた）: `shrimp`（えび）`cashew`（カシューナッツ）`crab`（かに）`walnut`（くるみ）`wheat`（小麦）`buckwheat`（そば）`egg`（卵）`milk`（乳）`peanut`（落花生） |
 | 食材（卵、`plans/ozen-cooking-feedback.md` D110） | 1 | `Egg` |
 | 動作（卵、`plans/ozen-cooking-feedback.md` D110） | 2 | `crack`（割る）`beat`（溶く） |
-| 合計 | 270 | |
+| 動作（揚げる、`plans/ozen-cooking-feedback.md` D103・D110） | 1 | `deepFry`（揚げる） |
+| 合計 | 271 | |
 
 #### 4.7.1 concept が明文で決めている関係
 

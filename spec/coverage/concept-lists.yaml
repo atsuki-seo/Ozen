@@ -168,6 +168,7 @@ entries:
   - {kind: action, id: cookRice}
   - {kind: action, id: fry}
   - {kind: action, id: simmer}
+  - {kind: action, id: deepFry}
   - {kind: action, id: boil}
   - {kind: action, id: boilWater}
   - {kind: action, id: dissolve}
