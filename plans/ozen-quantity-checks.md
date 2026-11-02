@@ -933,6 +933,11 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S749・境界・上限・`cgolden/bounds/servings-one-ok`（P3-3、2026-11-02）。`Options.servings` の範囲（型の無い見出しの人数の検査にも使う）を `1<..` にすると `servings-one-ok` が落ちた。戻すと合格した
 - わざと壊す確認: S780・境界・上限・`cgolden/bounds/servings-flag-one-ok`（P3-3、2026-11-02）。`Options.servings` の範囲を `1<..` にすると `servings-flag-one-ok` が落ちた。戻すと合格した
 - わざと壊す確認: S750・実際の経路・`cgolden/bounds/issue2`（P3-3、2026-11-02）。`boil` の範囲を消すと `issue2`・`time-negative` が落ちた。戻すと合格した
+- わざと壊す確認: S740・文書との一致・`G-TYPE-SEVERITY-TABLE`（P4-1、2026-11-02）。`severity-examples.txt` の「0 以下の量」の重大度を `warning` にすると「severity: 18 examples, 1 mismatched」で落ちた。戻すと合格した
+- わざと壊す確認: S740・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept §6.1 から「0 以下の量」を消すと「concept 6.1 amount: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S756・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept §4.2 から `0 s<..` の例（文と `boil` の例の行）を消すと「concept 4.2 example: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S783・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept §4.2 の「範囲外は必ずエラー」の文から動作の引数を消すと「concept 4.2 action arguments: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S784・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept の `type Options` の例の `servings` を `Count` に戻すと「concept Options servings: got '0'」で落ちた。戻すと合格した
 
 ---
 
