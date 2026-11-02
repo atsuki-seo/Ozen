@@ -1,0 +1,5 @@
+// args: check --format json --emit types
+kind Scale : Tool
+type ScaleSpec : EquipmentSpec {
+  maxLoad: Mass in 0 g<..
+}

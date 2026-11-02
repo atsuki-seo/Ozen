@@ -1,0 +1,6 @@
+recipe salad {
+  ingredients {
+    cucumber: Cucumber 1 pcs
+  }
+  let sliced = cucumber |> cut(slice, 0 mm)
+}

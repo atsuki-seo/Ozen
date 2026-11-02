@@ -1,0 +1,10 @@
+// args: check --kitchen home
+kind Scale : Tool
+type ScaleSpec : EquipmentSpec {
+  maxLoad: Mass in 0 g<..
+}
+kitchen home {
+  tools {
+    scale: Scale { maxLoad: 0 g }
+  }
+}

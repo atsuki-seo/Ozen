@@ -1,0 +1,3 @@
+error TYP012 rangeViolation composite-range.ozen:10:25-10:28 args=["time", "0 s", "0 s<.."]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1

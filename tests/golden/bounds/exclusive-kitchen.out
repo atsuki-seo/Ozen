@@ -1,0 +1,3 @@
+error TYP012 rangeViolation exclusive-kitchen.ozen:8:29-8:32 args=["maxLoad", "0 g", "0 g<.."]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1

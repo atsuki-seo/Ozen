@@ -1,0 +1,3 @@
+error TYP012 rangeViolation size-zero.ozen:5:39-5:43 args=["size", "0 mm", "0 mm<.."]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1

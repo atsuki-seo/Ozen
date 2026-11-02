@@ -1,0 +1,3 @@
+error TYP012 rangeViolation make-arg-range.ozen:8:24-8:27 args=["t", "0 s", "0 s<.."]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1

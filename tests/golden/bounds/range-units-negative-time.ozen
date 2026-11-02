@@ -1,0 +1,6 @@
+recipe soup {
+  ingredients {
+    water: 200 ml
+  }
+  let simmered = simmer(water, -5 min..-1 min)
+}

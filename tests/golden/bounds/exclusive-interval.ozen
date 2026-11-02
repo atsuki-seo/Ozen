@@ -1,0 +1,9 @@
+action steam(x: T, time: Time in 0 s<..) -> T {
+  uses hands
+}
+recipe hiyayakko {
+  ingredients {
+    tofu: Tofu 1 pcs
+  }
+  let steamed = steam(tofu, 0..2 min)
+}

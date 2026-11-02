@@ -1,0 +1,11 @@
+action quick(x: T, t: Time) -> T {
+  steps {
+    let fried = fry(x, t)
+  }
+}
+recipe tamagoyaki {
+  ingredients {
+    egg: Egg 1 pcs
+  }
+  let done = quick(egg, 0 s)
+}

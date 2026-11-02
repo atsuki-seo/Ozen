@@ -1,0 +1,3 @@
+error TYP012 rangeViolation exclusive-upper-over.ozen:8:29-8:35 args=["time", "11 min", "0 s<..10 min"]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1

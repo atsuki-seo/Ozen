@@ -1,0 +1,10 @@
+action stack(x: T, layers: Count in 0<..) -> T {
+  uses hands
+}
+recipe hiyayakko {
+  ingredients {
+    tofu: Tofu 1 pcs
+  }
+  let first = stack(tofu, 0)
+  let second = stack(first, 1)
+}
