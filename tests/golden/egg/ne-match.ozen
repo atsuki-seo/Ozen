@@ -1,0 +1,8 @@
+action fill(x: T<shape != peeled>) -> T {
+  uses hands for 1 min
+}
+recipe onionCup {
+  ingredients { onion: 1 pcs }
+  let peeled = onion |> peel
+  let filled = peeled |> fill
+}

@@ -1,0 +1,13 @@
+action dry(x: T<prep != washed>) -> T {
+  uses hands for 1 min
+}
+recipe soakedOnly {
+  ingredients { rice: 300 g }
+  let dried = rice |> soak(30 min) |> dry
+}
+recipe soakedThenWashed {
+  ingredients { rice: 300 g }
+  let soaked = rice |> soak(30 min)
+  let washed = soaked |> wash
+  let dried = washed |> dry
+}

@@ -1,0 +1,8 @@
+// args: debug steps
+action fill(x: T<shape != peeled>) -> T {
+  uses hands for 1 min
+}
+recipe waterCup {
+  ingredients { water: 200 ml }
+  let filled = water |> fill
+}
