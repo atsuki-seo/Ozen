@@ -628,7 +628,7 @@ alias Karubi = Beef<belly | Fatty>
 action wash(x: T) -> T<prep has washed> {
   uses hands, Washing for 1..3 min @source(provisional)
 }
-action soak(x: T, time: Time = 30 min) -> T<prep has soaked(time)> {
+action soak(x: T, time: Time in 0 s<.. = 30 min) -> T<prep has soaked(time)> {
   uses Container @unattended
 }
 action peel(x: T<Peelable, shape: whole>) -> T<shape: peeled> {
@@ -640,7 +640,7 @@ action loosen(x: T<Noodle>) -> T {
 action drain(x: T<prep has washed | prep has soaked>) -> T {
   uses hands, Colander for 0.5..1 min @source(provisional)
 }
-action cut(x: T<shape: peeled | shape: cut | SkinEdible, shape: whole>, style: CutStyle, size: Length = 3 mm) -> T<shape: cut(style, size)> {
+action cut(x: T<shape: peeled | shape: cut | SkinEdible, shape: whole>, style: CutStyle, size: Length in 0 mm<.. = 3 mm) -> T<shape: cut(style, size)> {
   uses hands, WorkSurface, CuttingSurface, Knife for 1..3 min @source(provisional)
   leaves: x on CuttingSurface, x on Knife
 }
@@ -666,18 +666,18 @@ action cookRice(x: Rice<prep has soaked>) -> CookedRice {
     leaves: starch on Container
   }
 }
-action fry(x: T, time: Time, heat: Heat = medium) -> T<doneness: done, browning: light> {
+action fry(x: T, time: Time in 0 s<.., heat: Heat = medium) -> T<doneness: done, browning: light> {
   uses hands, HeatSource<stovetop>, FryingPan
   leaves: oil on FryingPan
 }
-action simmer(x: T, time: Time, heat: Heat = low) -> T<doneness: done> {
+action simmer(x: T, time: Time in 0 s<.., heat: Heat = low) -> T<doneness: done> {
   uses HeatSource<stovetop>, Pot @unattended
   leaves: x on Pot
 }
-action boil(x: T, time: Time) -> T<doneness: done> {
+action boil(x: T, time: Time in 0 s<..) -> T<doneness: done> {
   uses HeatSource<stovetop>, Pot @unattended
 }
-action parboil(x: T, time: Time) -> T<doneness: par> {
+action parboil(x: T, time: Time in 0 s<..) -> T<doneness: par> {
   uses HeatSource<stovetop>, Pot @unattended
 }
 action boilWater(x: Water) -> Water<doneness: done> {
@@ -716,10 +716,10 @@ action blend(x: T) -> T<shape: pureed> {
   uses Blending for 0.5..1.5 min @source(provisional)
   leaves: starch on Blender, x on Blender
 }
-action chill(x: T, time: Time) -> T {
+action chill(x: T, time: Time in 0 s<..) -> T {
   uses Chilling @unattended
 }
-action rest(x: T, time: Time) -> T @unattended
+action rest(x: T, time: Time in 0 s<..) -> T @unattended
 action plate(x: T) {
   uses hands, Vessel for 0.3..1 min @source(provisional)
 }
