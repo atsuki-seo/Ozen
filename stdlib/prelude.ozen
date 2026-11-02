@@ -194,6 +194,7 @@ kind FryingPan : Tool {
 kind Pot : Tool, Container {
   props {
     washTime: 1..3 min @source(provisional)
+    preheatTime: 5..10 min @source(provisional)
   }
 }
 kind MixingBowl : Tool, Container {
@@ -698,6 +699,10 @@ action fry(x: T<shape != inShell>, time: Time in 0 s<.., heat: Heat = medium) ->
 action simmer(x: T, time: Time in 0 s<.., heat: Heat = low) -> T<doneness: done> {
   uses HeatSource<stovetop>, Pot @unattended
   leaves: x on Pot
+}
+action deepFry(x: T<shape != inShell>, oil: Oil, time: Time in 0 s<.., temp: Temperature = 170 degC) -> T<doneness: done, browning: golden> {
+  uses hands, HeatSource<stovetop>, Pot<heated: temp>
+  leaves: oil on Pot
 }
 action boil(x: T, time: Time in 0 s<..) -> T<doneness: done> {
   uses HeatSource<stovetop>, Pot @unattended

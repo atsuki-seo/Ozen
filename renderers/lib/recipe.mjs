@@ -33,6 +33,10 @@ function argValue(ph, arg) {
   if (/ s$/.test(arg.value)) {
     return durationText(ph, arg.value);
   }
+  const temp = /^(\d+(?:\.\d+)?) degC$/.exec(arg.value);
+  if (temp) {
+    return ph.format('temperature', { n: temp[1] });
+  }
   if (/^[a-z][A-Za-z0-9]*$/.test(arg.value) && ph.has(keyFor('value', arg.value))) {
     return ph.format(keyFor('value', arg.value));
   }

@@ -53,7 +53,8 @@ export function taskText(ph, defs, nodes, sched, t, opts = {}) {
       const heat = ph.format(keyFor('value', t.heats.level), {}, t.heats.level);
       return ph.format('preheat-pan', { tool, heat }, `preheat(${tool})`);
     }
-    return ph.format('preheat', { tool, temp: String(seconds(t.heats.temp)) }, `preheat(${tool})`);
+    const kind = (sched.resources || []).find((r) => r.id === t.heats.resource)?.kind;
+    return ph.format(kind === 'Pot' ? 'preheat-oil' : 'preheat', { tool, temp: String(seconds(t.heats.temp)) }, `preheat(${tool})`);
   }
   const node = nodes.get(t.id);
   return node ? stepText(ph, defs, nodes, node, opts) : t.op;
