@@ -57,8 +57,14 @@ typedef struct ozni_sched_group {
   bool preheat;
   bool burner;
   bool on_burner;
+  bool cont_after;
   uint32_t level;
   uint32_t burner_unit;
+  uint32_t kind;
+  uint32_t partner;
+  uint32_t partner_group;
+  uint32_t ban;
+  uint32_t ban_group;
   ozni_rat temp;
   ozni_rat pre_start;
 } ozni_sched_group;

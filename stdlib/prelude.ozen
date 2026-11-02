@@ -126,6 +126,7 @@ trait Freezing : Capability
 trait Washing : Capability
 trait Vessel : Capability
 trait WorkSurface : Capability
+trait Holding : Capability
 kind Floor : Place
 kind Counter : Place, WorkSurface {
   props {
@@ -185,19 +186,19 @@ kind Peeler : Tool {
     washTime: 0.3..0.5 min @source(provisional)
   }
 }
-kind FryingPan : Tool {
+kind FryingPan : Tool, Holding {
   props {
     washTime: 1..3 min @source(provisional)
     preheatTime: 1..3 min @source(provisional)
   }
 }
-kind Pot : Tool, Container {
+kind Pot : Tool, Container, Holding {
   props {
     washTime: 1..3 min @source(provisional)
     preheatTime: 5..10 min @source(provisional)
   }
 }
-kind MixingBowl : Tool, Container {
+kind MixingBowl : Tool, Container, Holding {
   props {
     washTime: 0.5..1 min @source(provisional)
   }
@@ -232,7 +233,7 @@ kind RiceCooker : Tool, RiceCooking {
     washTime: 1..3 min @source(provisional)
   }
 }
-kind Blender : Tool, Blending {
+kind Blender : Tool, Blending, Holding {
   props {
     washTime: 2..4 min @source(provisional)
   }

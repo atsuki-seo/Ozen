@@ -80,6 +80,9 @@ typedef struct food {
   ozni_index made_file;
   ozni_index made_node;
   ozni_table *comps;
+  ozni_index held_kind;
+  ozni_index held_irn;
+  uint32_t held_seq;
 } food;
 
 typedef enum vkind : uint8_t {
@@ -216,6 +219,12 @@ typedef struct sema {
   ozni_index until_text;
   ozni_index until_food;
   ozni_table *until_marks;
+  ozni_table *cont_marks;
+  uint32_t hold_seq;
+  ozni_index vessel_file;
+  ozni_index vessel_node;
+  uint8_t vessel_note;
+  bool vessel_ok;
 } sema;
 
 typedef struct mframe {
@@ -1566,6 +1575,22 @@ typedef struct until_mark {
   ozni_index value;
   ozni_index food;
 } until_mark;
+
+typedef struct cont_mark {
+  ozni_index irn;
+  ozni_index prev;
+  ozni_index kind;
+  bool fresh;
+} cont_mark;
+
+static const cont_mark *cont_of(const sema *s, ozni_index irn) {
+  const cont_mark *cm = nullptr;
+  for (ozni_index m = 0; s->cont_marks != nullptr && m < ozni_table_count(s->cont_marks); m++) {
+    const cont_mark *mm = ozni_table_get(s->cont_marks, m);
+    cm = mm->irn == irn ? mm : cm;
+  }
+  return cm;
+}
 
 static bool until_marked(const sema *s, ozni_index irn) {
   const until_mark *um = nullptr;
@@ -4413,6 +4438,25 @@ static void apply_until(sema *s, ozni_index file, const ozni_node *until, const 
   s->until_hi = sum.v.hi;
 }
 
+static bool kind_is(sema *s, ozni_index kfile, ozni_index knode, ozni_index name, uint32_t depth);
+
+static ozni_index holding_kind(sema *s, ozni_index afile, ozni_index anode) {
+  ozni_index holding = intern(s, "Holding", 7);
+  for (ozni_index c = nd(s, afile, anode)->first; c != 0; c = nd(s, afile, c)->next) {
+    if (nd(s, afile, c)->kind != OZNI_N_Uses) {
+      continue;
+    }
+    for (ozni_index u = nd(s, afile, c)->first; u != 0; u = nd(s, afile, u)->next) {
+      ozni_index kf, kn;
+      if (nd(s, afile, u)->kind == OZNI_N_TypeRef && find_from(s, afile, nd(s, afile, u)->text, &kf, &kn) &&
+          nd(s, kf, kn)->kind == OZNI_N_Kind && kind_is(s, kf, kn, holding, 0)) {
+        return nd(s, afile, u)->text;
+      }
+    }
+  }
+  return 0;
+}
+
 static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_index afile, ozni_index anode) {
   const ozni_node *call = nd(s, file, callnode);
   const ozni_node *act = nd(s, afile, anode);
@@ -4700,9 +4744,41 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
     }
     apply_until(s, file, until, act, afile, anode, in, out, pnames, np, timed);
   }
+  ozni_index hk = holding_kind(s, afile, anode);
+  ozni_index prev = 0;
+  bool found = false;
+  for (uint32_t k = 0; hk != 0 && !found && k < np; k++) {
+    uint32_t n = litems[k] != nullptr ? ozni_table_count(litems[k]) : params[k].kind == V_FOOD ? 1 : 0;
+    for (uint32_t i = 0; !found && i < n; i++) {
+      const value *item = litems[k] != nullptr ? ozni_table_get(litems[k], i) : &params[k];
+      if (item->kind == V_FOOD && item->f->held_kind == hk && item->f->held_seq != 0) {
+        prev = item->f->held_irn;
+        found = true;
+      }
+    }
+  }
+  bool noted = s->vessel_node == callnode && s->vessel_file == file;
+  bool fresh = noted && s->vessel_note == 2;
+  if (noted && found && s->vessel_note == 1) {
+    s->vessel_ok = true;
+  }
   s->ir_call_file = file;
   s->ir_call_node = callnode;
   ozni_index irn = ir_record_call(s, act, afile, anode, params, pnames, np, out, nullptr, 0);
+  if (irn != 0 && hk != 0) {
+    if (s->cont_marks == nullptr) {
+      s->cont_marks = ozni_table_new(s->c->arena, sizeof(cont_mark));
+    }
+    cont_mark cm = {irn, prev, hk, fresh};
+    if (s->cont_marks == nullptr || !ozni_table_push(s->cont_marks, &cm, nullptr)) {
+      s->c->oom = true;
+    }
+  }
+  if (out != nullptr && hk != 0) {
+    out->held_kind = hk;
+    out->held_irn = irn;
+    out->held_seq = ++s->hold_seq;
+  }
   s->attend = false;
   s->until_timed = false;
   s->until_axis = 0;
@@ -5777,7 +5853,24 @@ static void eval_block(sema *s, ozni_index block, bool top) {
       check_targets(s, n, n->first);
       ozni_index outer_group = s->group_key;
       s->group_key = group_of(s, n, outer_group);
+      ozni_index vessel_ann = 0;
+      for (ozni_index c = n->first != 0 ? nd(s, s->file, n->first)->next : 0; c != 0; c = nd(s, s->file, c)->next) {
+        const ozni_node *an = nd(s, s->file, c);
+        if (an->kind == OZNI_N_Annotation && (str_is(S(s, an->text), "sameVessel") || str_is(S(s, an->text), "newVessel"))) {
+          vessel_ann = c;
+          s->vessel_note = str_is(S(s, an->text), "sameVessel") ? 1 : 2;
+        }
+      }
+      s->vessel_file = s->file;
+      s->vessel_node = vessel_ann != 0 ? n->first : 0;
+      s->vessel_ok = false;
       value v = n->first != 0 ? eval(s, n->first) : unknown();
+      if (vessel_ann != 0 && s->vessel_note == 1 && !s->vessel_ok) {
+        ozni_str arg = S(s, nd(s, s->file, vessel_ann)->text);
+        diag_node(s, OZNI_D_TYP_annotationTarget, s->file, nd(s, s->file, vessel_ann), &arg, 1);
+      }
+      s->vessel_node = 0;
+      s->vessel_note = 0;
       s->group_key = outer_group;
       use_within(s, st, n->text, &v);
       if (v.kind == V_FOOD) {
@@ -7323,6 +7416,11 @@ static void ir_json(sema *s, ozni_index name) {
       const until_mark *mm = ozni_table_get(s->until_marks, m);
       um = mm->irn == k + 1 ? mm : um;
     }
+    const cont_mark *cm = cont_of(s, k + 1);
+    if (cm != nullptr && cm->prev != 0 && !cm->fresh) {
+      ozni_buf_puts(b, ",\"continues\":");
+      ozni_buf_putu(b, ((const ozni_ir_node *)ozni_table_get(s->ir.nodes, cm->prev - 1))->number);
+    }
     if (um != nullptr && um->value != 0) {
       ozni_str ua = S(s, um->axis), uv = S(s, um->value);
       ozni_buf_puts(b, ",\"until\":{");
@@ -8107,7 +8205,16 @@ static void schedule_json(sema *s, const sched_out *o) {
         first = false;
       }
     }
-    ozni_buf_puts(b, alt->hands ? "],\"unattended\":false,\"wave\":" : "],\"unattended\":true,\"wave\":");
+    ozni_buf_puts(b, "]");
+    for (uint32_t g = 0; g < alt->ngroups; g++) {
+      const ozni_sched_group *grp = &p->groups[alt->first_group + g];
+      if (grp->cont_after && grp->partner != 0 && grp->partner <= p->ntasks) {
+        ozni_buf_puts(b, ",\"continues\":");
+        ozni_buf_putu(b, task_node(s, o, grp->partner - 1)->number);
+        break;
+      }
+    }
+    ozni_buf_puts(b, alt->hands ? ",\"unattended\":false,\"wave\":" : ",\"unattended\":true,\"wave\":");
     if (node->kind == OZNI_IR_PLATE && node->wave != 0) {
       ozni_buf_putu(b, node->wave);
     } else {
@@ -8986,6 +9093,7 @@ static void schedule_dish(sema *s, ozni_index name) {
           ozni_str rt = S(s, req->text);
           g.on_burner = req->heated && !(rt.len >= 10 && memcmp(rt.p, "HeatSource", 10) == 0);
           g.burner = rt.len >= 20 && memcmp(rt.p, "HeatSource<stovetop>", 20) == 0;
+          g.kind = nd(s, req->file, req->type)->text;
           ozni_index washer = intern(s, "Dishwasher", 10);
           for (ozni_index u = 0; u < ozni_table_count(units); u++) {
             const sched_unit *su = ozni_table_get(units, u);
@@ -9080,6 +9188,35 @@ static void schedule_dish(sema *s, ozni_index name) {
   }
   if (s->c->oom) {
     return;
+  }
+  for (uint32_t i = 0; i < ntasks; i++) {
+    const cont_mark *cm = cont_of(s, s->ir_base + node_of[i] + 1);
+    uint32_t kp = cm != nullptr && cm->prev > s->ir_base ? cm->prev - s->ir_base - 1 : UINT32_MAX;
+    uint32_t tp = kp < total ? task_of[kp] : UINT32_MAX;
+    if (tp == UINT32_MAX || tp == i || tasks[i].nalts != 1 || tasks[tp].nalts != 1) {
+      continue;
+    }
+    const ozni_sched_alt *ai = ozni_table_get(alts, tasks[i].first_alt);
+    const ozni_sched_alt *ap = ozni_table_get(alts, tasks[tp].first_alt);
+    for (uint32_t g = 0; g < ai->ngroups; g++) {
+      ozni_sched_group *gi = ozni_table_at(groups, ai->first_group + g);
+      for (uint32_t h = 0; gi->kind == cm->kind && h < ap->ngroups; h++) {
+        ozni_sched_group *gp = ozni_table_at(groups, ap->first_group + h);
+        if (gp->kind != cm->kind) {
+          continue;
+        }
+        if (cm->fresh) {
+          gi->ban = tp + 1;
+          gi->ban_group = h;
+        } else {
+          gi->partner = tp + 1;
+          gi->partner_group = h;
+          gi->cont_after = true;
+          gp->partner = i + 1;
+          gp->partner_group = g;
+        }
+      }
+    }
   }
   uint32_t ndirt = ozni_table_count(dirts);
   ozni_sched_dirt *dirt_array = ozni_arena_alloc(s->c->arena, (ndirt + 1) * sizeof *dirt_array);

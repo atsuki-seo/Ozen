@@ -10,6 +10,7 @@ capabilities:
   Washing: {}
   Vessel: {}
   WorkSurface: {}
+  Holding: {}
 kinds:
   Floor: {category: place}
   Counter:
@@ -57,14 +58,15 @@ kinds:
     props: {washTime: {value: "0.3..0.5 min", source: provisional}}
   FryingPan:
     category: tool
+    provides: [Holding]
     props: {washTime: {value: "1..3 min", source: provisional}}
   Pot:
     category: tool
-    provides: [Container]
+    provides: [Container, Holding]
     props: {washTime: {value: "1..3 min", source: provisional}}
   MixingBowl:
     category: tool
-    provides: [Container]
+    provides: [Container, Holding]
     props: {washTime: {value: "0.5..1 min", source: provisional}}
   Colander:
     category: tool
@@ -87,5 +89,5 @@ kinds:
     props: {washTime: {value: "1..3 min", source: provisional}}
   Blender:
     category: tool
-    provides: [Blending]
+    provides: [Blending, Holding]
     props: {washTime: {value: "2..4 min", source: provisional}}

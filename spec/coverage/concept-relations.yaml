@@ -22,11 +22,11 @@ relations:
   - {kind: kindProvides, of: OvenRange, extends: [], provides: ["HeatSource<oven>", "HeatSource<microwave>"]}
   - {kind: kindProvides, of: Oven, extends: [], provides: ["HeatSource<oven>"]}
   - {kind: kindProvides, of: Toaster, extends: [], provides: ["HeatSource<toaster>"]}
-  - {kind: kindProvides, of: Pot, extends: [], provides: [Container]}
-  - {kind: kindProvides, of: MixingBowl, extends: [], provides: [Container]}
+  - {kind: kindProvides, of: Pot, extends: [], provides: [Container, Holding]}
+  - {kind: kindProvides, of: MixingBowl, extends: [], provides: [Container, Holding]}
   - {kind: kindProvides, of: CuttingBoard, extends: [], provides: [CuttingSurface]}
   - {kind: kindProvides, of: RiceCooker, extends: [], provides: [RiceCooking]}
-  - {kind: kindProvides, of: Blender, extends: [], provides: [Blending]}
+  - {kind: kindProvides, of: Blender, extends: [], provides: [Blending, Holding]}
   - {kind: kindProvides, of: Fridge, extends: [], provides: [Chilling]}
   - {kind: kindProvides, of: Freezer, extends: [], provides: [Freezing]}
   - {kind: kindProvides, of: Sink, extends: [], provides: [Washing]}

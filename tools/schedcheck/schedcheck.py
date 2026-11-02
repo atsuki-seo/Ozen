@@ -133,8 +133,9 @@ def check(doc):
         cleans = t.get("cleans")
         cleans = [] if cleans is None else cleans if isinstance(cleans, list) else [cleans]
         cleaning = {c["resource"] for c in cleans}
+        kept = set(t.get("uses", [])) & set(tasks[t["continues"]].get("uses", [])) if t.get("continues") in tasks else set()
         for rid in t.get("uses", []):
-            if t.get("kind") in ("soak", "preheat") or rid in cleaning:
+            if t.get("kind") in ("soak", "preheat") or rid in cleaning or rid in kept:
                 continue
             marks = history.get(rid, [])
             level = max((need(m, t, rid) for _, m in marks), default=0)
@@ -157,7 +158,8 @@ def check(doc):
         if t.get("kind") == "preheat":
             heat[t["heats"]["resource"]] = heat_of(t["heats"])
             continue
-        needs = {n["resource"]: heat_of(n) for n in t.get("needs", [])}
+        kept = set(t.get("uses", [])) & set(tasks[t["continues"]].get("uses", [])) if t.get("continues") in tasks else set()
+        needs = {n["resource"]: heat_of(n) for n in t.get("needs", []) if n["resource"] not in kept}
         for rid in t.get("uses", []):
             if rid not in needs:
                 heat[rid] = None

@@ -121,6 +121,15 @@ static bool preheat_start(const ozni_sched *s, const state *st, uint32_t unit, c
   return true;
 }
 
+static uint32_t partner_unit(const ozni_sched *s, uint32_t one_based, uint32_t group) {
+  uint32_t task = one_based - 1;
+  if (one_based == 0 || task >= s->ntasks || !s->tasks[task].placed) {
+    return UINT32_MAX;
+  }
+  const ozni_sched_alt *alt = &s->alts[s->tasks[task].first_alt + s->tasks[task].chosen];
+  return group < alt->ngroups ? s->groups[alt->first_group + group].pick : UINT32_MAX;
+}
+
 static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sched_alt *alt, ozni_rat now,
                 ozni_rat *start, uint32_t *cook) {
   *start = now;
@@ -161,8 +170,18 @@ static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sc
     grp->pick = UINT32_MAX;
     grp->wash = OZNI_CLEAN_NONE;
     ozni_rat best = now;
+    uint32_t forced = partner_unit(s, grp->partner, grp->partner_group);
+    uint32_t banned = grp->nunits > 1 ? partner_unit(s, grp->ban, grp->ban_group) : UINT32_MAX;
+    bool listed = false;
+    for (uint32_t u = 0; forced != UINT32_MAX && u < grp->nunits; u++) {
+      listed = listed || s->units[grp->first_unit + u] == forced;
+    }
+    forced = listed ? forced : UINT32_MAX;
     for (uint32_t u = 0; u < grp->nunits; u++) {
       uint32_t unit = s->units[grp->first_unit + u];
+      if ((forced != UINT32_MAX && unit != forced) || unit == banned) {
+        continue;
+      }
       bool taken = st->owner[unit] != 0 && st->owner[unit] != ti + 1;
       for (uint32_t h = 0; h < g; h++) {
         taken = taken || s->groups[alt->first_group + h].pick == unit;
@@ -177,7 +196,7 @@ static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sc
         if (grp->heated && st->pend[unit] && ozni_rat_cmp(grp->temp, st->pend_temp[unit]) >= 0) {
           at = later(st->pend_from[unit], now);
         }
-      } else if (preheat_start(s, st, unit, grp, now, &pre_start)) {
+      } else if (!(forced != UINT32_MAX && grp->cont_after) && preheat_start(s, st, unit, grp, now, &pre_start)) {
         ozni_rat ready;
         if (!add(pre_start, s->unit_info[unit].preheat_hi, &ready)) {
           return false;
@@ -185,7 +204,7 @@ static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sc
         at = later(at, ready);
         pre = true;
       }
-      uint8_t wash = unit_need(s, st, unit, ti, alt, g, nullptr);
+      uint8_t wash = forced != UINT32_MAX ? OZNI_CLEAN_NONE : unit_need(s, st, unit, ti, alt, g, nullptr);
       if (wash != OZNI_CLEAN_NONE) {
         at = later(at, cook_start);
         if (!add(at, s->unit_info[unit].clean_hi, &at) ||
@@ -605,6 +624,10 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
         }
         if (!heat_unit(s, &st, ti, &s->groups[alt->first_group + g], t->end_hi)) {
           return false;
+        }
+        const ozni_sched_group *grp = &s->groups[alt->first_group + g];
+        if (grp->partner != 0 && grp->partner <= n && !s->tasks[grp->partner - 1].placed) {
+          st.owner[unit] = grp->partner;
         }
       }
     }
