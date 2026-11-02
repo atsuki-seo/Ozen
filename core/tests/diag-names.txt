@@ -108,3 +108,4 @@ NAM:methodCall
 NAM:notCallable
 NAM:valueField
 TYP:nonPositiveAmount
+SAF:lightlyCookedEgg

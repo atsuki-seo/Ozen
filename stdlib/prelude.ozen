@@ -373,6 +373,7 @@ ingredient Egg : Hazard, Refrigerated, Allergen(egg) {
   props {
     refuse: fct(mextFct2023, food: "12004", field: refuse)
     unitWeight: 58..64 g/pcs @source(provisional)
+    safeDoneness: par
   }
 }
 ingredient Buri : RoundFish, Hazard, RawEdible, SkinEdible {

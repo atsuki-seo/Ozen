@@ -79,6 +79,7 @@ typedef struct food {
   const ozni_table *allergens;
   ozni_index made_file;
   ozni_index made_node;
+  ozni_table *comps;
 } food;
 
 typedef enum vkind : uint8_t {
@@ -1001,6 +1002,15 @@ static food *food_copy(sema *s, const food *src) {
         if (!ozni_table_push(f->axes[k].set, ozni_table_get(src->axes[k].set, i), nullptr)) {
           s->c->oom = true;
         }
+      }
+    }
+  }
+  if (src->comps != nullptr) {
+    f->comps = ozni_table_new(s->c->arena, sizeof(food *));
+    for (ozni_index i = 0; f->comps != nullptr && i < ozni_table_count(src->comps); i++) {
+      food *c = food_copy(s, *(food *const *)ozni_table_get(src->comps, i));
+      if (c == nullptr || !ozni_table_push(f->comps, &c, nullptr)) {
+        s->c->oom = true;
       }
     }
   }
@@ -2034,6 +2044,16 @@ static value combine(sema *s, const value *items, uint32_t n, ozni_index file, c
       item_node = nd(s, file, item_node)->next;
     }
   }
+  mix->comps = ozni_table_new(s->c->arena, sizeof(food *));
+  for (uint32_t k = 0; mix->comps != nullptr && k < n; k++) {
+    const food *f = items[k].kind == V_FOOD ? items[k].f : nullptr;
+    for (ozni_index i = 0; f != nullptr && i < (f->comps != nullptr ? ozni_table_count(f->comps) : 1); i++) {
+      food *c = food_copy(s, f->comps != nullptr ? *(food *const *)ozni_table_get(f->comps, i) : f);
+      if (c == nullptr || !ozni_table_push(mix->comps, &c, nullptr)) {
+        s->c->oom = true;
+      }
+    }
+  }
   value out = {.kind = V_FOOD, .f = mix};
   value list = {.kind = V_LIST};
   list.items = ozni_table_new(s->c->arena, sizeof(value));
@@ -2415,6 +2435,25 @@ static void apply_effects(sema *s, food *f, ozni_index afile, ozni_index output_
         st->args = args;
         st->style = style;
         st->size = size;
+      }
+    }
+  }
+}
+
+static void raise_comps(sema *s, food *f) {
+  ozni_index doneness = intern(s, "doneness", 8);
+  const axis_state *st = nullptr;
+  for (uint32_t k = 0; k < f->naxes; k++) {
+    if (f->axes[k].axis == doneness) {
+      st = &f->axes[k];
+    }
+  }
+  int want = st != nullptr ? axis_value_index(s, st, st->value) : -1;
+  for (ozni_index i = 0; want >= 0 && f->comps != nullptr && i < ozni_table_count(f->comps); i++) {
+    food *c = *(food *const *)ozni_table_get(f->comps, i);
+    for (uint32_t k = 0; k < c->naxes; k++) {
+      if (c->axes[k].axis == doneness && axis_value_index(s, &c->axes[k], c->axes[k].value) < want) {
+        c->axes[k].value = st->value;
       }
     }
   }
@@ -4450,6 +4489,7 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
     }
     if (out != nullptr) {
       apply_effects(s, out, afile, output, params, pnames, np, file, call);
+      raise_comps(s, out);
     }
   }
   s->ir_call_file = file;
@@ -6151,19 +6191,54 @@ static void eval_serve(sema *s, const ozni_node *serve) {
   s->last = unknown();
 }
 
-static void check_cooked(sema *s, const food *f, ozni_index node) {
+static void check_cooked_one(sema *s, const food *f, ozni_index node) {
   if (!food_has(s, f, intern(s, "Hazard", 6)) || food_has(s, f, intern(s, "RawEdible", 9))) {
     return;
   }
+  ozni_index done_name = intern(s, "done", 4);
+  ozni_index field = f->file != NONE ? section_field(s, f->file, f->node, "props", "safeDoneness") : 0;
+  ozni_index safe_name = field != 0 && nd(s, f->file, field)->first != 0 ? nd(s, f->file, nd(s, f->file, field)->first)->text
+                                                                         : done_name;
   for (uint32_t k = 0; k < f->naxes; k++) {
     if (!str_is(S(s, f->axes[k].axis), "doneness")) {
       continue;
     }
     int cur = axis_value_index(s, &f->axes[k], f->axes[k].value);
-    int done = axis_value_index(s, &f->axes[k], intern(s, "done", 4));
-    if (cur >= 0 && done >= 0 && cur < done) {
+    int done = axis_value_index(s, &f->axes[k], done_name);
+    int safe = axis_value_index(s, &f->axes[k], safe_name);
+    if (cur >= 0 && safe >= 0 && cur < safe) {
       ozni_str args[2] = {S(s, f->type), S(s, f->axes[k].value)};
       diag_node(s, OZNI_D_SAF_undercooked, s->file, nd(s, s->file, node), args, 2);
+    } else if (cur >= 0 && done >= 0 && cur < done) {
+      ozni_str arg = S(s, f->type);
+      diag_node(s, OZNI_D_SAF_lightlyCookedEgg, s->file, nd(s, s->file, node), &arg, 1);
+    }
+  }
+}
+
+static ozni_index doneness_of(sema *s, const food *f) {
+  for (uint32_t k = 0; k < f->naxes; k++) {
+    if (str_is(S(s, f->axes[k].axis), "doneness")) {
+      return f->axes[k].value;
+    }
+  }
+  return 0;
+}
+
+static void check_cooked(sema *s, const food *f, ozni_index node) {
+  if (f->comps == nullptr) {
+    check_cooked_one(s, f, node);
+    return;
+  }
+  for (ozni_index i = 0; i < ozni_table_count(f->comps); i++) {
+    const food *c = *(food *const *)ozni_table_get(f->comps, i);
+    bool seen = false;
+    for (ozni_index j = 0; j < i && !seen; j++) {
+      const food *d = *(food *const *)ozni_table_get(f->comps, j);
+      seen = d->type == c->type && doneness_of(s, d) == doneness_of(s, c);
+    }
+    if (!seen) {
+      check_cooked_one(s, c, node);
     }
   }
 }

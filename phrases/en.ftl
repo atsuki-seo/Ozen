@@ -300,6 +300,7 @@ diag-method-call = { $arg1 }.{ $arg2 } is not allowed; chain actions with |> as 
 diag-not-callable = { $arg1 } is a { $arg2 } and cannot be called; only actions and macros can, and dishes are made with make
 diag-value-field = { $arg1 } has no field { $arg2 }
 diag-non-positive-amount = The amount { $arg2 } of { $arg1 } must be more than zero
+diag-lightly-cooked-egg = { $arg1 } is lightly cooked; use fresh eggs that are safe to eat raw
 
 ## Text parts
 heading-ingredients = Ingredients

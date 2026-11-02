@@ -143,6 +143,7 @@ const ARG_KINDS = {
   unusedValue: ['name'],
   useWithinMissed: ['name', 'duration', 'duration'],
   nonPositiveAmount: ['name'],
+  lightlyCookedEgg: ['ingredient'],
 };
 
 export function termText(ph, kind, x, opts = {}) {
