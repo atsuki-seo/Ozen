@@ -1,0 +1,4 @@
+error SAF001 undercooked mix-list-in-shell.ozen:6:15-6:31 args=["Mixture", "raw"]: undercooked
+error TYP006 stateRequired mix-list-in-shell.ozen:6:20-6:23 args=["mix", "x", "egg"]: state required
+result error errors=2 warnings=0 infos=0
+exit 1

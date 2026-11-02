@@ -1,0 +1,8 @@
+recipe salad {
+  ingredients {
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let peeledOnion = onion |> peel
+  let sliced = cut([peeledOnion, carrot], slice, 3 mm)
+}

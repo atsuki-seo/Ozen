@@ -1,0 +1,3 @@
+error TYP006 stateRequired list-trait-fail.ozen:6:30-6:35 args=["whip", "x", "sugar"]: state required
+result error errors=1 warnings=0 infos=0
+exit 1

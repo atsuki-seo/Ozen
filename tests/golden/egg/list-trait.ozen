@@ -1,0 +1,7 @@
+recipe sweetCream {
+  ingredients {
+    cream: 200 ml
+    milk: 100 ml
+  }
+  let whipped = whip([cream, milk])
+}

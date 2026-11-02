@@ -1,0 +1,7 @@
+recipe custard {
+  ingredients {
+    egg: 1 pcs
+    milk: 200 ml
+  }
+  let mixed = mix([egg, milk])
+}

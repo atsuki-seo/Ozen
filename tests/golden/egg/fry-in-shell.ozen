@@ -1,0 +1,4 @@
+recipe friedEgg {
+  ingredients { egg: 1 pcs }
+  let fried = egg |> fry(3 min)
+}

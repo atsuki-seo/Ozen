@@ -1,0 +1,7 @@
+recipe salad {
+  ingredients {
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let sliced = cut([carrot, onion], slice, 3 mm)
+}

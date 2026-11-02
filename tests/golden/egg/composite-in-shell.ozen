@@ -1,0 +1,9 @@
+action stir(x: T) -> T {
+  steps {
+    let mixed = mix(x)
+  }
+}
+recipe stirredEgg {
+  ingredients { egg: 1 pcs }
+  let stirred = egg |> stir
+}

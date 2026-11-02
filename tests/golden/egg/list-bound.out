@@ -1,0 +1,4 @@
+error SAF001 undercooked list-bound.ozen:7:15-7:26 args=["Mixture", "raw"]: undercooked
+error TYP006 stateRequired list-bound.ozen:7:15-7:19 args=["mix", "x", "both"]: state required
+result error errors=2 warnings=0 infos=0
+exit 1
