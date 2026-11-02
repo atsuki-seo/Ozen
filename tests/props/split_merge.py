@@ -45,7 +45,8 @@ def main():
                 irprops.write(d, "package.ozen", PACKAGE)
             irprops.write(merged, "main.ozen", text)
             irprops.write(split, "main.ozen", rest)
-            header = f"import book.main.{{{', '.join(names)}}}\n" if names else ""
+            header = "".join(m.group(0) + "\n" for m in re.finditer(r"^import .*$", rest, re.M))
+            header += f"import book.main.{{{', '.join(names)}}}\n" if names else ""
             irprops.write(split, "dish.ozen", header + dish)
             a = irprops.ir_lines(ozen, merged, None, ["--entry", name])
             b = irprops.ir_lines(ozen, split, None, ["--entry", name])
