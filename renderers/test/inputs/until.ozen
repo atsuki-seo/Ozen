@@ -1,0 +1,19 @@
+recipe softEgg {
+  ingredients { egg: 1 pcs }
+  let cooked = egg |> crack |> beat |> simmer(until: doneness >= par)
+}
+
+recipe goldenOnion {
+  ingredients { onion: 1 pcs }
+  let sliced = onion |> peel |> cut(slice, 3 mm)
+  let fried = sliced |> fry(5 min, until: browning >= golden)
+}
+
+recipe eggSoup {
+  ingredients {
+    egg: 1 pcs
+    water: 200 ml
+  }
+  let beaten = egg |> crack |> beat
+  let soup = simmer([water, beaten], until: doneness >= par)
+}
