@@ -7,7 +7,10 @@ severity	生肉の後に洗わず使う	SAF:unwashedHazard	error	F
 severity	生の豚肉・鶏肉の加熱不足	SAF:undercooked	error	E
 severity	台所が要求を満たさない	KIT:requiresUnmet	error	E
 severity	0 以下の量	TYP:nonPositiveAmount	error	E
+severity	until の時間が分からない	TYP:untilTime	error	E
+severity	until で進められない状態	TYP:untilTarget	error	E
 severity	「適量」（通常モード）	TYP:vagueAmount	warning	E
+severity	半熟の卵を出す	SAF:lightlyCookedEgg	warning	E
 severity	器の容量超過	SCH:vesselOverflow	warning	E
 severity	硬い食材より先に柔らかい食材を入れる	SCH:softBeforeHard	warning	F
 severity	立てる人数より作る人が多い	SCH:tooManyCooks	warning	E
