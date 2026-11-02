@@ -9,7 +9,7 @@ kitchen home {
 }
 recipe friedPork {
   ingredients { pork: 200 g }
-  let first = fry(pork / 2, 3 min, heat: high)
+  let first = fry(pork / 2, 3 min, heat: high) |> rest(5 min)
   let second = fry(pork / 2, 3 min, heat: medium)
 }
 kitchen today : Options {

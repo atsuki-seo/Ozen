@@ -5,7 +5,7 @@ ir dinner
   %4 = choose cookRice %3 : Rice<prep has washed, prep has soaked(1800 s)> -> CookedRice 300 g { cooker [RiceCooking; 2520..3240 s; unattended] | pot [hands, HeatSource<stovetop>, Pot; 1500..2100 s] | microwave [HeatSource<microwave>, Container; 900..1200 s; unattended] }
   %5 = in chicken : Chicken 300 g
   %6 = op marinate %5 : Chicken -> Chicken<prep has salted> 300 g [hands; 60 s]
-  %7 = op fry %6 time=300 s heat=medium : Chicken<prep has salted> -> Chicken<doneness: done, browning: light, prep has salted> 300 g [hands, HeatSource<stovetop>, FryingPan; 300 s]
+  %7 = op fry %6 time=300 s heat=medium : Chicken<prep has salted> -> Chicken<doneness: done, browning: light, prep has salted> 300 g [hands, HeatSource<stovetop>, FryingPan<heated: heat>; 300 s]
   %8 = op combine %4, %7 : Gohan, Chicken<doneness: done, browning: light, prep has salted> -> Mixture<doneness: done> 600 g with Hazard [0 s]
   %9 = op layer %8 : Mixture<doneness: done> -> Mixture<doneness: done> 600 g with Hazard [hands, Vessel; 60..180 s]
 info ASM002 noPlating main.ozen:3:8-3:14 args=["dinner"]: no plating

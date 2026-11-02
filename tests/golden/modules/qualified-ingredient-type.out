@@ -1,5 +1,5 @@
 ir tori
   %1 = in chicken : Chicken 100 g
-  %2 = op fry %1 time=300 s heat=medium : Chicken -> Chicken<doneness: done, browning: light> 100 g [hands, HeatSource<stovetop>, FryingPan; 300 s]
+  %2 = op fry %1 time=300 s heat=medium : Chicken -> Chicken<doneness: done, browning: light> 100 g [hands, HeatSource<stovetop>, FryingPan<heated: heat>; 300 s]
 result ok errors=0 warnings=0 infos=0
 exit 0

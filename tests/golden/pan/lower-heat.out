@@ -1,8 +1,9 @@
 schedule friedPork level=2 cooks=1
   0..180 (60) preheat pan#1 to high unattended [pan#1, stove#1]
   180..360 (360) %2 fry by cook1 [stove#1, pan#1]
-  360..540 (540) %3 fry by cook1 [stove#1, pan#1]
-  total 540
+  360..660 (660) %3 rest unattended
+  360..540 (540) %4 fry by cook1 [stove#1, pan#1]
+  total 660
 warning LIN005 unusedValue lower-heat.ozen:12:7-12:12 args=["first", "Pork<doneness: done, browning: light>"]: unused value
 result ok errors=0 warnings=1 infos=0
 exit 0
