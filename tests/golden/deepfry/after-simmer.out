@@ -1,0 +1,17 @@
+schedule friedAndBoiled level=2 cooks=1
+  0..2400 (2400) %5 rest unattended
+  0..3600 (3600) %7 rest unattended
+  0..600 (300) preheat pot#1 to 170 degC unattended [pot#1, stove#1]
+  600..780 (780) %3 deepFry by cook1 [stove#1, pot#1]
+  2400..2580 (2460) wash pot#1 after oil by cook1 [sink#1, pot#1]
+  2580..3180 (3180) %6 simmer unattended [stove#1, pot#1]
+  3600..3780 (3660) rinse pot#1 after soil by cook1 [sink#1, pot#1]
+  3780..4380 (4080) preheat pot#1 to 170 degC unattended [pot#1, stove#1]
+  4380..4560 (4560) %8 deepFry by cook1 [stove#1, pot#1]
+  total 4560
+warning LIN005 unusedValue after-simmer.ozen:16:7-16:12 args=["first", "Potato<doneness: done, browning: golden>"]: unused value
+warning LIN005 unusedValue after-simmer.ozen:17:7-17:13 args=["stewed", "Carrot<doneness: done>"]: unused value
+info SCH006 washInserted after-simmer.ozen:17:16-17:56 args=["pot#1", "oil"]: wash inserted
+info SCH006 washInserted after-simmer.ozen:19:16-19:46 args=["pot#1", "soil"]: wash inserted
+result ok errors=0 warnings=2 infos=2
+exit 0
