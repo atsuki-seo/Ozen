@@ -454,6 +454,7 @@ let topping = simmer([simmered, beaten], until: doneness >= par)
 - **S894** 同じ物で、卵には `SAF005` も出す（材料ごとに 1 つずつ）。
 - **S893** std の動作で半熟にした卵（`egg |> parboil(3 min)` を出す）は `SAF005` だけを出し、`SAF001` を出さない（今は `SAF001 args=["Egg", "par"]`）。
 - **S895** 混ぜた物の材料ごとの火の通りは `debug ir` の行に出さない（既存の混ぜた物の golden の期待が変わらない）。
+- **S945** 混ぜた物では、同じ型で同じ火の通りの材料は 1 つにまとめて調べる（`mix([pork / 2, pork / 2])` の `SAF001` は 1 つ）。型が同じでも火の通りが違う材料はまとめない（§9 の P3-2 で増えた事実）。
 - **S827** `SAF005` は `@allow(lightlyCookedEgg)` で隠せ、`SAF002 fixedSeverity` は出ない。
 - **S828** `safeDoneness` を持つのは std の食材では `Egg` だけで、`Egg` の定義の中にある。
 
@@ -491,6 +492,7 @@ let topping = simmer([simmered, beaten], until: doneness >= par)
 - **S846** std の `fry` の `uses` に `FryingPan<heated: heat>` がある。
 - **S847** `fry` の作業の前に、同じフライパンの個体に予熱の作業（`kind: "preheat"`）が入る。
 - **S848** フライパンの予熱は、`fry` が使うのと同じコンロの口も占有する。
+- **S946** 出す時刻から逆に組む段取りでは、フライパンの予熱は道具だけを温め、コンロの口を占有しない（§9 の P5-2 で増えた事実）。
 - **S849** 予熱の所要時間は `FryingPan` の props の `preheatTime`（暫定 `1..3 min`、出どころと調べた記録がある）。
 - **S850** 続けて同じフライパンを同じか弱い火加減で使う `fry` には、予熱を入れ直さない。
 - **S851** 続けて強い火加減で使う `fry` の前には、予熱を入れ直す。
@@ -597,7 +599,7 @@ let topping = simmer([simmered, beaten], until: doneness >= par)
 | 描画 | `renderers/lib/recipe.mjs`・`schedule.mjs`・`html.mjs`・`names.mjs`（`until`、続けた手順、フライパンの予熱、`x-kind` の卵、診断の引数の種類）、`renderers/test/` の 9 つ |
 | スキーマ | `schemas/result.schema.json`（作業の `until`・`continues`、予熱の `heats.level`） |
 | コア | `core/src/sema.c`（`!=`、要素ごとの照合、混ぜた物の材料ごとの火の通り、`safeDoneness`、`until`、`TYP022`・`TYP023`、続けた作業の印）、`core/src/sched.c`・`sched.h`（火加減の予熱、コンロの占有、同じ個体の保持）、`core/src/parse.c` |
-| テスト | `tests/golden/egg/`（38 個）、`tests/golden/until/`（23 個）、`tests/golden/pan/`（8 個）、`tests/golden/samepot/`（13 個）、`tests/golden/cue/`（4 個）、`tests/golden/deepfry/`（5 個）、期待や入力を直す既存の golden（S872。紹介ページの元の `state/peel-missing`・`sched/preheat-backward` など、量の計画の `args/`・`bounds/` の卵、D112） |
+| テスト | `tests/golden/egg/`（40 個）、`tests/golden/until/`（25 個）、`tests/golden/pan/`（10 個）、`tests/golden/samepot/`（14 個）、`tests/golden/cue/`（5 個）、`tests/golden/deepfry/`（5 個）、期待や入力を直す既存の golden（S872。紹介ページの元の `state/peel-missing`・`sched/preheat-backward` など、量の計画の `args/`・`bounds/` の卵、D112） |
 | サンプル | `samples/` の `.ozen`（S786・S881・S869）、`samples/*/expect.yaml`（S870・S910） |
 | 紹介ページ | `site/index.html` のコード例と例の出力 |
 | 照合の道具 | 新設 `scripts/check-site-examples.py` と自己テスト `scripts/test-check-site-examples.sh`、`scripts/selftests.txt` への登録。`scripts/check-rewrite-equivalence.py` に `--allow`（名指しの一覧）を足し、自己テスト `scripts/test-check-rewrite-equivalence.sh` を直す（D115） |
@@ -643,11 +645,11 @@ let topping = simmer([simmered, beaten], until: doneness >= par)
 | `G-FB-COVERAGE` | S 項目すべてが網羅表に行を持ち、§8 の各項目に理由がある | 差分が空、理由の無い項目 0 |
 | `G-FB-PLAN-NAMES` | 網羅表のテスト名が実在する | `plan-tests: <n> names, 0 missing` |
 | `G-FB-PLAN-TESTS` | わざと壊す確認の記録が網羅表の行の数だけある | `mutations: <m> rows, <m> recorded` |
-| `G-FB-GOLDEN-EGG` | §4.2〜§4.4 の golden | 38 個、全合格 |
-| `G-FB-GOLDEN-UNTIL` | §4.5 の golden | 23 個、全合格 |
-| `G-FB-GOLDEN-PAN` | §4.6 の golden | 8 個、全合格 |
-| `G-FB-GOLDEN-SAMEPOT` | §4.7 の golden（S906 を含む） | 13 個、全合格 |
-| `G-FB-GOLDEN-CUE` | §4.8 の golden | 4 個、全合格 |
+| `G-FB-GOLDEN-EGG` | §4.2〜§4.4 の golden | 40 個、全合格 |
+| `G-FB-GOLDEN-UNTIL` | §4.5 の golden | 25 個、全合格 |
+| `G-FB-GOLDEN-PAN` | §4.6 の golden | 10 個、全合格 |
+| `G-FB-GOLDEN-SAMEPOT` | §4.7 の golden（S906 を含む） | 14 個、全合格 |
+| `G-FB-GOLDEN-CUE` | §4.8 の golden | 5 個、全合格 |
 | `G-FB-GOLDEN-DEEPFRY` | §4.6.1 の golden | 5 個、全合格 |
 | `G-FB-GOLDEN-CHANGED` | S872 | `ok`、名指しされていない直した期待 0 |
 | `G-FB-SAMPLES-SUBJECT` | S786・S881・S883 | 今と `fb-pipe-end` の両方で 0 |
@@ -686,7 +688,7 @@ scripts/check-plan-tests.sh $PLAN_FB | tail -n 1                  # → plan-tes
 scripts/check-plan-tests.sh --mutations $PLAN_FB | tail -n 1      # → mutations: <m> rows, <m> recorded
 
 # G-FB-GOLDEN-EGG / UNTIL / PAN / SAMEPOT / CUE（フォルダごとに数と合格を見る）
-for d in egg:38 until:23 pan:8 samepot:13 cue:4 deepfry:5; do
+for d in egg:40 until:25 pan:10 samepot:14 cue:5 deepfry:5; do
   scripts/golden-entries.sh tests/golden/${d%%:*} | wc -l          # → ${d##*:}
   scripts/run-golden.sh $OZ tests/golden/${d%%:*} | tail -n 1      # → golden: ${d##*:} passed, 0 failed, 0 timed out
 done
@@ -856,7 +858,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 
 ### 5.2 テスト
 
-新しい golden は 91 個（`tests/golden/egg/` に 38 個、`until/` に 23 個、`pan/` に 8 個、`samepot/` に 13 個、`cue/` に 4 個、`deepfry/` に 5 個）と、描画のテスト 9 つ（`renderers/test/deepfry-text.test.mjs`・`renderers/test/egg-crack-text.test.mjs`・`until-text.test.mjs`・`pan-preheat-text.test.mjs`・`pan-preheat-html.test.mjs`・`same-pot-text.test.mjs`・`samples-same-pot-text.test.mjs`・`oyakodon-text.test.mjs`・`cue-text.test.mjs`）と、紹介ページの照合の道具 `scripts/check-site-examples.py` とその自己テスト。紹介ページの例の元は既存の golden（`state/peel-missing` など）で、新しい golden は作らない。
+新しい golden は 99 個（`tests/golden/egg/` に 40 個、`until/` に 25 個、`pan/` に 10 個、`samepot/` に 14 個、`cue/` に 5 個、`deepfry/` に 5 個）と、描画のテスト 9 つ（`renderers/test/deepfry-text.test.mjs`・`renderers/test/egg-crack-text.test.mjs`・`until-text.test.mjs`・`pan-preheat-text.test.mjs`・`pan-preheat-html.test.mjs`・`same-pot-text.test.mjs`・`samples-same-pot-text.test.mjs`・`oyakodon-text.test.mjs`・`cue-text.test.mjs`）と、紹介ページの照合の道具 `scripts/check-site-examples.py` とその自己テスト。紹介ページの例の元は既存の golden（`state/peel-missing` など）で、新しい golden は作らない。
 
 - 期待（`.out`）は §4 の仕様と既存の golden の書式から手で書く。実装（`ozen`）の出力を写さない。位置（行・桁）はソースから数える。IR の行（`debug ir`）は、既存の golden（`sched/heat-model.out`・`state/*.out`）の行の形に §4 の状態と時間を当てはめて書く。
 - 例外は `egg/onion-mix-unchanged`・`egg/water-mix`（S820・S821）で、変える前の実装（`fb-start` の `ozen`）の出力がオラクルになる（変わらないことを確かめるテストのため）。§9 にそう書く。
@@ -868,11 +870,11 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 
 | テスト | 何を判定するか | 主なタスク |
 | --- | --- | --- |
-| `cgolden/egg/*`（38 個） | §4.2〜§4.4 の各 S 項目。名前は §5.3 | P2-1・P2-3・P3-1 |
-| `cgolden/until/*`（23 個） | §4.5 の各 S 項目 | P4-1 |
-| `cgolden/pan/*`（8 個） | §4.6 の各 S 項目（S906 を除く） | P5-1 |
-| `cgolden/samepot/*`（13 個） | §4.7 の各 S 項目と S906 | P6-1 |
-| `cgolden/cue/*`（4 個） | §4.8 の各 S 項目 | P7-1 |
+| `cgolden/egg/*`（40 個） | §4.2〜§4.4 の各 S 項目。名前は §5.3 | P2-1・P2-3・P3-1 |
+| `cgolden/until/*`（25 個） | §4.5 の各 S 項目 | P4-1 |
+| `cgolden/pan/*`（10 個） | §4.6 の各 S 項目（S906 を除く） | P5-1 |
+| `cgolden/samepot/*`（14 個） | §4.7 の各 S 項目と S906 | P6-1 |
+| `cgolden/cue/*`（5 個） | §4.8 の各 S 項目 | P7-1 |
 | `cgolden/deepfry/*`（5 個） | §4.6.1 の各 S 項目 | P5-4 |
 | `rtest/deepfry-text` | S928 | P5-4 |
 | `rtest/egg-crack-text` | S803 | P2-4 |
@@ -1079,6 +1081,14 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S879 | 文書との一致 | `G-STD-LISTS` | prelude の `beat` を消す（一覧にあって定義に無く、`missing: action/beat` で落ちる） | P2-2 |
 | S879 | 文書との一致 | `G-FB-CONCEPT` | concept §12.2 から「卵を割る」を消す | P9-1 |
 | S880 | 文書との一致 | `G-FB-CLAUDEMD` | `CLAUDE.md` の本計画の行を消す | P0-3 |
+| S904 | 時間と順序 | `cgolden/cue/attended` | 合図の `until:` で作る人をつけない（合図の分岐の `s->attend = true` を消す） | P9-3 |
+| S838 | 文書との一致 | `cgolden/until/list-time-and-until` | `time` を書いたとき、混ぜた物の主語を時間のデータを持つ材料にしない（最初の材料のままにする） | P9-3 |
+| S945 | データの完全性 | `cgolden/egg/mixture-same-type` | 同じ型で同じ火の通りの材料をまとめない | P9-3 |
+| S945 | 効かない条件 | `cgolden/egg/mixture-same-type-other-doneness` | 型だけでまとめる（火の通りを見ない） | P9-3 |
+| S898 | 効かない条件 | `cgolden/until/other-operator` | `>=` 以外の比較も `>=` として読む | P9-3 |
+| S946 | 副作用とコスト | `cgolden/pan/backward-preheat` | 逆向きの段取りの予熱でもコンロの口を占有する | P9-3 |
+| S932 | 効かない条件 | `cgolden/samepot/new-vessel-single` | 個体が 1 つでも相手の個体を候補から外す | P9-3 |
+| S848 | 副作用とコスト | `cgolden/pan/preheat-burner-two` | 予熱でいつもフライパンの組の最初の口を占有する | P9-3 |
 
 網羅の検査（P0 の後と P9-3 で実行する。出力が空と 0）:
 
@@ -1091,6 +1101,7 @@ sed -n '/^## 8\./,/^## 9\./p' plans/ozen-cooking-feedback.md | grep '^- ' | grep
 独立した監査（サブエージェント）の指摘のうち、取り込まなかったものと理由:
 
 - 計画を書いた後の監査（2026-11-02）の指摘 45 件は、すべて取り込んだ（取り込まなかったものは無い）。内訳は §9。
+- P9-3 の網羅の監査（2026-11-03）の指摘 7 件も、すべて取り込んだ（取り込まなかったものは無い）。内訳は §9。
 
 ---
 
@@ -1932,6 +1943,15 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S873・副作用とコスト・`G-FB-SCOPE`（P9-2、2026-11-03）。一時的な worktree で `README.md` に 1 行足したコミットを作ると「files outside scope: got '1'」で落ちた。worktree を消した（push していない）
 - わざと壊す確認: S874・副作用とコスト・`G-RF-SEPARATION`（P9-2、2026-11-03）。一時的な worktree で `tests/golden/egg/allow-par.out` と `core/src/sema.c` を 1 つのコミットで変えると「separation: 102 commits, 1 mixed」で落ちた。worktree を消した（push していない）
 - わざと壊す確認: S875・データの完全性・`G-FB-VERSION`（P9-2、2026-11-03）。`VERSION` を `0.2.0` にすると「VERSION: got '0.2.0', want '0.1.0'」で落ちた。戻すと合格した
+- 網羅の監査: 指摘 7 件、取り込み 7 件（P9-3、2026-11-03）。独立したサブエージェントに §1・§4・§8・§9・網羅表・テストと実装のソースを読ませた。7 件とも golden を足して取り込んだ。足した時点で合格する 7 つの対照の golden は `4d8a602` に分け、`scripts/red-first-exceptions.txt` に理由を書いた。赤の `until/list-time-and-until` は `38acde4`。期待は、ビルドの出力を §4 と監査の観察に 1 行ずつ照らして確かめてから書いた（対照の golden は今の挙動を固定するためのもの）。(1) 合図の `until:` で人がつくこと（S904）は状態の `until` でしか見ていなかった → `cue/attended`。(2) 混ぜた物に `time` と `until:` の両方を書くと、主語が時間のデータを持つ材料でなく最初の材料のままだった（実装の誤り。`simmer([cooked, beaten], 2 min, until: doneness >= par)` の `until.food` が `Chicken` で、文が「鶏肉が半熟になるまで」になっていた）→ `until/list-time-and-until` を先に足して落ちるのを確かめ、`apply_until` が `time` のあるときも主語を探すように直した（`528d8d7`、ほかの golden の期待は変わらない）。(3) 混ぜた物で同じ型・同じ火の通りの材料を 1 つにまとめること（P3-2 の事実）→ S945 を §4.4 に足し、`egg/mixture-same-type` と `egg/mixture-same-type-other-doneness`。(4) `>=` 以外の比較の `TYP023`（S898 の隣）→ `until/other-operator`。(5) 逆向きの段取りの予熱がコンロを使わないこと（P5-2 で「§8 の段取り表の確認に含める」とした事実。§8 には書かれておらず、挙動はコマンドで決められる）→ S946 を §4.6 に足し、`pan/backward-preheat`（紹介ページの例の元 `sched/preheat-backward` と名前が重なると照合が元を決められないので、名前を変えた）。§8 には足さない。(6) 個体が 1 つのときの `@newVessel`（S932）→ `samepot/new-vessel-single`（洗いの後に同じ個体を使い、`SCH006` が出る）。(7) 予熱が `fry` と同じ口を占有すること（S848）→ 口が 2 つの `pan/preheat-burner-two`（予熱と `fry` がどちらも `stove#2`）。§8 の 5 項目は、どれも理由どおりコマンドでは決められないと再判定した
+- わざと壊す確認: S904・時間と順序・`cgolden/cue/attended`（P9-3、2026-11-03）。合図の分岐の `s->attend = true` を消すと「golden: 640 passed, 1 failed」で `cue/attended` が落ちた。戻すと合格した
+- わざと壊す確認: S838・文書との一致・`cgolden/until/list-time-and-until`（P9-3、2026-11-03）。`apply_until` で `time` のあるとき主語を探す前に戻る（直す前の作り）と、`until/list-time-and-until` が落ちた（`"food":"Chicken"`）。戻すと合格した
+- わざと壊す確認: S945・データの完全性・`cgolden/egg/mixture-same-type`（P9-3、2026-11-03）。`check_cooked` のまとめる判定を常に偽にすると「golden: 640 passed, 1 failed」で `egg/mixture-same-type` が落ちた（`SAF001` が 2 つ）。戻すと合格した
+- わざと壊す確認: S945・効かない条件・`cgolden/egg/mixture-same-type-other-doneness`（P9-3、2026-11-03）。まとめる判定を型だけにすると「golden: 640 passed, 1 failed」で `egg/mixture-same-type-other-doneness` が落ちた（生の豚肉の `SAF001` が消える）。戻すと合格した
+- わざと壊す確認: S898・効かない条件・`cgolden/until/other-operator`（P9-3、2026-11-03）。`until:` の比較で `>=` を確かめないようにすると「golden: 640 passed, 1 failed」で `until/other-operator` が落ちた。戻すと合格した
+- わざと壊す確認: S946・副作用とコスト・`cgolden/pan/backward-preheat`（P9-3、2026-11-03）。逆向きの予熱の作業に口（最初の単位）を付けると「golden: 637 passed, 4 failed」で `pan/backward-preheat` と、オーブンの `sched/preheat-backward`・`sched/preheat-hotter-backward`・`sched/preheat-reuse-backward` が落ちた。戻すと合格した
+- わざと壊す確認: S932・効かない条件・`cgolden/samepot/new-vessel-single`（P9-3、2026-11-03）。個体が 1 つのときも相手の個体を候補から外すと「golden: 640 passed, 1 failed」で `samepot/new-vessel-single` が落ちた。戻すと合格した
+- わざと壊す確認: S848・副作用とコスト・`cgolden/pan/preheat-burner-two`（P9-3、2026-11-03）。予熱の口をいつも口の組の最初の個体にすると「golden: 640 passed, 1 failed」で `pan/preheat-burner-two` が落ちた（予熱が `stove#1`）。戻すと合格した
 ---
 
 ## 10. リスク

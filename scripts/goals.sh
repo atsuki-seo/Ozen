@@ -1321,11 +1321,11 @@ goal_G_FB_PLAN_TESTS() {
   want_eq "mutations" "mutations: $m rows, $m recorded" "$out"
 }
 
-goal_G_FB_GOLDEN_EGG() { qc_golden_dir egg 38; }
-goal_G_FB_GOLDEN_UNTIL() { qc_golden_dir until 23; }
-goal_G_FB_GOLDEN_PAN() { qc_golden_dir pan 8; }
-goal_G_FB_GOLDEN_SAMEPOT() { qc_golden_dir samepot 13; }
-goal_G_FB_GOLDEN_CUE() { qc_golden_dir cue 4; }
+goal_G_FB_GOLDEN_EGG() { qc_golden_dir egg 40; }
+goal_G_FB_GOLDEN_UNTIL() { qc_golden_dir until 25; }
+goal_G_FB_GOLDEN_PAN() { qc_golden_dir pan 10; }
+goal_G_FB_GOLDEN_SAMEPOT() { qc_golden_dir samepot 14; }
+goal_G_FB_GOLDEN_CUE() { qc_golden_dir cue 5; }
 goal_G_FB_GOLDEN_DEEPFRY() { qc_golden_dir deepfry 5; }
 
 goal_G_FB_GOLDEN_CHANGED() {
