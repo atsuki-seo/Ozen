@@ -23,6 +23,9 @@ export function valueName(ph, nodes, id, opts) {
   if (node.type && ph.has(keyFor('dish', node.type))) {
     return foodName(ph, { type: node.type }, opts);
   }
+  if (node.kind === 'op' && node.label === 'beat' && node.inputs.length > 0) {
+    return ph.format('value-beaten', { x: valueName(ph, nodes, node.inputs[0].node, opts) });
+  }
   if (node.kind === 'op' && (STRUCTURAL.has(node.label) || node.label === 'assemble')) {
     return joinList(ph, node.inputs.map((i) => valueName(ph, nodes, i.node, opts)));
   }
@@ -97,17 +100,53 @@ function rangeText(range) {
   return n(range.lo) === n(range.hi) ? `${n(range.lo)} s` : `${n(range.lo)}..${n(range.hi)} s`;
 }
 
-function untilText(ph, nodes, node, values, opts) {
+function untilText(ph, nodes, node, values, opts, single = false) {
   const act = ph.formatAttr(keyFor('action', node.label), 'until', values);
   if (act === null || !node.until.axis) {
     return null;
   }
   const input = node.inputs.length > 0 ? nodes.get(node.inputs[0].node) : null;
-  const mixed = input && input.kind === 'op' && STRUCTURAL.has(input.label);
+  const mixed = !single && input && input.kind === 'op' && STRUCTURAL.has(input.label);
   const subject = node.until.food ? foodName(ph, { type: node.until.food }, opts) : values.x;
   const stage = ph.format(keyFor(`until-${node.until.axis}`, node.until.value), {}, words(node.until.value));
   const args = { x: values.x, subject, stage, act, time: durationText(ph, rangeText(node.time)) };
   return ph.format(mixed ? 'step-until-mixed' : 'step-until', args);
+}
+
+function reaches(nodes, id, target) {
+  for (let cur = id, guard = 0; cur !== undefined && guard < 1000; guard++) {
+    if (cur === target) {
+      return true;
+    }
+    const n = nodes.get(cur);
+    cur = n && n.kind === 'op' && n.inputs.length > 0 ? n.inputs[0].node : undefined;
+  }
+  return false;
+}
+
+function continuedText(ph, defs, nodes, head, numberOf, opts) {
+  const input = head.inputs.length > 0 ? nodes.get(head.inputs[0].node) : null;
+  const items = [];
+  let held = head.inputs[0]?.node;
+  if (input && input.kind === 'op' && STRUCTURAL.has(input.label)) {
+    held = undefined;
+    for (const i of input.inputs) {
+      if (held === undefined && reaches(nodes, i.node, head.continues)) {
+        held = i.node;
+      } else {
+        items.push(valueName(ph, nodes, i.node, opts));
+      }
+    }
+  }
+  const { values, mechanical } = stepValues(ph, defs, nodes, head, opts);
+  const plain = { ...values, x: ph.format('continued-object') };
+  const full = (head.until ? untilText(ph, nodes, head, plain, opts, true) : null) ??
+    ph.format(keyFor('action', head.label), plain, mechanical);
+  const next = head.until ? full : ph.formatAttr(keyFor('action', head.label), 'next', values) ?? full;
+  if (items.length === 0) {
+    return ph.format('step-as-is', { next, full });
+  }
+  return ph.format('step-add-to', { step: String(numberOf(held)), items: joinList(ph, items), next, full });
 }
 
 function nextText(ph, defs, nodes, node, opts) {
@@ -209,6 +248,19 @@ export function renderRecipe(result, ph, opts = {}) {
   }
   lines.push('', `## ${ph.format('heading-steps')}`);
   const list = steps(ph, defs, dish, opts);
+  const nodeMap = new Map(dish.nodes.map((n) => [n.id, n]));
+  const numberOf = (id) => list.findIndex((st) => st.ids.includes(id)) + 1;
+  for (const step of list) {
+    const head = nodeMap.get(step.id);
+    if (!head || head.continues === undefined) {
+      continue;
+    }
+    let text = continuedText(ph, defs, nodeMap, head, numberOf, opts);
+    for (const id of step.ids.slice(1)) {
+      text = ph.format('steps-joined', { first: text, then: nextText(ph, defs, nodeMap, nodeMap.get(id), opts) });
+    }
+    step.text = ph.format('sentence', { text });
+  }
   const waves = dish.waves || [];
   const wave = waveOf(dish, list);
   let number = 0;
