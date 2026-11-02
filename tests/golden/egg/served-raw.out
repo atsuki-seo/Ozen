@@ -1,0 +1,4 @@
+error SAF001 undercooked served-raw.ozen:6:17-6:29 args=["Egg", "raw"]: undercooked
+error SAF001 undercooked served-raw.ozen:10:16-10:36 args=["Egg", "surface"]: undercooked
+result error errors=2 warnings=0 infos=0
+exit 1

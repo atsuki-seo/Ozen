@@ -1,0 +1,11 @@
+action sear(x: T) -> T<doneness: surface> {
+  uses hands for 1 min
+}
+recipe rawEggBowl {
+  ingredients { egg: 1 pcs }
+  let cracked = egg |> crack
+}
+recipe searedEgg {
+  ingredients { egg: 1 pcs }
+  let seared = egg |> crack |> sear
+}

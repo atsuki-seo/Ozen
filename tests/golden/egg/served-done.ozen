@@ -1,0 +1,4 @@
+recipe boiledEgg {
+  ingredients { egg: 1 pcs }
+  let boiled = egg |> boil(10 min)
+}
