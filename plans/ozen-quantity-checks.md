@@ -874,6 +874,22 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S718・データの完全性・`G-CORE-GRAMMAR`（P2-2、2026-11-02）。`type_range()` の `mark(p, OZNI_R_type_range)` を消すと「grammar: 134 rules, 1 not covered」で落ちた。戻すと合格した
 - わざと壊す確認: S718・文書との一致・`G-QC-SYNTAX`（P2-2、2026-11-02）。`core/grammar.ebnf` から `type_range` の規則を消すと「grammar type_range: got '0'」で落ちた。戻すと合格した
 - わざと壊す確認: S719・データの完全性・`G-QC-SYNTAX`（P2-2、2026-11-02）。`core/fuzz/ozen.dict` から `"<.."` を消すと「fuzz dict: got '0'」で落ちた。戻すと合格した
+- 期待を直した golden: `tests/golden/api/signatures-json.out` — 標準の 8 つの引数（`soak`・`fry`・`simmer`・`boil`・`parboil`・`chill`・`rest` の `time` と `cut` の `size`）の型の文字が範囲付き（`Time in 0 s<..`・`Length in 0 mm<..`）になった（S769、P2-3）。期待は古い期待の該当する 8 か所を手で書き換えて作り、実装の出力と一致することを確かめた。利用者の動作 `press` の `time: Time` は変わらない
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — 定義の一覧の JSON で、同じ 8 つの引数の型が `TypeRef` から `RangedType`（子に型の名前と `RangeAbove`）になった（P2-3）。差分を読み、この 8 か所の型の木のほかに変わったところが無いことを確かめてから直した
+- わざと壊す確認: S720・データの完全性・`G-QC-PRELUDE`（P2-3、2026-11-02）。`chill` の `time` の範囲を消すと「time ranges: got '6'」で落ちた。戻すと合格した
+- わざと壊す確認: S721・データの完全性・`G-QC-PRELUDE`（P2-3、2026-11-02）。`cut` の `size` の範囲を `0 mm..` にすると「size range: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S722・境界・上限・`cgolden/bounds/time-zero`（P2-3、2026-11-02）。`simmer` の範囲を `0 s..` にすると `time-zero`・`range-units-negative-time` が落ちた。戻すと合格した
+- わざと壊す確認: S723・正常系・`cgolden/bounds/time-negative`（P2-3、2026-11-02）。`boil` の範囲を消すと `time-negative` が落ちた。戻すと合格した
+- わざと壊す確認: S770・実際の経路・`cgolden/bounds/range-units-negative-time`（P2-3、2026-11-02）。`simmer` の範囲を消すと `range-units-negative-time`・`time-zero` が落ちた。戻すと合格した
+- わざと壊す確認: S724・境界・上限・`cgolden/bounds/size-zero`（P2-3、2026-11-02）。`cut` の範囲を `0 mm..` にすると `size-zero`・`size-negative` が落ちた（`-3 mm` も `TYP012` の範囲の文字が変わる）。戻すと合格した
+- わざと壊す確認: S724・正常系・`cgolden/bounds/size-negative`（P2-3、2026-11-02）。`cut` の範囲を消すと `size-negative`・`size-zero` が落ちた。戻すと合格した
+- わざと壊す確認: S725・効かない条件・`cgolden/bounds/small-positive`（P2-3、2026-11-02）。`fry` の範囲を `1 min<..` にすると `small-positive`・`composite-range` が落ちた。戻すと合格した
+- わざと壊す確認: S725・効かない条件・`cgolden/bounds/soak-default`（P2-3、2026-11-02）。既定値を使った呼び出しも照合する形にしたうえで `soak` の範囲を `30 min<..` にすると `soak-default` が落ちた。戻すと合格した
+- わざと壊す確認: S726・効かない条件・`cgolden/bounds/temperature-negative`（P2-3、2026-11-02）。範囲の無い次元の型の引数すべてに 0 以下を範囲外とする判定を当てると `temperature-negative`・`composite-range` が落ちた。戻すと合格した
+- わざと壊す確認: S726・データの完全性・`G-QC-PRELUDE`（P2-3、2026-11-02）。`OvenSpec.maxTemp` を `Temperature? in 0 degC..` にすると「temperature ranges: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S727・副作用とコスト・`cgolden/bounds/dimension-before-range`（P2-3、2026-11-02）。次元が違っても範囲の判定を続けると `dimension-before-range` が落ちた。戻すと合格した
+- わざと壊す確認: S771・副作用とコスト・`cgolden/bounds/composite-range`（P2-3、2026-11-02）。合成の動作の中の照合の位置を呼び出し元に向けず中の呼び出しのまま出すと `composite-range` が落ちた。戻すと合格した
+- わざと壊す確認: S769・データの完全性・`cgolden/api/signatures-json`（P2-3、2026-11-02）。`--emit signatures` の引数の型の文字を範囲を除いた型の名前だけにすると `signatures-json` が落ちた。戻すと合格した
 
 ---
 
