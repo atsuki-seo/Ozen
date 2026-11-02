@@ -1534,9 +1534,39 @@ bool ozni_project_load(ozni_ctx *c, const ozni_source *user, size_t nuser, ozni_
 
 /* Lookups for later phases */
 
+static bool find_qualified(const ozni_project *pr, const ozni_module *m, ozni_str q, ozni_index *out_mod,
+                           ozni_index *out_def) {
+  uint32_t dot = 0;
+  while (dot < q.len && q.p[dot] != '.') {
+    dot++;
+  }
+  if (dot == 0 || dot + 1 >= q.len) {
+    return false;
+  }
+  ozni_index last = intern(pr->c, q.p + dot + 1, q.len - dot - 1);
+  for (ozni_index b = 0; b < ozni_table_count(m->bindings); b++) {
+    const binding *bd = ozni_table_get(m->bindings, b);
+    ozni_str bn = str_of(pr->c, bd->name);
+    if (bd->def != NONE || bn.len != dot || memcmp(bn.p, q.p, dot) != 0) {
+      continue;
+    }
+    ozni_index d = defs_find(ozni_table_get(pr->modules, bd->module), last);
+    if (d != NONE) {
+      *out_mod = bd->module;
+      *out_def = d;
+      return true;
+    }
+  }
+  return false;
+}
+
 bool ozni_project_find(const ozni_project *pr, ozni_index mod, ozni_index name, ozni_index *out_mod,
                        ozni_index *out_def) {
   const ozni_module *m = ozni_table_get(pr->modules, mod);
+  ozni_str q = str_of(pr->c, name);
+  if (ozni_memchr(q.p, '.', q.len) != nullptr) {
+    return find_qualified(pr, m, q, out_mod, out_def);
+  }
   ozni_index d = defs_find(m, name);
   if (d != NONE) {
     *out_mod = mod;
