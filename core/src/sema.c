@@ -6422,6 +6422,15 @@ static value eval_make(sema *s, const ozni_node *mk) {
       copy->irdiv = v.f->irdiv;
       v.f = copy;
     }
+    ozni_index ptype = field_type_node(s, rfile, pnodes[k]);
+    if (v.kind == V_QTY && ptype != 0 && dim_type(s, rfile, ptype)) {
+      ozni_index qfile, qnode, qtrail, saved_trail = s->trail;
+      if (qty_site(s, s->file, vnode, &qfile, &qnode, &qtrail)) {
+        s->trail = qtrail;
+        check_qty(s, v.q, rfile, ptype, pnames[k], qfile, qnode);
+        s->trail = saved_trail;
+      }
+    }
     vals[k] = v;
     set[k] = true;
   }
