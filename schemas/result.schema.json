@@ -1347,20 +1347,40 @@
                 ]
               },
               "heats": {
-                "additionalProperties": false,
-                "properties": {
-                  "resource": {
-                    "type": "string"
+                "oneOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "resource": {
+                        "type": "string"
+                      },
+                      "temp": {
+                        "$ref": "#/$defs/rational"
+                      }
+                    },
+                    "required": [
+                      "resource",
+                      "temp"
+                    ],
+                    "type": "object"
                   },
-                  "temp": {
-                    "$ref": "#/$defs/rational"
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "level": {
+                        "type": "string"
+                      },
+                      "resource": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "level",
+                      "resource"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "resource",
-                  "temp"
-                ],
-                "type": "object"
+                ]
               },
               "id": {
                 "minimum": 0,
@@ -1410,20 +1430,40 @@
               },
               "needs": {
                 "items": {
-                  "additionalProperties": false,
-                  "properties": {
-                    "resource": {
-                      "type": "string"
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "resource": {
+                          "type": "string"
+                        },
+                        "temp": {
+                          "$ref": "#/$defs/rational"
+                        }
+                      },
+                      "required": [
+                        "resource",
+                        "temp"
+                      ],
+                      "type": "object"
                     },
-                    "temp": {
-                      "$ref": "#/$defs/rational"
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "level": {
+                          "type": "string"
+                        },
+                        "resource": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "level",
+                        "resource"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "resource",
-                    "temp"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               },
