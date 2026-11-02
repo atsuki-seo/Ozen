@@ -1154,11 +1154,11 @@ qc_golden_dir() {
 }
 
 goal_G_QC_GOLDEN_ARGS() {
-  qc_golden_dir args 21
+  qc_golden_dir args 22
 }
 
 goal_G_QC_GOLDEN_BOUNDS() {
-  qc_golden_dir bounds 51
+  qc_golden_dir bounds 55
 }
 
 goal_G_QC_GOLDEN_CHANGED() {
@@ -1186,6 +1186,9 @@ goal_G_QC_DIAG() {
   want_eq "registry" 1 "$(grep -cxF 'TYP:nonPositiveAmount' core/tests/diag-names.txt)"
   want_eq "en phrase" 1 "$(grep -E '^diag-non-positive-amount = ' phrases/en.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }')"
   want_eq "ja phrase" 1 "$(grep -E '^diag-non-positive-amount = ' phrases/ja.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }')"
+  want_eq "en phrase text" 1 \
+    "$(grep -cxF 'diag-non-positive-amount = The amount { $arg2 } of { $arg1 } must be more than zero' phrases/en.ftl)"
+  want_eq "ja phrase text" 1 "$(grep -cxF 'diag-non-positive-amount = { $arg1 }の量 { $arg2 } は 0 より大きくしてください' phrases/ja.ftl)"
   want_eq "arg kinds" 1 "$(grep -cE "^  nonPositiveAmount: \['name'\]," renderers/lib/names.mjs)"
   want_eq "severity example" 1 "$(grep -cP '\tTYP:nonPositiveAmount\terror\t' core/tests/severity-examples.txt)"
 }
@@ -1206,6 +1209,8 @@ goal_G_QC_SYNTAX() {
   want_ge1 "rules.def type_range" "$(grep -cx 'OZNI_RULE(type_range)' core/src/rules.def)"
   want_ge1 "fuzz dict" "$(grep -cxF '"<.."' core/fuzz/ozen.dict)"
   want_ge1 "concept 4.2 example" "$(grep -cF '0 s<..' <<< "$ranges")"
+  want_ge1 "concept 4.2 upper end" "$(grep -cF 'a<..b' <<< "$ranges")"
+  want_ge1 "concept 4.2 upper end included" "$(grep -cF '上端は含む' <<< "$ranges")"
   want_ge1 "concept 4.2 action arguments" "$(grep -F '範囲外は必ずエラー' <<< "$ranges" | grep -cF '動作の引数')"
   want_ge1 "concept Options servings" "$(grep -cE '^  servings: +Count\? in 1\.\.' docs/concept.md)"
   want_ge1 "concept 6.1 amount" "$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF '0 以下の量')"
@@ -1260,11 +1265,27 @@ goal_G_QC_RD_RANGE() {
   want_ok "G-RD-SCOPE and G-RD-ADD-ONLY" scripts/goals.sh G-RD-SCOPE G-RD-ADD-ONLY
 }
 
+qc_range_shas() {
+  local h
+  grep -oE '\b[0-9a-f]{7,40}\b' | sort -u | while IFS= read -r h; do
+    git rev-parse -q --verify "$h^{commit}" 2>/dev/null
+  done | while IFS= read -r h; do git rev-list $QC | grep -qxF -- "$h" && echo "$h"; done
+}
+
 goal_G_QC_ISSUES() {
+  local c1 c2
+  c1=$(gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' 2>/dev/null)
+  c2=$(gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' 2>/dev/null)
   want_eq "issue 1" CLOSED "$(gh issue view 1 --repo atsuki-seo/Ozen --json state -q .state 2>&1)"
   want_eq "issue 2" CLOSED "$(gh issue view 2 --repo atsuki-seo/Ozen --json state -q .state 2>&1)"
-  want_ge1 "issue 1 comment" "$(gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' 2>/dev/null | grep -c 'TYP001')"
-  want_ge1 "issue 2 comment" "$(gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' 2>/dev/null | grep -c 'TYP021')"
+  want_ge1 "issue 1 comment" "$(grep -c 'TYP001' <<< "$c1")"
+  want_ge1 "issue 2 comment" "$(grep -c 'TYP021' <<< "$c2")"
+  want_ge1 "issue 2 comment TYP012" "$(grep -c 'TYP012' <<< "$c2")"
+  want_ge1 "issue 1 output" "$(grep -cF 'case1.ozen:5:20-5:24' <<< "$c1")"
+  want_ge1 "issue 2 output" "$(grep -cF 'case2.ozen:3:12-3:19' <<< "$c2")"
+  want_ge1 "issue 2 golden" "$(grep -cF 'bounds/issue2' <<< "$c2")"
+  want_ge1 "issue 1 commit" "$(qc_range_shas <<< "$c1" | wc -l)"
+  want_ge1 "issue 2 commit" "$(qc_range_shas <<< "$c2" | wc -l)"
 }
 
 goal_G_QC_AUDIT() {

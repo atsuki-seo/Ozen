@@ -308,6 +308,8 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 - **S706** 次元の誤りがあっても、評価は続き、同じレシピの後の誤り（皮をむかずに切る `TYP006` など）も出る。
 - **S707** 正しい次元の値（`3 min`、`1 h 30 min`、`3..5 min`、`2 * 90 s`、`time: 3 min`、`heat: high`、`cut(slice, 3 mm)`）は新しい診断を出さない（量でない引数 `heat`・`style` に新しい診断は出ない）。
 - **S708** Issue #1 の再現コード（`fry(egg, 3 ml)`）は `TYP001` を 1 つ出し、`ozen check` の終了コードは 1 になる。
+- **S788** 合成の動作の引数の既定値も、中の呼び出しで検査しない（D78）。`quickChill(x: T, time: Time = 3 ml)` の中の `chill(x, time)` を 2 回呼んでも診断は無い（P4-2 の監査で足した）。
+- **S789** レシピの引数の既定値が型に合わないとき（`recipe soup(t: Time = 3 ml)` の中の `boil(dashi, t)`）、診断は見出しの既定値の位置の `TYP001` 1 つだけ（型に落ちた引数は束縛しない。P4-2 の監査で足した）。
 
 ### 4.2 両端に単位を書いた範囲（D85）
 
@@ -315,6 +317,7 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 - **S761** `fry(egg, 3 ml..5 ml)` は `TYP001`（引数 `["Volume", "Time"]`）。
 - **S762** 両端の次元が違う範囲（`3 ml..5 g`）は `TYP001`。
 - **S763** 材料の `sugar: 0.5 ml..2 ml` は量 `0.5..2 ml` を持ち、レシピの文章は「適量」でなく範囲になる。
+- **S786** 両端に単位を書いた範囲で下端が上端より大きいとき（`5 min..3 min`）は、数だけの範囲（`5..3 min`）と同じく両端を並べ直した区間（`180..300 s`）になる（P4-2 の監査で足した）。
 
 ### 4.3 献立の `make` の量の引数（D86）
 
@@ -333,11 +336,13 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 - **S766** 下端を含まない範囲は、利用者の設備の設定の型のフィールド（`type ScaleSpec : EquipmentSpec { maxLoad: Mass in 0 g<.. }`）にも効き、台所の `maxLoad: 0 g` は `TYP012`。
 - **S767** 数だけの下端（`Count in 0<..`）も同じ判定（`0` は範囲外、`1` は範囲内）。
 - **S768** 空の範囲 `1<..1` には入る値が無く、`1` は `TYP012`（範囲そのものの誤りの診断は足さない）。
+- **S790** 型の範囲の下端に範囲（`Time in 0..1 min<..`）を書くと、`<` の位置に `SYN003`（P4-2 の監査で足した）。
 - **S716** `ozen check --format json --emit types` の型のフィールドで、下端を含まない範囲には `"minExclusive":true` が付き、`min` は下端の文字（`0 g`）になる。下端を含む範囲と範囲の無いフィールドには `minExclusive` のキーが無い。
 - **S717** `schemas/result.schema.json` は、型のフィールドの `minExclusive` を任意の真偽値として許す。
 - **S769** `--emit signatures` の標準の動作の引数の型の文字は、範囲ごと（`Time in 0 s<..`）出る。
 - **S718** 文法の規則 `type_range` が `core/grammar.ebnf` と `core/src/rules.def` にあり、golden で通る（`G-CORE-GRAMMAR`）。
 - **S719** ファジングの辞書（`core/fuzz/ozen.dict`）に `"<.."` がある。
+- **S794** `--emit types` の型のフィールドで、`a<..b` の上端は `max` に出る（`minLoad: Mass in 0 g<..5 kg` は `"min":"0 g","minExclusive":true,"max":"5 kg"`。P4-2 の監査で足した）。
 
 ### 4.5 標準の動作の範囲（D70）
 
@@ -351,6 +356,7 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 - **S726** 温度の引数には範囲を付けない。利用者の動作 `freeze(x: T, temp: Temperature)` に `-18 degC` を渡しても診断は無い。標準ライブラリに温度の範囲（`Temperature in`・`Temperature? in`）は無い。
 - **S727** 次元の違う値（`fry(egg, -3 ml)`）は `TYP001` だけを出し、`TYP012` を重ねない。
 - **S771** 合成の動作 `quick(x: T, t: Time) { steps { fry(x, t) } }`（外の `t` に範囲が無い）を `quick(egg, 0 s)` と呼ぶと、中の `fry` の範囲で `TYP012` が 1 つだけ、呼び出し元の `0 s` の位置に出る。
+- **S787** 合成の動作の中で同じ引数を 2 回使っても（`twice(x: T, t: Time)` の中の `fry(x, t)` と `rest(fried, t)`）、`twice(done, 0 s)` の `TYP012` は呼び出し元の `0 s` の位置に 1 つだけ（P4-2 の監査で足した）。
 
 ### 4.6 材料の量（D71・D75・D76）
 
@@ -389,6 +395,9 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 - **S748** `servings` を持たない料理で、ビルド時の条件 `kitchen today : Options { servings: 0 }` を `--options today` で選ぶと、`TYP012` が 1 つ出る。
 - **S749** 見出しの人数 1（`servings: 1`）は診断を出さない。
 - **S780** `-s 1` は診断を出さない。
+- **S791** 見出しに `servings: Count = 2` がある料理に `-s 0` を渡すと、`TYP012` は条件の側の 1 つだけで、`1 g per serving` と `150 ml * servings` に `TYP020`・`TYP021` は出ない（D76。P4-2 の監査で足した）。
+- **S792** 献立の `make soup(servings: 0)` の料理は人数を未知として評価され、`debug steps` の `make` の行に量が付かない（D76。P4-2 の監査で足した）。
+- **S793** 見出しに自分で範囲を宣言した料理（`servings: Count in 2..20`）への `make soup(servings: 1)` は、宣言の範囲で `TYP012`（引数の 3 つ目は `2..20`。P4-2 の監査で足した）。
 
 ### 4.8 Issue の再現
 
@@ -409,6 +418,7 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 - **S756** `docs/concept.md` §4.2 の範囲制約の説明に、下端を含まない書き方（`a<..`・`a<..b`）と例（`0 s<..`）がある。
 - **S783** `docs/concept.md` §4.2 の「範囲外は必ずエラー」の対象に、動作の引数がある。
 - **S784** `docs/concept.md` の `type Options` の例の `servings` が `Count? in 1..` になっている。
+- **S795** `docs/concept.md` §4.2 に `a<..b` の形と、そのとき上端を含むこと（「上端は含む」）が書いてある（P4-2 の監査で足した）。
 - **S757** `CLAUDE.md` の Plan の節に、本計画のファイル名・`G-QC-*`・タグ `qc-start` の行がある。
 
 ### 4.11 足すもの・変えるものの一覧
@@ -423,7 +433,7 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 | スキーマ | `schemas/result.schema.json` の型のフィールドの `minExclusive` |
 | ファジング | `core/fuzz/ozen.dict` の `"<.."` |
 | コア | `core/src/sema.c`（量の照合、範囲の評価、範囲の開いた下端、材料の量、人数、`make` の引数）、`core/src/defs.c`（`minExclusive`） |
-| テスト | `tests/golden/args/`（21 個）、`tests/golden/bounds/`（51 個）、期待を直す既存の golden（S751） |
+| テスト | `tests/golden/args/`（22 個）、`tests/golden/bounds/`（55 個）、期待を直す既存の golden（S751） |
 | 文書 | `docs/concept.md` §4.2・§6.1・`type Options` の例、`core/tests/diag-names.txt`、`core/tests/severity-examples.txt` |
 | 計画とゴール | 本ファイル、`scripts/goals.sh`、`CLAUDE.md`、`plans/ozen-syntax-refresh.md` §9 の 1 行（D80）、`plans/ozen-readme-compact.md` §9 の 1 行（D87）、`scripts/red-first-exceptions.txt`（対照の golden のコミット、§5.2） |
 
@@ -462,19 +472,19 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 | `G-QC-COVERAGE` | S 項目すべてが網羅表に行を持ち、§8 の各項目に理由がある | 差分が空、理由の無い項目 0 |
 | `G-QC-PLAN-NAMES` | 網羅表のテスト名が実在する | `plan-tests: <n> names, 0 missing` |
 | `G-QC-PLAN-TESTS` | わざと壊す確認の記録が網羅表の行の数だけある | `mutations: <m> rows, <m> recorded` |
-| `G-QC-GOLDEN-ARGS` | §4.1〜§4.3 の golden | 21 個、`golden: 21 passed, 0 failed, 0 timed out` |
-| `G-QC-GOLDEN-BOUNDS` | §4.4〜§4.8 の golden | 51 個、`golden: 51 passed, 0 failed, 0 timed out` |
+| `G-QC-GOLDEN-ARGS` | §4.1〜§4.3 の golden | 22 個、`golden: 22 passed, 0 failed, 0 timed out` |
+| `G-QC-GOLDEN-BOUNDS` | §4.4〜§4.8 の golden | 55 個、`golden: 55 passed, 0 failed, 0 timed out` |
 | `G-QC-GOLDEN-CHANGED` | S751 | `ok`、名指しされていない直した期待 0 |
 | `G-QC-PRELUDE` | S720・S721・S726・S741 | `time` の行 7、`size` の行 1、温度の範囲 0、`servings` の行 1 |
-| `G-QC-DIAG` | S739・S740 | 7 つの数がすべて 1、`TYP021` の行が `SCH011` の行より後 |
+| `G-QC-DIAG` | S739・S740 | 9 つの数がすべて 1、`TYP021` の行が `SCH011` の行より後 |
 | `G-QC-SCHEMA` | S716・S717 | `minExclusive` の数が `min` の数と同じ、`json: 1 files, 0 invalid` |
-| `G-QC-SYNTAX` | S718・S719・S756・S783・S784・S740 | 7 つの数がすべて 1 以上 |
+| `G-QC-SYNTAX` | S718・S719・S756・S783・S784・S740・S795 | 9 つの数がすべて 1 以上 |
 | `G-QC-SCOPE` | S753 | `ok`、範囲に無い除外のコミット 0、範囲の外のファイル 0 |
 | `G-QC-VERSION` | S754 | D83 の値 |
 | `G-QC-CLAUDEMD` | S757 | 1 以上 |
 | `G-QC-RF-COUNT` | S755 | `G-RF-GOLDEN-COUNT` の関数に `readme-start` があり、関数が合格する |
 | `G-QC-RD-RANGE` | S781 | `readme-end` が `52a6ef1`、`goals.sh` の `RD=` が `readme-start..readme-end`、2 つのゴールが合格 |
-| `G-QC-ISSUES` | D84（push の後、ユーザーの確認の後） | 2 つの Issue が `CLOSED`、コメントに診断のコードがある |
+| `G-QC-ISSUES` | D84（push の後、ユーザーの確認の後） | 2 つの Issue が `CLOSED`、コメントに診断のコード・範囲のコミットの SHA・直した後の出力の行がある、#2 のコメントに `bounds/issue2` がある |
 | `G-QC-AUDIT` | P4-2 の監査の記録 | 1 以上 |
 
 ```bash
@@ -495,12 +505,12 @@ scripts/check-plan-tests.sh $PLAN_QC | tail -n 1                  # → plan-tes
 scripts/check-plan-tests.sh --mutations $PLAN_QC | tail -n 1      # → mutations: <m> rows, <m> recorded
 
 # G-QC-GOLDEN-ARGS
-scripts/golden-entries.sh tests/golden/args | wc -l               # → 21
-scripts/run-golden.sh $OZ tests/golden/args | tail -n 1           # → golden: 21 passed, 0 failed, 0 timed out
+scripts/golden-entries.sh tests/golden/args | wc -l               # → 22
+scripts/run-golden.sh $OZ tests/golden/args | tail -n 1           # → golden: 22 passed, 0 failed, 0 timed out
 
 # G-QC-GOLDEN-BOUNDS
-scripts/golden-entries.sh tests/golden/bounds | wc -l             # → 51
-scripts/run-golden.sh $OZ tests/golden/bounds | tail -n 1         # → golden: 51 passed, 0 failed, 0 timed out
+scripts/golden-entries.sh tests/golden/bounds | wc -l             # → 55
+scripts/run-golden.sh $OZ tests/golden/bounds | tail -n 1         # → golden: 55 passed, 0 failed, 0 timed out
 
 # G-QC-GOLDEN-CHANGED（範囲で直した（足したのではない）期待のうち、§9 に名指しされていないもの）
 git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok           # → ok
@@ -519,6 +529,8 @@ grep -cx 'OZNI_DIAG(TYP021, TYP, nonPositiveAmount, ERROR)' core/src/diag_codes.
 grep -cxF 'TYP:nonPositiveAmount' core/tests/diag-names.txt                                          # → 1
 grep -E '^diag-non-positive-amount = ' phrases/en.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }'   # → 1
 grep -E '^diag-non-positive-amount = ' phrases/ja.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }'   # → 1
+grep -cxF 'diag-non-positive-amount = The amount { $arg2 } of { $arg1 } must be more than zero' phrases/en.ftl   # → 1（D75 の文）
+grep -cxF 'diag-non-positive-amount = { $arg1 }の量 { $arg2 } は 0 より大きくしてください' phrases/ja.ftl          # → 1（D75 の文）
 grep -cE "^  nonPositiveAmount: \['name'\]," renderers/lib/names.mjs                                  # → 1
 grep -cP '\tTYP:nonPositiveAmount\terror\t' core/tests/severity-examples.txt                         # → 1
 
@@ -533,6 +545,8 @@ grep -cE '^type_range[[:space:]]*:=' core/grammar.ebnf                          
 grep -cx 'OZNI_RULE(type_range)' core/src/rules.def                                              # → 1
 grep -cxF '"<.."' core/fuzz/ozen.dict                                                            # → 1
 sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF '0 s<..'                           # → 1 以上
+sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF 'a<..b'                            # → 1 以上
+sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF '上端は含む'                       # → 1 以上
 sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -F '範囲外は必ずエラー' | grep -cF '動作の引数'   # → 1 以上
 grep -cE '^  servings: +Count\? in 1\.\.' docs/concept.md                                        # → 1 以上
 sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF '0 以下の量'                          # → 1 以上
@@ -566,6 +580,11 @@ gh issue view 1 --repo atsuki-seo/Ozen --json state -q .state                 # 
 gh issue view 2 --repo atsuki-seo/Ozen --json state -q .state                 # → CLOSED
 gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP001'   # → 1 以上
 gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP021'   # → 1 以上
+gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP012'   # → 1 以上
+gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'case1.ozen:5:20-5:24'   # → 1 以上
+gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'case2.ozen:3:12-3:19'   # → 1 以上
+gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'bounds/issue2'          # → 1 以上
+# 各 Issue のコメントの 7〜40 桁の 16 進のうち、範囲 qc-start..HEAD のコミットを指すもの → 1 以上
 
 # G-QC-AUDIT（P4-2）
 grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_QC        # → 1 以上
@@ -575,7 +594,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 
 ### 5.2 テスト
 
-新しい golden は 72 個（`tests/golden/args/` に 21 個、`tests/golden/bounds/` に 51 個）と、描画のテスト 1 つ（`renderers/test/settings-servings-min.test.mjs`）。golden の数は着手点の N0（§9。2026-11-02 は 448）から 72 増える。
+新しい golden は 77 個（`tests/golden/args/` に 22 個、`tests/golden/bounds/` に 55 個）と、描画のテスト 1 つ（`renderers/test/settings-servings-min.test.mjs`）。golden の数は着手点の N0（§9。2026-11-02 は 464）から 77 増える。計画を書いた時点の 72 個（21 個と 51 個）に、P4-2 の監査で 5 個（`args/recipe-default-once`・`bounds/exclusive-range-lower`・`bounds/servings-flag-invalid-amounts`・`bounds/servings-make-invalid`・`bounds/servings-make-own-range`）を足した。
 
 - 期待（`.out`）は §4 の仕様と、既存の golden の診断の書式（`kitchen/range-open-ended.out` の `TYP012`、`kitchen/unitless-capacity.out` の `TYP001` の引数の形）から手で書く。実装（`ozen`）の出力を写さない。位置（行・桁）はソースから数える。
 - 例外は `bounds/expression-unchanged`（S715）だけで、`debug ast` の期待は着手点のビルド（`qc-start` の `ozen`）の出力から作る。読み方が変わらないことを確かめるテストなので、変える前の実装がオラクルになる。§9 にそう書く。
@@ -586,8 +605,8 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 
 | テスト | 何を判定するか | 主なタスク |
 | --- | --- | --- |
-| `cgolden/args/*`（21 個） | §4.1〜§4.3 の各 S 項目。名前は §5.3 | P1-1 |
-| `cgolden/bounds/*`（51 個） | §4.4〜§4.8 の各 S 項目。名前は §5.3 | P2-1・P3-1 |
+| `cgolden/args/*`（22 個） | §4.1〜§4.3 の各 S 項目。名前は §5.3 | P1-1・P4-2 |
+| `cgolden/bounds/*`（55 個） | §4.4〜§4.8 の各 S 項目。名前は §5.3 | P2-1・P3-1・P4-2 |
 | `rtest/settings-servings-min` | S774 | P3-1 |
 
 機械で押さえるのは、診断の有無・数・コード・位置・引数・終了コード（golden）、文法の規則と辞書と文書の語（grep）、型の一覧の JSON とスキーマ（検証の道具）、設定画面の部品（描画のテスト）、標準ライブラリの宣言（grep）、変えたファイルの範囲、Issue の状態とコメントの中身（`gh`）。診断の文と説明の文が読み手に伝わるか、Issue への返答の言い方は §8 に回す。
@@ -616,10 +635,13 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S707 | 効かない条件 | `cgolden/args/ok-units` | 区間の値（`3..5 min`）をエラーにする | P1-2 |
 | S707 | 効かない条件 | `cgolden/args/ok-units` | 列挙の引数（`heat: high`）も照合し、量でない値を次元の無い量として扱う | P1-2 |
 | S708 | 実際の経路 | `cgolden/args/issue1` | 照合の診断の重大度を警告にする（終了コードが 0 になる） | P1-2 |
+| S788 | 効かない条件 | `cgolden/args/default-unchecked` | `qty_site` で合成の動作の既定値の枠を飛ばさない（中の `chill` が既定値の `3 ml` を照合する） | P4-2 |
+| S789 | 副作用とコスト | `cgolden/args/recipe-default-once` | 型に落ちたレシピの引数も束縛する（`boil` の位置にも `TYP001` が出る） | P4-2 |
 | S760 | 正常系 | `cgolden/args/range-units-steps` | `eval_inner` の範囲の評価を消す（`?` に戻る） | P1-2 |
 | S761 | 実際の経路 | `cgolden/args/range-units-dimension` | 範囲の評価で、結果の次元を記録しない（次元の無い区間にする。`["Dimensionless", "Time"]` になる） | P1-2 |
 | S762 | 境界・上限 | `cgolden/args/range-units-mixed` | 両端の次元を比べず、左の次元を使う | P1-2 |
 | S763 | データの完全性 | `cgolden/args/range-units-ingredient` | 材料の量の評価で範囲の節を未知にする | P1-2 |
+| S786 | 境界・上限 | `cgolden/args/range-units-steps` | 下端が上端より大きい範囲を未知の値にする | P4-2 |
 | S764 | 実際の経路 | `cgolden/args/make-arg-dimension` | `make` の量の引数の照合を消す | P1-2 |
 | S765 | 実際の経路 | `cgolden/bounds/make-arg-range` | `make` の照合で範囲の判定を飛ばす | P2-2 |
 | S709 | 境界・上限 | `cgolden/bounds/exclusive-from` | 下端を含まない判定を `<` から `<=` にする（下端ちょうどが通る） | P2-2 |
@@ -633,6 +655,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S766 | 実際の経路 | `cgolden/bounds/exclusive-kitchen` | 台所の設定のフィールドでは下端を含まない印を見ない | P2-2 |
 | S767 | 境界・上限 | `cgolden/bounds/exclusive-count` | 数だけの下端（`0<..`）で印を読み捨てる | P2-2 |
 | S768 | 境界・上限 | `cgolden/bounds/exclusive-empty` | 下端と上端が等しい範囲では下端の判定を閉区間にする | P2-2 |
+| S790 | 効かない条件 | `cgolden/bounds/exclusive-range-lower` | `type_range()` で単位付きの数の範囲を下端として受け付ける | P4-2 |
 | S716 | データの完全性 | `cgolden/bounds/types-json-exclusive` | `minExclusive` を出さない | P2-2 |
 | S716 | 効かない条件 | `cgolden/api/types-json` | 下端を含む範囲にも `"minExclusive":false` を出す | P2-2 |
 | S717 | データの完全性 | `G-QC-SCHEMA` | スキーマの型のフィールドから `minExclusive` を消す（`additionalProperties: false` で検証が落ちる） | P2-2 |
@@ -640,6 +663,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S718 | データの完全性 | `G-CORE-GRAMMAR` | `type_range()` の `mark(p, OZNI_R_type_range)` を消す（規則が golden で通らない） | P2-2 |
 | S718 | 文書との一致 | `G-QC-SYNTAX` | `core/grammar.ebnf` から `type_range` の規則を消す | P2-2 |
 | S719 | データの完全性 | `G-QC-SYNTAX` | `core/fuzz/ozen.dict` から `"<.."` を消す | P2-2 |
+| S794 | データの完全性 | `cgolden/bounds/types-json-exclusive` | `put_field` で `RangeAbove` の上端を `max` に出さない | P4-2 |
 | S720 | データの完全性 | `G-QC-PRELUDE` | `chill` の `time` の範囲を消す | P2-3 |
 | S721 | データの完全性 | `G-QC-PRELUDE` | `cut` の `size` の範囲を `0 mm..` にする | P2-3 |
 | S722 | 境界・上限 | `cgolden/bounds/time-zero` | `simmer` の範囲を `0 s..` にする | P2-3 |
@@ -653,6 +677,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S726 | データの完全性 | `G-QC-PRELUDE` | `OvenSpec.maxTemp` を `Temperature? in 0 degC..` にする | P2-3 |
 | S727 | 副作用とコスト | `cgolden/bounds/dimension-before-range` | 次元が違っても範囲の判定を続ける | P2-3 |
 | S771 | 副作用とコスト | `cgolden/bounds/composite-range` | 合成の動作の中の照合の位置を中の呼び出しのまま出す（位置が定義の中になる） | P2-3 |
+| S787 | 副作用とコスト | `cgolden/bounds/composite-range` | 中の照合で落ちたことを合成の動作の枠に記録しない（2 回目の使用でも診断を出す） | P4-2 |
 | S728 | 正常系 | `cgolden/bounds/amount-negative` | `TYP021` を出す処理を消す | P3-2 |
 | S729 | 境界・上限 | `cgolden/bounds/amount-zero` | 判定を `lo < 0` にする（0 が通る） | P3-2 |
 | S730 | 正常系 | `cgolden/bounds/amount-negative` | 診断の引数の 2 つ目を材料の型の名前にする | P3-2 |
@@ -675,7 +700,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S740 | 文書との一致 | `G-TYPE-SEVERITY-TABLE` | `severity-examples.txt` の重大度を `warning` にする | P4-1 |
 | S740 | 文書との一致 | `G-QC-SYNTAX` | concept §6.1 から「0 以下の量」を消す | P4-1 |
 | S741 | データの完全性 | `cgolden/api/types-json` | `Options.servings` の範囲を消す | P3-3 |
-| S774 | 実際の経路 | `rtest/settings-servings-min` | テストの入力の `min` を `null` に戻す（期待の 1 と合わない） | P3-3 |
+| S774 | 実際の経路 | `rtest/settings-servings-min` | `settingsSpec` が省略可能な型（`Count?`）の `min` を捨てる（P4-2 の監査で、テストの入力を書き換える元の方法から差し替えた） | P3-3 |
 | S742 | 境界・上限 | `cgolden/bounds/optional-ranged` | `base_type` の入れ子の外し方を元に戻す | P3-3 |
 | S743 | 正常系 | `cgolden/bounds/servings-header-zero` | 型の無い `servings` の検査を消す | P3-3 |
 | S744 | 正常系 | `cgolden/bounds/servings-typed-zero` | 型だけの `servings` では検査しない | P3-3 |
@@ -691,6 +716,9 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S748 | 実際の経路 | `cgolden/bounds/servings-options-zero` | 条件のフィールドの `check_value`（`sema.c:3163` の経路）を飛ばす | P3-3 |
 | S749 | 境界・上限 | `cgolden/bounds/servings-one-ok` | 範囲を `1<..` にする | P3-3 |
 | S780 | 境界・上限 | `cgolden/bounds/servings-flag-one-ok` | `Options.servings` の範囲を `1<..` にする | P3-3 |
+| S791 | 副作用とコスト | `cgolden/bounds/servings-flag-invalid-amounts` | 条件の側で誤りでも見出しの側で人数を束縛する（`150 ml * servings` が 0 ml になり `TYP021` が出る） | P4-2 |
+| S792 | データの完全性 | `cgolden/bounds/servings-make-invalid` | `make` の照合に落ちた引数をそのまま料理に渡す（量が `0 ml` になる） | P4-2 |
+| S793 | 実際の経路 | `cgolden/bounds/servings-make-own-range` | `make` の人数は見出しの範囲を見ずに `Options.servings` の型で検査する | P4-2 |
 | S750 | 実際の経路 | `cgolden/bounds/issue2` | `boil` の範囲を消す | P3-3 |
 | S751 | 副作用とコスト | `G-QC-GOLDEN-CHANGED` | §9 の「期待を直した golden」の行を 1 つ消す | P4-3 |
 | S752 | 副作用とコスト | `G-SAMPLE-CHECK` | 一時的に `stdlib/prelude.ozen` の `rest` の範囲を `1 h<..` にする（サンプルの `rest(10 min)` が落ちる） | P4-3 |
@@ -704,6 +732,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S756 | 文書との一致 | `G-QC-SYNTAX` | concept §4.2 から `0 s<..` の例を消す | P4-1 |
 | S783 | 文書との一致 | `G-QC-SYNTAX` | concept §4.2 の「範囲外は必ずエラー」の文から動作の引数を消す | P4-1 |
 | S784 | 文書との一致 | `G-QC-SYNTAX` | concept の `type Options` の例の `servings` を `Count` に戻す | P4-1 |
+| S795 | 文書との一致 | `G-QC-SYNTAX` | concept §4.2 から「上端は含む」を消す | P4-2 |
 | S757 | 正常系 | `G-QC-CLAUDEMD` | `CLAUDE.md` の本計画の行から `qc-start` を消す | P0-3 |
 
 S704 の golden（`args/unknown-value`）は、評価の時点で決まらない量を引数に渡す書き方が要る。既存の golden `eval/runtime-value-in-if` の書き方（実行時まで決まらない条件）を使う見込みで、P1-1 で書けることを確かめる。書けなければ §9 に理由を書き、ユーザーに報告する（テストを §8 に回さない）。
@@ -789,7 +818,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 
 - `TYP021` の日本語と英語の文（`diag-non-positive-amount`）が、レシピを書く人に何を直せばよいか伝わるか（言い回しがあり 2 つの引数を使うことは `G-QC-DIAG`、描画できることは `G-REND-PHRASES-RENDER` で確かめる） — 機械で決められない理由: 文が伝わるかは読み手の判断
 - `docs/concept.md` §4.2 の下端を含まない範囲の説明が、`<..` の意味を誤解なく伝えるか（例と語があることは `G-QC-SYNTAX` で確かめる） — 機械で決められない理由: 説明が伝わるかは読み手の判断
-- Issue #1・#2 への返答の言い方（D84。送る前に見せる。診断のコードが載ることは `G-QC-ISSUES` で確かめる） — 機械で決められない理由: 外部への投稿の言い方は人の判断
+- Issue #1・#2 への返答の言い方（D84。送る前に見せる。診断のコード・範囲のコミットの SHA・直した後の出力の行・`bounds/issue2` の名前が載ることは `G-QC-ISSUES` で確かめる） — 機械で決められない理由: 外部への投稿の言い方は人の判断
 
 ---
 
