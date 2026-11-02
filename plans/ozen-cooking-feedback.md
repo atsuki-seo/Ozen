@@ -1361,7 +1361,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S871・実際の経路・`G-SAMPLE-CHECK`（P2-5、2026-11-03）。親子丼を `egg |> mix` に戻すと `TYP006` で「2 failed」になって落ちた。戻すと合格した
 - 範囲に入った別の作業のコミット: 24bc3b1（別のセッションによる計画ファイル `plans/ozen-dev-setup.md` の追加）
 - 混ぜた物の材料ごとの火の通り（P3-2、2026-11-03）: 混ぜた物は、混ぜた時点の材料（混ぜた物を混ぜたときはその材料まで平らにたどる）の写しを `food` の `comps` に持ち、加熱の動作の効果の後に、各材料の火の通りを「材料の今の値」と「混ぜた物の新しい値」の大きいほうに上げる。出すときの加熱不足の検査は材料ごとに行い、同じ型で同じ火の通りの材料は 1 つにまとめる。このため、生の材料を含む混ぜた物の `SAF001` の引数は、混ぜた物（`"Mixture"`）でなく材料の型（`"Pork"`・`"Egg"`）になった。`debug ir` などの行には `comps` を出さない（S895）
-- 対照の golden（P3-1、2026-11-03）: `egg/served-raw`・`egg/served-done` は足す時点で合格した。赤の 5 個と別のコミット `36bbc51` にし、`scripts/red-first-exceptions.txt` に載せた
+- 対照の golden（P3-1、2026-11-03）: `egg/served-raw`・`egg/served-done` は足す時点で合格した。赤の 5 個と別のコミット `49e9172` にし、`scripts/red-first-exceptions.txt` に載せた
 - 期待を直した golden: `tests/golden/mix/mixture-hazard-allergen.out` — 混ぜた物の加熱不足を材料ごとに見るようにしたので（D98）、`SAF001` の引数が `["Mixture", "raw"]` から生の材料の `["Pork", "raw"]` になった
 - 期待を直した golden: `tests/golden/api/local-not-listed.out` — P3-1 で `Egg` の props に `safeDoneness: par` が加わり、診断の一覧に `SAF005 lightlyCookedEgg` が加わった
 - わざと壊す確認: S822・正常系・`cgolden/egg/served-par`（P3-1、2026-11-03）。`safeDoneness` を読まないと `SAF001 args=["Egg", "par"]` に戻って落ちた。戻すと合格した
@@ -1376,6 +1376,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S826・効かない条件・`cgolden/egg/mixture-chicken-par`（P3-2、2026-11-03）。加熱の後の材料の火の通りを、混ぜた物の新しい値でなく `done` として扱うと、鶏肉の `SAF001` と卵の `SAF005` が消えて落ちた。戻すと合格した
 - わざと壊す確認: S894・副作用とコスト・`cgolden/egg/mixture-chicken-par`（P3-2、2026-11-03）。材料ごとの検査で、診断を 1 つ出したらほかの材料の検査をやめると、卵の `SAF005` が消えて落ちた。戻すと合格した
 - わざと壊す確認: S895・効かない条件・`G-CORE-GOLDEN`（P3-2、2026-11-03）。混ぜた物の行の末尾に材料を持つ印を出すと、`core-gcc-release` の golden が「559 passed, 21 failed」で落ちた（開発用の worktree ではほかの 3 つの構成をビルドしていないので、その 3 つは全件落ちとして数えられた）。戻すと合格した
+- Phase 2 のフェーズゲート（P2-5、2026-11-03）: `8700165` で、量の計画の基準値と同じ前提ゴール（`build/fb-gate-goals.txt` の 113 個。`G-CORE-FUZZ`・`G-PLAT-CI`・`G-QC-ISSUES` を除く）と `G-QC-GOLDEN-ARGS`・`G-QC-GOLDEN-BOUNDS`・`G-QC-PRELUDE`・`G-QC-DIAG`・`G-QC-SCOPE`・`G-QC-GOLDEN-CHANGED` を回し、115 個が合格した。落ちた 5 つのうち `G-CORE-GOLDEN`・`G-CORE-DETERMINISM`・`G-PLAT-WASM` は、`gcc-release` 以外の構成と wasm を作り直していなかったため（`scripts/build-core.sh`・`scripts/build-wasm.sh` で作り直すと合格した）、`G-REND-PHRASES-RENDER` は回す順でサンプルの JSON が古かったため（`G-SAMPLE-CHECK` の後に回すと合格した）、`G-REPO-SELFTESTS` は回している間に別の worktree でビルドとわざと壊す確認をしていたため（回し直すと合格した）。`G-CORE-FUZZ` は最終ゲートで回す
+- 開発用の worktree（P3、2026-11-03）: ゲートを回している間、一時的な worktree（ブランチ `fb-dev`）で Phase 3 を進め、終わった後に `main` の上に載せ直して早送りした。載せ直しでコミットの SHA が変わったので、対照の golden のコミットを `49e9172` に直した
 ---
 
 ## 10. リスク
