@@ -7,7 +7,7 @@ action slice(x: T) -> T {
 action coat(x: T, batter: U) -> T {
   uses hands for 2 min
 }
-action deepFry(x: T) -> T<doneness: done> {
+action fryBattered(x: T) -> T<doneness: done> {
   uses hands for 10 min
 }
 recipe potatoTempura {
@@ -19,5 +19,5 @@ recipe potatoTempura {
   let batter = whisk([egg, water])
   let sliced = slice(potato)
   let coated = coat(sliced, batter)
-  let fried = deepFry(coated)
+  let fried = fryBattered(coated)
 }

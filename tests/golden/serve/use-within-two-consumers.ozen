@@ -11,7 +11,7 @@ action trim(x: T) -> T {
 action coat(x: T, batter: U) -> T {
   uses hands for 2 min
 }
-action deepFry(x: T) -> T<doneness: done> {
+action fryBattered(x: T) -> T<doneness: done> {
   uses hands for 10 min
 }
 recipe vegetableTempura {
@@ -26,7 +26,7 @@ recipe vegetableTempura {
   let slicedOnion = slice(onion)
   let coatedPotato = coat(trimmedPotato, batter / 2)
   let coatedOnion = coat(slicedOnion, batter / 2)
-  let fried = deepFry([coatedPotato, coatedOnion])
+  let fried = fryBattered([coatedPotato, coatedOnion])
 }
 kitchen today : Options {
   cooks: 2

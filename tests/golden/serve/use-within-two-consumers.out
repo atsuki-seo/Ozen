@@ -6,8 +6,7 @@ schedule vegetableTempura level=1 cooks=2
   900..1020 (1020) %9 coat by cook2
   1500..1620 (1620) %10 coat by cook1
   1620..1620 (1620) %11 combine unattended
-  1620..2220 (2220) %12 deepFry by cook1
+  1620..2220 (2220) %12 fryBattered by cook1
   total 2220
-info NAM006 localOverride use-within-two-consumers.ozen:14:1-16:2 args=["deepFry", "std.prelude"]: local override
-result ok errors=0 warnings=0 infos=1
+result ok errors=0 warnings=0 infos=0
 exit 0
