@@ -1,0 +1,6 @@
+// args: debug ir
+import std.units.jp
+recipe gohan {
+  ingredients { rice: 2 jp.cup }
+  let washed = wash(rice)
+}

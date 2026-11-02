@@ -1,0 +1,6 @@
+// args: debug ir
+import std.prelude as p
+recipe soup {
+  ingredients { onion: 1 pcs }
+  let sliced = onion |> p.peel |> p.cut(slice, 3 mm)
+}

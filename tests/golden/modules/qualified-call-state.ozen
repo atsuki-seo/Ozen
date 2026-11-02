@@ -1,0 +1,5 @@
+import std.prelude as p
+recipe soup {
+  ingredients { onion: 1 pcs }
+  let sliced = p.cut(onion, slice, 3 mm)
+}

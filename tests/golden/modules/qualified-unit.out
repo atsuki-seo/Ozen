@@ -1,0 +1,5 @@
+ir gohan
+  %1 = in rice : Rice 400 ml
+  %2 = op wash %1 : Rice -> Rice<prep has washed> 400 ml [hands, Washing; 60..180 s]
+result ok errors=0 warnings=0 infos=0
+exit 0

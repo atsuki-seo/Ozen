@@ -1,0 +1,8 @@
+import pantry.house
+import pantry.house as h
+recipe dinner {
+  ingredients { chicken: 300 g }
+  let rice = make h.gohan
+  let fried = chicken |> house.marinate |> fry(5 min)
+  let meal = layer([rice, fried])
+}

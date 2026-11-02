@@ -1,0 +1,6 @@
+// args: debug ir
+import std.prelude as p
+recipe tori {
+  ingredients { chicken: p.Chicken 100 g }
+  let fried = fry(chicken, 5 min)
+}

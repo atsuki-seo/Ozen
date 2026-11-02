@@ -1,0 +1,4 @@
+import std.prelude as p
+recipe tori {
+  let chicken = buy p.Chicken 100 g
+}

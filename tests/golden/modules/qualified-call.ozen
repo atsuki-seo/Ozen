@@ -1,0 +1,12 @@
+// args: debug ir
+import std.prelude as p
+import std.prelude
+recipe soup {
+  ingredients {
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let onionCut = p.cut(p.peel(onion), slice, 3 mm)
+  let carrotCut = prelude.cut(carrot, rollCut, 20 mm)
+  let soup = p.simmer([onionCut, carrotCut], 10 min)
+}
