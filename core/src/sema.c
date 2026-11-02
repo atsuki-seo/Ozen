@@ -4100,6 +4100,44 @@ static void soft_before_hard(sema *s, const value *items, uint32_t n, ozni_index
   }
 }
 
+static void check_food_arg(sema *s, const food *pf, ozni_index afile, ozni_index anode, ozni_index ptype,
+                           ozni_index pname, ozni_index sfile, const ozni_node *argn) {
+  if (ptype == 0 || pf->file == NONE || satisfies(s, pf, afile, ptype)) {
+    return;
+  }
+  const ozni_node *act = nd(s, afile, anode);
+  ozni_str arg_text = src_text(s, sfile, argn);
+  ozni_index failing = 0;
+  bool some = false;
+  for (uint32_t c = 0; c < pf->ncands; c++) {
+    food one = *pf;
+    const cand *cd = &pf->cands[c];
+    one.type = cd->type;
+    one.file = cd->file;
+    one.node = cd->node;
+    one.part = cd->part;
+    one.pfile = cd->pfile;
+    one.pnode = cd->pnode;
+    one.ncands = 0;
+    one.cands = nullptr;
+    if (satisfies(s, &one, afile, ptype)) {
+      some = true;
+    } else if (failing == 0) {
+      failing = cd->part != 0 ? cd->part : cd->type;
+    }
+  }
+  if (some && failing != 0) {
+    ozni_str args[4] = {S(s, act->text), S(s, pname), arg_text, S(s, failing)};
+    diag_node(s, OZNI_D_TYP_aliasCandidates, sfile, argn, args, 4);
+  } else {
+    ozni_str args[3] = {S(s, act->text), S(s, pname), arg_text};
+    diag_node(s, OZNI_D_TYP_stateRequired, sfile, argn, args, 3);
+    if (s->quiet == 0) {
+      suggest_fix(s, pf, afile, anode, ptype, arg_text);
+    }
+  }
+}
+
 static value call_composite(sema *s, ozni_index file, const ozni_node *call, ozni_index afile, ozni_index anode,
                             ozni_index block, const value *params, const ozni_index *pnames, uint32_t np) {
   ozni_index saved_file = s->file, saved_mod = s->mod, saved_node = s->last_node;
@@ -4242,7 +4280,9 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
       diag_node(s, OZNI_D_NAM_arity, file, call, args, 2);
     }
   }
+  const ozni_table *litems[32];
   for (uint32_t k = 0; k < np; k++) {
+    litems[k] = nullptr;
     if (params[k].kind == V_LIST && params[k].items != nullptr) {
       uint32_t n = ozni_table_count(params[k].items);
       value items[64];
@@ -4269,6 +4309,7 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
           }
         }
         soft_before_hard(s, items, n < 64 ? n : 64, file, call);
+        litems[k] = params[k].items;
         params[k] = combine(s, items, n < 64 ? n : 64, file, argn != nullptr ? argn : call);
         if (shown_of[k] < nshown) {
           shown[shown_of[k]] = params[k];
@@ -4293,36 +4334,23 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
     const ozni_node *argn = nd(s, sfile, snode);
     ozni_str arg_text = src_text(s, sfile, argn);
     s->trail = strail;
-    if (ptype != 0 && pf->file != NONE && !satisfies(s, pf, afile, ptype)) {
-      ozni_index failing = 0;
-      bool some = false;
-      for (uint32_t c = 0; c < pf->ncands; c++) {
-        food one = *pf;
-        const cand *cd = &pf->cands[c];
-        one.type = cd->type;
-        one.file = cd->file;
-        one.node = cd->node;
-        one.part = cd->part;
-        one.pfile = cd->pfile;
-        one.pnode = cd->pnode;
-        one.ncands = 0;
-        one.cands = nullptr;
-        if (satisfies(s, &one, afile, ptype)) {
-          some = true;
-        } else if (failing == 0) {
-          failing = cd->part != 0 ? cd->part : cd->type;
+    if (litems[k] != nullptr) {
+      ozni_index item_node = argn->kind == OZNI_N_List ? argn->first : 0;
+      for (ozni_index i = 0; i < ozni_table_count(litems[k]); i++) {
+        while (item_node != 0 && nd(s, sfile, item_node)->kind == OZNI_N_Annotation) {
+          item_node = nd(s, sfile, item_node)->next;
+        }
+        const value *item = ozni_table_get(litems[k], i);
+        if (item->kind == V_FOOD) {
+          check_food_arg(s, item->f, afile, anode, ptype, pnames[k], sfile,
+                         item_node != 0 ? nd(s, sfile, item_node) : argn);
+        }
+        if (item_node != 0) {
+          item_node = nd(s, sfile, item_node)->next;
         }
       }
-      if (some && failing != 0) {
-        ozni_str args[4] = {S(s, act->text), S(s, pnames[k]), arg_text, S(s, failing)};
-        diag_node(s, OZNI_D_TYP_aliasCandidates, sfile, argn, args, 4);
-      } else {
-        ozni_str args[3] = {S(s, act->text), S(s, pnames[k]), arg_text};
-        diag_node(s, OZNI_D_TYP_stateRequired, sfile, argn, args, 3);
-        if (s->quiet == 0) {
-          suggest_fix(s, pf, afile, anode, ptype, arg_text);
-        }
-      }
+    } else {
+      check_food_arg(s, pf, afile, anode, ptype, pnames[k], sfile, argn);
     }
     ozni_index tv = ptype != 0 ? type_var_of(s, afile, ptype) : 0;
     for (ozni_index w = act->first; tv != 0 && w != 0; w = nd(s, afile, w)->next) {

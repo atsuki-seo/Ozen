@@ -676,7 +676,7 @@ action cookRice(x: Rice<prep has soaked>) -> CookedRice {
     leaves: starch on Container
   }
 }
-action fry(x: T, time: Time in 0 s<.., heat: Heat = medium) -> T<doneness: done, browning: light> {
+action fry(x: T<shape != inShell>, time: Time in 0 s<.., heat: Heat = medium) -> T<doneness: done, browning: light> {
   uses hands, HeatSource<stovetop>, FryingPan
   leaves: oil on FryingPan
 }
@@ -693,7 +693,7 @@ action parboil(x: T, time: Time in 0 s<..) -> T<doneness: par> {
 action boilWater(x: Water) -> Water<doneness: done> {
   uses HeatSource<stovetop>, Pot for 5..10 min @unattended @source(provisional)
 }
-action dissolve(x: T) -> T {
+action dissolve(x: T<shape != inShell>) -> T {
   uses hands, HeatSource<stovetop>, Ladle for 1..3 min @source(provisional)
 }
 action warm(x: T) -> T {
@@ -707,22 +707,22 @@ action warm(x: T) -> T {
     uses hands, HeatSource<stovetop>, FryingPan for 2..4 min @source(provisional)
   }
 }
-action mix(x: T) -> T {
+action mix(x: T<shape != inShell>) -> T {
   uses hands, MixingBowl for 0.5..2 min @source(provisional)
   leaves: x on MixingBowl
 }
-action toss(x: T) -> T {
+action toss(x: T<shape != inShell>) -> T {
   uses hands, MixingBowl for 0.5..1 min @source(provisional)
   leaves: x on MixingBowl
 }
-action whip(x: T<Liquid>) -> WhippedCream {
+action whip(x: T<Liquid, shape != inShell>) -> WhippedCream {
   uses hands, Whisk, MixingBowl for 3..6 min @source(provisional)
   leaves: x on Whisk, x on MixingBowl
 }
-action season(x: T, with: T<Seasoning>) -> T {
+action season(x: T<shape != inShell>, with: T<Seasoning>) -> T {
   uses hands for 0.2..0.5 min @source(provisional)
 }
-action blend(x: T) -> T<shape: pureed> {
+action blend(x: T<shape != inShell>) -> T<shape: pureed> {
   uses Blending for 0.5..1.5 min @source(provisional)
   leaves: starch on Blender, x on Blender
 }
@@ -733,7 +733,7 @@ action rest(x: T, time: Time in 0 s<..) -> T @unattended
 action plate(x: T) {
   uses hands, Vessel for 0.3..1 min @source(provisional)
 }
-action layer(x: T) -> T {
+action layer(x: T<shape != inShell>) -> T {
   uses hands, Vessel for 1..3 min @source(provisional)
 }
 action clean(t: Tool) {
