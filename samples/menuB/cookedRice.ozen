@@ -4,5 +4,5 @@ recipe cookedRice(servings: 4) {
     rice: 150 g per serving
   }
   let soaked = rice |> wash |> soak(30 min)
-  let cooked = cookRice(soaked)
+  let cooked = soaked |> cookRice
 }

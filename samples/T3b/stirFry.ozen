@@ -6,10 +6,10 @@ recipe stirFry(servings: 4) {
     salt: Salt 1 pinch
     pepper: Pepper 1 dash
   }
-  let porkCut = cut(pork, biteSize, 30 mm)
+  let porkCut = pork |> cut(biteSize, 30 mm)
   let marinated = porkCut |> season(salt) |> rest(10 min)
-  let porkFried = fry(marinated, 3 min, heat: high)
-  let cabbageCut = cut(cabbage, roughChop, 30 mm)
+  let porkFried = marinated |> fry(3 min, heat: high)
+  let cabbageCut = cabbage |> cut(roughChop, 30 mm)
   let fried = fry([porkFried, cabbageCut], 3 min, heat: high)
-  let seasoned = season(fried, pepper)
+  let seasoned = fried |> season(pepper)
 }

@@ -7,7 +7,7 @@ recipe salad(servings: 4) {
     dressing: Dressing 0.75 tbsp per serving
   }
   let torn = lettuce |> tear
-  let tomatoCut = cut(tomato, biteSize, 20 mm)
-  let cucumberCut = cut(cucumber, slice, 3 mm)
+  let tomatoCut = tomato |> cut(biteSize, 20 mm)
+  let cucumberCut = cucumber |> cut(slice, 3 mm)
   let tossed = toss([torn, tomatoCut, cucumberCut, dressing])
 }

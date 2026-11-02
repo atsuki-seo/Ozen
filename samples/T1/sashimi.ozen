@@ -3,7 +3,7 @@ recipe sashimi(fish: Buri<back>, servings: 4) {
   ingredients {
     cabbage: 25 g per serving
   }
-  let sliced = cut(fish, slice, 10 mm)
-  let shredded = cut(cabbage, julienne, 1 mm)
+  let sliced = fish |> cut(slice, 10 mm)
+  let shredded = cabbage |> cut(julienne, 1 mm)
   let dish = combine([sliced, shredded])
 }

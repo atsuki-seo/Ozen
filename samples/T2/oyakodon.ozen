@@ -8,7 +8,7 @@ recipe oyakodon(servings: 3) {
     dashi: Dashi 1 tsp
     sugar: Sugar 1 tbsp
   }
-  let chickenCut = cut(chicken, biteSize, 30 mm)
+  let chickenCut = chicken |> cut(biteSize, 30 mm)
   let onionCut = onion |> peel |> cut(slice, 5 mm)
   let simmered = simmer([chickenCut, onionCut, water, dashi, sugar], 10 min)
   let beaten = egg |> mix

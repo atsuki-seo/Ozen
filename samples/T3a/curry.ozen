@@ -6,6 +6,6 @@ recipe curry(servings: 4) {
     water: 200 ml per serving
   }
   let sliced = onion |> peel |> cut(slice, 3 mm)
-  let fried = fry(sliced, 10 min, heat: medium)
+  let fried = sliced |> fry(10 min, heat: medium)
   let simmered = simmer([fried, water, roux], 20 min)
 }

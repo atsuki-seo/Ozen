@@ -6,8 +6,8 @@ recipe misoSoup(servings: 4) {
     dashi: Dashi 0.25 tsp per serving
     miso: Miso 12.5 g per serving
   }
-  let cabbageCut = cut(cabbage, roughChop, 30 mm)
-  let boiled = boilWater(water)
+  let cabbageCut = cabbage |> cut(roughChop, 30 mm)
+  let boiled = water |> boilWater
   let simmered = simmer([boiled, dashi, cabbageCut], 5 min)
   let soup = dissolve([simmered, miso])
 }

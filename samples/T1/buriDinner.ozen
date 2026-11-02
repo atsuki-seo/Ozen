@@ -5,11 +5,11 @@ import sashimi.{sashimi}
 
 menu buriDinner(people: 4) {
   let fish = buy Buri 4000 g
-  let (head, collar, back, belly, frame, skin, guts, scales) = fillet(fish)
+  let (head, collar, back, belly, frame, skin, guts, scales) = fish |> fillet
   let raw = make sashimi(fish: back, servings: 4)
   let grilled = make kamaYaki(kama: collar, servings: 4)
   let stewed = make araNi(ara: frame, servings: 4)
-  store(belly)
+  belly |> store
   serve main {
     plate perPerson on FlatPlate { raw }
     plate perPerson on FlatPlate { grilled }

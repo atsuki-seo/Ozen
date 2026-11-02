@@ -7,9 +7,9 @@ recipe yakisoba(servings: 2) @vessel(FlatPlate) {
     sprouts: BeanSprouts 50 g per serving
     sauce: WorcesterSauce 1.5 tbsp per serving
   }
-  let cabbageCut = cut(cabbage, roughChop, 30 mm)
+  let cabbageCut = cabbage |> cut(roughChop, 30 mm)
   let loosened = noodles |> loosen
-  let porkFried = fry(pork, 3 min, heat: high)
+  let porkFried = pork |> fry(3 min, heat: high)
   let vegetables = fry([porkFried, cabbageCut, sprouts], 2 min, heat: high)
   let seasoned = [vegetables, loosened] |> fry(2 min, heat: high) |> season(sauce)
 }
