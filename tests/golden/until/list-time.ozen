@@ -1,0 +1,19 @@
+// args: debug ir
+ingredient QuailEgg : Hazard {
+  axes: doneness, shape
+  props {
+    heating {
+      simmer {
+        par: 2..4 min @source(provisional)
+      }
+    }
+  }
+}
+recipe twoEggs {
+  ingredients {
+    egg: 60 g
+    quail: QuailEgg 20 g
+  }
+  let beaten = egg |> crack |> beat
+  let cooked = simmer([beaten, quail], until: doneness >= par)
+}

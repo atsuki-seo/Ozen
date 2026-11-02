@@ -1,0 +1,8 @@
+ir softEgg
+  %1 = in egg : Egg 1 pcs
+  %2 = op crack %1 : Egg -> Egg<shape: cracked> 1 pcs [hands, MixingBowl; 12..30 s]
+  %3 = op beat %2 : Egg<shape: cracked> -> Egg<shape: beaten> 1 pcs [hands, MixingBowl; 30..60 s]
+  %4 = op simmer %3 heat=low until=doneness >= par : Egg<shape: beaten> -> Egg<doneness: par, shape: beaten> 1 pcs [HeatSource<stovetop>, Pot; 60..120 s]
+warning SAF005 lightlyCookedEgg time-from-data.ozen:4:16-4:70 args=["Egg"]: lightly cooked egg
+result ok errors=0 warnings=1 infos=0
+exit 0

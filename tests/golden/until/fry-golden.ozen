@@ -1,0 +1,6 @@
+// args: debug steps
+recipe friedOnion {
+  ingredients { onion: 1 pcs }
+  let sliced = onion |> peel |> cut(slice, 3 mm)
+  let fried = sliced |> fry(5 min, until: browning >= golden)
+}

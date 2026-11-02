@@ -1,0 +1,8 @@
+recipe softEgg
+  egg : Egg 1 pcs
+  %1 = crack(egg) : Egg<shape: cracked> 1 pcs
+  %2 = beat(%1) : Egg<shape: beaten> 1 pcs
+  %3 = simmer(%2, until: doneness >= par) : Egg<doneness: par, shape: beaten> 1 pcs
+warning SAF005 lightlyCookedEgg simmer-par.ozen:5:16-5:54 args=["Egg"]: lightly cooked egg
+result ok errors=0 warnings=1 infos=0
+exit 0

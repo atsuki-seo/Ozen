@@ -1,0 +1,9 @@
+schedule softEgg level=0
+  0..30 (12) %2 crack
+  30..90 (60) %3 beat
+  90..210 (150) %4 simmer
+  total 210
+info SCH009 criticalPath schedule-range.ozen:2:8-2:15 args=["210 s"]: critical path
+warning SAF005 lightlyCookedEgg schedule-range.ozen:4:16-4:70 args=["Egg"]: lightly cooked egg
+result ok errors=0 warnings=1 infos=1
+exit 0

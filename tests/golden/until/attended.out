@@ -1,0 +1,8 @@
+schedule softEgg level=1 cooks=1
+  0..30 (12) %2 crack by cook1
+  30..90 (60) %3 beat by cook1
+  90..210 (150) %4 simmer by cook1
+  total 210
+warning SAF005 lightlyCookedEgg attended.ozen:4:16-4:70 args=["Egg"]: lightly cooked egg
+result ok errors=0 warnings=1 infos=0
+exit 0

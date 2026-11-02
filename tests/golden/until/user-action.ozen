@@ -1,0 +1,8 @@
+// args: debug steps
+action parCook(x: T) -> T<doneness: par> {
+  uses hands for 3 min
+}
+recipe cookedEgg {
+  ingredients { egg: 1 pcs }
+  let cooked = egg |> crack |> parCook(until: doneness >= done)
+}

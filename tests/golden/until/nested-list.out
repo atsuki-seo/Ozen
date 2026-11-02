@@ -1,0 +1,13 @@
+ir custard
+  %1 = in egg : Egg 60 g
+  %2 = in milk : Milk 100 g
+  %3 = in water : Water 200 g
+  %4 = op crack %1 : Egg -> Egg<shape: cracked> 60 g [hands, MixingBowl; 12..30 s]
+  %5 = op beat %4 : Egg<shape: cracked> -> Egg<shape: beaten> 60 g [hands, MixingBowl; 30..60 s]
+  %6 = op combine %5, %2 : Egg<shape: beaten>, Milk -> Mixture 160 g with Allergen(egg), Allergen(milk), Hazard [0 s]
+  %7 = op mix %6 : Mixture -> Mixture 160 g with Allergen(egg), Allergen(milk), Hazard [hands, MixingBowl; 30..120 s]
+  %8 = op combine %7, %3 : Mixture, Water -> Mixture 360 g with Allergen(egg), Allergen(milk), Hazard [0 s]
+  %9 = op simmer %8 heat=low until=doneness >= par : Mixture -> Mixture<doneness: par> 360 g with Allergen(egg), Allergen(milk), Hazard [HeatSource<stovetop>, Pot; 60..120 s]
+warning SAF005 lightlyCookedEgg nested-list.ozen:10:16-10:64 args=["Egg"]: lightly cooked egg
+result ok errors=0 warnings=1 infos=0
+exit 0

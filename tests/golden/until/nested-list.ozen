@@ -1,0 +1,11 @@
+// args: debug ir
+recipe custard {
+  ingredients {
+    egg: 60 g
+    milk: Milk 100 g
+    water: Water 200 g
+  }
+  let beaten = egg |> crack |> beat
+  let custard = mix([beaten, milk])
+  let cooked = simmer([custard, water], until: doneness >= par)
+}

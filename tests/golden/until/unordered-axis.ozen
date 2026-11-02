@@ -1,0 +1,7 @@
+action mash(x: T) -> T<doneness: done, shape: pureed> {
+  uses hands for 5 min
+}
+recipe mashedPotato {
+  ingredients { potato: 1 pcs }
+  let mashed = potato |> peel |> mash(until: shape >= pureed)
+}

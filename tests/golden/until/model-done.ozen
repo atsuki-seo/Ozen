@@ -1,0 +1,6 @@
+// args: debug ir
+recipe stewedOnion {
+  ingredients { onion: 1 pcs }
+  let diced = onion |> peel |> cut(dice, 20 mm)
+  let stewed = diced |> simmer(until: doneness >= done)
+}

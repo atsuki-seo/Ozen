@@ -1,0 +1,5 @@
+recipe softEgg {
+  ingredients { egg: 1 pcs }
+  let soft = egg |> parboil(3 min)
+  let warmed = soft |> simmer(2 min, until: doneness >= par)
+}

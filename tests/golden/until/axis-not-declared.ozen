@@ -1,0 +1,5 @@
+recipe stewedOnion {
+  ingredients { onion: 1 pcs }
+  let sliced = onion |> peel |> cut(slice, 3 mm)
+  let stewed = sliced |> simmer(5 min, until: browning >= golden)
+}

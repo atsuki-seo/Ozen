@@ -1,0 +1,6 @@
+// args: debug steps
+recipe softEgg {
+  ingredients { egg: 1 pcs }
+  let beaten = egg |> crack |> beat
+  let cooked = simmer(beaten, until: doneness >= par)
+}

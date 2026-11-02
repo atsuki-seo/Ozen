@@ -1,0 +1,10 @@
+// args: debug steps
+action softCook(x: T) -> T {
+  steps {
+    let cooked = simmer(x, until: doneness >= par)
+  }
+}
+recipe softEgg {
+  ingredients { egg: 1 pcs }
+  let soft = egg |> crack |> beat |> softCook
+}

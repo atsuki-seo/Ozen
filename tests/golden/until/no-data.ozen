@@ -1,0 +1,5 @@
+recipe stewedPork {
+  ingredients { pork: 200 g }
+  let sliced = pork |> cut(slice, 3 mm)
+  let stewed = sliced |> simmer(until: doneness >= done)
+}
