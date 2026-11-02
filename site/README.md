@@ -11,3 +11,5 @@ published at <https://atsuki-seo.github.io/Ozen/>.
   `build/core-gcc-release/ozen`; update them by hand when the language changes.
 - [`og.png`](og.png) is the 1200×630 link preview card named by the OGP tags. The tags
   use absolute URLs, so update them if the page moves.
+- [`favicon.svg`](favicon.svg) is also the logo at the top of the root `README.md`; keep
+  that path in step if the file moves.
