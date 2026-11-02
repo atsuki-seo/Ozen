@@ -301,6 +301,7 @@ diag-use-within-missed = { $arg1 }は作ってから使うまで{ $arg2 }待ち�
 diag-method-call = { $arg1 }.{ $arg2 } とは書けません。動作は { $arg1 } |> { $arg2 } のように |> でつなぎます
 diag-not-callable = { $arg1 } は { $arg2 } なので呼べません。呼べるのは動作とマクロで、料理は make で作ります
 diag-value-field = { $arg1 } に { $arg2 } という欄はありません
+diag-non-positive-amount = { $arg1 }の量 { $arg2 } は 0 より大きくしてください
 
 ## 文章の部品
 heading-ingredients = 材料

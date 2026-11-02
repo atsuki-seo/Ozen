@@ -107,3 +107,4 @@ SCH:useWithinMissed
 NAM:methodCall
 NAM:notCallable
 NAM:valueField
+TYP:nonPositiveAmount

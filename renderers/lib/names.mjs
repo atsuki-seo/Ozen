@@ -139,6 +139,7 @@ const ARG_KINDS = {
   noPlating: ['name'],
   unusedValue: ['name'],
   useWithinMissed: ['name', 'duration', 'duration'],
+  nonPositiveAmount: ['name'],
 };
 
 export function termText(ph, kind, x, opts = {}) {
