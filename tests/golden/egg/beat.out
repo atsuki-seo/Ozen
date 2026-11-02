@@ -1,0 +1,7 @@
+ir beatenEgg
+  %1 = in egg : Egg 1 pcs
+  %2 = op crack %1 : Egg -> Egg<shape: cracked> 1 pcs [hands, MixingBowl; 12..30 s]
+  %3 = op beat %2 : Egg<shape: cracked> -> Egg<shape: beaten> 1 pcs [hands, MixingBowl; 30..60 s]
+error SAF001 undercooked beat.ozen:4:16-4:36 args=["Egg", "raw"]: undercooked
+result error errors=1 warnings=0 infos=0
+exit 1

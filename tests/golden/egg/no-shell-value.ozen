@@ -1,0 +1,5 @@
+recipe poachedEgg {
+  ingredients { egg: 1 pcs }
+  let cracked = egg |> crack
+  let poached = cracked |> boil(3 min)
+}

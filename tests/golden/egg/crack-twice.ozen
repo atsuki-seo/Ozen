@@ -1,0 +1,5 @@
+recipe crackedEgg {
+  ingredients { egg: 1 pcs }
+  let cracked = egg |> crack
+  let again = cracked |> crack
+}

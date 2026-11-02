@@ -1,0 +1,6 @@
+recipe boiledEgg
+  egg : Egg 1 pcs
+  %1 = boil(egg, 600 s) : Egg<doneness: done> 1 pcs
+  %2 = peel(%1) : Egg<doneness: done, shape: peeled> 1 pcs
+result ok errors=0 warnings=0 infos=0
+exit 0

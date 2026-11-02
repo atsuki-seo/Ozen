@@ -1,0 +1,5 @@
+// args: debug steps
+recipe boiledEgg {
+  ingredients { egg: 1 pcs }
+  let peeled = egg |> boil(10 min) |> peel
+}

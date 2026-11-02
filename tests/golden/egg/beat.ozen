@@ -1,0 +1,5 @@
+// args: debug ir
+recipe beatenEgg {
+  ingredients { egg: 1 pcs }
+  let beaten = egg |> crack |> beat
+}

@@ -1,0 +1,5 @@
+// args: debug steps
+recipe eggSlices {
+  ingredients { egg: 1 pcs }
+  let sliced = egg |> boil(10 min) |> peel |> cut(slice, 5 mm)
+}

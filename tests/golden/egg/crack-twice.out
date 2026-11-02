@@ -1,0 +1,4 @@
+error SAF001 undercooked crack-twice.ozen:4:15-4:31 args=["Egg", "raw"]: undercooked
+error TYP006 stateRequired crack-twice.ozen:4:15-4:22 args=["crack", "x", "cracked"]: state required
+result error errors=2 warnings=0 infos=0
+exit 1

@@ -1,0 +1,3 @@
+error TYP006 stateRequired crack-boiled.ozen:4:17-4:23 args=["crack", "x", "boiled"]: state required
+result error errors=1 warnings=0 infos=0
+exit 1

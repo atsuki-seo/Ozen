@@ -1,0 +1,10 @@
+// args: check --format json --emit schedule --kitchen home
+kitchen home {
+  tools {
+    bowl: MixingBowl
+  }
+}
+recipe crackedEgg {
+  ingredients { egg: 1 pcs }
+  let cracked = egg |> crack
+}
