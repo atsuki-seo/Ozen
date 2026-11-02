@@ -10,7 +10,8 @@
    - STRING is "..." with the escapes \" \\ \n. MLSTRING is """...""" and keeps its content as written.
    - Comments are // to the end of the line and /* ... */.
    - SEP is a newline or ';'. Newlines inside ( ) and [ ] are not separators.
-   - In a unit, '/' is written without spaces (g/ml); with spaces it is division.
+   - In a unit, '/' is written without spaces (g/ml); with spaces it is division. A unit taken from an
+     imported module is written module.unit without spaces (jp.cup).
    - A construct (IDENT record) is not read in the expression after 'if', 'for ... in' and 'repeat',
      where '{' starts the block.
    - Reserved words: and assemble branch buy check choose else false finer for if import in
@@ -152,7 +153,7 @@ primary       := quantity | literal | splice | vague_amount | list | record | co
 quantity      := amount unit_expr { amount unit_expr } ;
 amount        := number [ '..' number ] ;
 number        := NUMBER | FRACTION ;
-unit_expr     := '%' | IDENT { '/' IDENT } ;
+unit_expr     := '%' | IDENT [ '.' IDENT ] { '/' IDENT [ '.' IDENT ] } ;
 literal       := amount | STRING | MLSTRING | 'true' | 'false' ;
 splice        := '$' IDENT ;
 vague_amount  := '[' 'any' 'amount' ']' ;

@@ -364,6 +364,15 @@ static bool amount(parser *p, uint32_t *start, uint32_t *end) {
   return true;
 }
 
+static void unit_name(parser *p) {
+  advance(p);
+  if (at(p, OZNI_T_DOT) && cur(p)->start == p->prev_end && kind_at(p, 1) == OZNI_T_IDENT &&
+      tok_at(p, 1)->start == cur(p)->end) {
+    advance(p);
+    advance(p);
+  }
+}
+
 static bool unit_expr(parser *p, uint32_t *end) {
   mark(p, OZNI_R_unit_expr);
   if (at(p, OZNI_T_PERCENT)) {
@@ -371,11 +380,11 @@ static bool unit_expr(parser *p, uint32_t *end) {
     *end = p->prev_end;
     return true;
   }
-  advance(p);
+  unit_name(p);
   while (at(p, OZNI_T_SLASH) && cur(p)->start == p->prev_end && kind_at(p, 1) == OZNI_T_IDENT &&
          tok_at(p, 1)->start == cur(p)->end) {
     advance(p);
-    advance(p);
+    unit_name(p);
   }
   *end = p->prev_end;
   return true;
