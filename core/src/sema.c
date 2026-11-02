@@ -4777,6 +4777,17 @@ static value eval_heating(sema *s, const ozni_node *call) {
 }
 
 static value eval_member(sema *s, const ozni_node *n) {
+  const ozni_node *step = n;
+  while (step->first != 0 && nd(s, s->file, step->first)->kind == OZNI_N_Member) {
+    step = nd(s, s->file, step->first);
+  }
+  const ozni_node *base = step->first != 0 ? nd(s, s->file, step->first) : nullptr;
+  value bv;
+  if (!s->in_decl && base != nullptr && base->kind == OZNI_N_Name && lookup_local(s, base->text, &bv)) {
+    ozni_str args[2] = {S(s, base->text), S(s, step->text)};
+    diag_node(s, OZNI_D_NAM_valueField, s->file, step, args, 2);
+    return unknown();
+  }
   const ozni_node *inner = n->first != 0 ? nd(s, s->file, n->first) : nullptr;
   if (inner == nullptr || inner->kind != OZNI_N_Member || inner->first == 0 ||
       nd(s, s->file, inner->first)->kind != OZNI_N_Name || !str_is(S(s, nd(s, s->file, inner->first)->text), "kitchen")) {
