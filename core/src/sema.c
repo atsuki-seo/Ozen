@@ -2638,15 +2638,15 @@ static bool value_qty(sema *s, ozni_index file, ozni_index node, ozni_qty *out) 
 }
 
 static ozni_index base_type(const sema *s, ozni_index tfile, ozni_index tnode, ozni_index *range) {
-  const ozni_node *tn = nd(s, tfile, tnode);
   *range = 0;
-  if (tn->kind == OZNI_N_OptionalType) {
-    tnode = tn->first;
-    tn = nd(s, tfile, tnode);
-  }
-  if (tn->kind == OZNI_N_RangedType) {
-    *range = nd(s, tfile, tn->first)->next;
-    return tn->first;
+  for (int k = 0; k < 2; k++) {
+    const ozni_node *tn = nd(s, tfile, tnode);
+    if (tn->kind == OZNI_N_OptionalType) {
+      tnode = tn->first;
+    } else if (tn->kind == OZNI_N_RangedType) {
+      *range = nd(s, tfile, tn->first)->next;
+      tnode = tn->first;
+    }
   }
   return tnode;
 }
