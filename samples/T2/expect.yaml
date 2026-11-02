@@ -11,7 +11,7 @@ runs:
         exclude: [allergen]
       ir:
         choices: {oyakodon: 3, toriDon: 1}
-        allergens: {mix: [egg]}
+        allergens: {crack: [egg]}
   - name: mixed-up
     kitchen: home
     options: mixedUp
