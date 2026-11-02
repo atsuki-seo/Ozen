@@ -1295,6 +1295,63 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S804・副作用とコスト・`cgolden/egg/crack-dirt`（P2-2、2026-11-03）。`crack` の `leaves` を消すと、段取りの JSON の `rules` と作業の `leaves` が空になって落ちた。戻すと合格した
 - わざと壊す確認: S914・前提の固定・`G-VOCAB-LISTS-COPY`（P2-2、2026-11-03）。ロードマップ §4.7 の表から `beat` を消すと「copy: 259 identifiers, 1 differences」で落ちた。戻すと合格した
 - わざと壊す確認: S879・文書との一致・`G-STD-LISTS`（P2-2、2026-11-03）。prelude の `beat` を消すと「lists: 270 listed, 1 missing」で落ちた。戻すと合格した
+- 期待を直した golden: `tests/golden/args/composite.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/composite.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/issue1.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/issue1.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/macro-body.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/macro-body.out` — 入力の書き直しで、展開履歴の呼び出しの位置の終わりが 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/macro-splice.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/macro-splice.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/named-arg.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/named-arg.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/ok-units.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/pipe-arg.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/pipe-arg.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/range-units-dimension.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/range-units-dimension.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/range-units-mixed.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/range-units-mixed.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/range-units-steps.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/range-units-steps.out` — 入力の書き直しで `crack` の手順が 1 つ増え、後の手順の卵が `shape: cracked` になった
+- 期待を直した golden: `tests/golden/args/unitless-time.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/unitless-time.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/unknown-value.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/variable-arg.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/variable-arg.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/args/volume-for-time.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/args/volume-for-time.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/bounds/composite-range.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/bounds/composite-range.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/bounds/dimension-before-range.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/bounds/dimension-before-range.out` — 入力の書き直しで、同じ行の量の引数の位置が 9 桁（` |> crack`）後ろに動いた
+- 期待を直した golden: `tests/golden/bounds/small-positive.ozen` — 量の計画の golden（D112）。殻付きの卵を `fry` などに渡していたので `egg |> crack` を渡す形に直した
+- 期待を直した golden: `tests/golden/quantity/per-serving-param.ozen` — ロードマップの golden。殻付きの卵を `mix` に渡していたので、D112 と同じ形で `egg |> crack |> mix` に直した（目的は人数の引数で、卵の状態ではない）
+- 期待を直した golden: `tests/golden/quantity/per-serving-param.out` — 入力の書き直しで `crack` の手順が 1 つ増え、後の手順の卵が `shape: cracked` になった
+- 期待を直した golden: `tests/golden/api/signatures-json.out` — P2-3 で、中身が要る 8 つの動作（`mix`・`toss`・`whip`・`season`・`blend`・`fry`・`dissolve`・`layer`）の型に `shape != inShell` が加わった。差分はこの 8 行だけであることを確かめた
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — P2-3 で、同じ 8 つの動作の型が変わった。差分はこの 8 行だけであることを確かめた
+- 要素ごとの照合の診断の位置（P2-3、2026-11-03）: リストの要素が要求を満たさないときの `TYP006` は、要素ごとに 1 つ、その要素の位置と文字（`args=["mix", "x", "egg"]`）で出す。束縛したリストを渡したとき（`both |> mix`）は要素の位置が呼び出しに無いので、引数の位置（`both`）で出す。`egg/list-trait-fail` は着手点では `[cream, sugar]` 全体の位置に出ていたので、§5.2 の見込みと違って足す時点で赤だった
+- 合成の動作の中の要求（P2-3、2026-11-03）: `egg/composite-in-shell` の `TYP006` は、手で書いた期待では呼び出し側の `egg` の位置にしていたが、合成の動作の `steps` の中の要求の照合は着手点から動作の中の引数（`mix(x)` の `x`、`3:21-3:22 args=["mix", "x", "x"]`）で出す作りで（`args/composite` も同じ）、S892 は数だけを決めているので、既存の作りに合わせて期待を直した（足した golden なので名指しの対象ではない）
+- 対照の golden（P2-3、2026-11-03）: `egg/boil-in-shell`・`egg/crack-fry`・`egg/beat-mix`・`egg/onion-mix-unchanged`・`egg/water-mix` は足す時点で合格した（`fry`・`mix` に要求が無かったため、`crack-fry`・`beat-mix` も対照になった）。赤の 11 個と別のコミット `8dcdc14` にし、`scripts/red-first-exceptions.txt` に載せた。`onion-mix-unchanged`・`water-mix` の期待は着手点のビルドの出力と同じ（§5.2 の例外）
+- R3（P2-3、2026-11-03）: 要素ごとの照合を入れても、既存の golden で結果が変わったものは無かった（`cut([...])` が混ぜた物で落ちることを期待する golden は無かった）
+- わざと壊す確認: S810・正常系・`cgolden/egg/list-fail`（P2-3、2026-11-03）。リストの要素ごとの照合を消して混ぜた物だけを見ると、`peeled` の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S811・効かない条件・`cgolden/egg/list-ok`（P2-3、2026-11-03）。要素ごとの照合の後に混ぜた物も照合すると、`[peeledOnion, carrot]` に `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S812・正常系・`cgolden/egg/list-trait`（P2-3、2026-11-03）。要求を混ぜた物に照合すると、`Liquid` を持たない混ぜた物に `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S889・効かない条件・`cgolden/egg/list-trait-fail`（P2-3、2026-11-03）。どれかの要素が要求を満たせばリスト全体を通すようにすると、`sugar` の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S888・境界・上限・`cgolden/egg/list-alt-mixed`（P2-3、2026-11-03）。各要素の照合で、全要素の食材のトレイトを合わせた食材として見ると（玉ねぎがにんじんの `SkinEdible` を持つ）、`onion` の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S890・実際の経路・`cgolden/egg/list-pipe`（P2-3、2026-11-03）。パイプで差し込んだリスト（リストの位置が呼ぶ名前より前）では要素ごとの照合を飛ばすと、`egg` の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S891・実際の経路・`cgolden/egg/list-bound`（P2-3、2026-11-03）。引数がリストの節でないとき（束縛した値）に要素ごとの照合を飛ばすと、`both` の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S892・実際の経路・`cgolden/egg/composite-in-shell`（P2-3、2026-11-03）。合成の動作の `steps` の中の呼び出しで要求の照合を飛ばすと、`TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S814・正常系・`cgolden/egg/mix-in-shell`（P2-3、2026-11-03）。`mix` の要求を消すと `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S793・実際の経路・`cgolden/egg/mix-in-shell`（P2-3、2026-11-03）。`Egg` の `initial` を消すと、初期の形が `whole` になって `mix` の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S815・実際の経路・`cgolden/egg/mix-list-in-shell`（P2-3、2026-11-03）。要素ごとの照合を消すと `egg` の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S816・正常系・`cgolden/egg/fry-in-shell`（P2-3、2026-11-03）。`fry` の要求を消すと `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S817・効かない条件・`cgolden/egg/boil-in-shell`（P2-3、2026-11-03）。`boil` の要求に `shape != inShell` を足すと `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S818・効かない条件・`cgolden/egg/crack-fry`（P2-3、2026-11-03）。`fry` の要求を `shape: beaten` にすると割った卵に `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S819・効かない条件・`cgolden/egg/beat-mix`（P2-3、2026-11-03）。`mix` の要求を `shape != beaten` にすると溶き卵に `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S820・効かない条件・`cgolden/egg/onion-mix-unchanged`（P2-3、2026-11-03）。`mix` の要求を `shape != whole` にすると玉ねぎに `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S821・効かない条件・`cgolden/egg/water-mix`（P2-3、2026-11-03）。軸が無いときの `!=` を満たさない扱いにすると水に `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S916・前提の固定・`G-QC-GOLDEN-ARGS`（P2-3、2026-11-03）。`args/issue1` の入力を殻付きの `fry(egg, 3 ml)` に戻すと「args golden run: got 'golden: 21 passed, 1 failed'」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
