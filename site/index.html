@@ -776,10 +776,10 @@ strong {
 						<span class="file"><b class="dish">玉ねぎのサラダ</b>peel-missing.ozen</span>
 <pre><span class="kw">recipe</span> onionSalad {
   <span class="kw">ingredients</span> { onion: <span class="nu">1 pcs</span> }
-  <span class="kw">let</span> sliced = cut(onion, style: slice)
+  <span class="kw">let</span> sliced = onion <span class="hl">|&gt;</span> cut(style: slice)
 }</pre>
 <pre class="out"><span class="er">error TYP006</span> stateRequired
-  3:20-3:25 args=["cut", "x", "onion"]</pre>
+  3:16-3:21 args=["cut", "x", "onion"]</pre>
 					</div>
 				</div>
 				<div>
@@ -789,14 +789,14 @@ strong {
 						<span class="file"><b class="dish">ご飯</b>double-use.ozen</span>
 <pre><span class="kw">recipe</span> gohan {
   <span class="kw">ingredients</span> { rice: <span class="nu">300 g</span> }
-  <span class="kw">let</span> washed = wash(rice)
-  <span class="kw">let</span> washedAgain = wash(rice)
+  <span class="kw">let</span> washed = rice <span class="hl">|&gt;</span> wash
+  <span class="kw">let</span> washedAgain = rice <span class="hl">|&gt;</span> wash
 }</pre>
 <pre class="out"><span class="hl">warning LIN005</span> unusedValue
   3:7-3:13 args=["washed",
     "Rice&lt;prep has washed&gt;"]
 <span class="er">error LIN001</span> doubleUse
-  4:26-4:30 args=["rice"]</pre>
+  4:21-4:25 args=["rice"]</pre>
 					</div>
 				</div>
 			</div>
@@ -820,7 +820,7 @@ strong {
 					<h3>作ったらすぐ使う</h3>
 					<p>かき揚げの衣のように時間がたつと悪くなるものには <code>@useWithin</code> を付けます。衣は混ぜてから 5 分以内に使えるよう、玉ねぎを切った後に混ぜます。</p>
 				<div class="code">
-					<span class="file"><b class="dish">玉ねぎとにんじんのかき揚げ</b>kakiage.ozen（抜粋）</span>
+					<span class="file"><b class="dish">玉ねぎとにんじんのかき揚げ</b>use-within-kakiage.ozen（抜粋）</span>
 <pre><span class="kw">recipe</span> kakiage {
   <span class="kw">ingredients</span> {
     egg: <span class="nu">1 pcs</span>
@@ -832,7 +832,7 @@ strong {
   <span class="kw">let</span> onionCut = onion <span class="hl">|&gt;</span> peel <span class="hl">|&gt;</span> cut(style: slice)
   <span class="kw">let</span> carrotCut = carrot <span class="hl">|&gt;</span> cut(style: julienne)
   <span class="kw">let</span> coated = coat([onionCut, carrotCut], batter)
-  <span class="kw">let</span> fried = deepFry(coated)
+  <span class="kw">let</span> fried = coated <span class="hl">|&gt;</span> deepFry
 }</pre>
 <pre class="out">schedule kakiage level=1 cooks=1
   0..120 (60) %6 peel by cook1
@@ -854,8 +854,8 @@ strong {
 }
 <span class="kw">recipe</span> potatoGratin {
   <span class="kw">ingredients</span> { potato: <span class="nu">2 pcs</span> }
-  <span class="kw">let</span> prepared = prepare(potato)
-  <span class="kw">let</span> baked = bake(prepared)
+  <span class="kw">let</span> prepared = potato <span class="hl">|&gt;</span> prepare
+  <span class="kw">let</span> baked = prepared <span class="hl">|&gt;</span> bake
 }</pre>
 <pre class="out">schedule potatoGratin level=2 cooks=1
   300..2100 (2100) %2 prepare by cook1
