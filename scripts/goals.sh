@@ -31,10 +31,12 @@ RF=refresh-start..HEAD
 PLAN_RF=plans/ozen-syntax-refresh.md
 RF_N0=363
 NOREPLY=146819854+atsuki-seo@users.noreply.github.com
-RD=readme-start..HEAD
+RD=readme-start..readme-end
 PLAN_RD=plans/ozen-readme-compact.md
 OZ=build/core-gcc-release/ozen
 OLD="git show readme-start:README.md"
+QC=qc-start..HEAD
+PLAN_QC=plans/ozen-quantity-checks.md
 DOCS_RD="README.md CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md"
 
 fct_source() {
@@ -702,8 +704,20 @@ goal_G_RF_LIMIT_PAIRS() {
     "$(python3 -B scripts/check-limit-pairs.py --ozen build/core-gcc-release/ozen tests/golden 2>/dev/null | tail -n 1)"
 }
 
+readme_start_goldens() {
+  local t
+  t=$(mktemp -d)
+  git archive readme-start tests/golden | tar -x -C "$t"
+  (cd "$t" && "$root/scripts/golden-entries.sh" tests/golden)
+  rm -rf "$t"
+}
+
 goal_G_RF_GOLDEN_COUNT() {
-  want_eq "golden entries" $((RF_N0 + 85)) "$(scripts/golden-entries.sh tests/golden | wc -l)"
+  local entries e
+  entries=$(readme_start_goldens)
+  want_eq "golden entries at readme-start" $((RF_N0 + 85)) "$(grep -c . <<< "$entries")"
+  want_eq "readme-start goldens missing now" 0 \
+    "$(while IFS= read -r e; do [ -n "$e" ] && [ ! -e "$e" ] && echo "$e"; done <<< "$entries" | wc -l)"
 }
 
 goal_G_RF_CONCEPT() {
@@ -1105,6 +1119,156 @@ goal_G_RD_GH_READMES() {
 
 goal_G_RD_AUDIT() {
   want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_RD)"
+}
+
+goal_G_QC_DECISIONS() {
+  want_eq "decided" 19 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_QC)"
+  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*【未決】' $PLAN_QC)"
+  want_eq "decision lines" 19 "$(grep -c '^- \*\*決定:' $PLAN_QC)"
+}
+
+goal_G_QC_COVERAGE() {
+  want_eq "S items without coverage rows" "" \
+    "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_QC | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
+            <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_QC | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u))"
+  want_eq "handoff items without reason" 0 \
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_QC | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
+}
+
+goal_G_QC_PLAN_NAMES() {
+  want_re "plan-tests" '^plan-tests: [1-9][0-9]* names, 0 missing$' \
+    "$(scripts/check-plan-tests.sh $PLAN_QC 2>/dev/null | tail -n 1)"
+}
+
+goal_G_QC_PLAN_TESTS() {
+  local out m
+  out=$(scripts/check-plan-tests.sh --mutations $PLAN_QC 2>/dev/null | tail -n 1)
+  m=$(last_num "$out" 1)
+  want_eq "mutations" "mutations: $m rows, $m recorded" "$out"
+}
+
+qc_golden_dir() {
+  want_eq "$1 golden entries" "$2" "$(scripts/golden-entries.sh "tests/golden/$1" | wc -l)"
+  want_eq "$1 golden run" "golden: $2 passed, 0 failed, 0 timed out" \
+    "$(scripts/run-golden.sh $OZ "tests/golden/$1" 2>&1 | tail -n 1)"
+}
+
+goal_G_QC_GOLDEN_ARGS() {
+  qc_golden_dir args 21
+}
+
+goal_G_QC_GOLDEN_BOUNDS() {
+  qc_golden_dir bounds 51
+}
+
+goal_G_QC_GOLDEN_CHANGED() {
+  local f
+  want_eq "tag qc-start" ok "$(git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok)"
+  want_eq "changed expectations not named in the plan" 0 \
+    "$(git diff --name-only --diff-filter=M qc-start HEAD -- 'tests/golden/**/*.out' 'renderers/test/**' 'samples/*/expect.yaml' |
+       while IFS= read -r f; do grep -qF -- "- 期待を直した golden: \`$f\`" $PLAN_QC || echo "$f"; done | wc -l)"
+}
+
+goal_G_QC_PRELUDE() {
+  local p=stdlib/prelude.ozen
+  want_eq "time ranges" 7 "$(grep -cE '^action (soak|fry|simmer|boil|parboil|chill|rest)\(.*\btime: Time in 0 s<\.\.' $p)"
+  want_eq "size range" 1 "$(grep -cE '^action cut\(.*\bsize: Length in 0 mm<\.\. = 3 mm\)' $p)"
+  want_eq "temperature ranges" 0 "$(grep -cE 'Temperature\??[[:space:]]+in\b' $p)"
+  want_eq "servings range" 1 "$(grep -cE '^  servings: Count\? in 1\.\.$' $p)"
+}
+
+goal_G_QC_DIAG() {
+  local n021 n011
+  want_eq "TYP021 entry" 1 "$(grep -cx 'OZNI_DIAG(TYP021, TYP, nonPositiveAmount, ERROR)' core/src/diag_codes.def)"
+  n021=$(grep -n 'TYP021' core/src/diag_codes.def | head -n 1 | cut -d: -f1)
+  n011=$(grep -n 'SCH011' core/src/diag_codes.def | head -n 1 | cut -d: -f1)
+  want_eq "TYP021 after SCH011" after "$([ -n "$n021" ] && [ "$n021" -gt "$n011" ] && echo after)"
+  want_eq "registry" 1 "$(grep -cxF 'TYP:nonPositiveAmount' core/tests/diag-names.txt)"
+  want_eq "en phrase" 1 "$(grep -E '^diag-non-positive-amount = ' phrases/en.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }')"
+  want_eq "ja phrase" 1 "$(grep -E '^diag-non-positive-amount = ' phrases/ja.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }')"
+  want_eq "arg kinds" 1 "$(grep -cE "^  nonPositiveAmount: \['name'\]," renderers/lib/names.mjs)"
+  want_eq "severity example" 1 "$(grep -cP '\tTYP:nonPositiveAmount\terror\t' core/tests/severity-examples.txt)"
+}
+
+goal_G_QC_SCHEMA() {
+  local d=build/results/qc-types
+  want_eq "minExclusive beside min" "$(grep -c '"min": {' schemas/result.schema.json)" \
+    "$(grep -c '"minExclusive"' schemas/result.schema.json)"
+  mkdir -p $d && rm -f $d/*.json
+  $OZ check --format json --emit types tests/golden/bounds/types-json-exclusive.ozen > $d/exclusive.result.json 2>/dev/null
+  want_eq "schema" "json: 1 files, 0 invalid" "$(python3 -B tools/jsoncheck/validate.py schemas $d 2>&1 | tail -n 1)"
+}
+
+goal_G_QC_SYNTAX() {
+  local ranges
+  ranges=$(sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md)
+  want_ge1 "grammar type_range" "$(grep -cE '^type_range[[:space:]]*:=' core/grammar.ebnf)"
+  want_ge1 "rules.def type_range" "$(grep -cx 'OZNI_RULE(type_range)' core/src/rules.def)"
+  want_ge1 "fuzz dict" "$(grep -cxF '"<.."' core/fuzz/ozen.dict)"
+  want_ge1 "concept 4.2 example" "$(grep -cF '0 s<..' <<< "$ranges")"
+  want_ge1 "concept 4.2 action arguments" "$(grep -F '範囲外は必ずエラー' <<< "$ranges" | grep -cF '動作の引数')"
+  want_ge1 "concept Options servings" "$(grep -cE '^  servings: +Count\? in 1\.\.' docs/concept.md)"
+  want_ge1 "concept 6.1 amount" "$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF '0 以下の量')"
+}
+
+qc_excluded() {
+  grep -oE '^- 範囲に入った別の作業のコミット: [0-9a-f]{7,40}' $PLAN_QC | awk '{print $NF}' |
+    while IFS= read -r c; do git rev-parse -q --verify "$c^{commit}" || echo "unknown:$c"; done
+}
+
+qc_in_scope() {
+  case "$1" in
+    core/src/*.c | core/src/*.h | core/src/*.def | core/grammar.ebnf | core/fuzz/ozen.dict | \
+    core/tests/diag-names.txt | core/tests/severity-examples.txt | stdlib/prelude.ozen | \
+    phrases/en.ftl | phrases/ja.ftl | renderers/lib/names.mjs | renderers/test/* | \
+    schemas/result.schema.json | tests/golden/* | docs/concept.md | scripts/goals.sh | CLAUDE.md | \
+    scripts/red-first-exceptions.txt | plans/ozen-quantity-checks.md | plans/ozen-syntax-refresh.md | \
+    plans/ozen-readme-compact.md) return 0 ;;
+  esac
+  return 1
+}
+
+goal_G_QC_SCOPE() {
+  local ex c f
+  want_eq "tag qc-start" ok "$(git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok)"
+  ex=$(qc_excluded)
+  want_eq "excluded commits outside the range" 0 \
+    "$(while IFS= read -r c; do [ -n "$c" ] || continue; git rev-list $QC | grep -qxF -- "$c" || echo "$c"; done <<< "$ex" | wc -l)"
+  want_eq "files outside scope" 0 \
+    "$(git rev-list --no-merges $QC | grep -vxF -e "${ex:-none}" | while IFS= read -r c; do
+         git diff-tree --no-commit-id --no-renames --name-only -r "$c"
+       done | sort -u | while IFS= read -r f; do qc_in_scope "$f" || echo "$f"; done | wc -l)"
+}
+
+goal_G_QC_VERSION() {
+  want_eq "VERSION" 0.1.0 "$(cat VERSION)"
+}
+
+goal_G_QC_CLAUDEMD() {
+  want_ge1 "plan line in CLAUDE.md" "$(grep -c 'ozen-quantity-checks.md.*G-QC-.*qc-start' CLAUDE.md)"
+}
+
+goal_G_QC_RF_COUNT() {
+  want_ge1 "readme-start in G-RF-GOLDEN-COUNT" \
+    "$(sed -n '/^goal_G_RF_GOLDEN_COUNT()/,/^}/p' scripts/goals.sh | grep -c 'readme-start')"
+  want_ok "G-RF-GOLDEN-COUNT" scripts/goals.sh G-RF-GOLDEN-COUNT
+}
+
+goal_G_QC_RD_RANGE() {
+  want_eq "readme-end" 52a6ef1 "$(git rev-parse -q --short=7 readme-end 2>/dev/null)"
+  want_eq "RD range" 1 "$(grep -cx 'RD=readme-start..readme-end' scripts/goals.sh)"
+  want_ok "G-RD-SCOPE and G-RD-ADD-ONLY" scripts/goals.sh G-RD-SCOPE G-RD-ADD-ONLY
+}
+
+goal_G_QC_ISSUES() {
+  want_eq "issue 1" CLOSED "$(gh issue view 1 --repo atsuki-seo/Ozen --json state -q .state 2>&1)"
+  want_eq "issue 2" CLOSED "$(gh issue view 2 --repo atsuki-seo/Ozen --json state -q .state 2>&1)"
+  want_ge1 "issue 1 comment" "$(gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' 2>/dev/null | grep -c 'TYP001')"
+  want_ge1 "issue 2 comment" "$(gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' 2>/dev/null | grep -c 'TYP021')"
+}
+
+goal_G_QC_AUDIT() {
+  want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_QC)"
 }
 
 all_ids() {

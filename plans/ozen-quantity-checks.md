@@ -814,6 +814,11 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 範囲に入った別の作業のコミット（あれば）: `- 範囲に入った別の作業のコミット: <SHA>（<内容>）` の形で書く
 - わざと壊す確認の記録（各タスク）: `- わざと壊す確認: S<n>・<テストかゴール>（<タスク>、<日付>）。<壊し方> で落ちた。戻すと合格した` の形で書く
 - 網羅の監査（P4-2）: `- 網羅の監査: 指摘 <k> 件、取り込み <m> 件` の形で書く
+- P0-3 の時点の `G-QC-*` の合否（2026-11-02、`goals.sh` に 18 個を足した直後）: 合格は `G-QC-DECISIONS`・`G-QC-COVERAGE`・`G-QC-GOLDEN-CHANGED`・`G-QC-SCOPE`・`G-QC-VERSION`・`G-QC-CLAUDEMD`・`G-QC-RF-COUNT`・`G-QC-RD-RANGE` の 8 個。落ちたのは `G-QC-PLAN-NAMES`（`75 names, 73 missing`）・`G-QC-PLAN-TESTS`（`107 rows, 0 recorded`）・`G-QC-GOLDEN-ARGS`・`G-QC-GOLDEN-BOUNDS`（golden が無い）・`G-QC-PRELUDE`（4 つのうち 3 つ）・`G-QC-DIAG`（7 つすべて）・`G-QC-SCHEMA`・`G-QC-SYNTAX`（7 つすべて）・`G-QC-ISSUES`・`G-QC-AUDIT` の 10 個。`G-RF-GOLDEN-COUNT`・`G-RD-SCOPE`・`G-RD-ADD-ONLY`・`G-REPO-CLAUDEMD`・`G-REPO-SELFTESTS` は合格
+- わざと壊す確認: S755・前提の固定・`G-QC-RF-COUNT`（P0-3、2026-11-02）。`goal_G_RF_GOLDEN_COUNT` を今の数と比べる元の形に戻すと「readme-start in G-RF-GOLDEN-COUNT: got '0'」と「G-RF-GOLDEN-COUNT: exit 1」で落ちた。戻すと合格した
+- わざと壊す確認: S755・副作用とコスト・`G-RF-GOLDEN-COUNT`（P0-3、2026-11-02）。一時的な worktree で `readme-start` にある golden `linear/unused-alias` を消すと「readme-start goldens missing now: got '1'」で落ちた。worktree を消すと合格した
+- わざと壊す確認: S781・前提の固定・`G-QC-RD-RANGE`（P0-3、2026-11-02）。`goals.sh` の `RD=` を `readme-start..HEAD` に戻すと「RD range: got '0'」で落ち、`G-RD-SCOPE` も「files outside scope: got '57'」で落ちた（計画を書いた時点の 2 から、後の作業でさらに増えていた）。戻すと合格した
+- わざと壊す確認: S757・正常系・`G-QC-CLAUDEMD`（P0-3、2026-11-02）。`CLAUDE.md` の本計画の行の `qc-start` を `qc` にすると「plan line in CLAUDE.md: got '0'」で落ちた。戻すと合格した
 
 ---
 
