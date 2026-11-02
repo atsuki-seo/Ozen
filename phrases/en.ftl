@@ -289,6 +289,8 @@ diag-servings-unknown = The servings are not known, so an amount per serving has
 diag-unused-value = { $arg1 } ({ $arg2 }) is never used
 diag-use-within-missed = { $arg1 } waits { $arg2 } before it is used, over its limit of { $arg3 }
 diag-method-call = { $arg1 }.{ $arg2 } is not allowed; chain actions with |> as in { $arg1 } |> { $arg2 }
+diag-not-callable = { $arg1 } is a { $arg2 } and cannot be called; only actions and macros can, and dishes are made with make
+diag-value-field = { $arg1 } has no field { $arg2 }
 
 ## Text parts
 heading-ingredients = Ingredients
