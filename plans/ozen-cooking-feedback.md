@@ -1352,6 +1352,13 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S820・効かない条件・`cgolden/egg/onion-mix-unchanged`（P2-3、2026-11-03）。`mix` の要求を `shape != whole` にすると玉ねぎに `TYP006` が出て落ちた。戻すと合格した
 - わざと壊す確認: S821・効かない条件・`cgolden/egg/water-mix`（P2-3、2026-11-03）。軸が無いときの `!=` を満たさない扱いにすると水に `TYP006` が出て落ちた。戻すと合格した
 - わざと壊す確認: S916・前提の固定・`G-QC-GOLDEN-ARGS`（P2-3、2026-11-03）。`args/issue1` の入力を殻付きの `fry(egg, 3 ml)` に戻すと「args golden run: got 'golden: 21 passed, 1 failed'」で落ちた。戻すと合格した
+- 卵の言い回し（P2-4、2026-11-03）: 卵の種類は `renderers/lib/names.mjs` の `kindOf` が型 `Egg`（とそれを継ぐ型）に `egg` を返して選ぶ（トレイトでなく型の名前で選ぶ。`Egg` を表すトレイトが無いため）。`action-peel` は `{ $x-kind -> [egg] …殻をむく *[other] …皮をむく }`。割る・溶くを 1 文にまとめる「卵をボウルに割り入れ、溶きほぐす」のために、続く手順がある最初の手順は `.cont`（連用の形）があればそれを使うようにした（`action-crack` だけが持つ）。英語は既存の文（`Peel onion`）に合わせて冠詞を付けず `Crack egg into a bowl`・`Beat egg`・`Shell egg` にした（§4.2 の S803 の "the egg" は形の例で、正しい文は描画のテストで決めた）
+- 引数付きの汚れの名前（P2-5、2026-11-03）: 親子丼を `egg |> crack |> beat` にすると、段取りでボウルの洗いの診断（`SCH006 washInserted`）の汚れ `allergen(egg)` に言い回しが無く、`G-REND-PHRASES-RENDER` が「6 fallbacks, 6 identifiers」で落ちた。描画の `termText` で汚れの名前が `name(arg)` の形なら `dirt-of = { $dirt }（{ $kind }）` で「アレルゲン（卵）」と出すようにし、`renderers/test/egg-crack-text.test.mjs` に確かめるテストを足した（足す前のコードで落ちることを確かめた）
+- 期待を直した golden: `samples/T2/expect.yaml` — 親子丼で卵を扱う最初の動作が `mix` から `crack` になったので、アレルゲンの期待のキーを `{crack: [egg]}` に直した（S870）
+- わざと壊す確認: S803・文書との一致・`rtest/egg-crack-text`（P2-4、2026-11-03）。`action-crack` の日本語から「ボウルに」を消すと、1 つ目と 3 つ目のテストのうち割る文のテストが落ちた（3 つのうち 1 つ落ちた）。戻すと合格した
+- わざと壊す確認: S803・データの完全性・`G-FB-PHRASES`（P2-4、2026-11-03）。`action-peel` の卵の選び分けを消すと「ja peel the shell: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S870・データの完全性・`G-SAMPLE-CHECK`（P2-5、2026-11-03）。`samples/T2/expect.yaml` のアレルゲンの期待のキーを `mix` に戻すと「samples: 11 samples, 236 expectations, 1 failed」で落ちた。戻すと合格した
+- わざと壊す確認: S871・実際の経路・`G-SAMPLE-CHECK`（P2-5、2026-11-03）。親子丼を `egg |> mix` に戻すと `TYP006` で「2 failed」になって落ちた。戻すと合格した
 ---
 
 ## 10. リスク
