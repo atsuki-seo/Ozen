@@ -1477,6 +1477,31 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S930・前提の固定・`G-VOCAB-LISTS-COPY`（P5-4、2026-11-03）。ロードマップ §4.7 の表から `deepFry` の行を消すと「copy: 260 identifiers, 1 differences」で落ちた。戻すと合格した
 - わざと壊す確認: S813・データの完全性・`G-FB-PRELUDE`（P5-4、2026-11-03）。`layer` の要求から `shape != inShell` を消すと「actions needing the inside: got '8'」で落ちた。戻すと合格した（9 つ目の `deepFry` が入るまで待って確かめた）
 - わざと壊す確認: S813・効かない条件・`G-FB-PRELUDE`（P5-4、2026-11-03）。`boil` の要求に `shape != inShell` を足すと「actions taking the shell: got '1'」で落ちた。戻すと合格した
+- 同じ鍋の golden の作り方（P6-1、2026-11-03）: 今の段取りは、空いていて洗いの要らない同じ個体を使い続けるので、混ぜた物（汚れを残さない）を続けても規則の有無で結果が変わらなかった。そこで前の作業を豚肉だけの `simmer`（鍋に生肉の汚れを残す）にし、規則が無ければ洗いを避けて別の鍋（`pot#2`）が選ばれ、1 つしか無ければ洗いが入る状況で作った（`same-individual`・`no-wash`・`through-season`・`new-vessel`）。ボウルは生卵の汚れ、利用者の `Wok` は `leaves: x on Wok` で同じ状況にした。`held` は鍋が 1 つの台所で、続ける手順を待つ間にほかの `simmer` が鍋を使わないことを見る。期待は、着手点のビルドの段取りの出力に、規則で変わる行（鍋の番号、洗いの行と `SCH006`、待つ作業の時刻、予熱の行）だけを手で直して作った
+- `samepot/different-kind` の形（P6-2、2026-11-03）: 段取りでは、続ける規則が種類の違う道具の個体を選ぼうとしても候補に無いので結果が変わらず、S860 の壊し方（種類を比べない）で落ちなかった。IR の JSON（`continues` が出ないこと）を見る形に直した（足した対照の golden なので名指しの対象ではない）
+- 同じ鍋の規則の作り（P6-2、2026-11-03）: `Holding` を持つ種類の道具を `uses` に名前で書いた動作の出力は、その種類と作業の番号を覚える（`season` など `Holding` の道具を使わない動作は覚えたまま引き継ぐ）。同じ種類の道具を使う次の動作は、入力（リストなら書いた順で最初に当たる要素）が覚えた作業を IR の別の表（作業の番号、前の作業の番号、種類、`@newVessel` の印）に記録する。段取りは、両方の作業の候補（変形を持つ `cookRice` など）が 1 つのときだけ、その種類の組を相手の作業の組に結び、相手が置かれていれば同じ個体だけを選び、洗いと予熱を入れず、先に置いた側がもう一方まで個体を予約する（`owner`）。相手の個体が候補に無いときは規則を当てない。段取りの JSON の作業と IR の JSON の作業に `continues`（前の作業の番号）を出し、スキーマに任意の欄として足した。`@newVessel` は続けず、相手の個体を候補から外す（ほかの個体があるとき）。`@sameVessel` は続けられなければ `TYP017`
+- 段取りの組の初期値（P6-2、2026-11-03）: 最初は相手の作業を番号のまま持ったが、器や設備の組の作り方の中に初期値 0（作業 0 と同じ）のままのものがあり、`cleanup/*`・`menus/make-servings`・`serve/vessel-busy-until-meal-end` の段取りが組めなくなった。相手を「番号 + 1（0 は無し）」で持つように直した。また、検査だけのモード（IR を作らない）では作業の番号が 0 なので、続けたかどうかは別の通し番号（`held_seq`）で判断するように直した（`samepot/same-vessel-ok` が `TYP017` で落ちたため）
+- 段取りの検査の道具と続けた作業（P6-2、2026-11-03）: `tools/schedcheck/schedcheck.py` は、作業の JSON の `continues` を見て、前の作業と同じ道具の洗いと予熱の検査を外すようにした（続けた作業は洗わず、温め直さないのが規則のため。外さないと親子丼の `mixed-up` などで「still dirty」で落ちた）
+- 語彙と関係の表（P6-2、2026-11-03）: `spec/vocab/capabilities.yaml` の能力に `Holding` を足し、`FryingPan`・`Pot`・`MixingBowl`・`Blender` の `provides` に `Holding` を足した。`spec/coverage/concept-relations.yaml` の `kindProvides` の `Pot`・`MixingBowl`・`Blender` にも足した（`G-STD-LISTS`・`G-VOCAB-LISTS` が関係の食い違いで落ちたため）
+- R6（P6-2、2026-11-03）: 既存の golden とサンプルで、続ける規則のために待ちの診断（`SCH008 longWait` など）が増えたものは無かった。続ける作業の候補が複数ある作業（`cookRice` など）には規則を当てないので、menuC のように米を鍋で炊く台所でも段取りは組める
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — P6-2 で std に能力 `Holding` が加わり、`Pot`・`FryingPan`・`MixingBowl`・`Blender` が持つようになった
+- わざと壊す確認: S936・データの完全性・`G-FB-PRELUDE`（P6-2、2026-11-03）。`Blender` から `Holding` を消すと「Holding kinds: got '3'」で落ちた。戻すと合格した
+- わざと壊す確認: S934・副作用とコスト・`cgolden/samepot/through-season`（P6-2、2026-11-03）。`Holding` の道具を使わない動作の出力で入っている個体を忘れると、`season` の後の `simmer` が `pot#2` になって落ちた。戻すと合格した
+- わざと壊す確認: S935・実際の経路・`cgolden/samepot/bowl-continue`（P6-2、2026-11-03）。続ける規則を `Pot` と `FryingPan` に限ると、`mix` が `bowl#2` になって落ちた。戻すと合格した
+- わざと壊す確認: S931・効かない条件・`cgolden/samepot/same-vessel-ok`（P6-2、2026-11-03）。`@sameVessel` があるときにも `TYP017` を出すと落ちた。戻すと合格した
+- わざと壊す確認: S933・正常系・`cgolden/samepot/same-vessel-fail`（P6-2、2026-11-03）。`@sameVessel` の検査を消すと `TYP017` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S932・効かない条件・`cgolden/samepot/new-vessel`（P6-2、2026-11-03）。`@newVessel` を読まないと同じ `pot#1` で続いて落ちた。戻すと合格した
+- わざと壊す確認: S937・実際の経路・`cgolden/samepot/user-holding`（P6-2、2026-11-03）。続ける規則を std の種類に限ると、利用者の `Wok` で `wok#2` に移って落ちた。戻すと合格した
+- わざと壊す確認: S856・正常系・`cgolden/samepot/same-individual`（P6-2、2026-11-03）。続けた作業の印を段取りに渡さないと `pot#2` に移って落ちた。戻すと合格した
+- わざと壊す確認: S857・副作用とコスト・`cgolden/samepot/no-wash`（P6-2、2026-11-03）。続けた作業の前にも洗いの要否を判定すると、生肉の後の洗いと `SCH006` が入って落ちた。戻すと合格した
+- わざと壊す確認: S858・時間と順序・`cgolden/samepot/held`（P6-2、2026-11-03）。前の作業の終わりで個体を空きにする（予約しない）と、にんじんの `simmer` が間に入って落ちた。戻すと合格した
+- わざと壊す確認: S859・境界・上限・`cgolden/samepot/first-element`（P6-2、2026-11-03）。リストの最後の要素の個体を使うと `pot#1` になって落ちた。戻すと合格した
+- わざと壊す確認: S860・効かない条件・`cgolden/samepot/different-kind`（P6-2、2026-11-03）。道具の種類を比べずに前の作業を覚えると、IR の JSON の `simmer` に `continues: 2` が出て落ちた。戻すと合格した
+- わざと壊す確認: S906・副作用とコスト・`cgolden/samepot/continued-no-preheat`（P6-2、2026-11-03）。続けた `fry` にも予熱の要否を判定すると、強火の前に予熱が入って落ちた。戻すと合格した
+- わざと壊す確認: S909・データの完全性・`cgolden/samepot/ir-json-continues`（P6-2、2026-11-03）。IR の JSON に `continues` を出さないと落ちた。戻すと合格した
+- わざと壊す確認: S909・データの完全性・`G-FB-SCHEMA`（P6-2、2026-11-03）。スキーマの IR の節から `continues` を消すと「json: 3 files, 2 invalid」で落ちた（`until/json-until` の `beat` も続けた作業のため）。戻すと合格した
+- わざと壊す確認: S841・データの完全性・`G-FB-SCHEMA`（P6-2、2026-11-03。3 つの JSON がそろうのを待って確かめた）。スキーマの IR の節から `until` を消すと「json: 3 files, 1 invalid」で落ちた。戻すと合格した
+- わざと壊す確認: S853・データの完全性・`G-FB-SCHEMA`（P6-2、2026-11-03。同じ理由で待って確かめた）。スキーマの予熱の `heats` から `level` の選択肢を消すと「json: 3 files, 1 invalid」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
