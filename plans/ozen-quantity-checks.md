@@ -1004,6 +1004,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 範囲に入った別の作業のコミット: bb545b8（別のセッションによる `plans/ozen-authoring-support.md` の決定の記録）
 - 最終ゲート（P4-3、2026-11-02）: `e98a8a9` で、P0-2 の基準値と同じ前提ゴール（`G-CORE-FUZZ` を除く 114 個と `G-CORE-BUILD`）に `G-QC-*`（`G-QC-ISSUES` を除く 17 個）・`G-RF-GOLDEN-COUNT`・`G-RF-FUZZ-DICT`・`G-RF-SEPARATION`・`G-RF-CONCEPT`・`G-RD-SCOPE`・`G-RD-ADD-ONLY`・`G-REPO-NOREPLY` を足した 133 個を回し、132 個が合格した。落ちた `G-QC-SCOPE` は回している間に入った別のセッションのコミット（`139d786`・`bb545b8`）のためで、D81 に従って除外の行に足すと合格した。`G-CORE-FUZZ` は、コアを最後に変えた `08059da` の一時的な worktree で回して合格した（6 対象とも 600 秒、クラッシュ・リーク・時間切れ 0、成果物 0。その後コアと標準ライブラリは変えていない）。wasm は `scripts/build-wasm.sh` で作り直してから `G-PLAT-WASM` を回した
 - 範囲に入った別の作業のコミット: 1ea30d3（別のセッションによる計画ファイル `plans/ozen-dev-environment.md` の追加）
+- 範囲を閉じた（2026-11-02）: 後に続く計画 `plans/ozen-cooking-feedback.md` の D111 に従い、本計画の最後のコミット `e350725` にタグ `qc-end` を打ち、`scripts/goals.sh` の `QC=` を `qc-start..qc-end` に、`G-QC-GOLDEN-CHANGED` の比較の終わりを `qc-end` に直した。後の計画のコミットが `G-QC-SCOPE`・`G-QC-GOLDEN-CHANGED` の範囲に入らないようにするため
 
 ---
 

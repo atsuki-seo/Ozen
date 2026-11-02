@@ -1234,6 +1234,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 期待を直した golden（各タスク）: `- 期待を直した golden: \`<パス>\` — <理由>` の形。
 - 範囲に入った別の作業のコミット（あれば）: `範囲に入った別の作業のコミット: <SHA>` の形。
 - 網羅の監査（P9-3）: `- 網羅の監査: 指摘 <k> 件、取り込み <m> 件` の形。
+- 着手点の基準値（P0-2、2026-11-02）: 量の計画の最終ゲートは `8222779` で記録済み（その後の `e350725` まで量の計画のコミット）。`e350725` に `qc-end` と `fb-start` を打った。着手点の golden は 541 個（`scripts/run-golden.sh` で 541 合格）。量の計画の `G-QC-*` 18 個と `G-CORE-GOLDEN` は、`QC=` を閉じた後に全合格。
+- std の `Egg` を使う golden（P0-2、2026-11-02）: 25 個。`args/composite`・`args/issue1`・`args/macro-body`・`args/macro-splice`・`args/named-arg`・`args/ok-units`・`args/pipe-arg`・`args/range-units-dimension`・`args/range-units-mixed`・`args/range-units-steps`・`args/unitless-time`・`args/unknown-value`・`args/variable-arg`・`args/volume-for-time`・`bounds/composite-range`・`bounds/dimension-before-range`・`bounds/small-positive`・`quantity/per-serving-param`・`serve/use-within-backward`・`serve/use-within-basic`・`serve/use-within-ir`・`serve/use-within-json`・`serve/use-within-on-ingredient`・`serve/use-within-range`・`serve/use-within-two-consumers`。`safety/allergen-bowl`・`safety/allergen-in-portion` は自前の `ingredient Egg` を定義していて std の `Egg` を使わない。サンプルでは `samples/T2/oyakodon.ozen`・`samples/T2/options.ozen`
 
 ---
 

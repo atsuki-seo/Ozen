@@ -35,7 +35,7 @@ RD=readme-start..readme-end
 PLAN_RD=plans/ozen-readme-compact.md
 OZ=build/core-gcc-release/ozen
 OLD="git show readme-start:README.md"
-QC=qc-start..HEAD
+QC=qc-start..qc-end
 PLAN_QC=plans/ozen-quantity-checks.md
 DOCS_RD="README.md CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md"
 
@@ -1165,7 +1165,7 @@ goal_G_QC_GOLDEN_CHANGED() {
   local f
   want_eq "tag qc-start" ok "$(git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok)"
   want_eq "changed expectations not named in the plan" 0 \
-    "$(git diff --name-only --diff-filter=M qc-start HEAD -- 'tests/golden/**/*.out' 'renderers/test/**' 'samples/*/expect.yaml' |
+    "$(git diff --name-only --diff-filter=M qc-start qc-end -- 'tests/golden/**/*.out' 'renderers/test/**' 'samples/*/expect.yaml' |
        while IFS= read -r f; do grep -qF -- "- 期待を直した golden: \`$f\`" $PLAN_QC || echo "$f"; done | wc -l)"
 }
 
