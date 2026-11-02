@@ -1,0 +1,4 @@
+error SAF001 undercooked mix-until.ozen:3:16-3:59 args=["Egg", "raw"]: undercooked
+error NAM013 unknownArgument mix-until.ozen:3:36-3:58 args=["mix", "until"]: unknown argument
+result error errors=2 warnings=0 infos=0
+exit 1

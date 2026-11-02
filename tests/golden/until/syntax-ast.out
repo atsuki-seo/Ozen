@@ -1,0 +1,17 @@
+File syntax-ast.ozen
+  Recipe softEgg 2:1-5:2
+    Block 2:16-5:2
+      Ingredients 3:3-3:29
+        Item egg 3:17-3:27
+          Quantity 1 pcs 3:22-3:27
+      Let cooked 4:3-4:62
+        Call 4:16-4:62
+          Name simmer 4:32-4:38
+          Call 4:16-4:28
+            Name crack 4:23-4:28
+            Name egg 4:16-4:19
+          NamedArg until 4:39-4:61
+            Binary >= 4:46-4:61
+              Name doneness 4:46-4:54
+              Name par 4:58-4:61
+exit 0

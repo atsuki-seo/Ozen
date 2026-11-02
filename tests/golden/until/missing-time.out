@@ -1,0 +1,3 @@
+error NAM012 arity missing-time.ozen:3:16-3:38 args=["simmer", "time"]: arity
+result error errors=1 warnings=0 infos=0
+exit 1
