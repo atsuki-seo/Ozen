@@ -1,0 +1,4 @@
+// args: debug ast
+recipe tamagoyaki {
+  let t = 3 min<..5 min
+}

@@ -1,0 +1,9 @@
+action freeze(x: T, temp: Temperature) -> T {
+  uses hands
+}
+recipe hiyayakko {
+  ingredients {
+    tofu: Tofu 1 pcs
+  }
+  let frozen = freeze(tofu, -18 degC)
+}

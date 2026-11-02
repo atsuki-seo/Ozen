@@ -1,0 +1,9 @@
+recipe lunch {
+  ingredients {
+    rice: 300 g
+    cucumber: Cucumber 1 pcs
+  }
+  let soaked = soak(rice)
+  let sliced = cut(cucumber, slice)
+  let dish = combine([soaked, sliced])
+}
