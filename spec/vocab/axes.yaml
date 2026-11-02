@@ -4,7 +4,7 @@ axes:
   browning: {kind: ordered, values: [none, light, golden, dark, charred]}
   shape:
     kind: tagged
-    values: [whole, peeled, cut, pureed]
+    values: [whole, peeled, inShell, cracked, beaten, cut, pureed]
     params: {cut: {style: CutStyle, size: Length}}
   prep:
     kind: set

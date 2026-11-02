@@ -96,6 +96,7 @@ entries:
   - {kind: ingredient, id: Pork}
   - {kind: ingredient, id: Chicken}
   - {kind: ingredient, id: Beef}
+  - {kind: ingredient, id: Egg}
   - {kind: ingredient, id: Buri}
   - {kind: ingredient, id: Onion}
   - {kind: ingredient, id: Carrot}
@@ -158,6 +159,8 @@ entries:
   - {kind: action, id: wash}
   - {kind: action, id: soak}
   - {kind: action, id: peel}
+  - {kind: action, id: crack}
+  - {kind: action, id: beat}
   - {kind: action, id: loosen}
   - {kind: action, id: drain}
   - {kind: action, id: cut}

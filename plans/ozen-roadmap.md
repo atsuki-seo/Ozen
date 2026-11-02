@@ -634,7 +634,9 @@ P1-6 でこの表を `spec/coverage/concept-lists.yaml` に写し、S29 の検�
 | 相性ルール | 9 | `afterHazard` `afterAllergen` `afterSoiled` `afterSmelly` `afterGreasy` `afterSticky` `afterBurnt` `afterStaining` `afterLight` |
 | 器の代替順 | 4 | `deepPlate`（深皿 → 丼 → 鉢）`riceBowl`（飯碗 → 丼）`flatPlate`（平皿 → 大皿）`smallBowl`（小鉢 → 小皿、汁気の無いものだけ） |
 | アレルゲンの種類 | 9 | `Allergen` の引数（消費者庁の特定原材料、令和 8 年 4 月時点。P1-4 で確かめた）: `shrimp`（えび）`cashew`（カシューナッツ）`crab`（かに）`walnut`（くるみ）`wheat`（小麦）`buckwheat`（そば）`egg`（卵）`milk`（乳）`peanut`（落花生） |
-| 合計 | 267 | |
+| 食材（卵、`plans/ozen-cooking-feedback.md` D110） | 1 | `Egg` |
+| 動作（卵、`plans/ozen-cooking-feedback.md` D110） | 2 | `crack`（割る）`beat`（溶く） |
+| 合計 | 270 | |
 
 #### 4.7.1 concept が明文で決めている関係
 

@@ -59,6 +59,14 @@ ingredients:
       tenderloin: {}
       belly: {traits: [Fatty]}
       leg: {}
+  Egg:
+    traits: [Hazard, Refrigerated, "Allergen(egg)"]
+    axes: [doneness, shape, prep]
+    initial: {shape: inShell}
+    leaves: [rawEgg, allergen]
+    props:
+      refuse: {source: mext-fct-2023, food: "12004", field: refuse}
+      unitWeight: {value: "58..64 g/pcs", source: provisional}
   Buri:
     traits: [RoundFish, Hazard, RawEdible, SkinEdible]
     axes: [doneness, browning, shape, prep]

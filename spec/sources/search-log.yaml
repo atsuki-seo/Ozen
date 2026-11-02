@@ -485,3 +485,12 @@ searches:
       - ingredients.Tomato.props.unitWeight
       - ingredients.Lettuce.props.unitWeight
       - property.nominalCutSize
+  - date: "2026-11-03"
+    queries:
+      - "卵 割る 溶きほぐす 所要時間 目安 秒"
+    consulted:
+      - "東芝 電子レンジの料理集、レタスクラブ・デリッシュキッチンなどの料理の解説（ゆで卵の時間と殻の割り方はあるが、割る・溶く手間の時間は無い）"
+    reason: "卵を割る・溶きほぐす手作業の所要時間を数値で示す一次情報は見つからなかった。暫定の範囲のままにする"
+    covers:
+      - actions.crack.time
+      - actions.beat.time

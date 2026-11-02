@@ -17,11 +17,33 @@ actions:
     params:
       - name: x
         kind: food
-        requires: [{traits: [Peelable], axes: {shape: {in: [whole]}}}]
+        requires:
+          - {traits: [Peelable], axes: {shape: {in: [whole]}}}
+          - {axes: {shape: {in: [inShell]}, doneness: {atLeast: done}}}
         effects: {shape: peeled}
     output: {param: x}
     uses: [hands, WorkSurface]
     time: {value: "1..2 min", source: provisional}
+  crack:
+    params:
+      - name: x
+        kind: food
+        requires: [{axes: {shape: {in: [inShell]}, doneness: {in: [raw]}}}]
+        effects: {shape: cracked}
+    output: {param: x}
+    uses: [hands, MixingBowl]
+    time: {value: "0.2..0.5 min", source: provisional}
+    leaves: [{from: x, on: [MixingBowl]}]
+  beat:
+    params:
+      - name: x
+        kind: food
+        requires: [{axes: {shape: {in: [cracked]}}}]
+        effects: {shape: beaten}
+    output: {param: x}
+    uses: [hands, MixingBowl]
+    time: {value: "0.5..1 min", source: provisional}
+    leaves: [{from: x, on: [MixingBowl]}]
   loosen:
     params:
       - {name: x, kind: food, requires: [{traits: [Noodle]}]}
