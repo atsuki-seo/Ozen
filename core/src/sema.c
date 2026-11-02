@@ -6335,16 +6335,18 @@ static void eval_param(sema *s, ozni_index file, ozni_index param) {
     ozni_index tf = file, st = servings_type(s, file, type, &tf);
     ok = st == 0 || check_value(s, vfile, vnode, tf, st, pn->text);
   } else if (type != 0) {
-    check_value(s, vfile, vnode, file, type, pn->text);
+    ok = check_value(s, vfile, vnode, file, type, pn->text);
   }
   if (type != 0) {
     typed_qty(s, vfile, vnode, file, type, &q);
   } else {
     value_qty(s, vfile, vnode, &q);
   }
-  if (servings && !ok) {
-    s->servings = (ozni_qty){0};
-    s->servings_bad = true;
+  if (!ok) {
+    if (servings) {
+      s->servings = (ozni_qty){0};
+      s->servings_bad = true;
+    }
     return;
   }
   if (servings) {
@@ -6494,8 +6496,11 @@ static value eval_make(sema *s, const ozni_node *mk) {
       bool *reported;
       if (qty_site(s, s->file, vnode, &qfile, &qnode, &qtrail, &reported)) {
         s->trail = qtrail;
-        if (!check_qty(s, v.q, tfile, ptype, pnames[k], qfile, qnode) && reported != nullptr) {
-          *reported = true;
+        if (!check_qty(s, v.q, tfile, ptype, pnames[k], qfile, qnode)) {
+          v = unknown();
+          if (reported != nullptr) {
+            *reported = true;
+          }
         }
         s->trail = saved_trail;
       }
