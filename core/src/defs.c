@@ -255,7 +255,7 @@ static void members(const jw *w, ozni_index parent) {
   ozni_buf_puts(w->b, "]");
 }
 
-static const char *kind_word(ozni_node_kind k) {
+const char *ozni_decl_word(ozni_node_kind k) {
   static const struct {
     ozni_node_kind k;
     const char *w;
@@ -281,7 +281,7 @@ static void definition(const jw *w, const ozni_module *m, const ozni_def *d) {
   bool first = true;
   ozni_buf_puts(b, "{");
   key(w, "kind", &first);
-  const char *kw = kind_word(n->kind);
+  const char *kw = ozni_decl_word(n->kind);
   jstr(b, kw, strlen(kw));
   key(w, "name", &first);
   jid(w, d->name);

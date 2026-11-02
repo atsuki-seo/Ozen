@@ -60,6 +60,7 @@ size_t ozni_project_candidates(const ozni_project *pr, ozni_index mod, ozni_inde
 ozni_index ozni_project_import_target(const ozni_project *pr, ozni_index mod, ozni_index import);
 const ozni_node *ozni_project_node(const ozni_project *pr, ozni_index file, ozni_index i);
 bool ozni_render_definitions(const ozni_project *pr, ozni_buf *b);
+const char *ozni_decl_word(ozni_node_kind k);
 bool ozni_render_public(const ozni_project *pr, ozni_buf *b, unsigned emit);
 bool ozni_render_entry(ozni_project *pr, const char *entry, ozni_buf *b, bool *ok);
 [[nodiscard]] bool ozni_apply_levels(ozni_project *pr);
