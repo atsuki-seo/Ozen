@@ -1266,6 +1266,35 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S807・正常系・`cgolden/egg/ne-other`（P2-1、2026-11-03）。`!=` の判定を `:` と同じにすると `onion` に `TYP006` が出て落ちた。戻すと合格した
 - わざと壊す確認: S808・境界・上限・`cgolden/egg/ne-no-axis`（P2-1、2026-11-03）。軸が無いときに満たさない扱いにすると `water` に `TYP006` が出て落ちた。戻すと合格した
 - わざと壊す確認: S809・境界・上限・`cgolden/egg/ne-set`（P2-1、2026-11-03）。集合の軸の `!=` で集合の最初の項目だけと比べると、浸してから洗った米の `TYP006` が消えて落ちた。戻すと合格した
+- 形の軸の値の並び（P2-2、2026-11-03）: `inShell`・`cracked`・`beaten` を `pureed` の後に足すと、`cut` の「前より粗い切り方」の検査（`TYP007 cutCoarser`。値の並びで `cut` より後の値からの `cut` を粗いとみなす）が殻付きの卵の `cut` に出た。そこで `axis shape : { whole, peeled, inShell, cracked, beaten, cut(style: CutStyle, size: Length), pureed }` と `cut` の前に置いた。先頭は `whole` のまま（S792）
+- `crack` の汚れ（P2-2、2026-11-03）: `crack`・`beat` は `mix` と同じ `leaves: x on MixingBowl` にした。卵では `rawEgg` と `allergen(egg)` の 2 つがボウルに残る。§4.2 の S804 は「IR の JSON の `leaves`」としていたが、IR の JSON には `leaves` の欄が無く、段取りの JSON の作業が持つので、`egg/crack-dirt` は `check --format json --emit schedule --kitchen home` で確かめる
+- 対照の golden（P2-2、2026-11-03）: `egg/cut-in-shell`・`egg/peel-raw` は、着手点でも丸ごとの卵が `SkinEdible` でも `Peelable` でもないため `TYP006` になり、足す時点で合格した。赤の golden（`7f0d6b6` の 9 個）と別のコミット `1122f8d` にし、`scripts/red-first-exceptions.txt` に載せた。`egg/peel-raw` のレシピ名は、std の汚れ `rawEgg` と重なって `NAM006 localOverride` が出たので `eggPeel` にした
+- `G-VOCAB-TESTS`（P2-2、2026-11-03）: 着手点 `fb-start` の一時的な worktree でも「Ran = fx + py: got '122', want '17'」で落ちる。本計画の前から落ちているもので、本計画の変更とは関わらない（`G-VOCAB-*` のほかの 15 個は合格）
+- 期待を直した golden: `tests/golden/api/signatures-json.out` — std の署名の一覧。`peel` の型に殻付きの卵の選択肢が加わり、`crack`・`beat` の行が増えた。差分はこの 3 行だけであることを確かめた
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — std の定義の一覧。形の軸の値・`Egg` の `initial` と `refuse`・`peel` の型・`crack`・`beat` の行が変わった。差分はこの 5 行だけであることを確かめた
+- わざと壊す確認: S792・データの完全性・`G-FB-PRELUDE`（P2-2、2026-11-03）。`shape` の値から `beaten` を消すと「shape values: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S793・データの完全性・`G-FB-PRELUDE`（P2-2、2026-11-03）。`Egg` の `initial` を消すと「egg initial shape: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S794・正常系・`cgolden/egg/crack`（P2-2、2026-11-03）。`crack` の出力を `shape: beaten` にすると IR の行が `Egg<shape: beaten>` になって落ちた。戻すと合格した
+- わざと壊す確認: S884・前提の固定・`G-STD-SOURCES`（P2-2、2026-11-03）。`search-log.yaml` から `actions.crack.time` を消すと「1 provisional without search」で落ちた。戻すと合格した
+- わざと壊す確認: S884・データの完全性・`G-FB-PRELUDE`（P2-2、2026-11-03）。`crack` の時間を `0.5..1 min` にすると「crack time: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S885・前提の固定・`G-STD-PROVENANCE`（P2-2、2026-11-03）。`beat` の時間から `@source(provisional)` を消すと「provenance: 112 values, 1 without source」で落ちた。戻すと合格した
+- わざと壊す確認: S885・データの完全性・`G-FB-PRELUDE`（P2-2、2026-11-03）。`beat` の時間を `0.2..0.5 min` にすると「beat time: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S886・効かない条件・`cgolden/egg/cut-in-shell`（P2-2、2026-11-03）。`cut` の要求に `shape: inShell` の選択肢を足すと `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S887・正常系・`cgolden/egg/boiled-peeled-cut`（P2-2、2026-11-03）。`peel` の出力を `T`（形を変えない）にして卵を殻付きのままにすると、`cut` に `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S795・効かない条件・`cgolden/egg/crack-boiled`（P2-2、2026-11-03）。`crack` の要求から `doneness: raw` を消すと `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S796・効かない条件・`cgolden/egg/crack-twice`（P2-2、2026-11-03）。`crack` の要求を `shape != beaten` にすると 2 回目の `crack` の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S797・正常系・`cgolden/egg/beat`（P2-2、2026-11-03）。`beat` の `uses` から `MixingBowl` を消すと IR の行が `[hands; 30..60 s]` になって落ちた。戻すと合格した
+- わざと壊す確認: S798・効かない条件・`cgolden/egg/beat-in-shell`（P2-2、2026-11-03）。`beat` の要求を消すと `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S799・副作用とコスト・`cgolden/egg/no-shell-value`（P2-2、2026-11-03）。`crack` の出力を `(T, T)` の組にすると、`check` の出力では診断が出ず落ちなかった（組をまとめて 1 つの名前に束ねると使い切りの追跡が組全体を見るため）。golden を `debug steps` に直して `crack` の値が 1 つであることを出すようにすると、`%1 = crack(egg) : (Egg 0..1 pcs, Egg 0..1 pcs)` になって落ちた。戻すと合格した
+- わざと壊す確認: S800・データの完全性・`G-FB-FCT`（P2-2、2026-11-03）。`refuse.csv` から `12004` の行を消すと「12004 row: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S800・前提の固定・`G-VOCAB-FCT`（P2-2、2026-11-03）。`refuse.csv` の `12004` の廃棄率を 15 にすると「fct: 14 rows, 1 mismatches」で落ちた。戻すと合格した
+- わざと壊す確認: S922・データの完全性・`G-VOCAB-FCT-STABLE`（P2-2、2026-11-03）。語彙の表から `Egg` の `refuse` の参照を消すと、抜き出しで `12004` の行が消え「fct output unchanged: got ' M data/mext-fct-2023/refuse.csv'」で落ちた。戻して `refuse.csv` を戻すと合格した
+- わざと壊す確認: S922・データの完全性・`G-FB-FCT`（P2-2、2026-11-03）。語彙の表から `Egg` の項目を消すと「vocab Egg: got '0'」「vocab 12004: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S801・正常系・`cgolden/egg/peel-boiled`（P2-2、2026-11-03）。`peel` の要求から卵の選択肢を消すと、ゆで卵に `TYP006` が出て落ちた。戻すと合格した
+- わざと壊す確認: S802・効かない条件・`cgolden/egg/peel-raw`（P2-2、2026-11-03）。`peel` の卵の選択肢から `doneness >= done` を消すと生卵の `TYP006` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S804・副作用とコスト・`cgolden/egg/crack-dirt`（P2-2、2026-11-03）。`crack` の `leaves` を消すと、段取りの JSON の `rules` と作業の `leaves` が空になって落ちた。戻すと合格した
+- わざと壊す確認: S914・前提の固定・`G-VOCAB-LISTS-COPY`（P2-2、2026-11-03）。ロードマップ §4.7 の表から `beat` を消すと「copy: 259 identifiers, 1 differences」で落ちた。戻すと合格した
+- わざと壊す確認: S879・文書との一致・`G-STD-LISTS`（P2-2、2026-11-03）。prelude の `beat` を消すと「lists: 270 listed, 1 missing」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
