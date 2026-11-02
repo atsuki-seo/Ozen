@@ -1535,7 +1535,7 @@ fb_in_scope() {
     renderers/lib/* | renderers/test/* | schemas/result.schema.json | tests/golden/* | samples/* | site/index.html | \
     spec/vocab/* | spec/coverage/* | spec/sources/search-log.yaml | data/mext-fct-2023/refuse.csv | \
     scripts/check-site-examples.py | scripts/test-check-site-examples.sh | scripts/selftests.txt | \
-    scripts/check-rewrite-equivalence.py | scripts/test-check-rewrite-equivalence.sh | tests/cli/* | \
+    scripts/check-rewrite-equivalence.py | scripts/test-check-rewrite-equivalence.sh | tests/cli/* | tools/schedcheck/* | \
     docs/concept.md | scripts/goals.sh | CLAUDE.md | scripts/red-first-exceptions.txt | \
     plans/ozen-cooking-feedback.md | plans/ozen-roadmap.md | plans/ozen-quantity-checks.md) return 0 ;;
   esac

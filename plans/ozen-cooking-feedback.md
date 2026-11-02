@@ -835,7 +835,7 @@ git rev-list fb-start..HEAD | grep -vxFf <(for c in $ex; do git rev-parse "$c"; 
         renderers/lib/*|renderers/test/*|schemas/result.schema.json|tests/golden/*|samples/*|site/index.html) ;;
         spec/vocab/*|spec/coverage/*|spec/sources/search-log.yaml|data/mext-fct-2023/refuse.csv) ;;
         scripts/check-site-examples.py|scripts/test-check-site-examples.sh|scripts/selftests.txt) ;;
-        scripts/check-rewrite-equivalence.py|scripts/test-check-rewrite-equivalence.sh|tests/cli/*) ;;
+        scripts/check-rewrite-equivalence.py|scripts/test-check-rewrite-equivalence.sh|tests/cli/*|tools/schedcheck/*) ;;
         docs/concept.md|scripts/goals.sh|CLAUDE.md|scripts/red-first-exceptions.txt) ;;
         plans/ozen-cooking-feedback.md|plans/ozen-roadmap.md|plans/ozen-quantity-checks.md) ;;
         *) echo "$f" ;;
@@ -1423,6 +1423,32 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 範囲に入った別の作業のコミット: f365878（別のセッションによる `README.md` のロゴの表示）
 - 範囲に入った別の作業のコミット: 591aabc（別のセッションによる `site/README.md` の注記）
 - Phase 4 のフェーズゲート（P4-4、2026-11-03）: `06090dd` で 4 つの構成を作り直し、本計画で触るファイルに関わる前提ゴール（`G-CORE-GOLDEN`・`G-CORE-DIAG-*`・`G-CORE-GRAMMAR`・`G-CORE-PROPS`・`G-CORE-UNIT`・`G-STD-*`・`G-API-SCHEMA`・`G-API-SARIF`・`G-SAMPLE-CHECK`・`G-REND-TESTS`・`G-REND-PHRASES-RENDER`・`G-CLI-TESTS`・`G-QC-PRELUDE`・`G-QC-GOLDEN-ARGS`・`G-QC-GOLDEN-BOUNDS`・`G-RF-SEPARATION`）と `G-FB-GOLDEN-CHANGED`・`G-FB-GOLDEN-EGG`・`G-FB-GOLDEN-UNTIL`・`G-FB-SCOPE` を回した。`G-FB-SCOPE` だけが、別のセッションの 2 つのコミットで落ち、除外の行に足すと合格した。前提ゴールすべては最終ゲートで回す
+- 火加減の予熱（P5-2、2026-11-03）: `uses` の型の `heated:` の値が、動作の引数で順序つきの列挙（std の `enum Heat : ordered`）の値なら、その順位（`low` = 1、`medium` = 2、`high` = 3）を温度の代わりに段取りに渡し、名前を `level` として持つ。続けて同じ個体を使うときの比較はオーブンの温度と同じ仕組み（同じか弱ければ温め直さない、強ければ温め直す、温めない作業の後は温め直す）。段取りの文字は ` to medium`、JSON の予熱の作業は `heats: {"resource": …, "level": "medium"}`、作業の `needs` も `{"resource": …, "level": …}` になる。スキーマは既に `heats`・`needs` の中身を `resource` だけ必須で決めていなかったので（`additionalProperties` の制限が無い）、直さずに通った
+- コンロの口の占有（P5-2、2026-11-03）: コンロで温める道具（`HeatSource` でない種類の `heated:` の要求）の予熱は、同じ作業の `HeatSource<stovetop>` の組で選んだ口が空く時刻より前には始めない。段取りの文字と JSON の予熱の作業の `uses` に、その口を道具の後に出す（`[pan#1, stove#1]`）。予熱の作業が前向きの段取り（出す時刻を決めない）のときだけ口を並べて扱い、出す時刻から逆に組む段取りでは今どおり道具だけを温める（逆向きの予熱は作業の終わりから先読みで後ろに置く作りで、口の空きを前の作業から決められないため。§8 の段取り表の確認に含める）
+- 段取りの検査の道具（P5-2、2026-11-03）: 独立した検査 `tools/schedcheck/schedcheck.py` は予熱の `heats.temp` と `needs.temp` を前提にしていて、サンプルの検査が `KeyError: 'temp'` で落ちた。火加減（`level`）を std の `Heat` の順で比べるようにし、`tools/schedcheck/fixtures/bad-preheat-level.json` を足した。また、油の付いたフライパンを同じ食材の次の `fry` の前に温める作業を「洗っていない道具の使用」と数えていたので、予熱の作業を洗いの検査から外した（予熱は食材に触れない）。§4.13 の一覧に無いファイルなので、`G-FB-SCOPE` の許すファイル（`scripts/goals.sh` と §5 のコードブロック）に `tools/schedcheck/*` を足した
+- 予熱の golden の作り（P5-1、2026-11-03）: `pan/higher-heat`・`pan/lower-heat` は、2 つの `fry` の長さが同じだと段取りの優先が決まらず、強い火加減の `fry` が先に置かれて温め直しが起きなかった。最初の `fry` の後に `rest(5 min)` を足して先に置かれるようにした（足した golden なので名指しの対象ではない）。`pan/unattended` は、予熱の間に作る人が玉ねぎの皮をむく段取りになる（手で書いた期待はむく作業を `fry` の後に置いていたが、予熱の間は人が空いているので前に入る。これが S852 の意図どおりなので期待を直した）
+- 期待を直した golden: `tests/golden/actions/requires-auto.out` — `fry` の `uses` が `FryingPan<heated: heat>` になり、要求の一覧の文字が変わった（D102）
+- 期待を直した golden: `tests/golden/ir/kitchen-dependent-info.out` — 同じ理由で IR の行の `uses` の文字が変わった
+- 期待を直した golden: `tests/golden/ir/text-dump-format.out` — 同じ理由で IR の行の `uses` の文字が変わった
+- 期待を直した golden: `tests/golden/modules/qualified-ingredient-type.out` — 同じ理由で IR の行の `uses` の文字が変わった
+- 期待を直した golden: `tests/golden/modules/qualified-make/expected.out` — 同じ理由で IR の行の `uses` の文字が変わった
+- 期待を直した golden: `tests/golden/api/signatures-json.out` — P5-2 で `fry` の `uses` と `Heat` の順序が変わった
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — P5-2 で `Heat` が順序つきになり、`FryingPan` に `preheatTime` が加わり、`fry` の `uses` が変わった
+- わざと壊す確認: S845・データの完全性・`G-FB-PRELUDE`（P5-2、2026-11-03）。`Heat` から `: ordered` を消すと「ordered Heat: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S846・データの完全性・`G-FB-PRELUDE`（P5-2、2026-11-03）。`fry` の `uses` を `FryingPan` に戻すと「fry heats the pan: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S847・正常系・`cgolden/pan/preheat-before-fry`（P5-2、2026-11-03）。火加減の `heated:` で予熱の印を付けないと予熱の行が消えて落ちた。戻すと合格した
+- わざと壊す確認: S848・副作用とコスト・`cgolden/pan/preheat-burner`（P5-2、2026-11-03）。予熱でコンロの口の空きを待たないと、予熱が湯を沸かす間の `420..600` に入って落ちた。戻すと合格した
+- わざと壊す確認: S849・データの完全性・`cgolden/pan/preheat-time`（P5-2、2026-11-03）。`FryingPan` の `preheatTime` を `2..4 min` にすると予熱の行が `0..240 (120)` になって落ちた。戻すと合格した
+- わざと壊す確認: S849・前提の固定・`G-STD-PROVENANCE`（P5-2、2026-11-03）。`FryingPan` の `preheatTime` から `@source(provisional)` を消すと「provenance: 118 values, 1 without source」で落ちた。戻すと合格した
+- わざと壊す確認: S850・時間と順序・`cgolden/pan/same-heat`（P5-2、2026-11-03）。火加減を比べず毎回温め直すと、2 つ目の `fry` の前に予熱が入って落ちた。戻すと合格した
+- わざと壊す確認: S851・時間と順序・`cgolden/pan/higher-heat`（P5-2、2026-11-03）。火加減の比較を逆にすると、強火の前の温め直しが消えて落ちた。戻すと合格した
+- わざと壊す確認: S905・時間と順序・`cgolden/pan/lower-heat`（P5-2、2026-11-03）。火加減が違えば温め直すと、弱い火加減の前に予熱が入って落ちた。戻すと合格した
+- わざと壊す確認: S852・副作用とコスト・`cgolden/pan/unattended`（P5-2、2026-11-03）。予熱に作る人をつけると `by cook1` になって落ちた。戻すと合格した
+- わざと壊す確認: S853・データの完全性・`cgolden/pan/json-level`（P5-2、2026-11-03）。予熱の JSON の `heats` に `level` を出さないと `temp: 2/1` になって落ちた。戻すと合格した
+- わざと壊す確認: S855・効かない条件・`G-CORE-GOLDEN`（P5-2、2026-11-03）。温度の予熱でも順位の比較を使う（温度をすべて 1 にする）と `sched/preheat-*` の 16 個が落ちた。戻すと合格した
+- わざと壊す確認: S854・文書との一致・`rtest/pan-preheat-text`（P5-3、2026-11-03）。`preheat-pan` の日本語から火加減を消すと 1 つ目のテストが落ちた。戻すと合格した
+- わざと壊す確認: S907・効かない条件・`rtest/pan-preheat-text`（P5-3、2026-11-03）。レシピの文章にも予熱の行を出すと 2 つ目のテストが落ちた。戻すと合格した
+- わざと壊す確認: S908・実際の経路・`rtest/pan-preheat-html`（P5-3、2026-11-03）。予熱の文を `heats.temp` が無いときに作らない（作業の名前だけにする）と段取り表のテストが落ちた。戻すと合格した
 ---
 
 ## 10. リスク
