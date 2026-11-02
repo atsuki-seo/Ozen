@@ -84,10 +84,32 @@ export function stepText(ph, defs, nodes, node, opts) {
     return ph.format('action-assemble', { x: items }, `assemble(${items})`);
   }
   const { values, mechanical } = stepValues(ph, defs, nodes, node, opts);
-  return ph.format(keyFor('action', node.label), values, mechanical);
+  const until = node.until ? untilText(ph, nodes, node, values, opts) : null;
+  return until ?? ph.format(keyFor('action', node.label), values, mechanical);
+}
+
+function rangeText(range) {
+  const n = (r) => r.num / r.den;
+  return n(range.lo) === n(range.hi) ? `${n(range.lo)} s` : `${n(range.lo)}..${n(range.hi)} s`;
+}
+
+function untilText(ph, nodes, node, values, opts) {
+  const act = ph.formatAttr(keyFor('action', node.label), 'until', values);
+  if (act === null || !node.until.axis) {
+    return null;
+  }
+  const input = node.inputs.length > 0 ? nodes.get(node.inputs[0].node) : null;
+  const mixed = input && input.kind === 'op' && STRUCTURAL.has(input.label);
+  const subject = node.until.food ? foodName(ph, { type: node.until.food }, opts) : values.x;
+  const stage = ph.format(keyFor(`until-${node.until.axis}`, node.until.value), {}, words(node.until.value));
+  const args = { x: values.x, subject, stage, act, time: durationText(ph, rangeText(node.time)) };
+  return ph.format(mixed ? 'step-until-mixed' : 'step-until', args);
 }
 
 function nextText(ph, defs, nodes, node, opts) {
+  if (node.until) {
+    return null;
+  }
   const { values } = stepValues(ph, defs, nodes, node, opts);
   return ph.formatAttr(keyFor('action', node.label), 'next', values);
 }

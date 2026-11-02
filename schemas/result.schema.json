@@ -653,12 +653,23 @@
                 "axis": {
                   "type": "string"
                 },
+                "food": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "value": {
                   "type": "string"
                 }
               },
               "required": [
                 "axis",
+                "food",
                 "value"
               ],
               "type": "object"

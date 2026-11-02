@@ -214,6 +214,7 @@ typedef struct sema {
   ozni_index until_axis;
   ozni_index until_value;
   ozni_index until_text;
+  ozni_index until_food;
   ozni_table *until_marks;
 } sema;
 
@@ -1563,6 +1564,7 @@ typedef struct until_mark {
   ozni_index irn;
   ozni_index axis;
   ozni_index value;
+  ozni_index food;
 } until_mark;
 
 static bool until_marked(const sema *s, ozni_index irn) {
@@ -3802,7 +3804,7 @@ static ozni_index ir_record_call(sema *s, const ozni_node *act, ozni_index afile
   if (s->until_marks == nullptr) {
     s->until_marks = ozni_table_new(s->c->arena, sizeof(until_mark));
   }
-  until_mark um = {at, s->until_axis, s->until_text != 0 ? s->until_value : 0};
+  until_mark um = {at, s->until_axis, s->until_text != 0 ? s->until_value : 0, s->until_food};
   if (s->until_marks == nullptr || !ozni_table_push(s->until_marks, &um, nullptr)) {
     s->c->oom = true;
   }
@@ -4341,6 +4343,9 @@ static void apply_until(sema *s, ozni_index file, const ozni_node *until, const 
   s->until_axis = axis;
   s->until_value = want;
   s->until_text = intern(s, text.p, text.len);
+  s->until_food = in->comps != nullptr && ozni_table_count(in->comps) > 0
+                      ? (*(food *const *)ozni_table_get(in->comps, 0))->type
+                      : in->type;
   bool has_time = false;
   for (uint32_t k = 0; k < np; k++) {
     has_time = has_time || str_is(S(s, pnames[k]), "time");
@@ -4356,6 +4361,9 @@ static void apply_until(sema *s, ozni_index file, const ozni_node *until, const 
     ozni_qty q;
     if (!until_time_of(s, c, act->text, want, &q)) {
       continue;
+    }
+    if (!found && in->comps != nullptr) {
+      s->until_food = c->type;
     }
     if (!found) {
       sum = q;
@@ -4669,6 +4677,7 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
   s->until_axis = 0;
   s->until_value = 0;
   s->until_text = 0;
+  s->until_food = 0;
   if (out != nullptr) {
     out->irn = irn;
   }
@@ -7290,10 +7299,13 @@ static void ir_json(sema *s, ozni_index name) {
         ozni_buf_puts(b, "\"axis\":");
         ozni_buf_json(b, ua.p, ua.len);
         ozni_buf_puts(b, ",\"value\":");
+        ozni_buf_json(b, uv.p, uv.len);
+        ozni_buf_puts(b, ",\"food\":");
+        put_json_name(s, b, um->food);
       } else {
         ozni_buf_puts(b, "\"cue\":");
+        ozni_buf_json(b, uv.p, uv.len);
       }
-      ozni_buf_json(b, uv.p, uv.len);
       ozni_buf_puts(b, "}");
     }
     ozni_buf_puts(b, node->unattended ? ",\"unattended\":true,\"wave\":" : ",\"unattended\":false,\"wave\":");
