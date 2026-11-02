@@ -4927,6 +4927,26 @@ static value eval_builtin(sema *s, const ozni_node *call, ozni_str name) {
   return unknown();
 }
 
+static value eval_range(sema *s, const ozni_node *n) {
+  value l = eval(s, n->first), r = eval(s, nd(s, s->file, n->first)->next);
+  if (l.kind != V_QTY || r.kind != V_QTY || !l.q.known || !r.q.known) {
+    return unknown();
+  }
+  if (!dims_equal(l.q.d, r.q.d)) {
+    ozni_str args[2] = {S(s, dim_name_text(s, l.q.d)), S(s, dim_name_text(s, r.q.d))};
+    diag_node(s, OZNI_D_TYP_dimension, s->file, n, args, 2);
+    return unknown();
+  }
+  if (ozni_rat_cmp(l.q.v.lo, r.q.v.hi) > 0) {
+    return unknown();
+  }
+  value out = {.kind = V_QTY};
+  out.q.v = (ozni_ival){l.q.v.lo, r.q.v.hi};
+  out.q.d = l.q.d;
+  out.q.known = true;
+  return out;
+}
+
 static value eval_inner(sema *s, ozni_index node) {
   const ozni_node *n = nd(s, s->file, node);
   if (n->kind == OZNI_N_Splice) {
@@ -4963,6 +4983,9 @@ static value eval_inner(sema *s, ozni_index node) {
       return unknown();
     }
     return (value){.kind = V_ENUM, .name = n->text};
+  }
+  if (n->kind == OZNI_N_Range && n->first != 0 && nd(s, s->file, n->first)->next != 0) {
+    return eval_range(s, n);
   }
   if (n->kind == OZNI_N_Quantity) {
     value v = {.kind = V_QTY};
