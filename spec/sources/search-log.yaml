@@ -507,3 +507,13 @@ searches:
       - ingredients.Egg.props.heating.fry.par
       - ingredients.Egg.props.heating.fry.done
       - ingredients.Egg.props.heating.boil.done
+  - date: "2026-11-03"
+    queries:
+      - "フライパン 予熱 時間 中火 何分 メーカー 公式"
+    consulted:
+      - "フィスラー公式オンラインショップ（楽天市場店）のステンレスのフライパンの使い方（何も入れずに中火で 3〜4 分。ステンレスの厚いフライパンに限った説明）"
+      - "無印良品のスタッフの記事（鉄のフライパンの油ならしで弱火〜中火で約 3 分）"
+      - "ツヴィリングの公式ページ（強火を避けるとだけあり、時間の数値は無い）"
+    reason: "見つかった値はフライパンの材質と火加減を限った 1 点で、家庭のフライパン一般の範囲として使えない。暫定の範囲のままにする"
+    covers:
+      - kinds.FryingPan.props.preheatTime

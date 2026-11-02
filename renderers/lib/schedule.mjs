@@ -49,6 +49,10 @@ export function taskText(ph, defs, nodes, sched, t, opts = {}) {
   }
   if (t.kind === 'preheat') {
     const tool = unitName(ph, sched, t.heats.resource);
+    if (t.heats.level) {
+      const heat = ph.format(keyFor('value', t.heats.level), {}, t.heats.level);
+      return ph.format('preheat-pan', { tool, heat }, `preheat(${tool})`);
+    }
     return ph.format('preheat', { tool, temp: String(seconds(t.heats.temp)) }, `preheat(${tool})`);
   }
   const node = nodes.get(t.id);

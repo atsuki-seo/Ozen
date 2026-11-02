@@ -31,7 +31,7 @@ enum CutStyle {
   finer biteSize -> dice
   finer rollCut -> biteSize
 }
-enum Heat { low, medium, high }
+enum Heat : ordered { low, medium, high }
 enum Hardness { soft, medium, hard }
 enum FatLevel { low, medium, high }
 trait Vegetable
@@ -188,6 +188,7 @@ kind Peeler : Tool {
 kind FryingPan : Tool {
   props {
     washTime: 1..3 min @source(provisional)
+    preheatTime: 1..3 min @source(provisional)
   }
 }
 kind Pot : Tool, Container {
@@ -691,7 +692,7 @@ action cookRice(x: Rice<prep has soaked>) -> CookedRice {
   }
 }
 action fry(x: T<shape != inShell>, time: Time in 0 s<.., heat: Heat = medium) -> T<doneness: done, browning: light> {
-  uses hands, HeatSource<stovetop>, FryingPan
+  uses hands, HeatSource<stovetop>, FryingPan<heated: heat>
   leaves: oil on FryingPan
 }
 action simmer(x: T, time: Time in 0 s<.., heat: Heat = low) -> T<doneness: done> {

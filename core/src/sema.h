@@ -60,6 +60,7 @@ typedef struct ozni_ir_req {
   ozni_index text;
   ozni_index file;
   ozni_index type;
+  ozni_index level;
   bool heated;
   ozni_rat temp;
 } ozni_ir_req;

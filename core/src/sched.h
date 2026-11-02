@@ -55,6 +55,10 @@ typedef struct ozni_sched_group {
   uint8_t wash;
   bool heated;
   bool preheat;
+  bool burner;
+  bool on_burner;
+  uint32_t level;
+  uint32_t burner_unit;
   ozni_rat temp;
   ozni_rat pre_start;
 } ozni_sched_group;
@@ -97,6 +101,8 @@ typedef struct ozni_sched_extra {
   uint32_t task;
   uint32_t first_tool;
   uint32_t ntools;
+  uint32_t heat_level;
+  uint32_t burner;
   ozni_rat start;
   ozni_rat end_hi;
   ozni_rat end_lo;

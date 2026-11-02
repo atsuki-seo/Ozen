@@ -27,6 +27,7 @@ typedef struct state {
   ozni_rat *pend_from;
   ozni_rat *pend_temp;
   uint32_t *pend_task;
+  uint32_t *pend_level;
 } state;
 
 static bool case_matches(const ozni_sched *s, const ozni_sched_case *k, const ozni_sched_mark *m,
@@ -207,6 +208,25 @@ static bool fit(const ozni_sched *s, const state *st, uint32_t ti, const ozni_sc
     }
     *start = later(*start, best);
   }
+  for (uint32_t g = 0; !s->backward && g < alt->ngroups; g++) {
+    ozni_sched_group *grp = &s->groups[alt->first_group + g];
+    grp->burner_unit = UINT32_MAX;
+    for (uint32_t h = 0; grp->on_burner && h < alt->ngroups; h++) {
+      const ozni_sched_group *b = &s->groups[alt->first_group + h];
+      if (!b->burner || b->pick == UINT32_MAX) {
+        continue;
+      }
+      grp->burner_unit = b->pick;
+      ozni_rat ready;
+      if (grp->preheat && ozni_rat_cmp(st->unit_free[b->pick], grp->pre_start) > 0) {
+        grp->pre_start = st->unit_free[b->pick];
+        if (!add(grp->pre_start, s->unit_info[grp->pick].preheat_hi, &ready)) {
+          return false;
+        }
+        *start = later(*start, ready);
+      }
+    }
+  }
   return true;
 }
 
@@ -221,7 +241,8 @@ static bool push_extra(ozni_sched *s, ozni_sched_extra e) {
 static bool flush_preheat(ozni_sched *s, state *st, uint32_t unit) {
   const ozni_sched_unit *ui = &s->unit_info[unit];
   ozni_sched_extra e = {.kind = OZNI_EXTRA_PREHEAT, .unit = unit, .sink = UINT32_MAX, .dirt = UINT32_MAX,
-                        .task = st->pend_task[unit], .start = st->pend_from[unit], .temp = st->pend_temp[unit]};
+                        .task = st->pend_task[unit], .start = st->pend_from[unit], .temp = st->pend_temp[unit],
+                        .heat_level = st->pend_level[unit], .burner = UINT32_MAX};
   st->pend[unit] = false;
   return add(e.start, ui->preheat_hi, &e.end_hi) && add(e.start, ui->preheat_lo, &e.end_lo) && push_extra(s, e);
 }
@@ -236,7 +257,8 @@ static bool heat_unit(ozni_sched *s, state *st, uint32_t ti, const ozni_sched_gr
   if (!s->backward) {
     if (heated && grp->preheat) {
       ozni_sched_extra e = {.kind = OZNI_EXTRA_PREHEAT, .unit = unit, .sink = UINT32_MAX, .dirt = UINT32_MAX,
-                            .task = ti, .start = grp->pre_start, .temp = grp->temp};
+                            .task = ti, .start = grp->pre_start, .temp = grp->temp, .heat_level = grp->level,
+                            .burner = grp->burner_unit};
       if (!add(e.start, ui->preheat_hi, &e.end_hi) || !add(e.start, ui->preheat_lo, &e.end_lo) || !push_extra(s, e)) {
         return false;
       }
@@ -253,6 +275,7 @@ static bool heat_unit(ozni_sched *s, state *st, uint32_t ti, const ozni_sched_gr
     st->pend[unit] = true;
     st->pend_from[unit] = end;
     st->pend_temp[unit] = grp->temp;
+    st->pend_level[unit] = grp->level;
     st->pend_task[unit] = ti;
     if (!add(end, ui->preheat_hi, &st->unit_free[unit])) {
       return false;
@@ -398,7 +421,8 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
               ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend),
               ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend_from),
               ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend_temp),
-              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend_task)};
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend_task),
+              ozni_arena_alloc(ar, (s->nunits + 1) * sizeof *st.pend_level)};
   uint32_t total_groups = 0;
   for (uint32_t i = 0; i < n; i++) {
     for (uint32_t a = 0; a < s->tasks[i].nalts; a++) {
@@ -410,7 +434,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
   if (prio == nullptr || best == nullptr || ready == nullptr || defer == nullptr || st.cook_free == nullptr ||
       st.unit_free == nullptr || st.head == nullptr || st.owner == nullptr || st.soaked == nullptr || st.used == nullptr ||
       st.hist == nullptr || st.hot == nullptr || st.temp == nullptr || st.pend == nullptr || st.pend_from == nullptr ||
-      st.pend_temp == nullptr || st.pend_task == nullptr) {
+      st.pend_temp == nullptr || st.pend_task == nullptr || st.pend_level == nullptr) {
     return false;
   }
   for (uint32_t i = 0; i < n; i++) {
@@ -447,6 +471,7 @@ static bool run(ozni_arena *ar, ozni_sched *s, const uint32_t *dep_first, const 
     st.pend_from[u] = ozni_rat_int(0);
     st.pend_temp[u] = ozni_rat_int(0);
     st.pend_task[u] = 0;
+    st.pend_level[u] = 0;
   }
   ozni_rat now = ozni_rat_int(0);
   uint32_t left = n;

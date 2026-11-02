@@ -447,6 +447,7 @@ clean-soak = Soak { $tool }
 clean-wipe = Wipe { $tool }
 clean-run = Run the dishwasher with { $tool }
 preheat = Preheat the { $tool } to { $temp } °C
+preheat-pan = Heat the { $tool } over { $heat } heat
 time-from = { $time }
 variant-pot = pot
 variant-cooker = rice cooker

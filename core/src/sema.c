@@ -1692,8 +1692,35 @@ static void ir_put_ref(sema *s, ozni_buf *b, food *f) {
   }
 }
 
-static void heat_of(sema *s, ozni_index file, ozni_index type, const value *params, const ozni_index *pnames,
-                    uint32_t np, ozni_ir_req *req) {
+static ozni_index field_type_node(const sema *s, ozni_index file, ozni_index field);
+
+static bool heat_level(sema *s, ozni_index file, ozni_index holder, ozni_index param, ozni_index value_name,
+                       ozni_rat *out) {
+  for (ozni_index c = nd(s, file, holder)->first; c != 0; c = nd(s, file, c)->next) {
+    const ozni_node *pn = nd(s, file, c);
+    ozni_index ptype = pn->kind == OZNI_N_Param ? field_type_node(s, file, c) : 0;
+    ozni_index ef, en;
+    if (pn->text != param || ptype == 0 || !find_from(s, file, nd(s, file, ptype)->text, &ef, &en) ||
+        nd(s, ef, en)->kind != OZNI_N_Enum || !str_is(S(s, nd(s, ef, en)->text2), "ordered")) {
+      continue;
+    }
+    int64_t k = 0;
+    for (ozni_index v = nd(s, ef, en)->first; v != 0; v = nd(s, ef, v)->next) {
+      if (nd(s, ef, v)->kind != OZNI_N_Value) {
+        continue;
+      }
+      k++;
+      if (nd(s, ef, v)->text == value_name) {
+        *out = ozni_rat_int(k);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+static void heat_of(sema *s, ozni_index file, ozni_index holder, ozni_index type, const value *params,
+                    const ozni_index *pnames, uint32_t np, ozni_ir_req *req) {
   for (ozni_index ta = nd(s, file, type)->first; ta != 0; ta = nd(s, file, ta)->next) {
     ozni_index alt = nd(s, file, ta)->kind == OZNI_N_TypeArgs ? nd(s, file, ta)->first : 0;
     for (ozni_index a = alt != 0 ? nd(s, file, alt)->first : 0; a != 0; a = nd(s, file, a)->next) {
@@ -1705,6 +1732,10 @@ static void heat_of(sema *s, ozni_index file, ozni_index type, const value *para
       if (v.kind == V_QTY && v.q.known) {
         req->heated = true;
         req->temp = v.q.v.hi;
+      } else if (v.kind == V_ENUM && nd(s, file, an->first)->kind == OZNI_N_Name &&
+                 heat_level(s, file, holder, nd(s, file, an->first)->text, v.name, &req->temp)) {
+        req->heated = true;
+        req->level = v.name;
       }
     }
   }
@@ -1731,7 +1762,7 @@ static void ir_put_uses(sema *s, ozni_buf *b, ozni_index file, ozni_index holder
         ozni_buf_put(b, text.p, text.len);
         first = false;
         ozni_ir_req req = {.text = intern(s, text.p, text.len), .file = file, .type = u};
-        heat_of(s, file, u, params, pnames, np, &req);
+        heat_of(s, file, holder, u, params, pnames, np, &req);
         if (!ozni_table_push(s->ir.reqs, &req, nullptr)) {
           s->c->oom = true;
         }
@@ -8037,8 +8068,13 @@ static void schedule_json(sema *s, const sched_out *o) {
       }
       ozni_buf_puts(b, n++ == 0 ? "],\"needs\":[{\"resource\":" : ",{\"resource\":");
       put_json_str(b, S(s, unit_at(o, grp->pick)->label));
-      ozni_buf_puts(b, ",\"temp\":");
-      put_json_rat(b, grp->temp);
+      if (grp->level != 0) {
+        ozni_buf_puts(b, ",\"level\":");
+        put_json_str(b, S(s, grp->level));
+      } else {
+        ozni_buf_puts(b, ",\"temp\":");
+        put_json_rat(b, grp->temp);
+      }
       ozni_buf_puts(b, "}");
     }
     ozni_buf_puts(b, "],\"leaves\":[");
@@ -8105,6 +8141,10 @@ static void schedule_json(sema *s, const sched_out *o) {
       ozni_buf_puts(b, ",");
     }
     put_json_str(b, S(s, unit_at(o, e->unit)->label));
+    if (e->kind == OZNI_EXTRA_PREHEAT && e->burner != UINT32_MAX) {
+      ozni_buf_puts(b, ",");
+      put_json_str(b, S(s, unit_at(o, e->burner)->label));
+    }
     for (uint32_t q = 0; e->kind == OZNI_EXTRA_RUN && q < e->ntools; q++) {
       ozni_buf_puts(b, ",");
       put_json_str(b, S(s, unit_at(o, p->tools[e->first_tool + q])->label));
@@ -8121,8 +8161,13 @@ static void schedule_json(sema *s, const sched_out *o) {
     } else if (e->kind == OZNI_EXTRA_PREHEAT) {
       ozni_buf_puts(b, ",\"heats\":{\"resource\":");
       put_json_str(b, S(s, unit_at(o, e->unit)->label));
-      ozni_buf_puts(b, ",\"temp\":");
-      put_json_rat(b, e->temp);
+      if (e->heat_level != 0) {
+        ozni_buf_puts(b, ",\"level\":");
+        put_json_str(b, S(s, e->heat_level));
+      } else {
+        ozni_buf_puts(b, ",\"temp\":");
+        put_json_rat(b, e->temp);
+      }
       ozni_buf_puts(b, "}");
     } else if (e->kind != OZNI_EXTRA_SOAK) {
       ozni_buf_puts(b, ",\"cleans\":{\"resource\":");
@@ -8305,7 +8350,11 @@ static void schedule_text(sema *s, const sched_out *o, ozni_index name, ozni_buf
       ozni_buf_puts(b, words[e->kind]);
       ozni_str ul = S(s, unit_at(o, e->unit)->label), dt = dirt_text(s, o, e->dirt);
       ozni_buf_put(b, ul.p, ul.len);
-      if (e->kind == OZNI_EXTRA_PREHEAT) {
+      if (e->kind == OZNI_EXTRA_PREHEAT && e->heat_level != 0) {
+        ozni_str lv = S(s, e->heat_level);
+        ozni_buf_puts(b, " to ");
+        ozni_buf_put(b, lv.p, lv.len);
+      } else if (e->kind == OZNI_EXTRA_PREHEAT) {
         ozni_buf_puts(b, " to ");
         put_temp(s, b, e->temp);
       } else {
@@ -8325,6 +8374,11 @@ static void schedule_text(sema *s, const sched_out *o, ozni_index name, ozni_buf
         ozni_buf_puts(b, ", ");
       }
       ozni_buf_put(b, ul.p, ul.len);
+      if (e->kind == OZNI_EXTRA_PREHEAT && e->burner != UINT32_MAX) {
+        ozni_str bl = S(s, unit_at(o, e->burner)->label);
+        ozni_buf_puts(b, ", ");
+        ozni_buf_put(b, bl.p, bl.len);
+      }
       for (uint32_t q = 0; e->kind == OZNI_EXTRA_RUN && q < e->ntools; q++) {
         ozni_str tl = S(s, unit_at(o, p->tools[e->first_tool + q])->label);
         ozni_buf_puts(b, ", ");
@@ -8770,7 +8824,7 @@ static void steps_json(sema *s, const sched_out *o, ozni_index name) {
 }
 
 static bool hot_enough(sema *s, const sched_unit *su, const ozni_ir_req *req) {
-  for (ozni_index k = 0; req->heated && k < ozni_table_count(s->kentries); k++) {
+  for (ozni_index k = 0; req->heated && req->level == 0 && k < ozni_table_count(s->kentries); k++) {
     const kentry *e = ozni_table_get(s->kentries, k);
     ozni_qty max;
     if (e->name == su->entry && entry_field(s, e, "maxTemp", &max) && ozni_rat_cmp(max.v.hi, req->temp) < 0) {
@@ -8928,6 +8982,10 @@ static void schedule_dish(sema *s, ozni_index name) {
           ozni_sched_group g = {.first_unit = ozni_table_count(lists)};
           g.heated = req->heated;
           g.temp = req->temp;
+          g.level = req->level;
+          ozni_str rt = S(s, req->text);
+          g.on_burner = req->heated && !(rt.len >= 10 && memcmp(rt.p, "HeatSource", 10) == 0);
+          g.burner = rt.len >= 20 && memcmp(rt.p, "HeatSource<stovetop>", 20) == 0;
           ozni_index washer = intern(s, "Dishwasher", 10);
           for (ozni_index u = 0; u < ozni_table_count(units); u++) {
             const sched_unit *su = ozni_table_get(units, u);

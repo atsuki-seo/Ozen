@@ -14,6 +14,15 @@ def overlap(a, b):
     return a["start"] < b["endHi"] and b["start"] < a["endHi"]
 
 
+HEAT_LEVELS = ["low", "medium", "high"]
+
+
+def heat_of(h):
+    if "level" in h:
+        return (0, HEAT_LEVELS.index(h["level"]) if h["level"] in HEAT_LEVELS else -1)
+    return (1, num(h["temp"]))
+
+
 def check(doc):
     """Return a list of (check, detail) violations of one schedule."""
     out = []
@@ -146,9 +155,9 @@ def check(doc):
     heat = {}
     for t in order:
         if t.get("kind") == "preheat":
-            heat[t["heats"]["resource"]] = num(t["heats"]["temp"])
+            heat[t["heats"]["resource"]] = heat_of(t["heats"])
             continue
-        needs = {n["resource"]: num(n["temp"]) for n in t.get("needs", [])}
+        needs = {n["resource"]: heat_of(n) for n in t.get("needs", [])}
         for rid in t.get("uses", []):
             if rid not in needs:
                 heat[rid] = None

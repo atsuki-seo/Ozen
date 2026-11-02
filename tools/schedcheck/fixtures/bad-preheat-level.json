@@ -1,0 +1,83 @@
+{
+ "schemaVersion": 1,
+ "cooks": 1,
+ "cleanup": "none",
+ "rules": [],
+ "waves": [],
+ "dishes": [],
+ "resources": [
+  {
+   "id": "pan",
+   "kind": "FryingPan",
+   "capacity": 1,
+   "category": "tool"
+  }
+ ],
+ "holds": [],
+ "tasks": [
+  {
+   "id": 1,
+   "kind": "op",
+   "op": "fry",
+   "deps": [],
+   "start": {
+    "num": 180,
+    "den": 1
+   },
+   "endHi": {
+    "num": 480,
+    "den": 1
+   },
+   "endLo": {
+    "num": 480,
+    "den": 1
+   },
+   "cook": null,
+   "uses": [
+    "pan"
+   ],
+   "leaves": [],
+   "food": null,
+   "targets": [],
+   "unattended": true,
+   "wave": null,
+   "needs": [
+    {
+     "resource": "pan",
+     "level": "high"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "kind": "preheat",
+   "op": "preheat",
+   "deps": [],
+   "start": {
+    "num": 0,
+    "den": 1
+   },
+   "endHi": {
+    "num": 180,
+    "den": 1
+   },
+   "endLo": {
+    "num": 60,
+    "den": 1
+   },
+   "cook": null,
+   "uses": [
+    "pan"
+   ],
+   "leaves": [],
+   "food": null,
+   "targets": [],
+   "unattended": true,
+   "wave": null,
+   "heats": {
+    "resource": "pan",
+    "level": "medium"
+   }
+  }
+ ]
+}
