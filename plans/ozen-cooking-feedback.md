@@ -1516,6 +1516,352 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S865・データの完全性・`cgolden/cue/json`（P7-1、2026-11-03）。IR の JSON の `until` に `cue` を出さないと `until: {}` になって落ちた。戻すと合格した
 - わざと壊す確認: S866・文書との一致・`rtest/cue-text`（P7-2、2026-11-03）。`until-cue-fragrant` の日本語を消すとテストが落ちた。戻すと合格した
 - わざと壊す確認: S866・データの完全性・`G-FB-PHRASES`（P7-2、2026-11-03）。`until-cue-boiling` の英語を消すと「en until-cue-boiling: got '0'」で落ちた。戻すと合格した
+- 見直しの対象の数え方（P8-1、2026-11-03）: タグ `fb-review-start`（`3b9e5c9`）の時点で `G-FB-REVIEW-TARGETS` の一覧の作り方で数えた 172 件（(a) `fb-start` から入力か期待が変わった既存のテストのファイルと、(b) `fb-start` の時点で卵・中身を入れる道具・予熱・`deepFry`・リストの引数を使う golden の入力）。R9 の見込み（数百）より少なかった。各対象を指す 3 つの計画の網羅表の行は、比較の道具の `--roadmap` で数えた（ロードマップ 8 行、記法の計画 9 行、量の計画 22 行）。続けるか移すかが結果に関わるテストは無かった（既存の golden で「続ける」が起きるのは `args/composite`・`args/ok-units`・`args/range-units-steps`・`bounds/composite-range`・`quantity/per-serving-param`・`sched/hardness-order-warn`・`state/ordered-no-regress` の 7 個で、どれも段取りを出さない）ので、「注釈で明示」に分類したものは無い
+- 見直しの対象: `samples/T2/expect.yaml`
+- 見直しの対象: `tests/golden/actions/capacity-from-amount.ozen`
+- 見直しの対象: `tests/golden/actions/error-in-unused-variant.ozen`
+- 見直しの対象: `tests/golden/actions/requires-auto.out`
+- 見直しの対象: `tests/golden/actions/uses-capability.ozen`
+- 見直しの対象: `tests/golden/api/ir-allergens-choices.ozen`
+- 見直しの対象: `tests/golden/api/ir-display.ozen`
+- 見直しの対象: `tests/golden/api/local-not-listed.out`
+- 見直しの対象: `tests/golden/api/signatures-json.out`
+- 見直しの対象: `tests/golden/api/signatures-json.ozen`
+- 見直しの対象: `tests/golden/args/composite.out`
+- 見直しの対象: `tests/golden/args/composite.ozen`
+- 見直しの対象: `tests/golden/args/issue1.out`
+- 見直しの対象: `tests/golden/args/issue1.ozen`
+- 見直しの対象: `tests/golden/args/macro-body.out`
+- 見直しの対象: `tests/golden/args/macro-body.ozen`
+- 見直しの対象: `tests/golden/args/macro-splice.out`
+- 見直しの対象: `tests/golden/args/macro-splice.ozen`
+- 見直しの対象: `tests/golden/args/named-arg.out`
+- 見直しの対象: `tests/golden/args/named-arg.ozen`
+- 見直しの対象: `tests/golden/args/ok-units.ozen`
+- 見直しの対象: `tests/golden/args/pipe-arg.out`
+- 見直しの対象: `tests/golden/args/pipe-arg.ozen`
+- 見直しの対象: `tests/golden/args/range-units-dimension.out`
+- 見直しの対象: `tests/golden/args/range-units-dimension.ozen`
+- 見直しの対象: `tests/golden/args/range-units-mixed.out`
+- 見直しの対象: `tests/golden/args/range-units-mixed.ozen`
+- 見直しの対象: `tests/golden/args/range-units-steps.out`
+- 見直しの対象: `tests/golden/args/range-units-steps.ozen`
+- 見直しの対象: `tests/golden/args/unitless-time.out`
+- 見直しの対象: `tests/golden/args/unitless-time.ozen`
+- 見直しの対象: `tests/golden/args/unknown-value.ozen`
+- 見直しの対象: `tests/golden/args/variable-arg.out`
+- 見直しの対象: `tests/golden/args/variable-arg.ozen`
+- 見直しの対象: `tests/golden/args/volume-for-time.out`
+- 見直しの対象: `tests/golden/args/volume-for-time.ozen`
+- 見直しの対象: `tests/golden/bounds/amount-per-serving-zero.ozen`
+- 見直しの対象: `tests/golden/bounds/amount-positive.ozen`
+- 見直しの対象: `tests/golden/bounds/amount-range-negative.ozen`
+- 見直しの対象: `tests/golden/bounds/composite-range.out`
+- 見直しの対象: `tests/golden/bounds/composite-range.ozen`
+- 見直しの対象: `tests/golden/bounds/dimension-before-range.out`
+- 見直しの対象: `tests/golden/bounds/dimension-before-range.ozen`
+- 見直しの対象: `tests/golden/bounds/servings-flag-invalid-amounts.ozen`
+- 見直しの対象: `tests/golden/bounds/servings-invalid-amounts.ozen`
+- 見直しの対象: `tests/golden/bounds/small-positive.ozen`
+- 見直しの対象: `tests/golden/bounds/soak-default.ozen`
+- 見直しの対象: `tests/golden/bundle/contents/kitchen.ozen`
+- 見直しの対象: `tests/golden/bundle/dep-partial/recipes/soup.ozen`
+- 見直しの対象: `tests/golden/bundle/header-license-from/recipes/soup.ozen`
+- 見直しの対象: `tests/golden/bundle/import-pruned/soup.ozen`
+- 見直しの対象: `tests/golden/bundle/import-two-versions/shared/soup.ozen`
+- 見直しの対象: `tests/golden/bundle/local-closed/soup.ozen`
+- 見直しの対象: `tests/golden/bundle/local-import-rejected.ozen`
+- 見直しの対象: `tests/golden/bundle/order-by-name/recipes/soup.ozen`
+- 見直しの対象: `tests/golden/bundle/phrases-included/recipes/soup.ozen`
+- 見直しの対象: `tests/golden/bundle/same-name/soup.ozen`
+- 見直しの対象: `tests/golden/cleanup/wipe-places.ozen`
+- 見直しの対象: `tests/golden/decl/action.ozen`
+- 見直しの対象: `tests/golden/decl/recipe.ozen`
+- 見直しの対象: `tests/golden/decl/type.ozen`
+- 見直しの対象: `tests/golden/dim/count-unit-weight.ozen`
+- 見直しの対象: `tests/golden/dim/density-convert.ozen`
+- 見直しの対象: `tests/golden/dim/density-missing.ozen`
+- 見直しの対象: `tests/golden/dim/rational-quarter.ozen`
+- 見直しの対象: `tests/golden/ir/kitchen-dependent-info.out`
+- 見直しの対象: `tests/golden/ir/kitchen-dependent-info.ozen`
+- 見直しの対象: `tests/golden/ir/text-dump-format.out`
+- 見直しの対象: `tests/golden/ir/variants-as-choice.ozen`
+- 見直しの対象: `tests/golden/kitchen/capacity-compile-time.ozen`
+- 見直しの対象: `tests/golden/kitchen/kitchen-has-branch.ozen`
+- 見直しの対象: `tests/golden/kitchen/negative-count.ozen`
+- 見直しの対象: `tests/golden/kitchen/notation-defaults.ozen`
+- 見直しの対象: `tests/golden/kitchen/range-bounds.ozen`
+- 見直しの対象: `tests/golden/kitchen/variant-filtered.ozen`
+- 見直しの対象: `tests/golden/levels/level-2.ozen`
+- 見直しの対象: `tests/golden/limits-shared/kitchen-exact/kitchen.ozen`
+- 見直しの対象: `tests/golden/limits-shared/kitchen-over/kitchen.ozen`
+- 見直しの対象: `tests/golden/linear/double-use.out`
+- 見直しの対象: `tests/golden/linear/double-use.ozen`
+- 見直しの対象: `tests/golden/linear/unused-divided.ozen`
+- 見直しの対象: `tests/golden/linear/unused-expr.ozen`
+- 見直しの対象: `tests/golden/linear/unused-if.ozen`
+- 見直しの対象: `tests/golden/linear/unused-in-make-only.ozen`
+- 見直しの対象: `tests/golden/menus/make-servings.ozen`
+- 見直しの対象: `tests/golden/menus/output-properties.ozen`
+- 見直しの対象: `tests/golden/menus/output-type-explicit.ozen`
+- 見直しの対象: `tests/golden/menus/single-recipe-ir.ozen`
+- 見直しの対象: `tests/golden/menus/single-recipe-schedule.ozen`
+- 見直しの対象: `tests/golden/menus/single-recipe-wrap.ozen`
+- 見直しの対象: `tests/golden/mix/amount-sum.ozen`
+- 見直しの対象: `tests/golden/mix/explicit-combine.ozen`
+- 見直しの対象: `tests/golden/mix/mixture-hazard-allergen.out`
+- 見直しの対象: `tests/golden/mix/mixture-hazard-allergen.ozen`
+- 見直しの対象: `tests/golden/mix/new-value.ozen`
+- 見直しの対象: `tests/golden/modules/qualified-call.ozen`
+- 見直しの対象: `tests/golden/modules/qualified-ingredient-type.out`
+- 見直しの対象: `tests/golden/modules/qualified-make/expected.out`
+- 見直しの対象: `tests/golden/modules/qualified-make/main.ozen`
+- 見直しの対象: `tests/golden/parts/aibiki-contains.ozen`
+- 見直しの対象: `tests/golden/parts/alias-widest-range.ozen`
+- 見直しの対象: `tests/golden/quantity/count-kitchen.ozen`
+- 見直しの対象: `tests/golden/quantity/fixed-amount.ozen`
+- 見直しの対象: `tests/golden/quantity/per-serving-param.out`
+- 見直しの対象: `tests/golden/quantity/per-serving-param.ozen`
+- 見直しの対象: `tests/golden/safety/allergen-bowl.ozen`
+- 見直しの対象: `tests/golden/safety/allergen-in-portion.ozen`
+- 見直しの対象: `tests/golden/safety/raw-edible-mixture.ozen`
+- 見直しの対象: `tests/golden/sched/capacity-impossible.ozen`
+- 見直しの対象: `tests/golden/sched/hardness-order-warn.ozen`
+- 見直しの対象: `tests/golden/sched/heat-direct-attribute.ozen`
+- 見直しの対象: `tests/golden/sched/heat-model.ozen`
+- 見直しの対象: `tests/golden/sched/heat-thickness-by-cut.ozen`
+- 見直しの対象: `tests/golden/sched/improvement.ozen`
+- 見直しの対象: `tests/golden/sched/prefer-fewer-tools.ozen`
+- 見直しの対象: `tests/golden/sched/prefer-fewer-washes.ozen`
+- 見直しの対象: `tests/golden/sched/prefer-less-waiting.ozen`
+- 見直しの対象: `tests/golden/sched/prefer-pace-then-tools.ozen`
+- 見直しの対象: `tests/golden/sched/prefer-steady-pace.ozen`
+- 見直しの対象: `tests/golden/sched/prefer-tools-then-pace.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-arg-temp.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-backward.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-basic.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-cooled.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-hotter-backward.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-hotter.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-ir.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-json.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-lookahead.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-max-temp-equal.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-max-temp-mixed.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-max-temp.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-no-max-temp.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-no-preheat-time.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-occupies.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-reuse-backward.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-reuse.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-same-temp.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-short-prep.ozen`
+- 見直しの対象: `tests/golden/sched/preheat-unattended.ozen`
+- 見直しの対象: `tests/golden/sched/variant-earliest.ozen`
+- 見直しの対象: `tests/golden/sched/variant-info.ozen`
+- 見直しの対象: `tests/golden/sched/variant-tie-order.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-backward.out`
+- 見直しの対象: `tests/golden/serve/use-within-backward.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-bad-arg.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-basic.out`
+- 見直しの対象: `tests/golden/serve/use-within-basic.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-expr.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-ir.out`
+- 見直しの対象: `tests/golden/serve/use-within-ir.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-json.out`
+- 見直しの対象: `tests/golden/serve/use-within-json.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-missed-json.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-missed-no-delay.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-missed.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-no-consumer.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-on-alias.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-on-ingredient.out`
+- 見直しの対象: `tests/golden/serve/use-within-on-ingredient.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-range.out`
+- 見直しの対象: `tests/golden/serve/use-within-range.ozen`
+- 見直しの対象: `tests/golden/serve/use-within-two-consumers.out`
+- 見直しの対象: `tests/golden/serve/use-within-two-consumers.ozen`
+- 見直しの対象: `tests/golden/state/blend-list.ozen`
+- 見直しの対象: `tests/golden/state/peel-missing.out`
+- 見直しの対象: `tests/golden/state/peel-missing.ozen`
+- 見直しの対象: `tests/golden/std/prelude-contents.ozen`
+- 見直しの対象: `tests/golden/syntax/omit-parens.ozen`
+- 見直しの対象: `tests/golden/vessels/capacity-over-warn.ozen`
+- 見直しの対象: `tests/golden/vessels/soup-flat-plate.ozen`
+- 見直しの対象: `tests/golden/wash/dirt-from-leaves.ozen`
+- 書き直したテスト: `samples/T2/expect.yaml` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/actions/capacity-from-amount.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/actions/error-in-unused-variant.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/actions/requires-auto.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/actions/uses-capability.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/api/ir-allergens-choices.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/api/ir-display.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/api/local-not-listed.out` — 目的が変わり結果を変更（std の定義と診断の一覧を出す golden で、本計画で std の定義と診断が増えた）
+- 書き直したテスト: `tests/golden/api/signatures-json.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/api/signatures-json.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/args/composite.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/composite.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/issue1.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/issue1.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/macro-body.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/macro-body.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/macro-splice.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/macro-splice.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/named-arg.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/named-arg.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/ok-units.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/pipe-arg.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/pipe-arg.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/range-units-dimension.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/range-units-dimension.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/range-units-mixed.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/range-units-mixed.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/range-units-steps.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/range-units-steps.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/unitless-time.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/unitless-time.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/unknown-value.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/variable-arg.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/variable-arg.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/volume-for-time.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/args/volume-for-time.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/bounds/amount-per-serving-zero.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bounds/amount-positive.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bounds/amount-range-negative.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bounds/composite-range.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/bounds/composite-range.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/bounds/dimension-before-range.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/bounds/dimension-before-range.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/bounds/servings-flag-invalid-amounts.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bounds/servings-invalid-amounts.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bounds/small-positive.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/bounds/soak-default.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/contents/kitchen.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/dep-partial/recipes/soup.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/header-license-from/recipes/soup.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/import-pruned/soup.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/import-two-versions/shared/soup.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/local-closed/soup.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/local-import-rejected.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/order-by-name/recipes/soup.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/phrases-included/recipes/soup.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/bundle/same-name/soup.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/cleanup/wipe-places.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/decl/action.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/decl/recipe.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/decl/type.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/dim/count-unit-weight.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/dim/density-convert.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/dim/density-missing.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/dim/rational-quarter.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/ir/kitchen-dependent-info.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/ir/kitchen-dependent-info.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/ir/text-dump-format.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/ir/variants-as-choice.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/kitchen/capacity-compile-time.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/kitchen/kitchen-has-branch.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/kitchen/negative-count.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/kitchen/notation-defaults.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/kitchen/range-bounds.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/kitchen/variant-filtered.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/levels/level-2.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/limits-shared/kitchen-exact/kitchen.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/limits-shared/kitchen-over/kitchen.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/linear/double-use.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/linear/double-use.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/linear/unused-divided.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/linear/unused-expr.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/linear/unused-if.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/linear/unused-in-make-only.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/menus/make-servings.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/menus/output-properties.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/menus/output-type-explicit.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/menus/single-recipe-ir.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/menus/single-recipe-schedule.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/menus/single-recipe-wrap.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/mix/amount-sum.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/mix/explicit-combine.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/mix/mixture-hazard-allergen.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/mix/mixture-hazard-allergen.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/mix/new-value.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/modules/qualified-call.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/modules/qualified-ingredient-type.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/modules/qualified-make/expected.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/modules/qualified-make/main.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/parts/aibiki-contains.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/parts/alias-widest-range.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/quantity/count-kitchen.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/quantity/fixed-amount.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/quantity/per-serving-param.out` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/quantity/per-serving-param.ozen` — 卵を割る形に（D112。殻付きの卵を `egg |> crack` にした。目的の量の照合・人数の引数は変わらない）
+- 書き直したテスト: `tests/golden/safety/allergen-bowl.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/safety/allergen-in-portion.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/safety/raw-edible-mixture.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/capacity-impossible.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/hardness-order-warn.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/heat-direct-attribute.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/heat-model.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/heat-thickness-by-cut.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/improvement.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/prefer-fewer-tools.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/prefer-fewer-washes.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/prefer-less-waiting.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/prefer-pace-then-tools.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/prefer-steady-pace.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/prefer-tools-then-pace.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-arg-temp.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-backward.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-basic.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-cooled.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-hotter-backward.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-hotter.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-ir.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-json.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-lookahead.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-max-temp-equal.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-max-temp-mixed.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-max-temp.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-no-max-temp.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-no-preheat-time.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-occupies.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-reuse-backward.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-reuse.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-same-temp.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-short-prep.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/preheat-unattended.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/variant-earliest.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/variant-info.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/sched/variant-tie-order.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/serve/use-within-backward.out` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-backward.ozen` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-bad-arg.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/serve/use-within-basic.out` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-basic.ozen` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-expr.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/serve/use-within-ir.out` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-ir.ozen` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-json.out` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-json.ozen` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-missed-json.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/serve/use-within-missed-no-delay.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/serve/use-within-missed.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/serve/use-within-no-consumer.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/serve/use-within-on-alias.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/serve/use-within-on-ingredient.out` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-on-ingredient.ozen` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-range.out` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-range.ozen` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-two-consumers.out` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/serve/use-within-two-consumers.ozen` — std の名前と重ならない形に（自前の `deepFry` を `fryBattered` にし、std の `deepFry` を上書きする情報 `NAM006` が出ないようにした。目的の `@useWithin` の段取りは変わらない）
+- 書き直したテスト: `tests/golden/state/blend-list.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/state/peel-missing.out` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/state/peel-missing.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/std/prelude-contents.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/syntax/omit-parens.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/vessels/capacity-over-warn.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/vessels/soup-flat-plate.ozen` — 目的どおり、変更なし
+- 書き直したテスト: `tests/golden/wash/dirt-from-leaves.ozen` — 目的どおり、変更なし
+- 結果を変えたテスト: `tests/golden/api/local-not-listed.ozen` — 一覧に出る診断（`SAF005`・`TYP022`・`TYP023`）が増え、比較の道具が数える診断のコードの並びが変わった（D108）
 ---
 
 ## 10. リスク
