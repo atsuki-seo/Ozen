@@ -1359,6 +1359,23 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S803・データの完全性・`G-FB-PHRASES`（P2-4、2026-11-03）。`action-peel` の卵の選び分けを消すと「ja peel the shell: got '0'」で落ちた。戻すと合格した
 - わざと壊す確認: S870・データの完全性・`G-SAMPLE-CHECK`（P2-5、2026-11-03）。`samples/T2/expect.yaml` のアレルゲンの期待のキーを `mix` に戻すと「samples: 11 samples, 236 expectations, 1 failed」で落ちた。戻すと合格した
 - わざと壊す確認: S871・実際の経路・`G-SAMPLE-CHECK`（P2-5、2026-11-03）。親子丼を `egg |> mix` に戻すと `TYP006` で「2 failed」になって落ちた。戻すと合格した
+- 範囲に入った別の作業のコミット: 24bc3b1（別のセッションによる計画ファイル `plans/ozen-dev-setup.md` の追加）
+- 混ぜた物の材料ごとの火の通り（P3-2、2026-11-03）: 混ぜた物は、混ぜた時点の材料（混ぜた物を混ぜたときはその材料まで平らにたどる）の写しを `food` の `comps` に持ち、加熱の動作の効果の後に、各材料の火の通りを「材料の今の値」と「混ぜた物の新しい値」の大きいほうに上げる。出すときの加熱不足の検査は材料ごとに行い、同じ型で同じ火の通りの材料は 1 つにまとめる。このため、生の材料を含む混ぜた物の `SAF001` の引数は、混ぜた物（`"Mixture"`）でなく材料の型（`"Pork"`・`"Egg"`）になった。`debug ir` などの行には `comps` を出さない（S895）
+- 対照の golden（P3-1、2026-11-03）: `egg/served-raw`・`egg/served-done` は足す時点で合格した。赤の 5 個と別のコミット `36bbc51` にし、`scripts/red-first-exceptions.txt` に載せた
+- 期待を直した golden: `tests/golden/mix/mixture-hazard-allergen.out` — 混ぜた物の加熱不足を材料ごとに見るようにしたので（D98）、`SAF001` の引数が `["Mixture", "raw"]` から生の材料の `["Pork", "raw"]` になった
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — P3-1 で `Egg` の props に `safeDoneness: par` が加わり、診断の一覧に `SAF005 lightlyCookedEgg` が加わった
+- わざと壊す確認: S822・正常系・`cgolden/egg/served-par`（P3-1、2026-11-03）。`safeDoneness` を読まないと `SAF001 args=["Egg", "par"]` に戻って落ちた。戻すと合格した
+- わざと壊す確認: S893・実際の経路・`cgolden/egg/parboil-par`（P3-1、2026-11-03）。`safeDoneness` を利用者の定義した動作の出力にだけ当てる（食材に「std でない動作で作った」印を付け、印のあるときだけ読む）と、`served-par` は合格のまま、std の `parboil` の `parboil-par` が `SAF001` に戻って落ちた。戻すと合格した
+- わざと壊す確認: S823・境界・上限・`cgolden/egg/served-raw`（P3-1、2026-11-03）。`safeDoneness` を持つ食材の比較を `>= raw` にすると、生と表面だけの卵が `SAF005` になって落ちた。戻すと合格した
+- わざと壊す確認: S824・効かない条件・`cgolden/egg/served-done`（P3-1、2026-11-03）。`SAF005` を `done` の卵にも出すと落ちた。戻すと合格した
+- わざと壊す確認: S827・副作用とコスト・`cgolden/egg/allow-par`（P3-1、2026-11-03）。`SAF005` の重さをエラーにすると、`@allow` で `SAF002 fixedSeverity` が出て落ちた。戻すと合格した
+- わざと壊す確認: S828・データの完全性・`G-FB-PRELUDE`（P3-1、2026-11-03）。`Chicken` の props に `safeDoneness: par` を足すと「safeDoneness: got '2'」で落ちた。戻すと合格した
+- わざと壊す確認: S867・データの完全性・`G-FB-DIAG`（P3-1、2026-11-03）。`names.mjs` の `lightlyCookedEgg` を `['name']` にすると「arg kinds lightlyCookedEgg: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S867・前提の固定・`G-CORE-DIAG-APPEND`（P3-1、2026-11-03）。一時的な worktree の作業用のコミットで `SAF005` を `NAM021` の後（既存の行の間）に入れ直すと「deleted registry lines: got '1'」で落ちた。worktree を消した（push していない）
+- わざと壊す確認: S825・実際の経路・`cgolden/egg/mixture-par`（P3-2、2026-11-03）。混ぜた物の材料を持たないようにすると、鶏肉ごと `SAF001 args=["Mixture", "par"]` になって落ちた。戻すと合格した
+- わざと壊す確認: S826・効かない条件・`cgolden/egg/mixture-chicken-par`（P3-2、2026-11-03）。加熱の後の材料の火の通りを、混ぜた物の新しい値でなく `done` として扱うと、鶏肉の `SAF001` と卵の `SAF005` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S894・副作用とコスト・`cgolden/egg/mixture-chicken-par`（P3-2、2026-11-03）。材料ごとの検査で、診断を 1 つ出したらほかの材料の検査をやめると、卵の `SAF005` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S895・効かない条件・`G-CORE-GOLDEN`（P3-2、2026-11-03）。混ぜた物の行の末尾に材料を持つ印を出すと、`core-gcc-release` の golden が「559 passed, 21 failed」で落ちた（開発用の worktree ではほかの 3 つの構成をビルドしていないので、その 3 つは全件落ちとして数えられた）。戻すと合格した
 ---
 
 ## 10. リスク
