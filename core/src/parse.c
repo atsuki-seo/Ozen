@@ -1133,7 +1133,12 @@ static ozni_index type_range(parser *p) {
     return lo;
   }
   ozni_node_kind k = N(p, lo)->kind;
-  if (k == OZNI_N_Range || k == OZNI_N_RangeFrom || k == OZNI_N_RangeTo || k == OZNI_N_NumberRange) {
+  const char *src = p->c->srcs[p->file].text;
+  bool qty_range = false;
+  for (uint32_t i = N(p, lo)->span.start + 1; k == OZNI_N_Quantity && i < N(p, lo)->span.end; i++) {
+    qty_range = qty_range || (src[i - 1] == '.' && src[i] == '.');
+  }
+  if (k == OZNI_N_Range || k == OZNI_N_RangeFrom || k == OZNI_N_RangeTo || k == OZNI_N_NumberRange || qty_range) {
     return lo;
   }
   advance(p);
