@@ -1901,6 +1901,15 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 書き直しのわざと壊す確認: S727・副作用とコスト・`cgolden/bounds/dimension-before-range`（P8-4、2026-11-03）。次元が違っても範囲の判定を続けると `dimension-before-range`・`servings-flag-dimension` が落ちた。戻すと合格した
 - 書き直しのわざと壊す確認: S771・副作用とコスト・`cgolden/bounds/composite-range`（P8-4、2026-11-03）。合成の動作の中の照合の位置を呼び出し元に向けず中の呼び出しのまま出すと `composite-range` だけが落ちた。戻すと合格した
 - 書き直しのわざと壊す確認: S787・副作用とコスト・`cgolden/bounds/composite-range`（P8-4、2026-11-03）。中の照合で落ちたことを合成の動作の枠に記録しないと `composite-range` だけが落ちた。戻すと合格した
+- 見直しの範囲（P8-4、2026-11-03）: `fb-review-start` から `fb-review-end`（`febe26d`）の間のコミットは、比較の道具の `--allow`、`serve/use-within-*` の 7 個の書き直し、§9 の記録だけで、テストの追加・削除と実装の変更は無い（`G-FB-REVIEW-FILES`）
+- 書き直しのわざと壊す確認の数え方（P8-4、2026-11-03）: 3 つの計画の網羅表で書き直したテスト（`fb-start` から `fb-review-end` までに入力か期待が変わった、着手点からある golden の 36 個）を指す 39 行で、元の計画の壊し方を今のコードで作り直して確かめた。元の記録と落ちたテストの数が違ったものは、その理由を各行に書いた
+- わざと壊す確認: S938・データの完全性・`G-FB-REVIEW-TARGETS`（P8-1、2026-11-03）。§9 の `- 見直しの対象: ` から `args/issue1.ozen` の行を消すと「targets not listed: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S939・データの完全性・`G-FB-REVIEW-TARGETS`（P8-3、2026-11-03）。§9 の `- 書き直したテスト: ` の `args/issue1.ozen` の行の書き出しを変えると「targets without a record: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S940・副作用とコスト・`G-FB-REVIEW-SAME`（P8-3、2026-11-03）。§5.3 の行は「洗いの挿入を確かめる golden から `@newVessel` を外す」だが、「注釈で明示」に分類したテストが無いので、一時的な worktree で `fb-review-end` の `args/issue1` を殻付きの `fry(egg, 3 ml)` に戻したコミットを作り `--head` に渡した。「changed result: tests/golden/args/issue1」「1 changed results」で落ちた（名指しした `api/local-not-listed` は数えない）。worktree を消した（push していない）
+- わざと壊す確認: S941・データの完全性・`G-FB-REVIEW-SAME`（P8-4、2026-11-03）。§9 の `- 書き直しのわざと壊す確認: ` の S708 の行の書き出しを変えると、量の計画で「22 roadmap rows, 1 missing」になって落ちた。戻すと合格した
+- わざと壊す確認: S942・副作用とコスト・`G-FB-REVIEW-FILES`（P8-4、2026-11-03）。一時的な worktree で見直しの範囲に golden を 1 つ（`.ozen` と `.out`）足したコミットを作り、手元でタグ `fb-review-end` をそこに付け替えると「added, deleted or renamed tests: got '2'」で落ちた。タグを `febe26d` に戻し、worktree を消した（push していない）
+- わざと壊す確認: S943・データの完全性・`G-FB-REVIEW-ANNOT`（P8-3、2026-11-03）。§5.3 の行は「注釈で明示に分類したテストから注釈を消す」だが、そう分類したテストが無いので、`args/issue1.ozen` の分類を一時的に「注釈で明示」にすると「annotated rewrites without an annotation: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S944・前提の固定・`G-REPO-SELFTESTS`（P8-2、2026-11-03）。`--allow` の読み取りで名指しを足さずに捨てると、自己テストの `changed-allowed` が落ちて「selftests: ... 1 failed」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
