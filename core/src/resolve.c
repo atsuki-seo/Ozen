@@ -1157,10 +1157,29 @@ static bool binds_param(const ozni_project *pr, ozni_index file, ozni_index node
 
 static bool resolve_macro_call(walker *w, ozni_index file, const ozni_node *call) {
   const ozni_node *callee = node(w->pr, file, call->first);
-  if (callee->kind != OZNI_N_Name || scope_has(w, callee->text)) {
+  const ozni_node *base = callee->kind == OZNI_N_Member && callee->first != 0 ? node(w->pr, file, callee->first) : nullptr;
+  found f = {F_NONE, NONE, NONE};
+  if (base != nullptr && base->kind == OZNI_N_Name && !scope_has(w, base->text)) {
+    ozni_str q = str_of(w->pr->c, base->text), mn = str_of(w->pr->c, callee->text);
+    char buf[128];
+    if (q.len + mn.len + 1 > sizeof buf) {
+      return false;
+    }
+    ozni_copy(buf, q.p, q.len);
+    buf[q.len] = '.';
+    ozni_copy(buf + q.len + 1, mn.p, mn.len);
+    ozni_index qn = intern(w->pr->c, buf, q.len + 1 + mn.len);
+    if (!ozni_project_find(w->pr, w->mod, qn, &f.module, &f.def) ||
+        node(w->pr, M(w->pr, f.module)->file, def_at(M(w->pr, f.module), f.def)->node)->kind != OZNI_N_Macro) {
+      return false;
+    }
+    resolve_member(w, file, call->first);
+    f.kind = F_DEF;
+  } else if (callee->kind != OZNI_N_Name || scope_has(w, callee->text)) {
     return false;
+  } else {
+    f = resolve_name(w, callee->text, file, callee);
   }
-  found f = resolve_name(w, callee->text, file, callee);
   if (f.kind != F_DEF) {
     for (ozni_index a = callee->next; a != 0; a = node(w->pr, file, a)->next) {
       resolve_expr(w, file, a);

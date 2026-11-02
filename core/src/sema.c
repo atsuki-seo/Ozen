@@ -4933,8 +4933,7 @@ static value eval_inner(sema *s, ozni_index node) {
         nd(s, s->file, callee->next)->next != 0) {
       return eval_split(s, n);
     }
-    if (callee->kind == OZNI_N_Name && find_def(s, callee->text, &afile, &anode) &&
-        nd(s, afile, anode)->kind == OZNI_N_Macro) {
+    if (cname != 0 && find_def(s, cname, &afile, &anode) && nd(s, afile, anode)->kind == OZNI_N_Macro) {
       return eval_macro(s, n, afile, anode);
     }
     if (callee->kind == OZNI_N_Member && str_is(S(s, callee->text), "has") && callee->first != 0 &&
