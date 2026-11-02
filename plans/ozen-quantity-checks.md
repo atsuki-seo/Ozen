@@ -853,6 +853,27 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - 利用者の設備の設定の型（P2-1、2026-11-02）: `type ScaleSpec : EquipmentSpec { maxLoad: Mass in 0 g.. }` の範囲付きのフィールドは、`--emit types` の `equipment` の `Scale` に `"min":"0 g"` として出る。`types-json-exclusive` はこの型で書いた
 - `bounds/types-json-exclusive` の期待の作り方（P2-1、2026-11-02）: 型の一覧の JSON は標準の設備と器の型をすべて含み、手で書くには長い。そこで、同じ名前のファイルで範囲を閉じた形（`0 g..`）にしたものを着手点のビルド `build/qc-start-ozen` に掛けた出力を土台にし、`maxLoad` のフィールドだけを手で `"min":"0 g","minExclusive":true,"max":null` に直した。ほかの部分は本計画で変わらない（D79）ので、変える前の実装がオラクルになる。P3 で `Options.servings` の `min` が `"1"` になるので、そのとき期待を直す
 - `bounds/expression-unchanged` の期待（P2-1、2026-11-02）: §5.2 のとおり、`build/qc-start-ozen debug ast` の出力から作った（`3 min<..5 min` が `Binary <` と `RangeTo` に読まれる）
+- `<..` の読み方と AST の表し方（P2-2、2026-11-02）: 新しい規則 `type_range` を `type()` の `in` の後だけで読む関数にした。`range()` で読んだ値の直後に `<` があり、その次のトークンが空白を挟まない `..` のときだけ、新しい節の種類 `RangeAbove`（子は下端と、あれば上端）を作る。印ではなく節の種類にしたのは、範囲を読む 3 か所（`check_qty`・`put_field`・診断の範囲の文字）がどれも節の種類で分岐しているため。`RangeAbove` と規則 `type_range` は、既存の番号を変えないよう `ast.h` の節の種類と `rules.def` の末尾に足した。既存の golden はすべて変わらず合格し（`T<shape: cut>` の型の引数を含む）、式の中の `3 min<..5 min` は `bounds/expression-unchanged` のとおり今までと同じ木になる。§3.2 の見込みどおり衝突は無い
+- `schemas/result.schema.json` の `"min": {` は 4 か所（設備・器・台所・条件の型のフィールド）あり、4 か所すべてに `minExclusive` を足した（`G-QC-SCHEMA` は数が同じことを見る）
+- S718 のわざと壊す方法の場所（P2-2、2026-11-02）: `mark(p, OZNI_R_type_range)` は `type()` ではなく、`type()` から呼ぶ `type_range()` の先頭に置いた。わざと壊す確認はそこを消して行った
+- わざと壊す確認: S765・実際の経路・`cgolden/bounds/make-arg-range`（P2-2、2026-11-02）。`make` の照合に範囲を外した型を渡すと `make-arg-range` が落ちた。戻すと合格した
+- わざと壊す確認: S709・境界・上限・`cgolden/bounds/exclusive-from`（P2-2、2026-11-02）。下端を含まない判定を閉区間の判定にする（下端ちょうどを通す）と `exclusive-from` を含む 6 本が落ちた。戻すと合格した
+- わざと壊す確認: S710・境界・上限・`cgolden/bounds/exclusive-upper-inclusive`（P2-2、2026-11-02）。上端の判定を `>=` にすると `exclusive-upper-inclusive` が落ちた。戻すと合格した
+- わざと壊す確認: S710・境界・上限・`cgolden/bounds/exclusive-upper-over`（P2-2、2026-11-02）。`type_range()` で `a<..b` の上端を読み捨てると `exclusive-upper-over` が落ちた。戻すと合格した
+- わざと壊す確認: S711・効かない条件・`cgolden/bounds/exclusive-space`（P2-2、2026-11-02）。`<` と `..` の間の空白を許すと `exclusive-space` が落ちた。戻すと合格した
+- わざと壊す確認: S712・正常系・`cgolden/bounds/exclusive-from`（P2-2、2026-11-02）。診断の 3 つ目の引数を下端の文字だけにすると `exclusive-from` を含む 7 本が落ちた。戻すと合格した
+- わざと壊す確認: S713・境界・上限・`cgolden/bounds/exclusive-interval`（P2-2、2026-11-02）。区間の値の下端の判定に値の上端を使うと `exclusive-interval` が落ちた。戻すと合格した
+- わざと壊す確認: S714・効かない条件・`cgolden/bounds/closed-zero-ok`（P2-2、2026-11-02）。閉じた範囲も下端を含まない判定にすると `closed-zero-ok` が落ちた。戻すと合格した
+- わざと壊す確認: S715・効かない条件・`cgolden/bounds/expression-unchanged`（P2-2、2026-11-02）。`range()`（式と共用）で `<..` を読むと `expression-unchanged`・`exclusive-space` が落ちた。戻すと合格した
+- わざと壊す確認: S766・実際の経路・`cgolden/bounds/exclusive-kitchen`（P2-2、2026-11-02）。`check_value`（台所の設定の経路）では下端を含まない範囲を見ないと `exclusive-kitchen` が落ちた。戻すと合格した
+- わざと壊す確認: S767・境界・上限・`cgolden/bounds/exclusive-count`（P2-2、2026-11-02）。下端が数だけのときは下端を含まない印を読み捨てると `exclusive-count`・`exclusive-empty` が落ちた。戻すと合格した
+- わざと壊す確認: S768・境界・上限・`cgolden/bounds/exclusive-empty`（P2-2、2026-11-02）。下端と上端が等しい範囲では下端の判定を閉区間にすると `exclusive-empty` が落ちた。戻すと合格した
+- わざと壊す確認: S716・データの完全性・`cgolden/bounds/types-json-exclusive`（P2-2、2026-11-02）。`minExclusive` を出さないと `types-json-exclusive` が落ちた。戻すと合格した
+- わざと壊す確認: S716・効かない条件・`cgolden/api/types-json`（P2-2、2026-11-02）。下端のある範囲にはすべて `minExclusive` を出し、含む範囲では `false` にすると `api/types-json` が落ちた。戻すと合格した
+- わざと壊す確認: S717・データの完全性・`G-QC-SCHEMA`（P2-2、2026-11-02）。スキーマの型のフィールドから `minExclusive` を消すと「minExclusive beside min: got '0'」と「schema: got 'json: 1 files, 1 invalid'」で落ちた。戻すと合格した
+- わざと壊す確認: S718・データの完全性・`G-CORE-GRAMMAR`（P2-2、2026-11-02）。`type_range()` の `mark(p, OZNI_R_type_range)` を消すと「grammar: 134 rules, 1 not covered」で落ちた。戻すと合格した
+- わざと壊す確認: S718・文書との一致・`G-QC-SYNTAX`（P2-2、2026-11-02）。`core/grammar.ebnf` から `type_range` の規則を消すと「grammar type_range: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S719・データの完全性・`G-QC-SYNTAX`（P2-2、2026-11-02）。`core/fuzz/ozen.dict` から `"<.."` を消すと「fuzz dict: got '0'」で落ちた。戻すと合格した
 
 ---
 
