@@ -819,6 +819,10 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S755・副作用とコスト・`G-RF-GOLDEN-COUNT`（P0-3、2026-11-02）。一時的な worktree で `readme-start` にある golden `linear/unused-alias` を消すと「readme-start goldens missing now: got '1'」で落ちた。worktree を消すと合格した
 - わざと壊す確認: S781・前提の固定・`G-QC-RD-RANGE`（P0-3、2026-11-02）。`goals.sh` の `RD=` を `readme-start..HEAD` に戻すと「RD range: got '0'」で落ち、`G-RD-SCOPE` も「files outside scope: got '57'」で落ちた（計画を書いた時点の 2 から、後の作業でさらに増えていた）。戻すと合格した
 - わざと壊す確認: S757・正常系・`G-QC-CLAUDEMD`（P0-3、2026-11-02）。`CLAUDE.md` の本計画の行の `qc-start` を `qc` にすると「plan line in CLAUDE.md: got '0'」で落ちた。戻すと合格した
+- 赤の確認（P1-1、2026-11-02）: `9426fff` で足した 18 個（`volume-for-time`・`mass-for-length`・`unitless-time`・`count-param`・`named-arg`・`pipe-arg`・`variable-arg`・`macro-body`・`macro-splice`・`composite`・`user-dimension`・`continues-after`・`issue1`・`range-units-steps`・`range-units-dimension`・`range-units-mixed`・`range-units-ingredient`・`make-arg-dimension`）は、着手点のビルドですべて落ちた（赤）。`144bba6` で足した対照の 3 個（`ok-units`・`unknown-value`・`default-unchecked`）は合格し、`scripts/red-first-exceptions.txt` に載せた
+- `args/unknown-value` の書き方（P1-1、2026-11-02）: §5.3 の見込み（`eval/runtime-value-in-if` の書き方）ではなく、既定値の無いレシピの引数 `recipe tamagoyaki(t: Time)` を動作に渡す形にした。単独で検査するとき `t` は値を持たず（`debug steps` に `fry(egg, t)` と出る）、比較の `TYP015` のような別の診断が混ざらない
+- `args/composite` の形（P1-1、2026-11-02）: 中で引数を使わない `quickA` と、中の `fry(x, t)` に引数を渡す `quickB` の 2 つの合成の動作を並べた。`quickB` だけでは、外の照合を飛ばしても中の照合が同じ位置に同じ診断を出すので、S702 のわざと壊す確認が効かないため
+- 利用者の動作の golden（`count-param`・`user-dimension`・`default-unchecked`）は、卵（`Hazard`）だと加熱しない動作の結果が `SAF001` になるので、豆腐（`RawEdible`）を使った
 
 ---
 
