@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { Phrases } from '../lib/phrases.mjs';
-import { actionText } from '../lib/names.mjs';
+import { actionText, termText } from '../lib/names.mjs';
 import { renderRecipe } from '../lib/recipe.mjs';
 import { root, result, stdPhrases, definitions } from './helpers.mjs';
 
@@ -36,4 +36,10 @@ test('cracking and beating an egg is one sentence', () => {
   const boiled = renderRecipe(result(inputs, ['--entry', 'boiledEgg', 'eggs.ozen']), ph);
   assert.match(boiled, /^1\. 卵を10 分ゆでる。$/m);
   assert.match(boiled, /^2\. 卵の殻をむく。$/m);
+});
+
+test('a dirt with an argument is named with its kind', () => {
+  const ph = new Phrases([stdPhrases()], { lang: 'ja' });
+  assert.equal(termText(ph, 'dirt', 'allergen(egg)'), 'アレルゲン（卵）');
+  assert.equal(termText(ph, 'dirt', 'rawEgg'), '生卵');
 });
