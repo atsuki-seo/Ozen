@@ -877,6 +877,10 @@ static void unexpected_token(parser *p, ozni_token t) {
   p->failed = true;
 }
 
+static bool qualified(parser *p, ozni_index n) {
+  return N(p, n)->kind == OZNI_N_Member && N(p, n)->first != 0 && N(p, N(p, n)->first)->kind == OZNI_N_Name;
+}
+
 static ozni_index pipe_into(parser *p, uint32_t start, ozni_index left) {
   ozni_token first = *cur(p);
   if (first.kind != OZNI_T_IDENT) {
@@ -893,8 +897,14 @@ static ozni_index pipe_into(parser *p, uint32_t start, ozni_index left) {
     add(p, n, left);
     return finish(p, n);
   }
+  if (qualified(p, r)) {
+    ozni_index n = node(p, OZNI_N_Call, start);
+    add(p, n, r);
+    add(p, n, left);
+    return finish(p, n);
+  }
   ozni_node *call = N(p, r);
-  if (call->kind != OZNI_N_Call || N(p, call->first)->kind != OZNI_N_Name) {
+  if (call->kind != OZNI_N_Call || (N(p, call->first)->kind != OZNI_N_Name && !qualified(p, call->first))) {
     unexpected_token(p, first);
     return 0;
   }
