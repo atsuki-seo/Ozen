@@ -747,6 +747,17 @@ S704 の golden（`args/unknown-value`）は、評価の時点で決まらない
 - `servings` を持たない料理への `make gohan(servings: 0)`、人数を式で書いた見出し、`Time in 0 s` の無視、数だけの範囲が JSON に出ないこと — どれも既存の別の挙動で、スコープ外にした（§1）。最初のものは別の作業として提案する
 - §8 の文の伝わり方を grep で確かめる案 — 引数を使うことは `G-QC-DIAG` に足した。文が伝わるかは引き続き §8
 
+網羅の監査（P4-2、2026-11-02、独立したサブエージェント）の指摘 23 件のうち、取り込まなかった 8 件と理由:
+
+- 1-1 S763 を描画した文章で確かめていない — 文章は材料の量（`debug steps` に出る値）から作る既存の描画の経路で、量が付いた材料の文章は既存の描画のテストが確かめている。本計画で変えたのは量が付くかどうかで、`args/range-units-ingredient` がそれを見る
+- 1-3 入れ子のマクロで差し込んだ量の trail — 位置と trail は既存の `arg_site` が決め、状態の照合と共用している。入れ子の trail は既存の golden（`macro/trail-nested` など）が確かめている
+- 1-5 温度の次元違いのテストが無い — 次元の照合は次元の名前に依らない（`dim_index` の値で比べる）作りで、6 つの標準の次元と利用者の次元（`args/user-dimension`）のうち代表を確かめれば足りる
+- 2-4 合成の動作の定義の誤り（外の `t: Time` を中の `cut` の `Length` に渡す）が呼び出し元の位置に出る — 定義の誤りをどこに・何回出すかは、D78（既定値）と同じ種類の設計判断が要る。Issue の範囲（呼び出しの誤り）の外なので、最終ゲートの後に別の作業として提案する
+- 2-5 合成の動作の中で引数を式にして渡したときの位置と trail — 合成の動作の中の診断（状態の照合など）は今も定義の中の位置に trail 無しで出る既存の振る舞いで、量の照合もそれに従う。2-4 と合わせて提案する
+- 2-11 `<` の前の空白（`0 s <..`）を許す — D73 が決めたのは `<` と `..` の間の空白だけで、`<` の前は式の比較（`3 min < 5 min`）と同じく空白を許すのが自然。§4 を変えない
+- 2-13 片側に単位の無い範囲（`1 ml..2`）の `TYP001` の引数の形 — 二項演算の次元違い（`$amount + 1 min`）と同じ `[左の次元, 右の次元]` の形で、`args/range-units-mixed` が同じ形を確かめている
+- 2-14 合成の動作の中で引数の名前を `let` で束縛し直したとき — 束縛し直しは既に `NAM003` のエラーで、誤ったプログラムの二次的な診断の形は決めない
+
 ---
 
 ## 6. フェーズとタスク
@@ -945,7 +956,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S773・副作用とコスト・`cgolden/bounds/servings-invalid-amounts`（P3-3、2026-11-02）。範囲外の人数を未知にせずそのまま使うと `servings-invalid-amounts` が落ちた（`150 ml * servings` に `TYP021`）。人数が範囲外でも `TYP020` を出す形でも落ちた。戻すと合格した
 - わざと壊す確認: S785・効かない条件・`cgolden/bounds/servings-invalid-amounts`（P3-3、2026-11-02）。人数が範囲外のときは `per serving` の量の判定も飛ばすと `servings-invalid-amounts` が落ちた。戻すと合格した
 - わざと壊す確認: S741・データの完全性・`cgolden/api/types-json`（P3-3、2026-11-02）。`Options.servings` の範囲を消すと `types-json` が落ちた。戻すと合格した
-- わざと壊す確認: S774・実際の経路・`rtest/settings-servings-min`（P3-3、2026-11-02）。テストの入力（`api/types-json` の期待）の `Options.servings` の `min` を `null` に戻すと `settings-servings-min` が落ちた。戻すと合格した
+- わざと壊す確認: S774・実際の経路・`rtest/settings-servings-min`（P3-3・P4-2、2026-11-02）。`settingsSpec` が省略可能な型（`Count?`）の `min` を捨てるようにすると `settings-servings-min` が落ちた。戻すと合格した（P3-3 ではテストの入力を書き換える方法で確かめたが、監査の指摘 4-1 のとおり実装を壊していないので、P4-2 で実装側の壊し方に差し替えた）
 - わざと壊す確認: S742・境界・上限・`cgolden/bounds/optional-ranged`（P3-3、2026-11-02）。`base_type` の入れ子の外し方を元に戻すと `optional-ranged` を含む 11 本が落ちた。戻すと合格した
 - わざと壊す確認: S743・正常系・`cgolden/bounds/servings-header-zero`（P3-3、2026-11-02）。型の無い `servings` の検査を消すと `servings-header-zero`・`servings-menu-header`・`servings-invalid-amounts` が落ちた。戻すと合格した
 - わざと壊す確認: S744・正常系・`cgolden/bounds/servings-typed-zero`（P3-3、2026-11-02）。型だけの `servings` では検査しないと `servings-typed-zero` が落ちた。戻すと合格した
@@ -967,6 +978,19 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S756・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept §4.2 から `0 s<..` の例（文と `boil` の例の行）を消すと「concept 4.2 example: got '0'」で落ちた。戻すと合格した
 - わざと壊す確認: S783・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept §4.2 の「範囲外は必ずエラー」の文から動作の引数を消すと「concept 4.2 action arguments: got '0'」で落ちた。戻すと合格した
 - わざと壊す確認: S784・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept の `type Options` の例の `servings` を `Count` に戻すと「concept Options servings: got '0'」で落ちた。戻すと合格した
+- 網羅の監査: 指摘 23 件、取り込み 15 件（P4-2、2026-11-02）。独立したサブエージェントに §1・§4・§8・網羅表・足した golden・実装の差分を読ませ、実際に動かして確かめさせた。取り込んだのは、実際に誤った出力が出た 5 件（2-1 逆順の範囲が未知になる、2-2 合成の動作で同じ引数を 2 回使うと 2 行出る、2-3 合成の動作の既定値が中で検査される、2-6 レシピの引数の誤った既定値が 2 か所で出る、2-8 `make` の範囲外の人数で料理を 0 人分として評価する）と、2-10（`0..1 min<..` を受け付ける）の修正、テストの無かった経路の golden（1-4・2-7・2-9・2-12）、文書と `G-QC-SYNTAX` の上端の記述（1-2・3-2）、`G-QC-ISSUES` と `G-QC-DIAG` の検査の追加（3-1・3-3）、S774 の壊し方の差し替え（4-1）。§4 に S786〜S795 を足し、golden を 5 個足して 3 個を直した（§5.2）。取り込まなかった 8 件の理由は §5.3 の末尾
+- 監査の後の修正のコミット（P4-2、2026-11-02）: golden の追加は `0310942`（赤。修正前のビルドで `args/default-unchecked`・`args/range-units-steps`・`args/recipe-default-once`・`bounds/composite-range`・`bounds/exclusive-range-lower`・`bounds/servings-make-invalid` が落ちた）と `f6f06a3`（対照。`scripts/red-first-exceptions.txt` に載せた）、修正は `f9dbcf9`（範囲の両端の並べ直し）・`f9c4efb`（`0..1 min<..` の拒否）・`4e8e19e`（合成の動作の引数を 1 回だけ出し、既定値は検査しない）・`08059da`（型に落ちたレシピの引数と `make` の引数を未知にする）
+- 1 文字の名前（P4-2、2026-11-02）: 前提ゴールの `G-RF-NAMES` が、本計画の golden の 1 文字の束縛の名前（`let s`・`let t`・`recipe a` など）で落ちた。`4bfd2d3` で `dish`・`time`・`limit` に直し、Issue の再現をそのまま写した `args/issue1` と `bounds/issue2` だけを `scripts/test-names-exceptions.txt` に理由付きで載せた。`bounds/expression-unchanged` の期待は、名前を直した入力で着手点のビルドから作り直した。`bounds/types-json-exclusive` の期待も、上端のあるフィールドを足した入力で同じ作り方（着手点のビルドの出力に手で `minExclusive` と `Options.servings` の `min` を足す）で作り直した
+- わざと壊す確認: S786・境界・上限・`cgolden/args/range-units-steps`（P4-2、2026-11-02）。下端が上端より大きい範囲を未知の値にすると `range-units-steps` が落ちた。戻すと合格した
+- わざと壊す確認: S787・副作用とコスト・`cgolden/bounds/composite-range`（P4-2、2026-11-02）。中の照合で落ちたことを合成の動作の枠に記録しないと `composite-range` が落ちた（`twice` の `0 s` に 2 つ出る）。戻すと合格した
+- わざと壊す確認: S788・効かない条件・`cgolden/args/default-unchecked`（P4-2、2026-11-02）。`qty_site` で合成の動作の既定値の枠を飛ばさないと `default-unchecked` が落ちた。戻すと合格した
+- わざと壊す確認: S789・副作用とコスト・`cgolden/args/recipe-default-once`（P4-2、2026-11-02）。型に落ちたレシピの引数も束縛すると `recipe-default-once` が落ちた（`boil` の位置にも `TYP001`）。戻すと合格した
+- わざと壊す確認: S790・効かない条件・`cgolden/bounds/exclusive-range-lower`（P4-2、2026-11-02）。`type_range()` で単位付きの数の範囲を下端として受け付けると `exclusive-range-lower` が落ちた。戻すと合格した
+- わざと壊す確認: S791・副作用とコスト・`cgolden/bounds/servings-flag-invalid-amounts`（P4-2、2026-11-02）。条件の側で誤りでも見出しの側で人数を束縛すると `servings-flag-invalid-amounts`・`servings-flag-header-range`・`servings-flag-dimension` が落ちた。戻すと合格した
+- わざと壊す確認: S792・データの完全性・`cgolden/bounds/servings-make-invalid`（P4-2、2026-11-02）。`make` の照合に落ちた引数をそのまま料理に渡すと `servings-make-invalid` が落ちた。戻すと合格した
+- わざと壊す確認: S793・実際の経路・`cgolden/bounds/servings-make-own-range`（P4-2、2026-11-02）。`make` の人数を見出しの範囲を見ずに `Options.servings` の型で検査すると `servings-make-own-range` が落ちた。戻すと合格した
+- わざと壊す確認: S794・データの完全性・`cgolden/bounds/types-json-exclusive`（P4-2、2026-11-02）。`put_field` で `RangeAbove` の上端を `max` に出さないと `types-json-exclusive` が落ちた。戻すと合格した
+- わざと壊す確認: S795・文書との一致・`G-QC-SYNTAX`（P4-2、2026-11-02）。concept §4.2 から「上端は含む」を消すと「concept 4.2 upper end included: got '0'」で落ちた。戻すと合格した
 
 ---
 
