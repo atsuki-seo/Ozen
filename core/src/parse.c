@@ -1374,8 +1374,12 @@ static ozni_index ingredients_stmt(parser *p) {
     ozni_index it = node_here(p, OZNI_N_Item);
     set_text(p, it, name_of(p, it));
     expect(p, OZNI_T_COLON);
+    ozni_index after = 1;
+    while (kind_at(p, after) == OZNI_T_DOT && kind_at(p, after + 1) == OZNI_T_IDENT) {
+      after += 2;
+    }
     if (at(p, OZNI_T_IDENT) && !p->failed &&
-        (is_amount_start(p, 1) || kind_at(p, 1) == OZNI_T_LT || kind_at(p, 1) == OZNI_T_LBRACKET)) {
+        (is_amount_start(p, after) || kind_at(p, after) == OZNI_T_LT || kind_at(p, after) == OZNI_T_LBRACKET)) {
       add(p, it, type_ref(p));
     }
     uint32_t amount_start = cur(p)->start;
