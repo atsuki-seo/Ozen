@@ -1449,6 +1449,34 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S854・文書との一致・`rtest/pan-preheat-text`（P5-3、2026-11-03）。`preheat-pan` の日本語から火加減を消すと 1 つ目のテストが落ちた。戻すと合格した
 - わざと壊す確認: S907・効かない条件・`rtest/pan-preheat-text`（P5-3、2026-11-03）。レシピの文章にも予熱の行を出すと 2 つ目のテストが落ちた。戻すと合格した
 - わざと壊す確認: S908・実際の経路・`rtest/pan-preheat-html`（P5-3、2026-11-03）。予熱の文を `heats.temp` が無いときに作らない（作業の名前だけにする）と段取り表のテストが落ちた。戻すと合格した
+- 揚げる動作（P5-4、2026-11-03）: std に `deepFry(x: T<shape != inShell>, oil: Oil, time: Time in 0 s<.., temp: Temperature = 170 degC) -> T<doneness: done, browning: golden>` を足した。`uses hands, HeatSource<stovetop>, Pot<heated: temp>`、`leaves: oil on Pot`。油は食材の引数として消費する。鍋の予熱はオーブンと同じ温度の比較で、コンロの口を占有する規則はフライパンと同じ（`HeatSource` でない道具の予熱）。段取りの文章では、温める道具の種類が `Pot` の予熱を `preheat-oil`（「油を170℃に熱する」）で書く。レシピの文章の温度の引数（`170 degC`）は言い回しの `temperature = { $n }℃` で書く（オーブンの予熱の文「オーブンを220℃に予熱する」と同じく数と ℃ の間に空白を入れない）
+- R8 の判断（P5-4、2026-11-03）: golden の中で自前の `action deepFry(x: T)` を定義する 8 個（`serve/use-within-*`）は、名前を変えずに期待を直した。std に同じ名前ができると `NAM006 localOverride`（情報）が 1 つ加わるだけで、golden の目的（`@useWithin` の段取り）は変わらず、名前を変えると紹介ページのかき揚げの抜粋（`use-within-kakiage`）と元の golden の入力の両方を書き換えることになるため
+- `deepfry/burner` の鍋（P5-4、2026-11-03）: 手で書いた期待は、湯を沸かした鍋と別の鍋（`pot#2`）で油を温めるとしていたが、コンロの口が 1 つで、どちらの鍋でも口の空きを待って終わりの時刻が同じになるので、段取りは使う道具の少ないほう（`pot#1`）を選ぶ。S925（予熱が口の空きを待つ）には合うので期待を直した（足した golden なので名指しの対象ではない）
+- `deepfry/after-simmer`（P5-4、2026-11-03）: 「揚げる → 同じ鍋で煮る → 揚げる」の順になる入力は、作業の順が段取りの優先で決まるので、実装の後に作り、出力の各行（2 つの `rest`、油の予熱、1 つ目の `deepFry`、油の後の洗い、`simmer`、土の後のすすぎ、2 回目の油の予熱、2 つ目の `deepFry`）を予熱と洗いの規則に照らして確かめてから期待にした。足す時点で合格するので `scripts/red-first-exceptions.txt` に理由を書いた
+- 期待を直した golden: `tests/golden/serve/use-within-range.out` — std に `deepFry` が加わり、自前の `deepFry` に `NAM006 localOverride`（情報）が出るようになった（R8）
+- 期待を直した golden: `tests/golden/serve/use-within-backward.out` — std に `deepFry` が加わり、自前の `deepFry` に `NAM006 localOverride`（情報）が出るようになった（R8）
+- 期待を直した golden: `tests/golden/serve/use-within-ir.out` — std に `deepFry` が加わり、自前の `deepFry` に `NAM006 localOverride`（情報）が出るようになった（R8）
+- 期待を直した golden: `tests/golden/serve/use-within-basic.out` — std に `deepFry` が加わり、自前の `deepFry` に `NAM006 localOverride`（情報）が出るようになった（R8）
+- 期待を直した golden: `tests/golden/serve/use-within-json.out` — std に `deepFry` が加わり、自前の `deepFry` に `NAM006 localOverride`（情報）が出るようになった（R8）
+- 期待を直した golden: `tests/golden/serve/use-within-on-ingredient.out` — std に `deepFry` が加わり、自前の `deepFry` に `NAM006 localOverride`（情報）が出るようになった（R8）
+- 期待を直した golden: `tests/golden/serve/use-within-kakiage.out` — std に `deepFry` が加わり、自前の `deepFry` に `NAM006 localOverride`（情報）が出るようになった（R8）
+- 期待を直した golden: `tests/golden/serve/use-within-two-consumers.out` — std に `deepFry` が加わり、自前の `deepFry` に `NAM006 localOverride`（情報）が出るようになった（R8）
+- 期待を直した golden: `tests/golden/api/signatures-json.out` — P5-4 で std に `deepFry` が加わった
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — P5-4 で std に `deepFry` が加わり、`Pot` に `preheatTime` が加わった
+- わざと壊す確認: S923・データの完全性・`G-FB-PRELUDE`（P5-4、2026-11-03）。`deepFry` の出力を `T<doneness: done>` にすると「deepFry: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S923・正常系・`cgolden/deepfry/preheat-oil`（P5-4、2026-11-03）。`deepFry` の `uses` を `Pot` に戻すと予熱の行が消えて落ちた。戻すと合格した
+- わざと壊す確認: S924・データの完全性・`cgolden/deepfry/preheat-oil`（P5-4、2026-11-03）。`Pot` の `preheatTime` を `2..4 min` にすると予熱の行が `0..240 (120)` になって落ちた。戻すと合格した
+- わざと壊す確認: S924・前提の固定・`G-STD-PROVENANCE`（P5-4、2026-11-03）。`Pot` の `preheatTime` から `@source(provisional)` を消すと「provenance: 119 values, 1 without source」で落ちた。戻すと合格した
+- わざと壊す確認: S925・副作用とコスト・`cgolden/deepfry/burner`（P5-4、2026-11-03）。コンロの口を占有する予熱をフライパンだけにすると、油の予熱が湯を沸かす間に別の鍋で始まり、`[pot#2]` だけになって落ちた。戻すと合格した
+- わざと壊す確認: S926・時間と順序・`cgolden/deepfry/same-temp`（P5-4、2026-11-03）。温度を比べず毎回温め直すと、2 つ目の `deepFry` の前に予熱が入って落ちた。戻すと合格した
+- わざと壊す確認: S927・副作用とコスト・`cgolden/deepfry/oil-consumed`（P5-4、2026-11-03）。`deepFry` の `oil` を消費しないと、2 回目の `LIN001` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S928・文書との一致・`rtest/deepfry-text`（P5-4、2026-11-03）。`preheat-oil` の日本語から温度を消すと 1 つ目のテストが落ちた。戻すと合格した
+- わざと壊す確認: S928・データの完全性・`G-FB-PHRASES`（P5-4、2026-11-03）。`action-deep-fry` の英語を消すと「en action-deep-fry: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S929・時間と順序・`cgolden/deepfry/after-simmer`（P5-4、2026-11-03）。温度を要らない作業の後でも鍋を温かいままにすると、2 回目の油の予熱が消えて落ちた。戻すと合格した
+- わざと壊す確認: S930・文書との一致・`G-FB-CONCEPT`（P5-4、2026-11-03）。`concept-lists.yaml` から `deepFry` を消すと「concept lists actions: got '2'」で落ちた。戻すと合格した
+- わざと壊す確認: S930・前提の固定・`G-VOCAB-LISTS-COPY`（P5-4、2026-11-03）。ロードマップ §4.7 の表から `deepFry` の行を消すと「copy: 260 identifiers, 1 differences」で落ちた。戻すと合格した
+- わざと壊す確認: S813・データの完全性・`G-FB-PRELUDE`（P5-4、2026-11-03）。`layer` の要求から `shape != inShell` を消すと「actions needing the inside: got '8'」で落ちた。戻すと合格した（9 つ目の `deepFry` が入るまで待って確かめた）
+- わざと壊す確認: S813・効かない条件・`G-FB-PRELUDE`（P5-4、2026-11-03）。`boil` の要求に `shape != inShell` を足すと「actions taking the shell: got '1'」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
