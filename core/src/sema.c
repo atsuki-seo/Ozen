@@ -4429,7 +4429,7 @@ static void apply_until(sema *s, ozni_index file, const ozni_node *until, const 
   for (uint32_t k = 0; k < np; k++) {
     has_time = has_time || str_is(S(s, pnames[k]), "time");
   }
-  if (timed || !has_time) {
+  if (!has_time) {
     return;
   }
   ozni_qty sum = {0};
@@ -4451,6 +4451,9 @@ static void apply_until(sema *s, ozni_index file, const ozni_node *until, const 
       sum.v.lo = ozni_rat_cmp(q.v.lo, sum.v.lo) < 0 ? q.v.lo : sum.v.lo;
       sum.v.hi = ozni_rat_cmp(q.v.hi, sum.v.hi) > 0 ? q.v.hi : sum.v.hi;
     }
+  }
+  if (timed) {
+    return;
   }
   if (!found) {
     diag_node(s, OZNI_D_TYP_untilTime, file, v, args, 2);
