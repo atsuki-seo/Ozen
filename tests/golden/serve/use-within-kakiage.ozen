@@ -1,0 +1,26 @@
+// args: debug schedule --options today
+action whisk(x: T) -> T {
+  uses hands for 5 min
+}
+action coat(x: T, batter: U) -> T {
+  uses hands for 2 min
+}
+action deepFry(x: T) -> T<doneness: done> {
+  uses hands for 10 min
+}
+recipe kakiage {
+  ingredients {
+    egg: 1 pcs
+    water: 200 ml
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let batter = whisk([egg, water]) @useWithin(5 min)
+  let onionCut = onion |> peel |> cut(style: slice)
+  let carrotCut = carrot |> cut(style: julienne)
+  let coated = coat([onionCut, carrotCut], batter)
+  let fried = coated |> deepFry
+}
+kitchen today : Options {
+  cooks: 1
+}
