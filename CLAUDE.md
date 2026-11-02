@@ -15,6 +15,7 @@
 - The follow-up plan for the syntax refresh, the test rewrite and the prototype removal is `plans/ozen-syntax-refresh.md`. Its goals are the `G-RF-*` goals in its §5, its history range starts at the tag `refresh-start`, and the roadmap goals it lists in §5 remain prerequisites.
 - The plan for the compact README and the per-folder documents is `plans/ozen-readme-compact.md`. Its goals are the `G-RD-*` goals in its §5, and its history range starts at the tag `readme-start`.
 - The plan for checking quantity arguments and non-positive amounts is `plans/ozen-quantity-checks.md`. Its goals are the `G-QC-*` goals in its §5, and its history range starts at the tag `qc-start`.
+- The plan for the cooking feedback (cracking eggs, `until:` and subject-first calls) is `plans/ozen-cooking-feedback.md`. Its goals are the `G-FB-*` goals in its §5, and its history range starts at the tag `fb-start`.
 
 ## Publishing
 

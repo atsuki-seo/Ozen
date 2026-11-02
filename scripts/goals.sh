@@ -37,6 +37,8 @@ OZ=build/core-gcc-release/ozen
 OLD="git show readme-start:README.md"
 QC=qc-start..qc-end
 PLAN_QC=plans/ozen-quantity-checks.md
+FB=fb-start..HEAD
+PLAN_FB=plans/ozen-cooking-feedback.md
 DOCS_RD="README.md CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md"
 
 fct_source() {
@@ -1291,6 +1293,277 @@ goal_G_QC_ISSUES() {
 
 goal_G_QC_AUDIT() {
   want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_QC)"
+}
+
+goal_G_FB_DECISIONS() {
+  want_eq "decided" 28 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_FB)"
+  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*【未決】' $PLAN_FB)"
+  want_eq "decision lines" 28 "$(grep -c '^- \*\*決定:' $PLAN_FB)"
+}
+
+goal_G_FB_COVERAGE() {
+  want_eq "S items without coverage rows" "" \
+    "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_FB | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
+            <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_FB | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u))"
+  want_eq "handoff items without reason" 0 \
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_FB | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
+}
+
+goal_G_FB_PLAN_NAMES() {
+  want_re "plan-tests" '^plan-tests: [1-9][0-9]* names, 0 missing$' \
+    "$(scripts/check-plan-tests.sh $PLAN_FB 2>/dev/null | tail -n 1)"
+}
+
+goal_G_FB_PLAN_TESTS() {
+  local out m
+  out=$(scripts/check-plan-tests.sh --mutations $PLAN_FB 2>/dev/null | tail -n 1)
+  m=$(last_num "$out" 1)
+  want_eq "mutations" "mutations: $m rows, $m recorded" "$out"
+}
+
+goal_G_FB_GOLDEN_EGG() { qc_golden_dir egg 38; }
+goal_G_FB_GOLDEN_UNTIL() { qc_golden_dir until 23; }
+goal_G_FB_GOLDEN_PAN() { qc_golden_dir pan 8; }
+goal_G_FB_GOLDEN_SAMEPOT() { qc_golden_dir samepot 13; }
+goal_G_FB_GOLDEN_CUE() { qc_golden_dir cue 4; }
+goal_G_FB_GOLDEN_DEEPFRY() { qc_golden_dir deepfry 5; }
+
+goal_G_FB_GOLDEN_CHANGED() {
+  local f
+  want_eq "tag fb-start" ok "$(git rev-parse -q --verify refs/tags/fb-start >/dev/null && echo ok)"
+  want_eq "changed expectations not named in the plan" 0 \
+    "$(git diff --name-only --no-renames --diff-filter=MD fb-start HEAD -- 'tests/golden/**/*.out' 'tests/golden/**/expected.out' \
+         'tests/golden/**/*.ozen' 'renderers/test/**' 'samples/*/expect.yaml' |
+       while IFS= read -r f; do grep -qF -- "- 期待を直した golden: \`$f\`" $PLAN_FB || echo "$f"; done | wc -l)"
+}
+
+FB_SUBJECT_RE='^ *(let (\([^)]*\)|[A-Za-z0-9_]+) = )?[a-z][A-Za-z0-9_]*\([a-z][A-Za-z0-9_]*[,)]'
+
+goal_G_FB_SAMPLES_SUBJECT() {
+  want_eq "subject-first calls now" 0 "$(grep -rhE "$FB_SUBJECT_RE" samples/*/*.ozen | grep -vc '\bmake ')"
+  want_eq "tag fb-pipe-end" ok "$(git rev-parse -q --verify refs/tags/fb-pipe-end >/dev/null && echo ok)"
+  want_eq "subject-first calls at fb-pipe-end" 0 \
+    "$(git grep -hE "$FB_SUBJECT_RE" fb-pipe-end -- 'samples/*/*.ozen' 2>/dev/null | grep -vc '\bmake ')"
+}
+
+goal_G_FB_SAMPLES_SAME() {
+  want_re "samples same" '^samples-same: [1-9][0-9]* samples, 0 changed ir, 0 changed schedules, 0 changed renders$' \
+    "$(python3 -B scripts/check-rewrite-equivalence.py --base fb-start --head fb-pipe-end --samples samples 2>/dev/null | tail -n 1)"
+}
+
+goal_G_FB_SITE() {
+  local want
+  want_eq "subject-first lines on the site" 0 \
+    "$(sed 's/<[^>]*>//g; s/&gt;/>/g; s/&lt;/</g' site/index.html | grep -cE "$FB_SUBJECT_RE")"
+  want=$($OZ check tests/golden/state/peel-missing.ozen 2>/dev/null | grep -oE '[0-9]+:[0-9]+-[0-9]+:[0-9]+ args=\[[^]]*\]' | head -n 1)
+  want_eq "peel-missing output on the site" 1 \
+    "$([ -n "$want" ] && sed 's/<[^>]*>//g; s/&quot;/"/g' site/index.html | grep -cF -- "$want")"
+  want_re "site examples" '^site-examples: [1-9][0-9]* examples, 0 mismatched, 0 unmapped$' \
+    "$(python3 -B scripts/check-site-examples.py --ozen $OZ site/index.html 2>/dev/null | tail -n 1)"
+  want_ok "site examples self-test" scripts/test-check-site-examples.sh
+}
+
+goal_G_FB_PRELUDE() {
+  local p=stdlib/prelude.ozen egg
+  egg=$(sed -n '/^ingredient Egg /,/^}/p' $p)
+  want_eq "shape values" 1 "$(grep -cE '^axis shape : \{ *whole,.*\binShell\b.*\bcracked\b.*\bbeaten\b' $p)"
+  want_eq "egg initial shape" 1 "$(grep -cE 'initial: \{ *shape: inShell *\}' <<< "$egg")"
+  want_eq "actions needing the inside" 9 \
+    "$(grep -E '^action (mix|toss|whip|season|blend|fry|dissolve|layer|deepFry)\(' $p | grep -c 'shape != inShell')"
+  want_eq "actions taking the shell" 0 \
+    "$(grep -E '^action (boil|parboil|simmer|wash|store|discard|chill|rest|warm|soak|plate)\(' $p | grep -c 'inShell')"
+  want_eq "safeDoneness" 1 "$(grep -c 'safeDoneness' $p)"
+  want_eq "egg safeDoneness" 1 "$(grep -c 'safeDoneness: par' <<< "$egg")"
+  want_eq "crack time" 1 "$(grep -E '^action crack\(' -A2 $p | grep -cE 'for 0\.2\.\.0\.5 min @source\(provisional\)')"
+  want_eq "beat time" 1 "$(grep -E '^action beat\(' -A2 $p | grep -cE 'for 0\.5\.\.1 min @source\(provisional\)')"
+  want_eq "ordered Heat" 1 "$(grep -cE '^enum Heat : ordered \{ *low, medium, high *\}' $p)"
+  want_eq "fry heats the pan" 1 "$(grep -E '^action fry\(' -A2 $p | grep -c 'FryingPan<heated: heat>')"
+  want_eq "pan preheat time" 1 \
+    "$(sed -n '/^kind FryingPan /,/^}/p' $p | grep -cE 'preheatTime: 1\.\.3 min @source\(provisional\)')"
+  want_eq "Cue" 1 "$(grep -cE '^enum Cue \{ *fragrant, translucent, boiling, thickened *\}' $p)"
+  want_eq "Holding kinds" 4 "$(grep -cE '^kind (Pot|FryingPan|MixingBowl|Blender) : .*\bHolding\b' $p)"
+  want_eq "deepFry" 1 "$(grep -cE '^action deepFry\(x: T<shape != inShell>, oil: Oil, time: Time in 0 s<\.\., temp: Temperature = 170 degC\) -> T<doneness: done, browning: golden>' $p)"
+  want_eq "deepFry heats the pot" 1 "$(grep -E '^action deepFry\(' -A2 $p | grep -cF 'Pot<heated: temp>')"
+  want_eq "pot preheat time" 1 \
+    "$(sed -n '/^kind Pot /,/^}/p' $p | grep -cE 'preheatTime: 5\.\.10 min @source\(provisional\)')"
+}
+
+goal_G_FB_FCT() {
+  want_eq "12004 row" 1 "$(grep -c '^12004,' data/mext-fct-2023/refuse.csv)"
+  want_eq "egg refuse" 1 \
+    "$(sed -n '/^ingredient Egg /,/^}/p' stdlib/prelude.ozen | grep -cF 'fct(mextFct2023, food: "12004", field: refuse)')"
+  want_eq "vocab Egg" 1 "$(grep -cE '^  Egg:' spec/vocab/ingredients.yaml)"
+  want_eq "vocab 12004" 1 "$(grep -cF 'food: "12004"' spec/vocab/ingredients.yaml)"
+}
+
+goal_G_FB_DIAG() {
+  local c n l d=core/src/diag_codes.def n021
+  for c in 'SAF005, SAF, lightlyCookedEgg, WARNING' 'TYP022, TYP, untilTime, ERROR' 'TYP023, TYP, untilTarget, ERROR'; do
+    want_eq "entry $c" 1 "$(grep -cxF "OZNI_DIAG($c)" $d)"
+  done
+  n021=$(grep -n 'TYP021' $d | head -n 1 | cut -d: -f1)
+  for c in SAF005 TYP022 TYP023; do
+    n=$(grep -n "$c" $d | head -n 1 | cut -d: -f1)
+    want_eq "$c after TYP021" after "$([ -n "$n" ] && [ -n "$n021" ] && [ "$n" -gt "$n021" ] && echo after)"
+  done
+  for n in SAF:lightlyCookedEgg TYP:untilTime TYP:untilTarget; do
+    want_eq "registry $n" 1 "$(grep -cxF "$n" core/tests/diag-names.txt)"
+  done
+  for l in ja en; do
+    want_eq "$l lightly cooked egg" 1 "$(grep -E '^diag-lightly-cooked-egg = ' phrases/$l.ftl | grep -cF '{ $arg1 }')"
+    want_eq "$l until" 2 "$(grep -E '^diag-until-(time|target) = ' phrases/$l.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }')"
+  done
+  want_eq "arg kinds lightlyCookedEgg" 1 "$(grep -cE "^  lightlyCookedEgg: \['ingredient'\]," renderers/lib/names.mjs)"
+  want_eq "arg kinds untilTime" 1 "$(grep -cE "^  untilTime: \['action'\]," renderers/lib/names.mjs)"
+  want_eq "arg kinds untilTarget" 1 "$(grep -cE "^  untilTarget: \['action'\]," renderers/lib/names.mjs)"
+  want_eq "severity example SAF005" 1 "$(grep -cP '\tSAF:lightlyCookedEgg\twarning\t' core/tests/severity-examples.txt)"
+  want_eq "severity example TYP023" 1 "$(grep -cP '\tTYP:untilTarget\terror\t' core/tests/severity-examples.txt)"
+  want_ge1 "concept 6.1 lightlyCookedEgg" "$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF 'lightlyCookedEgg')"
+  want_ge1 "concept 6.1 untilTarget" "$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF 'untilTarget')"
+}
+
+goal_G_FB_SYNTAX() {
+  want_eq "state_arg !=" 1 "$(grep -cE "^state_arg[[:space:]]*:=.*'!='" core/grammar.ebnf)"
+}
+
+goal_G_FB_SCHEMA() {
+  mkdir -p build/results/fb && rm -f build/results/fb/*.json
+  $OZ check --format json --emit ir tests/golden/until/json-until.ozen > build/results/fb/until.result.json 2>/dev/null
+  $OZ check --format json --emit ir tests/golden/samepot/ir-json-continues.ozen > build/results/fb/samepot.result.json 2>/dev/null
+  $OZ check --format json --emit schedule --kitchen home tests/golden/pan/json-level.ozen \
+    > build/results/fb/pan.result.json 2>/dev/null
+  want_eq "schema" "json: 3 files, 0 invalid" "$(python3 -B tools/jsoncheck/validate.py schemas build/results/fb 2>&1 | tail -n 1)"
+}
+
+goal_G_FB_PHRASES() {
+  local k l
+  for k in action-crack action-beat until-doneness-surface until-doneness-par until-doneness-done \
+           until-browning-light until-browning-golden until-browning-dark until-browning-charred \
+           until-cue-fragrant until-cue-translucent until-cue-boiling until-cue-thickened preheat-pan step-add-to \
+           action-deep-fry preheat-oil; do
+    for l in ja en; do want_eq "$l $k" 1 "$(grep -c "^$k = " phrases/$l.ftl)"; done
+  done
+  want_eq "ja peel the shell" 1 "$(sed -n '/^action-peel = /,/^[a-z]/p' phrases/ja.ftl | grep -cF '殻をむく')"
+}
+
+goal_G_FB_SAMPLE_OYAKODON() {
+  want_ge1 "crack and beat" "$(grep -cF 'egg |> crack |> beat' samples/T2/oyakodon.ozen)"
+  want_ge1 "until par" "$(grep -cF 'until: doneness >= par' samples/T2/oyakodon.ozen)"
+}
+
+goal_G_FB_CONCEPT() {
+  local s41 s42 s44 s122 s123
+  s41=$(sed -n '/^### 4\.1/,/^### 4\.2/p' docs/concept.md)
+  s42=$(sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md)
+  s44=$(sed -n '/^### 4\.4/,/^### 4\.5/p' docs/concept.md)
+  s122=$(sed -n '/^### 12\.2/,/^### 12\.3/p' docs/concept.md)
+  s123=$(sed -n '/^### 12\.3/,/^### 12\.4/p' docs/concept.md)
+  want_ge1 "4.1 inShell" "$(grep -cF 'inShell' <<< "$s41")"
+  want_ge1 "4.1 !=" "$(grep -cF '!=' <<< "$s41")"
+  want_ge1 "4.1 per element" "$(grep -cF '要素ごと' <<< "$s41")"
+  want_ge1 "4.1 per ingredient doneness" "$(grep -cF '材料ごとの火の通り' <<< "$s41")"
+  want_ge1 "4.2 pan" "$(grep -cF 'FryingPan<heated: heat>' <<< "$s42")"
+  want_ge1 "4.2 Heat" "$(grep -cF 'enum Heat : ordered' <<< "$s42")"
+  want_ge1 "4.2 same vessel" "$(grep -cF '同じ鍋のまま' <<< "$s42")"
+  want_ge1 "4.4 until" "$(grep -cF 'until: doneness >= par' <<< "$s44")"
+  want_ge1 "4.4 TYP022" "$(grep -cF 'TYP022' <<< "$s44")"
+  want_ge1 "4.4 Cue" "$(grep -cF 'enum Cue' <<< "$s44")"
+  want_ge1 "4.4 subject first" "$(grep -cF '材料を先に書く' <<< "$s44")"
+  want_ge1 "12.2 crack" "$(grep -cF '卵を割る' <<< "$s122")"
+  want_ge1 "12.2 beat" "$(grep -cF '溶く' <<< "$s122")"
+  want_ge1 "12.2 egg" "$(grep -E '^  - ' <<< "$s122" | grep -cF '卵')"
+  want_ge1 "12.3 egg shell" "$(grep -cF '卵の殻' <<< "$s123")"
+  want_eq "concept lists actions" 3 "$(grep -cE '\{kind: action, id: (crack|beat|deepFry)\}' spec/coverage/concept-lists.yaml)"
+  want_ge1 "12.2 deep fry" "$(grep -cF '揚げる' <<< "$s122")"
+  want_eq "vocab deepFry" 1 "$(grep -cE '^  deepFry:' spec/vocab/actions.yaml)"
+  want_eq "concept lists Egg" 1 "$(grep -cE '\{kind: ingredient, id: Egg\}' spec/coverage/concept-lists.yaml)"
+}
+
+fb_review_named() { sed -n "s/^- $1: \`\\([^\`]*\\)\`.*/\\1/p" $PLAN_FB; }
+
+goal_G_FB_REVIEW_TARGETS() {
+  local t=build/results/fb-review-targets.txt
+  want_eq "review tags" ok "$(git rev-parse -q --verify refs/tags/fb-review-start >/dev/null &&
+    git rev-parse -q --verify refs/tags/fb-review-end >/dev/null && echo ok)"
+  mkdir -p build/results
+  { git diff --name-only --no-renames --diff-filter=MD fb-start fb-review-start -- tests/golden tests/cli renderers/test \
+      'samples/*/expect.yaml' 2>/dev/null
+    git grep -lE '\b(Egg|egg|Pot|FryingPan|MixingBowl|Blender|deepFry)\b|heated:|\(\[' fb-start -- 'tests/golden/**/*.ozen' |
+      sed 's/^fb-start://'
+  } | sort -u > $t
+  want_eq "targets not listed" 0 "$(grep -vxFf <(fb_review_named '見直しの対象'; echo none) $t | wc -l)"
+  want_eq "targets without a record" 0 \
+    "$(fb_review_named '見直しの対象' | grep -vxFf <(fb_review_named '書き直したテスト'; echo none) | wc -l)"
+}
+
+goal_G_FB_REVIEW_SAME() {
+  local r
+  for r in plans/ozen-roadmap.md plans/ozen-syntax-refresh.md plans/ozen-quantity-checks.md; do
+    want_re "equivalence $r" \
+      '^equivalence: [0-9]+ rewritten, 0 changed results, [0-9]+ changed steps; records: [0-9]+ roadmap rows, 0 missing$' \
+      "$(python3 -B scripts/check-rewrite-equivalence.py --base fb-start --head fb-review-end --records $PLAN_FB \
+           --allow $PLAN_FB --roadmap $r tests/golden 2>/dev/null | tail -n 1)"
+  done
+}
+
+goal_G_FB_REVIEW_FILES() {
+  want_eq "review tags" ok "$(git rev-parse -q --verify refs/tags/fb-review-start >/dev/null &&
+    git rev-parse -q --verify refs/tags/fb-review-end >/dev/null && echo ok)"
+  want_eq "added, deleted or renamed tests" 0 \
+    "$(git diff --name-only --diff-filter=ADR fb-review-start fb-review-end -- tests renderers/test samples 2>/dev/null | wc -l)"
+  want_eq "implementation changes" 0 \
+    "$(git diff --name-only fb-review-start fb-review-end -- core/src core/include cli/src stdlib phrases renderers/lib schemas \
+         2>/dev/null | wc -l)"
+}
+
+goal_G_FB_REVIEW_ANNOT() {
+  local f
+  want_eq "annotated rewrites without an annotation" 0 \
+    "$(sed -n 's/^- 書き直したテスト: `\([^`]*\)` — 注釈で明示.*/\1/p' $PLAN_FB |
+       while IFS= read -r f; do grep -rqE '@(sameVessel|newVessel)' "$f" || echo "$f"; done | wc -l)"
+}
+
+fb_excluded() {
+  grep -oE '^- 範囲に入った別の作業のコミット: [0-9a-f]{7,40}' $PLAN_FB | awk '{print $NF}' |
+    while IFS= read -r c; do git rev-parse -q --verify "$c^{commit}" || echo "unknown:$c"; done
+}
+
+fb_in_scope() {
+  case "$1" in
+    core/src/*.c | core/src/*.h | core/src/*.def | core/grammar.ebnf | core/fuzz/ozen.dict | core/tests/diag-names.txt | \
+    core/tests/severity-examples.txt | stdlib/prelude.ozen | stdlib/sources.ozen | phrases/en.ftl | phrases/ja.ftl | \
+    renderers/lib/* | renderers/test/* | schemas/result.schema.json | tests/golden/* | samples/* | site/index.html | \
+    spec/vocab/* | spec/coverage/* | spec/sources/search-log.yaml | data/mext-fct-2023/refuse.csv | \
+    scripts/check-site-examples.py | scripts/test-check-site-examples.sh | scripts/selftests.txt | \
+    scripts/check-rewrite-equivalence.py | scripts/test-check-rewrite-equivalence.sh | tests/cli/* | \
+    docs/concept.md | scripts/goals.sh | CLAUDE.md | scripts/red-first-exceptions.txt | \
+    plans/ozen-cooking-feedback.md | plans/ozen-roadmap.md | plans/ozen-quantity-checks.md) return 0 ;;
+  esac
+  return 1
+}
+
+goal_G_FB_SCOPE() {
+  local ex c f
+  want_eq "tag fb-start" ok "$(git rev-parse -q --verify refs/tags/fb-start >/dev/null && echo ok)"
+  ex=$(fb_excluded)
+  want_eq "excluded commits outside the range" 0 \
+    "$(while IFS= read -r c; do [ -n "$c" ] || continue; git rev-list $FB | grep -qxF -- "$c" || echo "$c"; done <<< "$ex" | wc -l)"
+  want_eq "files outside scope" 0 \
+    "$(git rev-list --no-merges $FB | grep -vxF -e "${ex:-none}" | while IFS= read -r c; do
+         git diff-tree --no-commit-id --no-renames --name-only -r "$c"
+       done | sort -u | while IFS= read -r f; do fb_in_scope "$f" || echo "$f"; done | wc -l)"
+}
+
+goal_G_FB_VERSION() {
+  want_eq "VERSION" 0.1.0 "$(cat VERSION)"
+}
+
+goal_G_FB_CLAUDEMD() {
+  want_ge1 "plan line in CLAUDE.md" "$(grep -c 'ozen-cooking-feedback.md.*G-FB-.*fb-start' CLAUDE.md)"
+}
+
+goal_G_FB_AUDIT() {
+  want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_FB)"
 }
 
 all_ids() {
