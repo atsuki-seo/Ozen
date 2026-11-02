@@ -102,8 +102,12 @@ function rangeText(range) {
 
 function untilText(ph, nodes, node, values, opts, single = false) {
   const act = ph.formatAttr(keyFor('action', node.label), 'until', values);
-  if (act === null || !node.until.axis) {
+  if (act === null) {
     return null;
+  }
+  if (node.until.cue) {
+    const cue = ph.format(keyFor('until-cue', node.until.cue), {}, words(node.until.cue));
+    return ph.format('step-until-cue', { x: values.x, cue, act, time: durationText(ph, rangeText(node.time)) });
   }
   const input = node.inputs.length > 0 ? nodes.get(node.inputs[0].node) : null;
   const mixed = !single && input && input.kind === 'op' && STRUCTURAL.has(input.label);

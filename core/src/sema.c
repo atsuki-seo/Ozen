@@ -4356,6 +4356,19 @@ static const ozni_node *ordered_output_arg(sema *s, ozni_index afile, ozni_index
   return nullptr;
 }
 
+static bool is_cue(sema *s, ozni_index name) {
+  ozni_index ef, en;
+  if (!find_def(s, intern(s, "Cue", 3), &ef, &en) || nd(s, ef, en)->kind != OZNI_N_Enum) {
+    return false;
+  }
+  for (ozni_index v = nd(s, ef, en)->first; v != 0; v = nd(s, ef, v)->next) {
+    if (nd(s, ef, v)->kind == OZNI_N_Value && nd(s, ef, v)->text == name) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void apply_until(sema *s, ozni_index file, const ozni_node *until, const ozni_node *act, ozni_index afile,
                         ozni_index anode, const food *in, food *out, const ozni_index *pnames, uint32_t np, bool timed) {
   const ozni_node *v = until->first != 0 ? nd(s, file, until->first) : nullptr;
@@ -4367,6 +4380,16 @@ static void apply_until(sema *s, ozni_index file, const ozni_node *until, const 
       nd(s, file, nd(s, file, v->first)->next)->kind == OZNI_N_Name) {
     axis = nd(s, file, v->first)->text;
     want = nd(s, file, nd(s, file, v->first)->next)->text;
+  }
+  if (axis == 0 && v != nullptr && v->kind == OZNI_N_Name && is_cue(s, v->text)) {
+    s->attend = true;
+    s->until_axis = 0;
+    s->until_value = v->text;
+    s->until_text = v->text;
+    if (!timed) {
+      diag_node(s, OZNI_D_TYP_untilTime, file, v, args, 2);
+    }
+    return;
   }
   axis_state *ost = nullptr;
   const axis_state *ist = nullptr;

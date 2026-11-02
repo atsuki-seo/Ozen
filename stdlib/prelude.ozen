@@ -32,6 +32,7 @@ enum CutStyle {
   finer rollCut -> biteSize
 }
 enum Heat : ordered { low, medium, high }
+enum Cue { fragrant, translucent, boiling, thickened }
 enum Hardness { soft, medium, hard }
 enum FatLevel { low, medium, high }
 trait Vegetable
