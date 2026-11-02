@@ -1,0 +1,21 @@
+// args: debug schedule --kitchen home --options today
+kitchen home {
+  places {
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    pot: Pot { count: 3 }
+    bowl: MixingBowl { count: 2 }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}
+recipe sweetEgg {
+  ingredients {
+    egg: 1 pcs
+    sugar: 10 g
+  }
+  let beaten = egg |> crack |> beat
+  let sweet = mix([beaten, sugar])
+}

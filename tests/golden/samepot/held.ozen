@@ -1,0 +1,23 @@
+// args: debug schedule --kitchen home --options today
+kitchen home {
+  places {
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    pot: Pot
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}
+recipe porkSoup {
+  ingredients {
+    pork: 200 g
+    water: 300 ml
+    onion: 1 pcs
+    carrot: 1 pcs
+  }
+  let stock = simmer([pork, water], 10 min)
+  let stewed = carrot |> rest(10 min) |> simmer(5 min)
+  let soup = simmer([stock, onion |> rest(15 min)], 5 min)
+}

@@ -1,0 +1,30 @@
+// args: debug schedule --kitchen home --options today
+kind Wok : Tool, Holding {
+  props {
+    washTime: 1..3 min @source(provisional)
+  }
+}
+action stirFry(x: T) -> T<doneness: done> {
+  uses hands, HeatSource<stovetop>, Wok for 3 min
+  leaves: x on Wok
+}
+kitchen home {
+  places {
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    pot: Pot
+    wok: Wok { count: 2 }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}
+recipe porkAndOnion {
+  ingredients {
+    pork: 200 g
+    onion: 1 pcs
+  }
+  let fried = pork |> stirFry
+  let both = stirFry([fried, onion])
+}

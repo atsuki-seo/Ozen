@@ -1,0 +1,9 @@
+// args: check --format json --emit ir
+recipe porkSoup {
+  ingredients {
+    pork: 200 g
+    water: 300 ml
+  }
+  let stock = simmer([pork, water], 10 min)
+  let soup = stock |> simmer(5 min)
+}

@@ -1,0 +1,25 @@
+// args: debug schedule --kitchen home --options today
+kitchen home {
+  places {
+    stove: IHStove { burners: 2 }
+  }
+  tools {
+    pot: Pot { count: 3 }
+    bowl: MixingBowl { count: 2 }
+    pan: FryingPan { count: 2 }
+  }
+}
+kitchen today : Options {
+  cooks: 1
+}
+recipe twoStocks {
+  ingredients {
+    pork: 200 g
+    chicken: 200 g
+    water: 300 ml
+    stock: Water 300 ml
+  }
+  let porkStock = simmer([pork, water], 10 min)
+  let chickenStock = simmer([chicken, stock], 20 min)
+  let soup = simmer([porkStock, chickenStock], 5 min)
+}

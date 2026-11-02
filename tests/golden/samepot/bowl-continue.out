@@ -1,0 +1,9 @@
+schedule sweetEgg level=2 cooks=1
+  0..30 (12) %2 crack by cook1 [bowl#1]
+  30..90 (60) %3 beat by cook1 [bowl#1]
+  90..90 (90) %5 combine unattended
+  90..210 (120) %6 mix by cook1 [bowl#1]
+  total 210
+error SAF001 undercooked bowl-continue.ozen:20:15-20:35 args=["Egg", "raw"]: undercooked
+result error errors=1 warnings=0 infos=0
+exit 1

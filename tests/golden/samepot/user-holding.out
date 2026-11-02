@@ -1,0 +1,7 @@
+schedule porkAndOnion level=2 cooks=1
+  0..180 (180) %2 stirFry by cook1 [stove#1, wok#1]
+  180..180 (180) %4 combine unattended
+  180..360 (360) %5 stirFry by cook1 [stove#1, wok#1]
+  total 360
+result ok errors=0 warnings=0 infos=0
+exit 0

@@ -1,0 +1,10 @@
+schedule twoStocks level=2 cooks=1
+  0..0 (0) %3 combine unattended
+  0..600 (600) %4 simmer unattended [stove#2, pot#2]
+  0..0 (0) %7 combine unattended
+  0..1200 (1200) %8 simmer unattended [stove#1, pot#1]
+  1200..1200 (1200) %9 combine unattended
+  1200..1500 (1500) %10 simmer unattended [stove#1, pot#2]
+  total 1500
+result ok errors=0 warnings=0 infos=0
+exit 0

@@ -1,0 +1,8 @@
+schedule porkSoup level=2 cooks=1
+  0..600 (600) %2 simmer unattended [stove#1, pot#1]
+  600..630 (612) %4 season by cook1
+  630..630 (630) %6 combine unattended
+  630..930 (930) %7 simmer unattended [stove#1, pot#1]
+  total 930
+result ok errors=0 warnings=0 infos=0
+exit 0

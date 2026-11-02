@@ -1,0 +1,8 @@
+recipe porkSoup {
+  ingredients {
+    pork: 200 g
+    water: 300 ml
+  }
+  let fried = pork |> fry(3 min)
+  let soup = simmer([fried, water], 5 min) @sameVessel
+}
