@@ -1227,7 +1227,8 @@ qc_in_scope() {
     core/tests/diag-names.txt | core/tests/severity-examples.txt | stdlib/prelude.ozen | \
     phrases/en.ftl | phrases/ja.ftl | renderers/lib/names.mjs | renderers/test/* | \
     schemas/result.schema.json | tests/golden/* | docs/concept.md | scripts/goals.sh | CLAUDE.md | \
-    scripts/red-first-exceptions.txt | plans/ozen-quantity-checks.md | plans/ozen-syntax-refresh.md | \
+    scripts/red-first-exceptions.txt | scripts/test-names-exceptions.txt | plans/ozen-quantity-checks.md | \
+    plans/ozen-syntax-refresh.md | \
     plans/ozen-readme-compact.md) return 0 ;;
   esac
   return 1

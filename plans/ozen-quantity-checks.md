@@ -435,7 +435,7 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 | コア | `core/src/sema.c`（量の照合、範囲の評価、範囲の開いた下端、材料の量、人数、`make` の引数）、`core/src/defs.c`（`minExclusive`） |
 | テスト | `tests/golden/args/`（22 個）、`tests/golden/bounds/`（55 個）、期待を直す既存の golden（S751） |
 | 文書 | `docs/concept.md` §4.2・§6.1・`type Options` の例、`core/tests/diag-names.txt`、`core/tests/severity-examples.txt` |
-| 計画とゴール | 本ファイル、`scripts/goals.sh`、`CLAUDE.md`、`plans/ozen-syntax-refresh.md` §9 の 1 行（D80）、`plans/ozen-readme-compact.md` §9 の 1 行（D87）、`scripts/red-first-exceptions.txt`（対照の golden のコミット、§5.2） |
+| 計画とゴール | 本ファイル、`scripts/goals.sh`、`CLAUDE.md`、`plans/ozen-syntax-refresh.md` §9 の 1 行（D80）、`plans/ozen-readme-compact.md` §9 の 1 行（D87）、`scripts/red-first-exceptions.txt`（対照の golden のコミット、§5.2）、`scripts/test-names-exceptions.txt`（Issue の再現の 1 文字の名前、P4-2 で足した） |
 
 ### 4.12 コードの配置
 
@@ -558,7 +558,8 @@ git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok           # �
 #   core/src/*.c core/src/*.h core/src/*.def core/grammar.ebnf core/fuzz/ozen.dict core/tests/diag-names.txt
 #   core/tests/severity-examples.txt stdlib/prelude.ozen phrases/en.ftl phrases/ja.ftl renderers/lib/names.mjs
 #   renderers/test/* schemas/result.schema.json tests/golden/* docs/concept.md scripts/goals.sh CLAUDE.md
-#   scripts/red-first-exceptions.txt plans/ozen-quantity-checks.md plans/ozen-syntax-refresh.md plans/ozen-readme-compact.md
+#   scripts/red-first-exceptions.txt scripts/test-names-exceptions.txt plans/ozen-quantity-checks.md
+#   plans/ozen-syntax-refresh.md plans/ozen-readme-compact.md
 
 # G-QC-VERSION
 cat VERSION                                            # → 0.1.0（D83）
@@ -991,6 +992,14 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S793・実際の経路・`cgolden/bounds/servings-make-own-range`（P4-2、2026-11-02）。`make` の人数を見出しの範囲を見ずに `Options.servings` の型で検査すると `servings-make-own-range` が落ちた。戻すと合格した
 - わざと壊す確認: S794・データの完全性・`cgolden/bounds/types-json-exclusive`（P4-2、2026-11-02）。`put_field` で `RangeAbove` の上端を `max` に出さないと `types-json-exclusive` が落ちた。戻すと合格した
 - わざと壊す確認: S795・文書との一致・`G-QC-SYNTAX`（P4-2、2026-11-02）。concept §4.2 から「上端は含む」を消すと「concept 4.2 upper end included: got '0'」で落ちた。戻すと合格した
+- 範囲に入った別の作業のコミット: b215857（別のセッションによる計画ファイル `plans/ozen-authoring-support.md` の追加。2026-11-02 16:04 に `main` に入った）
+- `G-QC-SCOPE` の許すファイルに `scripts/test-names-exceptions.txt` を足した（P4-3、2026-11-02）。P4-2 で Issue の再現の 1 文字の名前を例外に載せたため（§4.11 の表、§5.1 の判定のコマンド、`goals.sh` の 3 か所）
+- わざと壊す確認: S751・副作用とコスト・`G-QC-GOLDEN-CHANGED`（P4-3、2026-11-02）。§9 の「期待を直した golden」の `tests/golden/api/types-json.out` の行を消すと「changed expectations not named in the plan: got '1'」で落ちた。戻すと合格した
+- わざと壊す確認: S752・副作用とコスト・`G-SAMPLE-CHECK`（P4-3、2026-11-02）。`stdlib/prelude.ozen` の `rest` の範囲を `1 h<..` にしてビルドし直すと「samples: 11 samples, 236 expectations, 4 failed」で落ちた。戻してビルドし直すと合格した
+- わざと壊す確認: S753・副作用とコスト・`G-QC-SCOPE`（P4-3、2026-11-02）。一時的な worktree の作業用のコミットで `samples/T1/araNi.ozen` を変えると「files outside scope: got '3'」で落ちた（範囲の外の 2 つは、このとき除外の行も許す一覧も無かった `b215857` と `scripts/test-names-exceptions.txt` で、この確認で見つけて直した）。`git reset --hard` で消し、worktree を消した（push していない）。直した後は合格した
+- わざと壊す確認: S753・前提の固定・`G-QC-SCOPE`（P4-3、2026-11-02）。タグ `qc-start` を手元で `qc-start-moved` に付け替えると「tag qc-start: got ''」で落ちた。`qc-start` を `0b4b4eb` に戻した
+- わざと壊す確認: S754・副作用とコスト・`G-QC-VERSION`（P4-3、2026-11-02）。`VERSION` を `0.1.1` にすると「VERSION: got '0.1.1'」で落ちた。戻すと合格した
+- わざと壊す確認: S782・副作用とコスト・`G-RF-SEPARATION`（P4-3、2026-11-02）。一時的な worktree の作業用のコミットで `tests/golden/args/issue1.out` と `core/src/sema.c` を同じコミットにすると「separation: 73 commits, 1 mixed」で落ちた。`git reset --hard` で消し、worktree を消した（push していない）
 
 ---
 
