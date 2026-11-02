@@ -134,7 +134,7 @@ def check(doc):
         cleans = [] if cleans is None else cleans if isinstance(cleans, list) else [cleans]
         cleaning = {c["resource"] for c in cleans}
         for rid in t.get("uses", []):
-            if t.get("kind") == "soak" or rid in cleaning:
+            if t.get("kind") in ("soak", "preheat") or rid in cleaning:
                 continue
             marks = history.get(rid, [])
             level = max((need(m, t, rid) for _, m in marks), default=0)
