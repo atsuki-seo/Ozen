@@ -1414,6 +1414,12 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S867・データの完全性・`G-FB-DIAG`（P4-2、2026-11-03）。`diag-until-target` の日本語から `{ $arg2 }` を消すと「ja until: got '1', want '2'」で落ちた。戻すと合格した
 - わざと壊す確認: S867・データの完全性・`G-CORE-DIAG-REGISTRY`（P4-2、2026-11-03）。`diag-names.txt` から `TYP:untilTime` を消すと「1 unlisted」「diag codes = names: got '113', want '112'」で落ちた。戻すと合格した
 - わざと壊す確認: S917・前提の固定・`G-QC-PRELUDE`（P4-2、2026-11-03）。`fry` の宣言を `time: Time? in 0 s<..` にすると「time ranges: got '6', want '7'」で落ちた。戻すと合格した
+- `until` の文（P4-3、2026-11-03）: 加熱の動作の言い回しに `.until`（時間を含まない動作の文）を足し、`step-until = { $subject }が{ $stage }になるまで{ $act }（約 { $time }）` で書く。主語（`$subject`）は IR の JSON の `until.food`（混ぜた物では時間のデータを持つ最初の材料、ほかは入力の食材の型）、段階は `until-<軸>-<値>`、時間は IR の作業の時間（見積もりの範囲）。混ぜた物を煮るときは `step-until-mixed` で中身を先に書く（「水、卵を、卵が半熟になるまで…」）。`until` の手順は前の手順の文に続けない。このため IR の JSON の `until` に `food` を足し、スキーマも直した（`until/json-until` の期待も直した。足した golden なので名指しの対象ではない）
+- 期待を直した golden: `samples/T2/expect.yaml` — P4-4 で親子丼の 2 つ目の `simmer` を `until: doneness >= par` にしたので、家族の段取りの期待に `warnings: 1` と `SAF005 lightlyCookedEgg args=[Egg]` を足した（S870）
+- わざと壊す確認: S843・文書との一致・`rtest/until-text`（P4-3、2026-11-03）。`until-doneness-par` の日本語を「中まで」にすると、3 つのうち 2 つのテストが落ちた。戻すと合格した
+- わざと壊す確認: S843・データの完全性・`G-FB-PHRASES`（P4-3、2026-11-03）。`until-browning-dark` の英語を消すと「en until-browning-dark: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S869・実際の経路・`G-FB-SAMPLE-OYAKODON`（P4-4、2026-11-03）。親子丼を `egg |> mix` に戻すと「crack and beat: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S870・実際の経路・`G-SAMPLE-CHECK`（P4-4、2026-11-03）。`Egg` の `safeDoneness` を消すと、親子丼に `SAF001` が出て「samples: 11 samples, 238 expectations, 3 failed」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
