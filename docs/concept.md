@@ -583,6 +583,7 @@ recipe roastBeef(servings: 4)
 - **引数**: 位置引数のあとに名前付き引数（`name: value`）。既定値がある引数は省略できる。例: `fry(sliced, 10 min, heat: medium)`
 - **注釈**: `@name` または `@name(引数)` を、対象の式や宣言の**後ろ**に付ける。例: `let cooked = cook(soaked, cooker, 40 min) @unattended`、`serve main { ... } @serveWithin(5 min)`
 - **パイプ `|>`**: `x |> f(a)` は `f(x, a)` と同じ。左の値を右の呼び出しの第 1 引数に入れる。右に書けるのは名前か呼び出しだけで（`p.cut` のような修飾した名前も書ける）、`x |> f` は `f(x)`。優先順位は最も低く、`rice |> wash |> soak(30 min)` のように続けて書ける。注釈は最後の段に付く。構文木では呼び出しに組み替えるので、IR は入れ子の呼び出しと同じになる。値に `.` を付けて動作を呼ぶ書き方（`negi.cut(slice, 2 mm)`）は無く、`NAM019 methodCall`（エラー）で `negi |> cut` のように `|>` を案内する。呼べるのは動作とマクロだけで、食材や料理を呼ぶ書き方（`Onion(onion)`、`gohan()`）は `NAM020 notCallable`（エラー）になる。料理は `make gohan` で作る。値には欄が無く、`sliced.size` は `NAM021 valueField`（エラー）になる。
+  - **材料を先に書く**: 1 段だけの呼び出しも、材料を先に書いて `chicken |> cut(biteSize, 30 mm)`・`soaked |> cookRice` と書くのを基本にする。料理する人は「鶏肉を切る」と材料から考えるため。リストを渡す呼び出し（`simmer([a, b], 10 min)`）と `make` はそのまま書く。サンプル（`samples/`）と紹介ページの例もこの書き方にそろえている。
 - **引数の無いレシピ・献立は `()` を省く**: `recipe gohan { ... }`、`make cookedRice`。`()` を書いても同じ意味になる。
 - **1 人あたりの量 `per serving`**: 材料の量に `per serving` を付けると、人数に比例する（`rice: 75 g per serving`）。印の無い量は人数で変わらない総量。人数は料理の引数 `servings`、無ければビルド時の条件の `servings` から取り、どちらも無ければ `TYP020 servingsUnknown`（エラー）。`per` と `serving` は予約語にせず、文脈の語として読む。人数（`Count` の値）は次元を持たないので、`150 g * servings` は質量のままになる。
 - **量のリテラル**: 数と単位を空白で並べる（`200 g`）。範囲は `15..20 min`、分数は `1/4`（有理数のまま保持）。同じ次元の量を並べた `1 h 30 min` は足し算として読む。
