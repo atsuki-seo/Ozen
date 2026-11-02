@@ -1,0 +1,6 @@
+recipe tamagoyaki {
+  ingredients {
+    egg: Egg 1 pcs
+  }
+  let fried = egg |> fry(3 ml)
+}

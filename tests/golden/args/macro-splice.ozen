@@ -1,0 +1,11 @@
+macro fryFor(x, t) {
+  quote {
+    let fried = fry($x, $t)
+  }
+}
+recipe tamagoyaki {
+  ingredients {
+    egg: Egg 1 pcs
+  }
+  fryFor(egg, 3 ml)
+}

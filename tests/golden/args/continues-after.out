@@ -1,0 +1,4 @@
+error TYP001 dimension continues-after.ozen:5:26-5:30 args=["Volume", "Time"]: dimension
+error TYP006 stateRequired continues-after.ozen:6:21-6:26 args=["peel", "x", "fried"]: state required
+result error errors=2 warnings=0 infos=0
+exit 1

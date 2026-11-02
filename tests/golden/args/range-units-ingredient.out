@@ -1,0 +1,5 @@
+recipe tea
+  sugar : Sugar 0.5..2 ml
+  %1 = mix(sugar) : Sugar 0.5..2 ml
+result ok errors=0 warnings=0 infos=0
+exit 0

@@ -1,0 +1,4 @@
+error TYP001 dimension composite.ozen:15:27-15:31 args=["Volume", "Time"]: dimension
+error TYP001 dimension composite.ozen:16:30-16:33 args=["Mass", "Time"]: dimension
+result error errors=2 warnings=0 infos=0
+exit 1

@@ -1,0 +1,11 @@
+dimension Angle
+unit deg : Angle = base
+action tilt(x: T, by: Angle) -> T {
+  uses hands
+}
+recipe hiyayakko {
+  ingredients {
+    tofu: Tofu 1 pcs
+  }
+  let tilted = tilt(tofu, 3 min)
+}

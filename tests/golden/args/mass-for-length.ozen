@@ -1,0 +1,6 @@
+recipe salad {
+  ingredients {
+    potato: Potato 1 pcs
+  }
+  let sliced = potato |> peel |> cut(slice, 3 g)
+}

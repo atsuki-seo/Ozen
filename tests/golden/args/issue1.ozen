@@ -1,0 +1,6 @@
+recipe a {
+  ingredients {
+    egg: Egg 1 pcs
+  }
+  let x = fry(egg, 3 ml)
+}

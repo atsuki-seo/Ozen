@@ -1,0 +1,7 @@
+// args: debug steps
+recipe tea {
+  ingredients {
+    sugar: 0.5 ml..2 ml
+  }
+  let sweet = mix(sugar)
+}

@@ -1,0 +1,3 @@
+error TYP001 dimension mass-for-length.ozen:5:45-5:48 args=["Mass", "Length"]: dimension
+result error errors=1 warnings=0 infos=0
+exit 1

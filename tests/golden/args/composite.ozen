@@ -1,0 +1,17 @@
+action quickA(x: T, t: Time) -> T {
+  steps {
+    let fried = fry(x, 1 min)
+  }
+}
+action quickB(x: T, t: Time) -> T {
+  steps {
+    let fried = fry(x, t)
+  }
+}
+recipe tamagoyaki {
+  ingredients {
+    egg: Egg 1 pcs
+  }
+  let first = quickA(egg, 3 ml)
+  let second = quickB(first, 5 g)
+}

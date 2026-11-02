@@ -1,0 +1,7 @@
+recipe soup {
+  ingredients {
+    water: 200 ml
+  }
+  let fried = fry(water, 3 ml)
+  let peeled = peel(fried)
+}
