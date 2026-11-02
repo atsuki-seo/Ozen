@@ -4947,11 +4947,11 @@ static value eval_range(sema *s, const ozni_node *n) {
     diag_node(s, OZNI_D_TYP_dimension, s->file, n, args, 2);
     return unknown();
   }
-  if (ozni_rat_cmp(l.q.v.lo, r.q.v.hi) > 0) {
-    return unknown();
-  }
   value out = {.kind = V_QTY};
-  out.q.v = (ozni_ival){l.q.v.lo, r.q.v.hi};
+  out.q.v = ozni_rat_cmp(l.q.v.lo, r.q.v.lo) <= 0 ? (ozni_ival){l.q.v.lo, r.q.v.hi} : (ozni_ival){r.q.v.lo, l.q.v.hi};
+  if (ozni_rat_cmp(out.q.v.lo, out.q.v.hi) > 0) {
+    out.q.v = (ozni_ival){out.q.v.hi, out.q.v.lo};
+  }
   out.q.d = l.q.d;
   out.q.known = true;
   return out;
