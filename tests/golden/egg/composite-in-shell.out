@@ -1,4 +1,4 @@
+error TYP006 stateRequired composite-in-shell.ozen:3:21-3:22 args=["mix", "x", "x"]: state required
 error SAF001 undercooked composite-in-shell.ozen:8:17-8:28 args=["Egg", "raw"]: undercooked
-error TYP006 stateRequired composite-in-shell.ozen:8:17-8:20 args=["mix", "x", "egg"]: state required
 result error errors=2 warnings=0 infos=0
 exit 1
