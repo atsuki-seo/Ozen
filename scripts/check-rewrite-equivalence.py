@@ -184,6 +184,7 @@ def main():
     ap.add_argument("--base", required=True)
     ap.add_argument("--head", required=True)
     ap.add_argument("--records")
+    ap.add_argument("--allow")
     ap.add_argument("--roadmap", default="plans/ozen-roadmap.md")
     ap.add_argument("--cache", default="build/equivalence")
     ap.add_argument("--samples")
@@ -203,6 +204,12 @@ def main():
         print(e.stderr.strip(), file=sys.stderr)
         return 2
     rewritten = sorted({e for e in (entry_of(f, entries, folders) for f in changed) if e})
+    allowed = set()
+    if a.allow:
+        for line in section(a.allow, r"^## 9\.", r"^## 10\."):
+            m = re.match(r"^\s*- 結果を変えたテスト: `([^`]+)`", line)
+            if m:
+                allowed.add(re.sub(r"(/expected\.out|\.ozen|\.out)$", "", m.group(1)))
     changed_results, changed_steps = [], []
     if rewritten:
         base_sha, base_bin = build(a.base, cache)
@@ -211,7 +218,9 @@ def main():
             folder = e in folders
             before, before_steps = features(*run(base_bin, base_sha, e, folder))
             after, after_steps = features(*run(head_bin, head_sha, e, folder))
-            if before != after:
+            if before != after and e in allowed:
+                print(f"allowed changed result: {e}", file=sys.stderr)
+            elif before != after:
                 changed_results.append(e)
                 print(f"changed result: {e}: {before} -> {after}", file=sys.stderr)
             elif before_steps != after_steps:

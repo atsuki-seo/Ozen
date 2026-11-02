@@ -76,7 +76,8 @@ expect() {
   cases=$((cases + 1))
   set +e
   got=$(cd "$repo" && python3 -B "$here/check-rewrite-equivalence.py" --base base --head HEAD \
-    --records plans/plan.md --roadmap plans/roadmap.md --cache "$work/cache" tests/golden 2>/dev/null | tail -n 1)
+    --records plans/plan.md --allow plans/plan.md --roadmap plans/roadmap.md --cache "$work/cache" tests/golden \
+    2>/dev/null | tail -n 1)
   status=$?
   set -e
   if [ "$got" != "$want" ] || [ "$status" -ne "$want_status" ]; then
@@ -101,6 +102,20 @@ sed -i 's/TYP001 dimension/TYP002 other/' "$repo/tests/golden/a/two.ozen"
 record 'S2・効かない条件・`cgolden/a/two`。次元を見ないと落ちた'
 commit_head
 expect changed-code "equivalence: 1 rewritten, 1 changed results, 0 changed steps; records: 1 roadmap rows, 0 missing" 1
+
+setup
+sed -i 's/TYP001 dimension/TYP002 other/' "$repo/tests/golden/a/two.ozen"
+record 'S2・効かない条件・`cgolden/a/two`。次元を見ないと落ちた'
+sed -i "/^## 10\./i - 結果を変えたテスト: \`tests/golden/a/two.ozen\` — 仕様が変わった" "$repo/plans/plan.md"
+commit_head
+expect changed-allowed "equivalence: 1 rewritten, 0 changed results, 0 changed steps; records: 1 roadmap rows, 0 missing" 0
+
+setup
+sed -i 's/TYP001 dimension/TYP002 other/' "$repo/tests/golden/a/two.ozen"
+record 'S2・効かない条件・`cgolden/a/two`。次元を見ないと落ちた'
+sed -i "/^## 10\./i - 結果を変えたテスト: \`tests/golden/a/one.ozen\` — 別のテスト" "$repo/plans/plan.md"
+commit_head
+expect changed-other-allowed "equivalence: 1 rewritten, 1 changed results, 0 changed steps; records: 1 roadmap rows, 0 missing" 1
 
 setup
 sed -i 's/errors=1 warnings=0/errors=1 warnings=1/' "$repo/tests/golden/a/two.ozen"
