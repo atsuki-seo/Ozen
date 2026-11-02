@@ -12,5 +12,5 @@ recipe oyakodon(servings: 3) {
   let onionCut = onion |> peel |> cut(slice, 5 mm)
   let simmered = simmer([chickenCut, onionCut, water, dashi, sugar], 10 min)
   let beaten = egg |> crack |> beat
-  let topping = simmer([simmered, beaten], 2 min)
+  let topping = simmer([simmered, beaten], until: doneness >= par)
 }

@@ -6,8 +6,11 @@ runs:
     options: family
     expect:
       errors: 0
+      warnings: 1
       level: 2
       diagnostics:
+        include:
+          - {name: lightlyCookedEgg, args: [Egg]}
         exclude: [allergen]
       ir:
         choices: {oyakodon: 3, toriDon: 1}
