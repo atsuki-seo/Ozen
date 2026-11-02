@@ -5127,6 +5127,9 @@ static bool amount_dims(sema *s, ozni_dimvec d) {
 }
 
 static bool serving_count(sema *s, ozni_qty *out) {
+  if (s->servings_bad) {
+    return false;
+  }
   ozni_qty q = s->servings;
   ozni_index sv = s->onode != 0 ? options_value(s, intern(s, "servings", 8)) : 0;
   if (!q.known && (sv == 0 || !value_qty(s, s->ofile, sv, &q) || !q.known)) {
@@ -5193,7 +5196,9 @@ static void eval_ingredients(sema *s, const ozni_node *n) {
       }
       ozni_qty servings;
       if (per && v.kind == V_QTY && v.q.known && !serving_count(s, &servings)) {
-        diag_node(s, OZNI_D_TYP_servingsUnknown, s->file, nd(s, s->file, amount), nullptr, 0);
+        if (!s->servings_bad) {
+          diag_node(s, OZNI_D_TYP_servingsUnknown, s->file, nd(s, s->file, amount), nullptr, 0);
+        }
         v = unknown();
       } else if (per && v.kind == V_QTY && v.q.known && !ival_mul(v.q.v, servings.v, &v.q.v)) {
         v = unknown();
