@@ -1,4 +1,4 @@
 recipe onionSalad {
   ingredients { onion: 1 pcs }
-  let sliced = cut(onion, style: slice)
+  let sliced = onion |> cut(style: slice)
 }

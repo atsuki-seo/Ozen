@@ -14,8 +14,8 @@ recipe potatoGratin {
   ingredients {
     potato: 2 pcs
   }
-  let prepared = prepare(potato)
-  let baked = bake(prepared)
+  let prepared = potato |> prepare
+  let baked = prepared |> bake
 }
 kitchen today : Options {
   cooks: 1

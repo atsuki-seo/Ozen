@@ -1,5 +1,5 @@
 recipe gohan {
   ingredients { rice: 300 g }
-  let washed = wash(rice)
-  let washedAgain = wash(rice)
+  let washed = rice |> wash
+  let washedAgain = rice |> wash
 }
