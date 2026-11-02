@@ -1000,6 +1000,8 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S753・前提の固定・`G-QC-SCOPE`（P4-3、2026-11-02）。タグ `qc-start` を手元で `qc-start-moved` に付け替えると「tag qc-start: got ''」で落ちた。`qc-start` を `0b4b4eb` に戻した
 - わざと壊す確認: S754・副作用とコスト・`G-QC-VERSION`（P4-3、2026-11-02）。`VERSION` を `0.1.1` にすると「VERSION: got '0.1.1'」で落ちた。戻すと合格した
 - わざと壊す確認: S782・副作用とコスト・`G-RF-SEPARATION`（P4-3、2026-11-02）。一時的な worktree の作業用のコミットで `tests/golden/args/issue1.out` と `core/src/sema.c` を同じコミットにすると「separation: 73 commits, 1 mixed」で落ちた。`git reset --hard` で消し、worktree を消した（push していない）
+- 範囲に入った別の作業のコミット: 139d786（別のセッションによる計画ファイル `plans/ozen-cooking-feedback.md` の追加）
+- 範囲に入った別の作業のコミット: bb545b8（別のセッションによる `plans/ozen-authoring-support.md` の決定の記録）
 
 ---
 
