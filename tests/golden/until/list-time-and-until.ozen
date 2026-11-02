@@ -1,0 +1,10 @@
+// args: check --format json --emit ir
+recipe chickenAndEgg {
+  ingredients {
+    chicken: 200 g
+    egg: 1 pcs
+  }
+  let cooked = chicken |> simmer(10 min)
+  let beaten = egg |> crack |> beat
+  let topped = simmer([cooked, beaten], 2 min, until: doneness >= par)
+}
