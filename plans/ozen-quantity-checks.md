@@ -823,6 +823,32 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - `args/unknown-value` の書き方（P1-1、2026-11-02）: §5.3 の見込み（`eval/runtime-value-in-if` の書き方）ではなく、既定値の無いレシピの引数 `recipe tamagoyaki(t: Time)` を動作に渡す形にした。単独で検査するとき `t` は値を持たず（`debug steps` に `fry(egg, t)` と出る）、比較の `TYP015` のような別の診断が混ざらない
 - `args/composite` の形（P1-1、2026-11-02）: 中で引数を使わない `quickA` と、中の `fry(x, t)` に引数を渡す `quickB` の 2 つの合成の動作を並べた。`quickB` だけでは、外の照合を飛ばしても中の照合が同じ位置に同じ診断を出すので、S702 のわざと壊す確認が効かないため
 - 利用者の動作の golden（`count-param`・`user-dimension`・`default-unchecked`）は、卵（`Hazard`）だと加熱しない動作の結果が `SAF001` になるので、豆腐（`RawEdible`）を使った
+- 状態の型の中の引数（P1-2、2026-11-02）: 同じ穴がある。利用者の動作の引数の型 `T<shape: cut(slice, 3 ml)>` も `T<shape: cut(slice, 0 mm)>` も、材料の型 `Cucumber<shape: cut(slice, 3 ml)>` も `result ok` になる（`3 mm` に切った値を `3 ml` の型の引数に渡しても通る）。照合の経路が別なので本計画では直さず、最終ゲートの後に別の作業として提案する
+- `args/unknown-value` の直し（P1-2、2026-11-02）: S704 のわざと壊す確認（未知の値を次元の無い量として照合する）が効かなかった。既定値の無いレシピの引数 `t` は、束縛も定義も無い名前として列挙の値（`V_ENUM`）に評価され、未知の値（`V_UNKNOWN`）にならないため。引数を `t + 1 min`（列挙の値と量の和で、評価の結果が未知の値になる）に直すと、同じ壊し方で落ちた。期待（`.out`）は `result ok` のまま変えていない
+- S701 のわざと壊す方法の差し替え（P1-2、2026-11-02）: 網羅表の「`arg_site` の trail を設定しない」は効かない。`arg_site` は差し込みでない節には評価中の trail（マクロの本文を評価している間は展開履歴そのもの）を返すので、設定しなくても同じ trail になる。代わりに「照合の診断の trail を空にする」で確かめた
+- わざと壊す確認: S695・正常系・`cgolden/args/volume-for-time`（P1-2、2026-11-02）。`call_action` の照合の呼び出しを消すと `volume-for-time` を含む 14 本が落ちた。戻すと合格した
+- わざと壊す確認: S695・正常系・`cgolden/args/mass-for-length`（P1-2、2026-11-02）。照合を `Time` の宣言にだけ効くように狭めると `mass-for-length`・`count-param`・`user-dimension` が落ちた。戻すと合格した
+- わざと壊す確認: S696・境界・上限・`cgolden/args/unitless-time`（P1-2、2026-11-02）。次元の無い量を照合の前に読み飛ばすと `unitless-time` だけが落ちた。戻すと合格した
+- わざと壊す確認: S697・効かない条件・`cgolden/args/count-param`（P1-2、2026-11-02）。照合で `pcs` を次元の無い量に直す処理を外すと `count-param` だけが落ちた。戻すと合格した
+- わざと壊す確認: S698・実際の経路・`cgolden/args/named-arg`（P1-2、2026-11-02）。照合を位置で渡した引数だけにすると `named-arg` だけが落ちた。戻すと合格した
+- わざと壊す確認: S699・実際の経路・`cgolden/args/pipe-arg`（P1-2、2026-11-02）。`pipe_into` で左辺を最後の引数に付けると `pipe-arg`・`mass-for-length`・`ok-units` が落ちた。戻すと合格した
+- わざと壊す確認: S700・正常系・`cgolden/args/variable-arg`（P1-2、2026-11-02）。診断の位置を呼び出し全体にすると `variable-arg` を含む 14 本が落ちた。戻すと合格した
+- わざと壊す確認: S701・実際の経路・`cgolden/args/macro-body`（P1-2、2026-11-02）。照合の診断の trail を空にすると `macro-body` だけが落ちた。戻すと合格した
+- わざと壊す確認: S758・実際の経路・`cgolden/args/macro-splice`（P1-2、2026-11-02）。照合の診断の位置を `arg_site` を通さず引数の節そのもの（マクロの本文の `$t`）にすると `macro-splice` だけが落ちた。戻すと合格した
+- わざと壊す確認: S702・実際の経路・`cgolden/args/composite`（P1-2、2026-11-02）。合成の動作のときは外の照合を飛ばすと `composite` だけが落ちた。戻すと合格した
+- わざと壊す確認: S759・副作用とコスト・`cgolden/args/composite`（P1-2、2026-11-02）。外で照合に落ちた引数でも中の呼び出しで照合の診断を出すと `composite` だけが落ちた（`5 g` に 2 つ出る）。戻すと合格した
+- わざと壊す確認: S703・正常系・`cgolden/args/user-dimension`（P1-2、2026-11-02）。照合を標準の 6 つの次元に限ると `user-dimension` だけが落ちた。戻すと合格した
+- わざと壊す確認: S704・効かない条件・`cgolden/args/unknown-value`（P1-2、2026-11-02）。未知の量も照合し、次元の無い量として扱うと `unknown-value`・`range-units-mixed` が落ちた。戻すと合格した
+- わざと壊す確認: S705・効かない条件・`cgolden/args/default-unchecked`（P1-2、2026-11-02）。既定値を評価した後にも照合を呼ぶと `default-unchecked` だけが落ちた。戻すと合格した
+- わざと壊す確認: S706・副作用とコスト・`cgolden/args/continues-after`（P1-2、2026-11-02）。次元の誤りで `call_action` から未知の値を返すと `continues-after` を含む 12 本が落ちた。戻すと合格した
+- わざと壊す確認: S707・効かない条件・`cgolden/args/ok-units`（P1-2、2026-11-02）。区間の値をエラーにすると `ok-units`・`range-units-steps` が落ちた。戻すと合格した
+- わざと壊す確認: S707・効かない条件・`cgolden/args/ok-units`（P1-2、2026-11-02）。列挙の値も次元の無い量として照合し、次元でない型の引数にも次元の誤りを出すと `ok-units`・`mass-for-length`・`unknown-value` が落ちた。戻すと合格した
+- わざと壊す確認: S708・実際の経路・`cgolden/args/issue1`（P1-2、2026-11-02）。`TYP001` の重大度を警告にすると `issue1` を含む 16 本が落ちた。戻すと合格した
+- わざと壊す確認: S760・正常系・`cgolden/args/range-units-steps`（P1-2、2026-11-02）。`eval_inner` の範囲の評価を消すと `range-units-steps` を含む 4 本が落ちた。戻すと合格した
+- わざと壊す確認: S761・実際の経路・`cgolden/args/range-units-dimension`（P1-2、2026-11-02）。範囲の評価で結果の次元を記録しないと `range-units-dimension`・`range-units-steps`・`range-units-ingredient` が落ちた。戻すと合格した
+- わざと壊す確認: S762・境界・上限・`cgolden/args/range-units-mixed`（P1-2、2026-11-02）。両端の次元を比べず左の次元を使うと `range-units-mixed` だけが落ちた。戻すと合格した
+- わざと壊す確認: S763・データの完全性・`cgolden/args/range-units-ingredient`（P1-2、2026-11-02）。材料の量の評価で範囲の節を未知にすると `range-units-ingredient` だけが落ちた。戻すと合格した
+- わざと壊す確認: S764・実際の経路・`cgolden/args/make-arg-dimension`（P1-2、2026-11-02）。`make` の量の引数の照合を消すと `make-arg-dimension` だけが落ちた。戻すと合格した
 
 ---
 
