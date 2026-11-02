@@ -361,6 +361,7 @@
 {"code":"SCH011","name":"useWithinMissed"},
 {"code":"NAM019","name":"methodCall"},
 {"code":"NAM020","name":"notCallable"},
-{"code":"NAM021","name":"valueField"}
+{"code":"NAM021","name":"valueField"},
+{"code":"TYP021","name":"nonPositiveAmount"}
 ]}}
 exit 0
