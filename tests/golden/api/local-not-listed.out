@@ -359,6 +359,8 @@
 {"code":"TYP020","name":"servingsUnknown"},
 {"code":"LIN005","name":"unusedValue"},
 {"code":"SCH011","name":"useWithinMissed"},
-{"code":"NAM019","name":"methodCall"}
+{"code":"NAM019","name":"methodCall"},
+{"code":"NAM020","name":"notCallable"},
+{"code":"NAM021","name":"valueField"}
 ]}}
 exit 0
