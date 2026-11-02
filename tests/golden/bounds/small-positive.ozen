@@ -3,7 +3,7 @@ recipe lunch {
     egg: Egg 1 pcs
     cucumber: Cucumber 1 pcs
   }
-  let fried = fry(egg, 1 s)
+  let fried = fry(egg |> crack, 1 s)
   let sliced = cucumber |> cut(slice, 0.5 mm)
   let dish = combine([fried, sliced])
 }

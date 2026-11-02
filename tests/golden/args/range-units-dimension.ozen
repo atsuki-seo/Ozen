@@ -2,5 +2,5 @@ recipe tamagoyaki {
   ingredients {
     egg: Egg 1 pcs
   }
-  let fried = fry(egg, 3 ml..5 ml)
+  let fried = fry(egg |> crack, 3 ml..5 ml)
 }

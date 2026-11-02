@@ -12,6 +12,6 @@ recipe tamagoyaki {
   ingredients {
     egg: Egg 1 pcs
   }
-  let first = quickA(egg, 3 ml)
+  let first = quickA(egg |> crack, 3 ml)
   let second = quickB(first, 5 g)
 }

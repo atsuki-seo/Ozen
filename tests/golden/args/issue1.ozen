@@ -2,5 +2,5 @@ recipe a {
   ingredients {
     egg: Egg 1 pcs
   }
-  let x = fry(egg, 3 ml)
+  let x = fry(egg |> crack, 3 ml)
 }

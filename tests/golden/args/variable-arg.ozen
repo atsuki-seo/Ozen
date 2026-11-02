@@ -3,5 +3,5 @@ recipe tamagoyaki {
     egg: Egg 1 pcs
   }
   let time = 3 ml
-  let fried = fry(egg, time)
+  let fried = fry(egg |> crack, time)
 }

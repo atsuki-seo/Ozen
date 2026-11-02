@@ -3,6 +3,6 @@ recipe tamagoyaki {
   ingredients {
     egg: Egg 1 pcs
   }
-  let fried = fry(egg, 3 min..5 min)
+  let fried = fry(egg |> crack, 3 min..5 min)
   let again = fry(fried, 5 min..3 min)
 }

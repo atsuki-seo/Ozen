@@ -7,5 +7,5 @@ recipe tamagoyaki {
   ingredients {
     egg: Egg 1 pcs
   }
-  fryFor(egg, 3 ml)
+  fryFor(egg |> crack, 3 ml)
 }

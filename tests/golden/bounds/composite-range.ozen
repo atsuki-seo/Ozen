@@ -13,6 +13,6 @@ recipe tamagoyaki {
   ingredients {
     egg: Egg 1 pcs
   }
-  let done = quick(egg, 0 s)
+  let done = quick(egg |> crack, 0 s)
   let again = twice(done, 0 s)
 }
