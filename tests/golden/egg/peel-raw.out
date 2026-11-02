@@ -1,0 +1,4 @@
+error SAF001 undercooked peel-raw.ozen:3:16-3:27 args=["Egg", "raw"]: undercooked
+error TYP006 stateRequired peel-raw.ozen:3:16-3:19 args=["peel", "x", "egg"]: state required
+result error errors=2 warnings=0 infos=0
+exit 1

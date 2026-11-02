@@ -1,0 +1,4 @@
+recipe eggSlices {
+  ingredients { egg: 1 pcs }
+  let sliced = egg |> cut(slice, 5 mm)
+}

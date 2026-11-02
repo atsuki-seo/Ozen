@@ -1,0 +1,4 @@
+recipe eggPeel {
+  ingredients { egg: 1 pcs }
+  let peeled = egg |> peel
+}
