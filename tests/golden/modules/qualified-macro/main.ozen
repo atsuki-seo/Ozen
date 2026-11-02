@@ -1,0 +1,5 @@
+import pantry.house as h
+recipe gohan {
+  ingredients { rice: 300 g }
+  h.prepRice(rice)
+}
