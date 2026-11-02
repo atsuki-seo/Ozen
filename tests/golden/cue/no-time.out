@@ -1,0 +1,3 @@
+error TYP022 untilTime no-time.ozen:4:36-4:44 args=["fry", "fragrant"]: until time
+result error errors=1 warnings=0 infos=0
+exit 1

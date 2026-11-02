@@ -1,0 +1,5 @@
+// args: debug steps
+recipe boilingCarrot {
+  ingredients { carrot: 1 pcs }
+  let parboiled = carrot |> parboil(3 min, until: boiling)
+}

@@ -1,0 +1,5 @@
+// args: check --format json --emit ir
+recipe fragrantOnion {
+  ingredients { onion: 1 pcs }
+  let fried = onion |> peel |> fry(1 min, until: fragrant)
+}

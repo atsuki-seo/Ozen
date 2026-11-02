@@ -1,0 +1,6 @@
+// args: debug steps
+recipe fragrantOnion {
+  ingredients { onion: 1 pcs }
+  let minced = onion |> peel |> cut(mince, 2 mm)
+  let fried = minced |> fry(1 min, until: fragrant)
+}
