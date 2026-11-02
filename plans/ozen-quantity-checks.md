@@ -849,6 +849,10 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S762・境界・上限・`cgolden/args/range-units-mixed`（P1-2、2026-11-02）。両端の次元を比べず左の次元を使うと `range-units-mixed` だけが落ちた。戻すと合格した
 - わざと壊す確認: S763・データの完全性・`cgolden/args/range-units-ingredient`（P1-2、2026-11-02）。材料の量の評価で範囲の節を未知にすると `range-units-ingredient` だけが落ちた。戻すと合格した
 - わざと壊す確認: S764・実際の経路・`cgolden/args/make-arg-dimension`（P1-2、2026-11-02）。`make` の量の引数の照合を消すと `make-arg-dimension` だけが落ちた。戻すと合格した
+- 赤の確認（P2-1、2026-11-02）: `b894674` で足した 15 個（`exclusive-from`・`exclusive-upper-inclusive`・`exclusive-upper-over`・`exclusive-interval`・`exclusive-kitchen`・`exclusive-count`・`exclusive-empty`・`types-json-exclusive`・`make-arg-range`・`time-zero`・`time-negative`・`range-units-negative-time`・`size-zero`・`size-negative`・`composite-range`）は、足した時点のビルド（P1 の実装の後）ですべて落ちた（赤）。`095a7c8` で足した対照の 7 個（`closed-zero-ok`・`expression-unchanged`・`small-positive`・`soak-default`・`temperature-negative`・`dimension-before-range`・`exclusive-space`）は合格し、`scripts/red-first-exceptions.txt` に載せた
+- 利用者の設備の設定の型（P2-1、2026-11-02）: `type ScaleSpec : EquipmentSpec { maxLoad: Mass in 0 g.. }` の範囲付きのフィールドは、`--emit types` の `equipment` の `Scale` に `"min":"0 g"` として出る。`types-json-exclusive` はこの型で書いた
+- `bounds/types-json-exclusive` の期待の作り方（P2-1、2026-11-02）: 型の一覧の JSON は標準の設備と器の型をすべて含み、手で書くには長い。そこで、同じ名前のファイルで範囲を閉じた形（`0 g..`）にしたものを着手点のビルド `build/qc-start-ozen` に掛けた出力を土台にし、`maxLoad` のフィールドだけを手で `"min":"0 g","minExclusive":true,"max":null` に直した。ほかの部分は本計画で変わらない（D79）ので、変える前の実装がオラクルになる。P3 で `Options.servings` の `min` が `"1"` になるので、そのとき期待を直す
+- `bounds/expression-unchanged` の期待（P2-1、2026-11-02）: §5.2 のとおり、`build/qc-start-ozen debug ast` の出力から作った（`3 min<..5 min` が `Binary <` と `RangeTo` に読まれる）
 
 ---
 
