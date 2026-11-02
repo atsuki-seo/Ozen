@@ -166,6 +166,7 @@ typedef struct sema {
   const struct mframe *frame;
   uint32_t depth;
   bool top;
+  bool in_decl;
   ozni_index deprecated_unit;
   int level;
   bool ir_print;
@@ -3219,9 +3220,12 @@ static value eval_in(sema *s, ozni_index file, ozni_index node, const value *par
       s->c->oom = true;
     }
   }
+  bool saved_decl = s->in_decl;
   s->file = file;
   s->mod = mod_at_node(s, file, node);
+  s->in_decl = true;
   value v = eval(s, node);
+  s->in_decl = saved_decl;
   s->file = saved_file;
   s->mod = saved_mod;
   s->scope = saved_scope;
@@ -4975,6 +4979,11 @@ static value eval_inner(sema *s, ozni_index node) {
         ozni_str args[2] = {S(s, base->text), S(s, step->text)};
         diag_node(s, OZNI_D_NAM_methodCall, s->file, step, args, 2);
       }
+    }
+    if (!s->in_decl && cname != 0 && find_def(s, cname, &afile, &anode)) {
+      const char *word = ozni_decl_word(nd(s, afile, anode)->kind);
+      ozni_str args[2] = {S(s, cname), {word, (uint32_t)strlen(word)}};
+      diag_node(s, OZNI_D_NAM_notCallable, s->file, callee, args, 2);
     }
     for (ozni_index c = callee->next; c != 0; c = nd(s, s->file, c)->next) {
       eval(s, c);
