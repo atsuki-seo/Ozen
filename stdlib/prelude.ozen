@@ -19,7 +19,7 @@ unit degC : Temperature = base
 unit pcs : Count = base
 axis doneness : ordered { raw, surface, par, done }
 axis browning : ordered { none, light, golden, dark, charred }
-axis shape : { whole, peeled, cut(style: CutStyle, size: Length), pureed }
+axis shape : { whole, peeled, inShell, cracked, beaten, cut(style: CutStyle, size: Length), pureed }
 axis prep : set { washed, soaked(time: Time), salted, marinated(with: Sauce) }
 axis cleaning : ordered { none, rinse, wash, soakThenWash }
 enum CutStyle {
@@ -368,8 +368,10 @@ ingredient Beef : Meat, Hazard, SkinEdible {
 }
 ingredient Egg : Hazard, Refrigerated, Allergen(egg) {
   axes: doneness, shape, prep
+  initial: { shape: inShell }
   leaves: rawEgg, allergen
   props {
+    refuse: fct(mextFct2023, food: "12004", field: refuse)
     unitWeight: 58..64 g/pcs @source(provisional)
   }
 }
@@ -631,8 +633,16 @@ action wash(x: T) -> T<prep has washed> {
 action soak(x: T, time: Time in 0 s<.. = 30 min) -> T<prep has soaked(time)> {
   uses Container @unattended
 }
-action peel(x: T<Peelable, shape: whole>) -> T<shape: peeled> {
+action peel(x: T<Peelable, shape: whole | shape: inShell, doneness >= done>) -> T<shape: peeled> {
   uses hands, WorkSurface for 1..2 min @source(provisional)
+}
+action crack(x: T<shape: inShell, doneness: raw>) -> T<shape: cracked> {
+  uses hands, MixingBowl for 0.2..0.5 min @source(provisional)
+  leaves: x on MixingBowl
+}
+action beat(x: T<shape: cracked>) -> T<shape: beaten> {
+  uses hands, MixingBowl for 0.5..1 min @source(provisional)
+  leaves: x on MixingBowl
 }
 action loosen(x: T<Noodle>) -> T {
   uses hands for 0.5..1 min @source(provisional)
