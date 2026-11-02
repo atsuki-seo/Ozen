@@ -1,0 +1,13 @@
+recipe omelet {
+  ingredients {
+    egg: 2 pcs
+    milk: 30 ml
+  }
+  let beaten = egg |> crack |> beat
+  let cooked = fry([beaten, milk], 2 min)
+}
+
+recipe boiledEgg {
+  ingredients { egg: 1 pcs }
+  let shelled = egg |> boil(10 min) |> peel
+}
