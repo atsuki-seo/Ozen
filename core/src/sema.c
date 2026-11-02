@@ -5181,6 +5181,10 @@ static void eval_ingredients(sema *s, const ozni_node *n) {
       diag_node(s, OZNI_D_TYP_vagueAmount, s->file, nd(s, s->file, expr), &arg, 1);
     } else if (expr != 0) {
       value v = eval(s, expr);
+      if (v.kind == V_QTY && v.q.known && amount_dims(s, v.q.d) && ozni_rat_cmp(v.q.v.lo, ozni_rat_int(0)) <= 0) {
+        ozni_str args[2] = {S(s, item->text), src_text(s, s->file, nd(s, s->file, amount))};
+        diag_node(s, OZNI_D_TYP_nonPositiveAmount, s->file, nd(s, s->file, amount), args, 2);
+      }
       ozni_qty servings;
       if (per && v.kind == V_QTY && v.q.known && !serving_count(s, &servings)) {
         diag_node(s, OZNI_D_TYP_servingsUnknown, s->file, nd(s, s->file, amount), nullptr, 0);
