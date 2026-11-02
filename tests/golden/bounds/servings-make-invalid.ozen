@@ -1,0 +1,10 @@
+// args: debug steps
+recipe soup(servings: Count = 2) {
+  ingredients {
+    water: 150 ml * servings
+  }
+  let warmed = warm(water)
+}
+menu dinner {
+  let dish = make soup(servings: 0)
+}

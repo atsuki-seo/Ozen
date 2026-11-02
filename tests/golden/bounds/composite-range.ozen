@@ -3,9 +3,16 @@ action quick(x: T, t: Time) -> T {
     let fried = fry(x, t)
   }
 }
+action twice(x: T, t: Time) -> T {
+  steps {
+    let fried = fry(x, t)
+    let rested = rest(fried, t)
+  }
+}
 recipe tamagoyaki {
   ingredients {
     egg: Egg 1 pcs
   }
   let done = quick(egg, 0 s)
+  let again = twice(done, 0 s)
 }

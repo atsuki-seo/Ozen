@@ -1,0 +1,6 @@
+recipe soup(t: Time = 3 ml) {
+  ingredients {
+    dashi: 150 ml
+  }
+  let boiled = boil(dashi, t)
+}

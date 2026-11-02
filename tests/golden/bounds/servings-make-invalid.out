@@ -1,0 +1,8 @@
+recipe soup
+  water : Water 300 ml
+  %1 = warm(water) : Water 300 ml
+menu dinner
+  %1 = make soup(servings: 0) : Soup
+error TYP012 rangeViolation servings-make-invalid.ozen:9:34-9:35 args=["servings", "0", "1.."]: range violation
+result error errors=1 warnings=0 infos=0
+exit 1

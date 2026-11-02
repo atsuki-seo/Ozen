@@ -1,0 +1,3 @@
+action steam(x: T, time: Time in 0..1 min<..) -> T {
+  uses hands
+}

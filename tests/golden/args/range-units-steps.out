@@ -1,5 +1,6 @@
 recipe tamagoyaki
   egg : Egg 1 pcs
   %1 = fry(egg, 180..300 s) : Egg<doneness: done> 1 pcs
+  %2 = fry(%1, 180..300 s) : Egg<doneness: done> 1 pcs
 result ok errors=0 warnings=0 infos=0
 exit 0

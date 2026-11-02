@@ -1,9 +1,16 @@
 action slowChill(x: T, time: Time = 3 ml) -> T {
   uses hands
 }
+action quickChill(x: T, time: Time = 3 ml) -> T {
+  steps {
+    let chilled = chill(x, time)
+  }
+}
 recipe hiyayakko {
   ingredients {
     tofu: Tofu 1 pcs
   }
   let chilled = slowChill(tofu)
+  let again = quickChill(chilled)
+  let twice = quickChill(again)
 }
