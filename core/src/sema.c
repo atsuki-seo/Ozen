@@ -837,6 +837,29 @@ static ozni_index mod_at_node(const sema *s, ozni_index file, ozni_index at) {
 
 static ozni_index mod_of_file(const sema *s, ozni_index file) { return mod_at_node(s, file, 0); }
 
+static bool lookup_local(const sema *s, ozni_index name, value *out);
+
+static ozni_index callee_name(sema *s, ozni_index file, ozni_index callee) {
+  const ozni_node *n = nd(s, file, callee);
+  if (n->kind == OZNI_N_Name) {
+    return n->text;
+  }
+  const ozni_node *base = n->kind == OZNI_N_Member && n->first != 0 ? nd(s, file, n->first) : nullptr;
+  value local;
+  if (base == nullptr || base->kind != OZNI_N_Name || lookup_local(s, base->text, &local)) {
+    return 0;
+  }
+  ozni_str q = S(s, base->text), m = S(s, n->text);
+  char buf[128];
+  if (q.len + m.len + 1 > sizeof buf) {
+    return 0;
+  }
+  ozni_copy(buf, q.p, q.len);
+  buf[q.len] = '.';
+  ozni_copy(buf + q.len + 1, m.p, m.len);
+  return intern(s, buf, q.len + 1 + m.len);
+}
+
 static bool find_from(sema *s, ozni_index from_file, ozni_index name, ozni_index *file, ozni_index *node) {
   ozni_index saved = s->mod;
   s->mod = mod_of_file(s, from_file);
@@ -4901,9 +4924,8 @@ static value eval_inner(sema *s, ozni_index node) {
   }
   if (n->kind == OZNI_N_Call && n->first != 0) {
     const ozni_node *callee = nd(s, s->file, n->first);
-    ozni_index afile, anode;
-    if (callee->kind == OZNI_N_Name && find_def(s, callee->text, &afile, &anode) &&
-        nd(s, afile, anode)->kind == OZNI_N_Action) {
+    ozni_index afile, anode, cname = callee_name(s, s->file, n->first);
+    if (cname != 0 && find_def(s, cname, &afile, &anode) && nd(s, afile, anode)->kind == OZNI_N_Action) {
       return call_action(s, s->file, node, afile, anode);
     }
     if (callee->kind == OZNI_N_Name && str_is(S(s, callee->text), "split") && callee->next != 0 &&
@@ -5097,8 +5119,8 @@ static bool action_call(sema *s, ozni_index node) {
   if (n->kind == OZNI_N_Make) {
     return true;
   }
-  return n->kind == OZNI_N_Call && n->first != 0 && nd(s, s->file, n->first)->kind == OZNI_N_Name &&
-         find_def(s, nd(s, s->file, n->first)->text, &df, &dn) &&
+  ozni_index cname = n->kind == OZNI_N_Call && n->first != 0 ? callee_name(s, s->file, n->first) : 0;
+  return cname != 0 && find_def(s, cname, &df, &dn) &&
          (nd(s, df, dn)->kind == OZNI_N_Action || nd(s, df, dn)->kind == OZNI_N_Macro);
 }
 
@@ -6221,9 +6243,9 @@ static void made_from(sema *s, food *o, const ozni_table *made) {
 static value eval_make(sema *s, const ozni_node *mk) {
   const ozni_node *call = mk->first != 0 ? nd(s, s->file, mk->first) : nullptr;
   ozni_index callee = call == nullptr ? 0 : call->kind == OZNI_N_Call ? call->first : mk->first;
-  ozni_index rfile, rnode;
-  if (callee == 0 || s->make_depth > 16 || nd(s, s->file, callee)->kind != OZNI_N_Name ||
-      !find_def(s, nd(s, s->file, callee)->text, &rfile, &rnode) || nd(s, rfile, rnode)->kind != OZNI_N_Recipe) {
+  ozni_index rfile, rnode, cname = callee != 0 ? callee_name(s, s->file, callee) : 0;
+  if (cname == 0 || s->make_depth > 16 || !find_def(s, cname, &rfile, &rnode) ||
+      nd(s, rfile, rnode)->kind != OZNI_N_Recipe) {
     return unknown();
   }
   const ozni_node *rec = nd(s, rfile, rnode);
@@ -9425,8 +9447,8 @@ static void dish_makes(sema *s, ozni_table *refs, ozni_index file, ozni_index no
     ozni_index call = cn->kind == OZNI_N_Make ? cn->first : 0;
     ozni_index callee = call != 0 && nd(s, file, call)->kind == OZNI_N_Call ? nd(s, file, call)->first : call;
     ozni_index df, dn;
-    if (callee != 0 && nd(s, file, callee)->kind == OZNI_N_Name &&
-        find_from(s, file, nd(s, file, callee)->text, &df, &dn) &&
+    ozni_index cname = callee != 0 ? callee_name(s, file, callee) : 0;
+    if (cname != 0 && find_from(s, file, cname, &df, &dn) &&
         (nd(s, df, dn)->kind == OZNI_N_Recipe || nd(s, df, dn)->kind == OZNI_N_Menu) &&
         !dish_listed(refs, df, dn)) {
       dish_ref r = {df, dn};
