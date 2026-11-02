@@ -1507,6 +1507,15 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S910・実際の経路・`rtest/samples-same-pot-text`（P6-3、2026-11-03）。続けた作業の判定を `simmer` だけに限ると、炒め物のテストが落ちた。戻すと合格した
 - わざと壊す確認: S912・文書との一致・`rtest/oyakodon-text`（P6-3、2026-11-03）。`beat` の `.next` を消して割る・溶くの文をまとめないと落ちた。戻すと合格した
 - わざと壊す確認: S912・文書との一致・`rtest/oyakodon-text`（P6-3、2026-11-03）。`until` の文の主語を混ぜた物の最初の材料にすると、「鶏肉ももが半熟に」になって落ちた。戻すと合格した
+- 合図（P7-1、2026-11-03）: `until:` の値が名前だけで、std の `enum Cue` の値なら合図として扱い、出力の状態は宣言どおりにして（変えない）、`time` が無ければ `TYP022`。作業には `until` の作業と同じく作る人をつけ、IR の行に `until=fragrant`、IR の JSON に `until: {"cue": "fragrant"}` を出す。文章は `step-until-cue = { $x }を{ $cue }まで{ $act }（約 { $time }）`（「玉ねぎを香りが立つまで中火で炒める（約 1 分）」）。合図の名前は `Cue` の値として定義されるので、名前の解決の `NAM001 undefined` も出なくなる（着手点の前は `fragrant` が未定義だった）
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — P7-1 で std に `enum Cue` が加わった
+- わざと壊す確認: S862・データの完全性・`G-FB-PRELUDE`（P7-1、2026-11-03）。`Cue` から `thickened` を消すと「Cue: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S863・正常系・`cgolden/cue/fragrant`（P7-1、2026-11-03）。合図の `until:` を受け付けないと `TYP023` が出て落ちた。戻すと合格した
+- わざと壊す確認: S863・効かない条件・`cgolden/cue/state-unchanged`（P7-1、2026-11-03）。合図で `doneness` を `done` にすると `Carrot<doneness: done>` になって落ちた。戻すと合格した
+- わざと壊す確認: S864・効かない条件・`cgolden/cue/no-time`（P7-1、2026-11-03）。合図のときに 0 秒にすると `TYP022` が消えて落ちた。戻すと合格した
+- わざと壊す確認: S865・データの完全性・`cgolden/cue/json`（P7-1、2026-11-03）。IR の JSON の `until` に `cue` を出さないと `until: {}` になって落ちた。戻すと合格した
+- わざと壊す確認: S866・文書との一致・`rtest/cue-text`（P7-2、2026-11-03）。`until-cue-fragrant` の日本語を消すとテストが落ちた。戻すと合格した
+- わざと壊す確認: S866・データの完全性・`G-FB-PHRASES`（P7-2、2026-11-03）。`until-cue-boiling` の英語を消すと「en until-cue-boiling: got '0'」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
