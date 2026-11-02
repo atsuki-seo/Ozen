@@ -1,0 +1,10 @@
+// args: check --kitchen home
+kind Steamer : Tool
+type SteamerSpec : EquipmentSpec {
+  tiers: Count? in 1..
+}
+kitchen home {
+  tools {
+    steamer: Steamer { tiers: 0 }
+  }
+}

@@ -1,0 +1,3 @@
+error TYP001 dimension amount-wrong-dim.ozen:3:11-3:17 args=["Time", "Mass"]: dimension
+result error errors=1 warnings=0 infos=0
+exit 1

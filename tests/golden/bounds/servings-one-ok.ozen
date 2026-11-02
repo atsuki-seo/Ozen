@@ -1,0 +1,6 @@
+recipe soup(servings: 1) {
+  ingredients {
+    water: 200 ml
+  }
+  let warmed = warm(water)
+}

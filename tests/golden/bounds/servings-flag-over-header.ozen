@@ -1,0 +1,7 @@
+// args: check -s 25
+recipe soup(servings: Count in 1..20 = 4) {
+  ingredients {
+    water: 200 ml
+  }
+  let warmed = warm(water)
+}

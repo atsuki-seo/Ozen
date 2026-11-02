@@ -1,0 +1,6 @@
+recipe salad {
+  ingredients {
+    wakame: Wakame
+  }
+  let mixed = mix(wakame)
+}

@@ -1,0 +1,8 @@
+recipe hiyayakko {
+  ingredients {
+    salt: 0.5 g
+    tofu: Tofu 1 pcs
+    pepper: 0.5..2 g
+  }
+  let dish = combine([salt, tofu, pepper])
+}
