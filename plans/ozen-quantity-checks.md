@@ -605,7 +605,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S698 | 実際の経路 | `cgolden/args/named-arg` | 照合を位置で渡した引数だけにする | P1-2 |
 | S699 | 実際の経路 | `cgolden/args/pipe-arg` | `pipe_into` で左辺を最後の引数に付ける（`3 ml` が `x` に当たり、診断の位置と引数が変わる） | P1-2 |
 | S700 | 正常系 | `cgolden/args/variable-arg` | 診断の位置を呼び出し全体にする | P1-2 |
-| S701 | 実際の経路 | `cgolden/args/macro-body` | 照合の診断の前に `arg_site` の trail を設定しない（本文の位置の trail が消える） | P1-2 |
+| S701 | 実際の経路 | `cgolden/args/macro-body` | 照合の診断の trail を空にする（本文の位置の trail が消える。§9 の差し替えの理由） | P1-2 |
 | S758 | 実際の経路 | `cgolden/args/macro-splice` | 照合の診断の位置を `arg_site` を通さず引数の節そのもの（マクロの本文の `$t`）にする | P1-2 |
 | S702 | 実際の経路 | `cgolden/args/composite` | 合成の動作のときは外の照合を飛ばす | P1-2 |
 | S759 | 副作用とコスト | `cgolden/args/composite` | 合成の動作の中の呼び出しでも照合の診断を出す（2 つになる） | P1-2 |
@@ -637,7 +637,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S716 | 効かない条件 | `cgolden/api/types-json` | 下端を含む範囲にも `"minExclusive":false` を出す | P2-2 |
 | S717 | データの完全性 | `G-QC-SCHEMA` | スキーマの型のフィールドから `minExclusive` を消す（`additionalProperties: false` で検証が落ちる） | P2-2 |
 | S769 | データの完全性 | `cgolden/api/signatures-json` | 動作の引数の型の文字を、範囲を除いた型の名前だけにする | P2-3 |
-| S718 | データの完全性 | `G-CORE-GRAMMAR` | `type()` の `mark(p, OZNI_R_type_range)` を消す（規則が golden で通らない） | P2-2 |
+| S718 | データの完全性 | `G-CORE-GRAMMAR` | `type_range()` の `mark(p, OZNI_R_type_range)` を消す（規則が golden で通らない） | P2-2 |
 | S718 | 文書との一致 | `G-QC-SYNTAX` | `core/grammar.ebnf` から `type_range` の規則を消す | P2-2 |
 | S719 | データの完全性 | `G-QC-SYNTAX` | `core/fuzz/ozen.dict` から `"<.."` を消す | P2-2 |
 | S720 | データの完全性 | `G-QC-PRELUDE` | `chill` の `time` の範囲を消す | P2-3 |
@@ -662,7 +662,7 @@ grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN
 | S772 | 実際の経路 | `cgolden/bounds/amount-range-units` | `TYP021` の判定を量のリテラルと数の範囲の節にだけ当てる | P3-2 |
 | S732 | 正常系 | `cgolden/bounds/amount-per-serving-zero` | `per serving` の量では判定を飛ばす | P3-2 |
 | S733 | 副作用とコスト | `cgolden/bounds/amount-per-serving-unknown` | `TYP020` のときは判定を飛ばす | P3-2 |
-| S773 | 副作用とコスト | `cgolden/bounds/servings-invalid-amounts` | 判定を人数を掛けた後に動かす（`servings: 0` で `100 g per serving` が 0 g になり `TYP021` が出る） | P3-3 |
+| S773 | 副作用とコスト | `cgolden/bounds/servings-invalid-amounts` | 範囲外の人数を未知にせずそのまま使う（`150 ml * servings` が 0 ml になり `TYP021` が出る。§9 の差し替えの理由） | P3-3 |
 | S785 | 効かない条件 | `cgolden/bounds/servings-invalid-amounts` | 人数が範囲外のときは `per serving` の量の判定も飛ばす（`0 g per serving` の `TYP021` が消える） | P3-3 |
 | S734 | 効かない条件 | `cgolden/bounds/amount-any` | `[any amount]` を 0 として判定する | P3-2 |
 | S735 | 効かない条件 | `cgolden/bounds/amount-none` | 量の無い材料を 0 として判定する | P3-2 |
