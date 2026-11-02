@@ -931,7 +931,7 @@ static food *food_new(sema *s, ozni_index type) {
     ozni_index afile, anode;
     axis_state *st = &f->axes[f->naxes];
     *st = (axis_state){.axis = an->text, .file = NONE, .kind = AX_TAGGED};
-    if (!find_def(s, an->text, &afile, &anode) || nd(s, afile, anode)->kind != OZNI_N_Axis) {
+    if (!find_from(s, file, an->text, &afile, &anode) || nd(s, afile, anode)->kind != OZNI_N_Axis) {
       continue;
     }
     st->file = afile;
