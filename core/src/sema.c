@@ -159,6 +159,8 @@ typedef struct sema {
   ozni_index otnode;
   ozni_table *kentries;
   ozni_qty servings;
+  bool servings_bad;
+  bool options_servings_bad;
   uint32_t quiet;
   uint32_t make_depth;
   bool entry_dish;
@@ -2735,7 +2737,7 @@ static bool check_qty(sema *s, ozni_qty v, ozni_index tfile, ozni_index tnode, o
   return true;
 }
 
-static void check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index tfile, ozni_index tnode,
+static bool check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index tfile, ozni_index tnode,
                         ozni_index name) {
   const ozni_node *tn = nd(s, tfile, tnode);
   if (tn->kind == OZNI_N_ListType) {
@@ -2743,13 +2745,13 @@ static void check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index 
          c = nd(s, vfile, c)->next) {
       check_value(s, vfile, c, tfile, tn->first, name);
     }
-    return;
+    return true;
   }
   ozni_index range;
   ozni_index base = base_type(s, tfile, tnode, &range);
   const ozni_node *bn = nd(s, tfile, base);
   if (bn->kind != OZNI_N_TypeRef) {
-    return;
+    return true;
   }
   ozni_index df, dn;
   if (nd(s, vfile, vnode)->kind == OZNI_N_Construct && find_from(s, tfile, bn->text, &df, &dn) &&
@@ -2767,14 +2769,13 @@ static void check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index 
         check_value(s, vfile, cn->first, ff, field_type_node(s, ff, fn), cn->text);
       }
     }
-    return;
+    return true;
   }
   if (dim_index(s, bn->text) >= 0) {
     ozni_qty v;
-    if (value_qty(s, vfile, vnode, &v)) {
-      check_qty(s, v, tfile, tnode, name, vfile, vnode);
-    }
-  } else if (find_from(s, tfile, bn->text, &df, &dn) && nd(s, df, dn)->kind == OZNI_N_Enum) {
+    return !value_qty(s, vfile, vnode, &v) || check_qty(s, v, tfile, tnode, name, vfile, vnode);
+  }
+  if (find_from(s, tfile, bn->text, &df, &dn) && nd(s, df, dn)->kind == OZNI_N_Enum) {
     const ozni_node *vn = nd(s, vfile, vnode);
     bool found = false;
     for (ozni_index c = nd(s, df, dn)->first; vn->kind == OZNI_N_Name && c != 0; c = nd(s, df, c)->next) {
@@ -2783,8 +2784,10 @@ static void check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index 
     if (!found) {
       ozni_str args[2] = {S(s, bn->text), src_text(s, vfile, vn)};
       diag_node(s, OZNI_D_TYP_axisValue, vfile, vn, args, 2);
+      return false;
     }
   }
+  return true;
 }
 
 static bool kind_has(sema *s, ozni_index kfile, ozni_index knode, ozni_index rfile, const ozni_node *req,
@@ -3223,7 +3226,10 @@ static void setup_configs(sema *s) {
     }
     if (cn->kind == OZNI_N_Field && cn->first != 0 && type_field(s, tf, tn, cn->text, &ff, &fn, 0) &&
         field_type_node(s, ff, fn) != 0) {
-      check_value(s, s->ofile, cn->first, ff, field_type_node(s, ff, fn), cn->text);
+      if (!check_value(s, s->ofile, cn->first, ff, field_type_node(s, ff, fn), cn->text) &&
+          str_is(S(s, cn->text), "servings")) {
+        s->options_servings_bad = true;
+      }
       for (ozni_index a = nd(s, ff, fn)->first; s->knode == 0 && a != 0; a = nd(s, ff, a)->next) {
         const ozni_node *an = nd(s, ff, a);
         if (an->kind == OZNI_N_Annotation && str_is(S(s, an->text), "needs") && an->first != 0 &&
@@ -6253,6 +6259,24 @@ static void wrap_entry(sema *s, ozni_index file, const ozni_node *dish) {
   ozni_buf_puts(b, " }\n");
 }
 
+static bool own_range(const sema *s, ozni_index file, ozni_index type) {
+  return type != 0 && nd(s, file, type)->kind == OZNI_N_RangedType;
+}
+
+static ozni_index servings_type(sema *s, ozni_index file, ozni_index type, ozni_index *tfile) {
+  ozni_index of, on, ff, fn;
+  *tfile = file;
+  if (own_range(s, file, type)) {
+    return type;
+  }
+  if (find_def(s, intern(s, "Options", 7), &of, &on) && nd(s, of, on)->kind == OZNI_N_Type &&
+      type_field(s, of, on, intern(s, "servings", 8), &ff, &fn, 0) && field_type_node(s, ff, fn) != 0) {
+    *tfile = ff;
+    return field_type_node(s, ff, fn);
+  }
+  return type;
+}
+
 static void eval_param(sema *s, ozni_index file, ozni_index param) {
   const ozni_node *pn = nd(s, file, param);
   ozni_index type = field_type_node(s, file, param), def = field_default(s, file, param);
@@ -6288,13 +6312,27 @@ static void eval_param(sema *s, ozni_index file, ozni_index param) {
     return;
   }
   ozni_qty q = {0};
-  if (type != 0) {
+  bool servings = str_is(S(s, pn->text), "servings");
+  bool ok = true;
+  if (servings && over != 0) {
+    ok = !s->options_servings_bad && (!own_range(s, file, type) || check_value(s, vfile, vnode, file, type, pn->text));
+  } else if (servings) {
+    ozni_index tf = file, st = servings_type(s, file, type, &tf);
+    ok = st == 0 || check_value(s, vfile, vnode, tf, st, pn->text);
+  } else if (type != 0) {
     check_value(s, vfile, vnode, file, type, pn->text);
+  }
+  if (type != 0) {
     typed_qty(s, vfile, vnode, file, type, &q);
   } else {
     value_qty(s, vfile, vnode, &q);
   }
-  if (str_is(S(s, pn->text), "servings")) {
+  if (servings && !ok) {
+    s->servings = (ozni_qty){0};
+    s->servings_bad = true;
+    return;
+  }
+  if (servings) {
     s->servings = q;
   }
   if (q.known) {
@@ -6334,13 +6372,14 @@ typedef struct saved_dish {
   ozni_index last_node;
   uint32_t step_no, group, branch;
   ozni_qty servings;
+  bool servings_bad;
   bool entry_dish;
 } saved_dish;
 
 static saved_dish save_dish(const sema *s) {
   return (saved_dish){s->file,      s->mod,       s->scope,   s->portions, s->values,   s->reqs,
                       s->variant_acts, s->last,  s->last_node, s->step_no, s->group, s->branch,
-                      s->servings,  s->entry_dish};
+                      s->servings,  s->servings_bad, s->entry_dish};
 }
 
 static void restore_dish(sema *s, const saved_dish *d) {
@@ -6357,6 +6396,7 @@ static void restore_dish(sema *s, const saved_dish *d) {
   s->group = d->group;
   s->branch = d->branch;
   s->servings = d->servings;
+  s->servings_bad = d->servings_bad;
   s->entry_dish = d->entry_dish;
 }
 
@@ -6430,12 +6470,15 @@ static value eval_make(sema *s, const ozni_node *mk) {
       copy->irdiv = v.f->irdiv;
       v.f = copy;
     }
-    ozni_index ptype = field_type_node(s, rfile, pnodes[k]);
-    if (v.kind == V_QTY && ptype != 0 && dim_type(s, rfile, ptype)) {
+    ozni_index tfile = rfile, ptype = field_type_node(s, rfile, pnodes[k]);
+    if (str_is(S(s, pnames[k]), "servings")) {
+      ptype = servings_type(s, rfile, ptype, &tfile);
+    }
+    if (v.kind == V_QTY && ptype != 0 && dim_type(s, tfile, ptype)) {
       ozni_index qfile, qnode, qtrail, saved_trail = s->trail;
       if (qty_site(s, s->file, vnode, &qfile, &qnode, &qtrail)) {
         s->trail = qtrail;
-        check_qty(s, v.q, rfile, ptype, pnames[k], qfile, qnode);
+        check_qty(s, v.q, tfile, ptype, pnames[k], qfile, qnode);
         s->trail = saved_trail;
       }
     }
@@ -6458,6 +6501,7 @@ static value eval_make(sema *s, const ozni_node *mk) {
   s->last_node = 0;
   s->group = s->branch = 0;
   s->servings = (ozni_qty){0};
+  s->servings_bad = s->options_servings_bad;
   s->entry_dish = false;
   value last = unknown();
   if (s->scope != nullptr && s->portions != nullptr && s->reqs != nullptr && s->variant_acts != nullptr) {
@@ -9181,6 +9225,7 @@ static void eval_dish(sema *s, ozni_index mi, const ozni_def *d) {
     return;
   }
   s->servings = (ozni_qty){0};
+  s->servings_bad = s->options_servings_bad;
   for (ozni_index c = n->first; c != 0; c = nd(s, m->file, c)->next) {
     const ozni_node *cn = nd(s, m->file, c);
     if (cn->kind == OZNI_N_Requires) {
