@@ -9,8 +9,16 @@ action-wash = { $x-kind ->
 action-soak = Soak { $x } for { $time }
     .next = soak for { $time }
     .name = soak
-action-peel = Peel { $x }
+action-peel = { $x-kind ->
+    [egg] Shell { $x }
+   *[other] Peel { $x }
+}
     .name = peel
+action-crack = Crack { $x } into a bowl
+    .name = crack
+action-beat = Beat { $x }
+    .next = beat
+    .name = beat
 action-loosen = Loosen { $x }
     .name = loosen
 action-drain = Drain { $x }

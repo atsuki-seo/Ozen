@@ -9,8 +9,17 @@ action-wash = { $x-kind ->
 action-soak = { $x }を{ $time }浸す
     .next = { $time }浸す
     .name = 浸す
-action-peel = { $x }の皮をむく
+action-peel = { $x-kind ->
+    [egg] { $x }の殻をむく
+   *[other] { $x }の皮をむく
+}
     .name = 皮をむく
+action-crack = { $x }をボウルに割り入れる
+    .cont = { $x }をボウルに割り入れ
+    .name = 卵を割る
+action-beat = { $x }を溶きほぐす
+    .next = 溶きほぐす
+    .name = 溶く
 action-loosen = { $x }をほぐす
     .name = ほぐす
 action-drain = { $x }の水気を切る

@@ -132,6 +132,9 @@ export function steps(ph, defs, dish, opts = {}) {
     }
     const chain = merged.get(n.id) ?? [n];
     let text = stepText(ph, defs, nodes, chain[0], opts);
+    if (chain.length > 1) {
+      text = ph.formatAttr(keyFor('action', chain[0].label), 'cont', stepValues(ph, defs, nodes, chain[0], opts).values) ?? text;
+    }
     for (const b of chain.slice(1)) {
       text = ph.format('steps-joined', { first: text, then: nextText(ph, defs, nodes, b, opts) });
     }

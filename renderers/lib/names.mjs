@@ -20,6 +20,9 @@ export function kindOf(defs, type) {
       continue;
     }
     seen.add(name);
+    if (name === 'Egg') {
+      return 'egg';
+    }
     const supers = (byName.get(name)?.supers || []).map((s) => s.name);
     const direct = KINDS.find((k) => supers.includes(k));
     if (direct) {
