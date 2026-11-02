@@ -890,6 +890,26 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S727・副作用とコスト・`cgolden/bounds/dimension-before-range`（P2-3、2026-11-02）。次元が違っても範囲の判定を続けると `dimension-before-range` が落ちた。戻すと合格した
 - わざと壊す確認: S771・副作用とコスト・`cgolden/bounds/composite-range`（P2-3、2026-11-02）。合成の動作の中の照合の位置を呼び出し元に向けず中の呼び出しのまま出すと `composite-range` が落ちた。戻すと合格した
 - わざと壊す確認: S769・データの完全性・`cgolden/api/signatures-json`（P2-3、2026-11-02）。`--emit signatures` の引数の型の文字を範囲を除いた型の名前だけにすると `signatures-json` が落ちた。戻すと合格した
+- 買う量・分ける量（P3-2、2026-11-02）: 同じ穴がある。`let naan = buy Naan 0 pcs` も `split(water, -50 ml)`（`debug steps` に `(Water -50 ml, Water 250 ml)` と出る）も `result ok` になる。Issue は材料の量だけを挙げているので本計画では直さず、最終ゲートの後に別の作業として提案する
+- `bounds/amount-per-serving-unknown` の期待の並び（P3-2、2026-11-02）: 手で書いた期待は `TYP021`・`TYP020` の順だったが、診断は位置・診断のコードの順に並べて出す作り（`core/src/render.c` の `cmp_diag`）で、同じ位置では `TYP020` が先になる。仕様（S733）の誤りではなく並びの書き間違いなので、期待の 2 行を入れ替えた（`G-RF-SEPARATION` に従い、実装と別のコミット）
+- 期待を直した golden: `tests/golden/api/local-not-listed.out` — 診断の一覧に `TYP021 nonPositiveAmount` が 1 つ増えた（P3-2）
+- わざと壊す確認: S728・正常系・`cgolden/bounds/amount-negative`（P3-2、2026-11-02）。`TYP021` を出す処理を消すと `amount-negative` を含む 9 本が落ちた。戻すと合格した
+- わざと壊す確認: S729・境界・上限・`cgolden/bounds/amount-zero`（P3-2、2026-11-02）。判定を `lo < 0` にすると `amount-zero` を含む 5 本が落ちた。戻すと合格した
+- わざと壊す確認: S730・正常系・`cgolden/bounds/amount-negative`（P3-2、2026-11-02）。診断の引数の 2 つ目を材料の型の名前にすると `amount-negative` を含む 9 本が落ちた。戻すと合格した
+- わざと壊す確認: S731・境界・上限・`cgolden/bounds/amount-range-zero`（P3-2、2026-11-02）。判定に区間の上端を使うと `amount-range-zero` が落ちた。戻すと合格した
+- わざと壊す確認: S731・境界・上限・`cgolden/bounds/amount-range-negative`（P3-2、2026-11-02）。判定を `lo < -1` にすると `amount-range-negative`（`-0.5..0.8 g` の `TYP021` が消える）を含む 6 本が落ちた。戻すと合格した
+- わざと壊す確認: S731・効かない条件・`cgolden/bounds/amount-positive`（P3-2、2026-11-02）。判定を `lo <= 1` にすると `amount-positive` を含む多数（`1 pcs` の材料を使う golden）が落ちた。戻すと合格した
+- わざと壊す確認: S772・実際の経路・`cgolden/bounds/amount-range-units`（P3-2、2026-11-02）。`TYP021` の判定を量のリテラル・符号・数・数の範囲の節にだけ当てると `amount-range-units`・`amount-expression` が落ちた。戻すと合格した
+- わざと壊す確認: S732・正常系・`cgolden/bounds/amount-per-serving-zero`（P3-2、2026-11-02）。`per serving` の量では判定を飛ばすと `amount-per-serving-zero`・`amount-per-serving-unknown` が落ちた。戻すと合格した
+- わざと壊す確認: S733・副作用とコスト・`cgolden/bounds/amount-per-serving-unknown`（P3-2、2026-11-02）。人数が決まらない `per serving` の量では判定を飛ばすと `amount-per-serving-unknown` が落ちた。戻すと合格した
+- わざと壊す確認: S734・効かない条件・`cgolden/bounds/amount-any`（P3-2、2026-11-02）。`[any amount]` を 0 として `TYP021` を出すと `amount-any` が落ちた。戻すと合格した
+- わざと壊す確認: S735・効かない条件・`cgolden/bounds/amount-none`（P3-2、2026-11-02）。量の決まらない材料を 0 として判定すると `amount-none` が落ちた。戻すと合格した
+- わざと壊す確認: S736・副作用とコスト・`cgolden/bounds/amount-wrong-dim`（P3-2、2026-11-02）。次元の誤りの後にも判定を続けると `amount-wrong-dim` が落ちた。戻すと合格した
+- わざと壊す確認: S737・正常系・`cgolden/bounds/amount-expression`（P3-2、2026-11-02）。判定を式（二項演算）でない量にだけ当てると `amount-expression` が落ちた。戻すと合格した
+- わざと壊す確認: S738・効かない条件・`cgolden/bounds/amount-positive`（P3-2、2026-11-02）。判定を `lo <= 0.5 g` 相当にすると `amount-positive` が落ちた。戻すと合格した
+- わざと壊す確認: S739・データの完全性・`G-QC-DIAG`（P3-2、2026-11-02）。`phrases/ja.ftl` の `diag-non-positive-amount` から `{ $arg2 }` を消すと「ja phrase: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S739・データの完全性・`G-CORE-DIAG-REGISTRY`（P3-2、2026-11-02）。`core/tests/diag-names.txt` から `TYP:nonPositiveAmount` を消すと「1 unlisted」で落ちた。戻すと合格した
+- わざと壊す確認: S739・前提の固定・`G-CORE-DIAG-APPEND`（P3-2、2026-11-02）。一時的な worktree の作業用のコミットで `TYP021` を `TYP020` の次の行に入れ直すと「deleted registry lines: got '1'」で落ちた。`git reset --hard` で消し、worktree を消した（push していない）
 
 ---
 
