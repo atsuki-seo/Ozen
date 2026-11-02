@@ -1,0 +1,21 @@
+// args: debug schedule --kitchen home --options today
+kitchen home {
+  places {
+    stove: IHStove
+  }
+  tools {
+    pot: Pot { count: 2 }
+  }
+}
+recipe potatoAndSoup {
+  ingredients {
+    water: 500 ml
+    potato: 1 pcs
+    oil: 500 ml
+  }
+  let boiled = water |> boilWater
+  let fried = potato |> deepFry(oil, 5 min)
+}
+kitchen today : Options {
+  cooks: 1
+}

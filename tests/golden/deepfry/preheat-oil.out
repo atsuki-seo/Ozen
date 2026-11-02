@@ -1,0 +1,6 @@
+schedule friedPotato level=2 cooks=1
+  0..600 (300) preheat pot#1 to 170 degC unattended [pot#1, stove#1]
+  600..900 (900) %3 deepFry by cook1 [stove#1, pot#1]
+  total 900
+result ok errors=0 warnings=0 infos=0
+exit 0

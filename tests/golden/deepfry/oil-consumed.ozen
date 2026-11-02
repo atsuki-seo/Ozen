@@ -1,0 +1,8 @@
+recipe friedPotato {
+  ingredients {
+    potato: 2 pcs
+    oil: 500 ml
+  }
+  let first = deepFry(potato / 2, oil, 3 min)
+  let second = deepFry(potato / 2, oil, 3 min)
+}

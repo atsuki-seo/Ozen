@@ -1,0 +1,8 @@
+schedule friedPotato level=2 cooks=1
+  0..600 (300) preheat pot#1 to 170 degC unattended [pot#1, stove#1]
+  600..780 (780) %3 deepFry by cook1 [stove#1, pot#1]
+  780..960 (960) %4 deepFry by cook1 [stove#1, pot#1]
+  total 960
+warning LIN005 unusedValue same-temp.ozen:15:7-15:12 args=["first", "Potato<doneness: done, browning: golden>"]: unused value
+result ok errors=0 warnings=1 infos=0
+exit 0

@@ -1,0 +1,8 @@
+schedule potatoAndSoup level=2 cooks=1
+  0..600 (300) %2 boilWater unattended [stove#1, pot#1]
+  600..1200 (900) preheat pot#2 to 170 degC unattended [pot#2, stove#1]
+  1200..1500 (1500) %5 deepFry by cook1 [stove#1, pot#2]
+  total 1500
+warning LIN005 unusedValue burner.ozen:16:7-16:13 args=["boiled", "Water<doneness: done>"]: unused value
+result ok errors=0 warnings=1 infos=0
+exit 0
