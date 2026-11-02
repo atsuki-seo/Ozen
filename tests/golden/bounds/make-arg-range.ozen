@@ -5,5 +5,5 @@ recipe soup(t: Time in 0 s<.. = 5 min) {
   let boiled = boil(dashi, t)
 }
 menu dinner {
-  let s = make soup(t: 0 s)
+  let dish = make soup(t: 0 s)
 }

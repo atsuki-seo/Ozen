@@ -1,9 +1,9 @@
 File expression-unchanged.ozen
   Recipe tamagoyaki 2:1-4:2
     Block 2:19-4:2
-      Let t 3:3-3:24
-        Binary < 3:11-3:24
-          Quantity 3 min 3:11-3:16
-          RangeTo 3:17-3:24
-            Quantity 5 min 3:19-3:24
+      Let limit 3:3-3:28
+        Binary < 3:15-3:28
+          Quantity 3 min 3:15-3:20
+          RangeTo 3:21-3:28
+            Quantity 5 min 3:23-3:28
 exit 0

@@ -5,5 +5,5 @@ recipe soup(servings: Count = 2) {
   let warmed = warm(water)
 }
 menu dinner(servings: 0) {
-  let s = make soup
+  let dish = make soup
 }

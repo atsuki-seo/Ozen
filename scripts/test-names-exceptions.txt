@@ -1,1 +1,3 @@
 # Test sources that keep one-letter recipe, menu or binding names, with the reason.
+tests/golden/args/issue1.ozen keeps the reproduction code of issue 1 as reported
+tests/golden/bounds/issue2.ozen keeps the names of the reproduction code of issue 2 as reported
