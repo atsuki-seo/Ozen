@@ -907,6 +907,7 @@ static food *food_new(sema *s, ozni_index type) {
     f->file = NONE;
     return f;
   }
+  f->type = nd(s, file, node)->text;
   f->file = file;
   f->node = node;
   ozni_index axes = field_first(s, file, node, "axes");
@@ -2478,7 +2479,7 @@ static food *food_typed(sema *s, ozni_index file, ozni_index tnode, bool report,
   const ozni_node *t = nd(s, file, tnode);
   ozni_index df, dn;
   if (find_from(s, file, t->text, &df, &dn) && nd(s, df, dn)->kind == OZNI_N_Alias) {
-    return food_alias(s, df, dn, t->text, depth);
+    return food_alias(s, df, dn, nd(s, df, dn)->text, depth);
   }
   food *f = food_new_in(s, file, t->text);
   if (f == nullptr || f->file == NONE) {
