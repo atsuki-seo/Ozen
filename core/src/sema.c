@@ -166,7 +166,7 @@ typedef struct sema {
   bool entry_dish;
   ozni_index trail;
   const struct mframe *frame;
-  const struct cframe *cframe;
+  struct cframe *cframe;
   uint32_t depth;
   bool top;
   bool in_decl;
@@ -226,7 +226,7 @@ typedef struct cframe {
   const ozni_index *sfiles;
   const ozni_index *snodes;
   const ozni_index *strails;
-  const bool *failed;
+  bool *failed;
   uint32_t n;
 } cframe;
 
@@ -4039,17 +4039,23 @@ static void arg_site(const sema *s, ozni_index file, ozni_index node, ozni_index
 }
 
 static bool qty_site(const sema *s, ozni_index file, ozni_index node, ozni_index *sfile, ozni_index *snode,
-                     ozni_index *strail) {
+                     ozni_index *strail, bool **reported) {
   arg_site(s, file, node, sfile, snode, strail);
-  const cframe *cf = s->cframe;
+  *reported = nullptr;
+  cframe *cf = s->cframe;
   const ozni_node *n = nd(s, *sfile, *snode);
   for (uint32_t j = 0; cf != nullptr && n->kind == OZNI_N_Name && j < cf->n; j++) {
-    if (cf->names[j] == n->text && cf->snodes[j] != 0) {
-      *sfile = cf->sfiles[j];
-      *snode = cf->snodes[j];
-      *strail = cf->strails[j];
-      return !cf->failed[j];
+    if (cf->names[j] != n->text) {
+      continue;
     }
+    if (cf->snodes[j] == 0) {
+      return false;
+    }
+    *sfile = cf->sfiles[j];
+    *snode = cf->snodes[j];
+    *strail = cf->strails[j];
+    *reported = &cf->failed[j];
+    return !cf->failed[j];
   }
   return true;
 }
@@ -4329,7 +4335,8 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
     if (argnodes[k] == 0) {
       continue;
     }
-    bool fresh = qty_site(s, file, argnodes[k], &qfiles[k], &qnodes[k], &qtrails[k]);
+    bool *reported;
+    bool fresh = qty_site(s, file, argnodes[k], &qfiles[k], &qnodes[k], &qtrails[k], &reported);
     ozni_index ptype = field_type_node(s, afile, pnodes[k]);
     if (!fresh) {
       qfailed[k] = true;
@@ -4338,11 +4345,14 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
       s->trail = qtrails[k];
       qfailed[k] = !check_qty(s, params[k].q, afile, ptype, pnames[k], qfiles[k], qnodes[k]);
       s->trail = saved_trail;
+      if (qfailed[k] && reported != nullptr) {
+        *reported = true;
+      }
     }
   }
   for (ozni_index c = act->first; c != 0; c = nd(s, afile, c)->next) {
     if (nd(s, afile, c)->kind == OZNI_N_Steps && nd(s, afile, c)->first != 0) {
-      const cframe *saved_cframe = s->cframe;
+      cframe *saved_cframe = s->cframe;
       cframe cf = {pnames, qfiles, qnodes, qtrails, qfailed, np};
       s->cframe = &cf;
       value out = call_composite(s, file, call, afile, anode, nd(s, afile, c)->first, params, pnames, np);
@@ -6481,9 +6491,12 @@ static value eval_make(sema *s, const ozni_node *mk) {
     }
     if (v.kind == V_QTY && ptype != 0 && dim_type(s, tfile, ptype)) {
       ozni_index qfile, qnode, qtrail, saved_trail = s->trail;
-      if (qty_site(s, s->file, vnode, &qfile, &qnode, &qtrail)) {
+      bool *reported;
+      if (qty_site(s, s->file, vnode, &qfile, &qnode, &qtrail, &reported)) {
         s->trail = qtrail;
-        check_qty(s, v.q, tfile, ptype, pnames[k], qfile, qnode);
+        if (!check_qty(s, v.q, tfile, ptype, pnames[k], qfile, qnode) && reported != nullptr) {
+          *reported = true;
+        }
         s->trail = saved_trail;
       }
     }
