@@ -796,7 +796,7 @@ type Person {
   avoids: [Tool] = []
 }
 type Options {
-  servings: Count?
+  servings: Count? in 1..
   cooks: Count in 1.. = 1
   cleanup: Cleanup = none @needs(kitchen)
   serveAt: Time?
