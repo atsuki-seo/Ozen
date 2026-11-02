@@ -1,0 +1,3 @@
+error TYP023 untilTarget other-operator.ozen:3:61-3:75 args=["simmer", "doneness > par"]: until target
+result error errors=1 warnings=0 infos=0
+exit 1

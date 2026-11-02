@@ -1,0 +1,5 @@
+recipe porkMix {
+  ingredients { pork: 200 g }
+  let cooked = simmer(pork / 2, 10 min)
+  let mixed = mix([cooked, pork / 2])
+}

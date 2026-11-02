@@ -1,0 +1,8 @@
+// args: debug schedule --options today
+kitchen today : Options {
+  cooks: 1
+}
+recipe boilingCarrot {
+  ingredients { carrot: 1 pcs }
+  let simmered = carrot |> cut(slice, 3 mm) |> simmer(5 min, until: boiling)
+}

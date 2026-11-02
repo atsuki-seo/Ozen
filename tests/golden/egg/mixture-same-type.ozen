@@ -1,0 +1,4 @@
+recipe porkMix {
+  ingredients { pork: 200 g }
+  let mixed = mix([pork / 2, pork / 2])
+}

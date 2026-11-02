@@ -1,0 +1,4 @@
+recipe softEgg {
+  ingredients { egg: 1 pcs }
+  let cooked = egg |> crack |> beat |> simmer(5 min, until: doneness > par)
+}

@@ -1,0 +1,3 @@
+error SAF001 undercooked mixture-same-type-other-doneness.ozen:4:15-4:38 args=["Pork", "raw"]: undercooked
+result error errors=1 warnings=0 infos=0
+exit 1
