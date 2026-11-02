@@ -162,6 +162,11 @@ export function termText(ph, kind, x, opts = {}) {
     const key = ph.has(keyFor('dish', x)) ? keyFor('dish', x) : keyFor('name', x);
     return ph.format(key, {}, words(x));
   }
+  const withArg = kind === 'dirt' ? /^([a-z][A-Za-z0-9]*)\(([a-z][A-Za-z0-9]*)\)$/.exec(x) : null;
+  if (withArg) {
+    const term = ph.format(keyFor(kind, withArg[1]), {}, words(withArg[1]));
+    return ph.format('dirt-of', { dirt: term, kind: ph.format(keyFor(withArg[1], withArg[2]), {}, words(withArg[2])) });
+  }
   return ph.format(keyFor(kind, x), {}, words(x));
 }
 

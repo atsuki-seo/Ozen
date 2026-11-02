@@ -450,6 +450,7 @@ dirt-stain = stain
 dirt-scorch = scorch
 dirt-light = light dirt
 dirt-allergen = allergen
+dirt-of = { $dirt } ({ $kind })
 allergen-shrimp = shrimp
 allergen-cashew = cashew nuts
 allergen-crab = crab

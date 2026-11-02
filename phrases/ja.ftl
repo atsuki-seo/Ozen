@@ -468,6 +468,7 @@ dirt-stain = 色素
 dirt-scorch = 焦げ
 dirt-light = 軽い汚れ
 dirt-allergen = アレルゲン
+dirt-of = { $dirt }（{ $kind }）
 allergen-shrimp = えび
 allergen-cashew = カシューナッツ
 allergen-crab = かに
