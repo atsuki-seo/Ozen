@@ -2,4 +2,5 @@
 kind Scale : Tool
 type ScaleSpec : EquipmentSpec {
   maxLoad: Mass in 0 g<..
+  minLoad: Mass in 0 g<..5 kg
 }

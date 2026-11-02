@@ -1,0 +1,9 @@
+recipe soup(servings: Count in 2..20 = 4) {
+  ingredients {
+    water: 200 ml
+  }
+  let warmed = warm(water)
+}
+menu dinner {
+  let dish = make soup(servings: 1)
+}

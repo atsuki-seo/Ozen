@@ -1,0 +1,8 @@
+// args: check -s 0
+recipe seasoning(servings: Count = 2) {
+  ingredients {
+    sugar: 1 g per serving
+    water: 150 ml * servings
+  }
+  let mixed = combine([sugar, water])
+}

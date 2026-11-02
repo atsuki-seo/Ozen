@@ -6,4 +6,5 @@ recipe hiyayakko {
     tofu: Tofu 1 pcs
   }
   let steamed = steam(tofu, 0..2 min)
+  let again = steam(steamed, -1 min..2 min)
 }
