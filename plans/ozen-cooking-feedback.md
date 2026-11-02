@@ -1910,6 +1910,13 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S942・副作用とコスト・`G-FB-REVIEW-FILES`（P8-4、2026-11-03）。一時的な worktree で見直しの範囲に golden を 1 つ（`.ozen` と `.out`）足したコミットを作り、手元でタグ `fb-review-end` をそこに付け替えると「added, deleted or renamed tests: got '2'」で落ちた。タグを `febe26d` に戻し、worktree を消した（push していない）
 - わざと壊す確認: S943・データの完全性・`G-FB-REVIEW-ANNOT`（P8-3、2026-11-03）。§5.3 の行は「注釈で明示に分類したテストから注釈を消す」だが、そう分類したテストが無いので、`args/issue1.ozen` の分類を一時的に「注釈で明示」にすると「annotated rewrites without an annotation: got '1'」で落ちた。戻すと合格した
 - わざと壊す確認: S944・前提の固定・`G-REPO-SELFTESTS`（P8-2、2026-11-03）。`--allow` の読み取りで名指しを足さずに捨てると、自己テストの `changed-allowed` が落ちて「selftests: ... 1 failed」で落ちた。戻すと合格した
+- 期待を直した golden: `tests/golden/serve/use-within-backward.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
+- 期待を直した golden: `tests/golden/serve/use-within-basic.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
+- 期待を直した golden: `tests/golden/serve/use-within-ir.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
+- 期待を直した golden: `tests/golden/serve/use-within-json.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
+- 期待を直した golden: `tests/golden/serve/use-within-on-ingredient.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
+- 期待を直した golden: `tests/golden/serve/use-within-range.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
+- 期待を直した golden: `tests/golden/serve/use-within-two-consumers.ozen` — 見直し（P8-3）で、自前の `deepFry` を `fryBattered` にした（std の `deepFry` を上書きする情報が出ないようにし、結果を着手点と同じにするため）
 ---
 
 ## 10. リスク
