@@ -1952,6 +1952,7 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S946・副作用とコスト・`cgolden/pan/backward-preheat`（P9-3、2026-11-03）。逆向きの予熱の作業に口（最初の単位）を付けると「golden: 637 passed, 4 failed」で `pan/backward-preheat` と、オーブンの `sched/preheat-backward`・`sched/preheat-hotter-backward`・`sched/preheat-reuse-backward` が落ちた。戻すと合格した
 - わざと壊す確認: S932・効かない条件・`cgolden/samepot/new-vessel-single`（P9-3、2026-11-03）。個体が 1 つのときも相手の個体を候補から外すと「golden: 640 passed, 1 failed」で `samepot/new-vessel-single` が落ちた。戻すと合格した
 - わざと壊す確認: S848・副作用とコスト・`cgolden/pan/preheat-burner-two`（P9-3、2026-11-03）。予熱の口をいつも口の組の最初の個体にすると「golden: 640 passed, 1 failed」で `pan/preheat-burner-two` が落ちた（予熱が `stove#1`）。戻すと合格した
+- 最終ゲート（P9-4、2026-11-03）: `667fa46` で 4 つの構成と wasm を作り直し、`G-CORE-BUILD`・`G-SAMPLE-CHECK`・前提ゴール（`build/fb-gate-goals.txt` の 114 個）・`G-QC-*`・`G-FB-*` の 164 個を回し、すべて合格した。1 回目は 7 つ落ちた。理由は 3 つ。golden のフォルダの数が網羅の監査で足した分だけ増えていた（§5 の数を直した）。監査の赤の golden と対照の golden が 1 つのコミットにあった（push 前に分け、対照を `scripts/red-first-exceptions.txt` に書いた）。`pan/preheat-backward` が紹介ページの元 `sched/preheat-backward` と同じ名前で、`G-FB-SITE` が元を決められなかった（`pan/backward-preheat` に名前を変えた）。`G-CORE-FUZZ` は直した後のコードで 6 つの対象を 600 秒ずつ回し、どれも 0 crashes, 0 leaks, 0 timeouts（`fuzz-parse` 68424・`fuzz-expand` 20323・`fuzz-typecheck` 21093・`fuzz-schedule` 26164・`fuzz-bundle` 12089・`fuzz-kitchen` 25045 execs）。`G-PLAT-CI` は push の後に確かめる
 ---
 
 ## 10. リスク
