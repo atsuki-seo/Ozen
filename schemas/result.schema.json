@@ -1808,6 +1808,9 @@
                         }
                       ]
                     },
+                    "minExclusive": {
+                      "type": "boolean"
+                    },
                     "name": {
                       "type": "string"
                     },
@@ -1880,6 +1883,9 @@
                   }
                 ]
               },
+              "minExclusive": {
+                "type": "boolean"
+              },
               "name": {
                 "type": "string"
               },
@@ -1938,6 +1944,9 @@
                     "type": "null"
                   }
                 ]
+              },
+              "minExclusive": {
+                "type": "boolean"
               },
               "name": {
                 "type": "string"
@@ -2001,6 +2010,9 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "minExclusive": {
+                      "type": "boolean"
                     },
                     "name": {
                       "type": "string"

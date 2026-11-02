@@ -608,6 +608,7 @@ static void put_field(const jw *w, ozni_index f, bool *first) {
   *first = false;
   jid(w, fn->text);
   ozni_index base = ty, lo = 0, hi = 0;
+  bool exclusive = false;
   if (ty != 0 && nd(w, ty)->kind == OZNI_N_RangedType && nd(w, ty)->first != 0) {
     base = nd(w, ty)->first;
     ozni_index r = nd(w, base)->next;
@@ -619,6 +620,10 @@ static void put_field(const jw *w, ozni_index f, bool *first) {
       lo = rn->first;
     } else if (rn != nullptr && rn->kind == OZNI_N_RangeTo) {
       hi = rn->first;
+    } else if (rn != nullptr && rn->kind == OZNI_N_RangeAbove) {
+      lo = rn->first;
+      hi = lo != 0 ? nd(w, lo)->next : 0;
+      exclusive = true;
     }
   }
   ozni_buf_puts(w->b, ",\"type\":");
@@ -635,6 +640,9 @@ static void put_field(const jw *w, ozni_index f, bool *first) {
       jtext(w, nd(w, ends[k]));
     } else {
       ozni_buf_puts(w->b, "null");
+    }
+    if (k == 0 && exclusive) {
+      ozni_buf_puts(w->b, ",\"minExclusive\":true");
     }
   }
   ozni_buf_puts(w->b, "}");
