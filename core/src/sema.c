@@ -164,6 +164,7 @@ typedef struct sema {
   bool entry_dish;
   ozni_index trail;
   const struct mframe *frame;
+  const struct cframe *cframe;
   uint32_t depth;
   bool top;
   bool in_decl;
@@ -217,6 +218,15 @@ typedef struct mframe {
   ozni_index params[16];
   uint32_t nargs;
 } mframe;
+
+typedef struct cframe {
+  const ozni_index *names;
+  const ozni_index *sfiles;
+  const ozni_index *snodes;
+  const ozni_index *strails;
+  const bool *failed;
+  uint32_t n;
+} cframe;
 
 static ozni_str S(const sema *s, ozni_index id) { return ozni_intern_get(s->c->names, id); }
 
@@ -2662,6 +2672,65 @@ static bool range_bound(sema *s, ozni_index tfile, ozni_index node, ozni_qty *ou
   return value_qty(s, tfile, node, out);
 }
 
+static bool dim_type(const sema *s, ozni_index tfile, ozni_index tnode) {
+  ozni_index range;
+  const ozni_node *bn = nd(s, tfile, base_type(s, tfile, tnode, &range));
+  return bn->kind == OZNI_N_TypeRef && dim_index(s, bn->text) >= 0;
+}
+
+static bool check_qty(sema *s, ozni_qty v, ozni_index tfile, ozni_index tnode, ozni_index name, ozni_index vfile,
+                      ozni_index vnode) {
+  ozni_index range;
+  const ozni_node *bn = nd(s, tfile, base_type(s, tfile, tnode, &range));
+  int dim = bn->kind == OZNI_N_TypeRef ? dim_index(s, bn->text) : -1;
+  if (dim < 0 || !v.known) {
+    return true;
+  }
+  ozni_dimvec want = {{0}};
+  if (str_is(S(s, bn->text), "Count")) {
+    ozni_dimvec pcs = {{0}};
+    pcs.e[dim] = 1;
+    if (dims_equal(v.d, pcs)) {
+      v.d.e[dim] = 0;
+    }
+  } else {
+    want.e[dim] = 1;
+  }
+  if (!dims_equal(v.d, want)) {
+    ozni_str args[2] = {S(s, dim_name_text(s, v.d)), S(s, bn->text)};
+    diag_node(s, OZNI_D_TYP_dimension, vfile, nd(s, vfile, vnode), args, 2);
+    return false;
+  }
+  if (range == 0) {
+    return true;
+  }
+  const ozni_node *rn = nd(s, tfile, range);
+  ozni_qty lo = {0}, hi = {0};
+  bool has_lo = false, has_hi = false;
+  if (rn->kind == OZNI_N_NumberRange) {
+    ozni_str txt = S(s, rn->text);
+    ozni_ival iv;
+    has_lo = has_hi = ival_parse(txt.p, txt.len, &iv);
+    lo.v.lo = iv.lo;
+    hi.v.hi = iv.hi;
+    lo.v.hi = iv.lo;
+    hi.v.lo = iv.hi;
+  } else if (rn->kind == OZNI_N_Range && rn->first != 0) {
+    has_lo = range_bound(s, tfile, rn->first, &lo);
+    has_hi = nd(s, tfile, rn->first)->next != 0 && range_bound(s, tfile, nd(s, tfile, rn->first)->next, &hi);
+  } else if (rn->kind == OZNI_N_RangeFrom && rn->first != 0) {
+    has_lo = range_bound(s, tfile, rn->first, &lo);
+  } else if (rn->kind == OZNI_N_RangeTo && rn->first != 0) {
+    has_hi = range_bound(s, tfile, rn->first, &hi);
+  }
+  if ((has_lo && ozni_rat_cmp(v.v.lo, lo.v.lo) < 0) || (has_hi && ozni_rat_cmp(v.v.hi, hi.v.hi) > 0)) {
+    ozni_str args[3] = {S(s, name), src_text(s, vfile, nd(s, vfile, vnode)), src_text(s, tfile, rn)};
+    diag_node(s, OZNI_D_TYP_rangeViolation, vfile, nd(s, vfile, vnode), args, 3);
+    return false;
+  }
+  return true;
+}
+
 static void check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index tfile, ozni_index tnode,
                         ozni_index name) {
   const ozni_node *tn = nd(s, tfile, tnode);
@@ -2698,43 +2767,8 @@ static void check_value(sema *s, ozni_index vfile, ozni_index vnode, ozni_index 
   }
   if (dim_index(s, bn->text) >= 0) {
     ozni_qty v;
-    if (!typed_qty(s, vfile, vnode, tfile, tnode, &v)) {
-      return;
-    }
-    ozni_dimvec want = {{0}};
-    if (!str_is(S(s, bn->text), "Count")) {
-      want.e[dim_index(s, bn->text)] = 1;
-    }
-    if (!dims_equal(v.d, want)) {
-      ozni_str args[2] = {S(s, dim_name_text(s, v.d)), S(s, bn->text)};
-      diag_node(s, OZNI_D_TYP_dimension, vfile, nd(s, vfile, vnode), args, 2);
-      return;
-    }
-    if (range == 0) {
-      return;
-    }
-    const ozni_node *rn = nd(s, tfile, range);
-    ozni_qty lo = {0}, hi = {0};
-    bool has_lo = false, has_hi = false;
-    if (rn->kind == OZNI_N_NumberRange) {
-      ozni_str txt = S(s, rn->text);
-      ozni_ival iv;
-      has_lo = has_hi = ival_parse(txt.p, txt.len, &iv);
-      lo.v.lo = iv.lo;
-      hi.v.hi = iv.hi;
-      lo.v.hi = iv.lo;
-      hi.v.lo = iv.hi;
-    } else if (rn->kind == OZNI_N_Range && rn->first != 0) {
-      has_lo = range_bound(s, tfile, rn->first, &lo);
-      has_hi = nd(s, tfile, rn->first)->next != 0 && range_bound(s, tfile, nd(s, tfile, rn->first)->next, &hi);
-    } else if (rn->kind == OZNI_N_RangeFrom && rn->first != 0) {
-      has_lo = range_bound(s, tfile, rn->first, &lo);
-    } else if (rn->kind == OZNI_N_RangeTo && rn->first != 0) {
-      has_hi = range_bound(s, tfile, rn->first, &hi);
-    }
-    if ((has_lo && ozni_rat_cmp(v.v.lo, lo.v.lo) < 0) || (has_hi && ozni_rat_cmp(v.v.hi, hi.v.hi) > 0)) {
-      ozni_str args[3] = {S(s, name), src_text(s, vfile, nd(s, vfile, vnode)), src_text(s, tfile, rn)};
-      diag_node(s, OZNI_D_TYP_rangeViolation, vfile, nd(s, vfile, vnode), args, 3);
+    if (value_qty(s, vfile, vnode, &v)) {
+      check_qty(s, v, tfile, tnode, name, vfile, vnode);
     }
   } else if (find_from(s, tfile, bn->text, &df, &dn) && nd(s, df, dn)->kind == OZNI_N_Enum) {
     const ozni_node *vn = nd(s, vfile, vnode);
@@ -3994,6 +4028,22 @@ static void arg_site(const sema *s, ozni_index file, ozni_index node, ozni_index
   }
 }
 
+static bool qty_site(const sema *s, ozni_index file, ozni_index node, ozni_index *sfile, ozni_index *snode,
+                     ozni_index *strail) {
+  arg_site(s, file, node, sfile, snode, strail);
+  const cframe *cf = s->cframe;
+  const ozni_node *n = nd(s, *sfile, *snode);
+  for (uint32_t j = 0; cf != nullptr && n->kind == OZNI_N_Name && j < cf->n; j++) {
+    if (cf->names[j] == n->text && cf->snodes[j] != 0) {
+      *sfile = cf->sfiles[j];
+      *snode = cf->snodes[j];
+      *strail = cf->strails[j];
+      return !cf->failed[j];
+    }
+  }
+  return true;
+}
+
 static ozni_index hardness_of(sema *s, const food *f) {
   ozni_index field = f->file != NONE ? section_field(s, f->file, f->node, "props", "hardness") : 0;
   return field != 0 && nd(s, f->file, field)->first != 0 ? nd(s, f->file, nd(s, f->file, field)->first)->text : 0;
@@ -4261,9 +4311,33 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
     }
     s->trail = saved_trail;
   }
+  ozni_index qfiles[32], qnodes[32], qtrails[32];
+  bool qfailed[32];
+  for (uint32_t k = 0; k < np; k++) {
+    qnodes[k] = 0;
+    qfailed[k] = false;
+    if (argnodes[k] == 0) {
+      continue;
+    }
+    bool fresh = qty_site(s, file, argnodes[k], &qfiles[k], &qnodes[k], &qtrails[k]);
+    ozni_index ptype = field_type_node(s, afile, pnodes[k]);
+    if (!fresh) {
+      qfailed[k] = true;
+    } else if (params[k].kind == V_QTY && ptype != 0 && dim_type(s, afile, ptype)) {
+      ozni_index saved_trail = s->trail;
+      s->trail = qtrails[k];
+      qfailed[k] = !check_qty(s, params[k].q, afile, ptype, pnames[k], qfiles[k], qnodes[k]);
+      s->trail = saved_trail;
+    }
+  }
   for (ozni_index c = act->first; c != 0; c = nd(s, afile, c)->next) {
     if (nd(s, afile, c)->kind == OZNI_N_Steps && nd(s, afile, c)->first != 0) {
-      return call_composite(s, file, call, afile, anode, nd(s, afile, c)->first, params, pnames, np);
+      const cframe *saved_cframe = s->cframe;
+      cframe cf = {pnames, qfiles, qnodes, qtrails, qfailed, np};
+      s->cframe = &cf;
+      value out = call_composite(s, file, call, afile, anode, nd(s, afile, c)->first, params, pnames, np);
+      s->cframe = saved_cframe;
+      return out;
     }
   }
   for (uint32_t k = 0; k < np; k++) {
