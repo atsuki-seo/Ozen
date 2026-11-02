@@ -1,4 +1,4 @@
-# Ozen
+<h1 align="center"><img src="site/favicon.svg" width="48" height="48" alt=""><br>Ozen</h1>
 
 Ozen is a language and compiler for cooking procedures. Recipes are written as
 programs with dimension types (quantities), state types (ingredient states), and
