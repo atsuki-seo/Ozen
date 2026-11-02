@@ -301,6 +301,8 @@ diag-not-callable = { $arg1 } is a { $arg2 } and cannot be called; only actions 
 diag-value-field = { $arg1 } has no field { $arg2 }
 diag-non-positive-amount = The amount { $arg2 } of { $arg1 } must be more than zero
 diag-lightly-cooked-egg = { $arg1 } is lightly cooked; use fresh eggs that are safe to eat raw
+diag-until-time = The time to { $arg1 } until { $arg2 } is not known; write the time as well
+diag-until-target = { $arg1 } cannot go on until { $arg2 }
 
 ## Text parts
 heading-ingredients = Ingredients

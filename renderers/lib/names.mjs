@@ -144,6 +144,8 @@ const ARG_KINDS = {
   useWithinMissed: ['name', 'duration', 'duration'],
   nonPositiveAmount: ['name'],
   lightlyCookedEgg: ['ingredient'],
+  untilTime: ['action'],
+  untilTarget: ['action'],
 };
 
 export function termText(ph, kind, x, opts = {}) {

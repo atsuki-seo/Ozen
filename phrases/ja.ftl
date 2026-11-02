@@ -312,6 +312,8 @@ diag-not-callable = { $arg1 } は { $arg2 } なので呼べません。呼べる
 diag-value-field = { $arg1 } に { $arg2 } という欄はありません
 diag-non-positive-amount = { $arg1 }の量 { $arg2 } は 0 より大きくしてください
 diag-lightly-cooked-egg = { $arg1 }は半熟です。生で食べられる新鮮な卵を使ってください
+diag-until-time = { $arg1 }を { $arg2 } までする時間が分からないので、時間も書いてください
+diag-until-target = { $arg1 }では { $arg2 } まで進められません
 
 ## 文章の部品
 heading-ingredients = 材料

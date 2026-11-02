@@ -645,6 +645,38 @@
         "unattended": {
           "type": "boolean"
         },
+        "until": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "axis": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "axis",
+                "value"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "cue": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "cue"
+              ],
+              "type": "object"
+            }
+          ]
+        },
         "variants": {
           "items": {
             "additionalProperties": false,

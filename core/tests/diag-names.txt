@@ -109,3 +109,5 @@ NAM:notCallable
 NAM:valueField
 TYP:nonPositiveAmount
 SAF:lightlyCookedEgg
+TYP:untilTime
+TYP:untilTarget

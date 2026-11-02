@@ -494,3 +494,16 @@ searches:
     covers:
       - actions.crack.time
       - actions.beat.time
+  - date: "2026-11-03"
+    queries:
+      - "親子丼 溶き卵 半熟 何分 加熱時間 公式 レシピ"
+    consulted:
+      - "デリッシュキッチン・マカロニの親子丼のレシピ（溶き卵を入れてふたをし、火を止めて余熱で仕上げるとあるが、加熱の時間の数値は無い）"
+      - "日立 電子レンジの親子丼のレシピ kadenfan.hitachi.co.jp（600 W で 4 分 20 秒〜5 分。電子レンジで具ごと温める時間で、鍋やフライパンで卵が半熟になるまでの時間ではない）"
+    reason: "鍋やフライパンで溶き卵が半熟・中まで火が通るまでの時間、殻ごとゆでて固ゆでになるまでの時間を、火力と量によらない範囲で示す一次情報は見つからなかった。暫定の範囲のままにする"
+    covers:
+      - ingredients.Egg.props.heating.simmer.par
+      - ingredients.Egg.props.heating.simmer.done
+      - ingredients.Egg.props.heating.fry.par
+      - ingredients.Egg.props.heating.fry.done
+      - ingredients.Egg.props.heating.boil.done

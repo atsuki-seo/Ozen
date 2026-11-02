@@ -207,6 +207,14 @@ typedef struct sema {
   ozni_table *ir_groups;
   ozni_table *decl_ings;
   ozni_index group_key;
+  bool attend;
+  bool until_timed;
+  ozni_rat until_lo;
+  ozni_rat until_hi;
+  ozni_index until_axis;
+  ozni_index until_value;
+  ozni_index until_text;
+  ozni_table *until_marks;
 } sema;
 
 typedef struct mframe {
@@ -1551,6 +1559,21 @@ static ozni_index ir_text(sema *s, ozni_buf *b) {
   return id;
 }
 
+typedef struct until_mark {
+  ozni_index irn;
+  ozni_index axis;
+  ozni_index value;
+} until_mark;
+
+static bool until_marked(const sema *s, ozni_index irn) {
+  const until_mark *um = nullptr;
+  for (ozni_index m = 0; s->until_marks != nullptr && m < ozni_table_count(s->until_marks); m++) {
+    const until_mark *mm = ozni_table_get(s->until_marks, m);
+    um = mm->irn == irn ? mm : um;
+  }
+  return um != nullptr && um->value != 0;
+}
+
 typedef struct ir_meta {
   ozni_index irn;
   ozni_qty qty;
@@ -1740,7 +1763,15 @@ static void ir_put_uses(sema *s, ozni_buf *b, ozni_index file, ozni_index holder
     if (str_is(S(s, pnames[k]), "time") && params[k].kind == V_QTY && params[k].q.known) {
       *lo = params[k].q.v.lo;
       *hi = params[k].q.v.hi;
+      timed = true;
     }
+  }
+  if (!timed && s->until_timed) {
+    *lo = s->until_lo;
+    *hi = s->until_hi;
+  }
+  if (s->attend) {
+    *unattended = false;
   }
   int tdim = dim_named(s, "Time");
   ozni_qty shown = {{*lo, *hi}, {{0}}, true};
@@ -3716,6 +3747,11 @@ static ozni_index ir_record_call(sema *s, const ozni_node *act, ozni_index afile
       put_value(s, &b, &params[k]);
     }
   }
+  if (s->until_text != 0) {
+    ozni_str ut = S(s, s->until_text);
+    ozni_buf_puts(&b, " until=");
+    ozni_buf_put(&b, ut.p, ut.len);
+  }
   ir_afters(s, &b, &node);
   node.file = s->ir_call_file;
   node.src = s->ir_call_node;
@@ -3763,6 +3799,13 @@ static ozni_index ir_record_call(sema *s, const ozni_node *act, ozni_index afile
   }
   node.text = ir_text(s, &b);
   ozni_index at = ir_add(s, node);
+  if (s->until_marks == nullptr) {
+    s->until_marks = ozni_table_new(s->c->arena, sizeof(until_mark));
+  }
+  until_mark um = {at, s->until_axis, s->until_text != 0 ? s->until_value : 0};
+  if (s->until_marks == nullptr || !ozni_table_push(s->until_marks, &um, nullptr)) {
+    s->c->oom = true;
+  }
   wash_record(s, at, afile, anode, vars, nv, params, pnames, np);
   meta_push(s, at, out, params, pnames, np);
   return at;
@@ -4225,6 +4268,112 @@ static value call_composite(sema *s, ozni_index file, const ozni_node *call, ozn
   return result;
 }
 
+static bool until_time_of(sema *s, const food *f, ozni_index method, ozni_index stage, ozni_qty *out);
+
+static const ozni_node *ordered_output_arg(sema *s, ozni_index afile, ozni_index anode, ozni_index axis) {
+  ozni_index output = 0;
+  for (ozni_index c = nd(s, afile, anode)->first; c != 0; c = nd(s, afile, c)->next) {
+    if (nd(s, afile, c)->kind == OZNI_N_Output) {
+      output = nd(s, afile, c)->first;
+    }
+  }
+  if (output == 0 || nd(s, afile, output)->kind != OZNI_N_TypeRef) {
+    return nullptr;
+  }
+  for (ozni_index ta = nd(s, afile, output)->first; ta != 0; ta = nd(s, afile, ta)->next) {
+    if (nd(s, afile, ta)->kind != OZNI_N_TypeArgs || nd(s, afile, ta)->first == 0) {
+      continue;
+    }
+    ozni_index alt = nd(s, afile, ta)->first;
+    for (ozni_index a = nd(s, afile, alt)->first; a != 0; a = nd(s, afile, a)->next) {
+      const ozni_node *an = nd(s, afile, a);
+      ozni_index xf, xn;
+      if (an->kind != OZNI_N_StateArg || (axis != 0 && an->text != axis) || !find_from(s, afile, an->text, &xf, &xn) ||
+          nd(s, xf, xn)->kind != OZNI_N_Axis || !str_is(S(s, nd(s, xf, xn)->text2), "ordered")) {
+        continue;
+      }
+      return an;
+    }
+  }
+  return nullptr;
+}
+
+static void apply_until(sema *s, ozni_index file, const ozni_node *until, const ozni_node *act, ozni_index afile,
+                        ozni_index anode, const food *in, food *out, const ozni_index *pnames, uint32_t np, bool timed) {
+  const ozni_node *v = until->first != 0 ? nd(s, file, until->first) : nullptr;
+  ozni_str text = v != nullptr ? src_text(s, file, v) : (ozni_str){"", 0};
+  ozni_str args[2] = {S(s, act->text), text};
+  ozni_index axis = 0, want = 0;
+  if (v != nullptr && v->kind == OZNI_N_Binary && str_is(S(s, v->text), ">=") && v->first != 0 &&
+      nd(s, file, v->first)->kind == OZNI_N_Name && nd(s, file, v->first)->next != 0 &&
+      nd(s, file, nd(s, file, v->first)->next)->kind == OZNI_N_Name) {
+    axis = nd(s, file, v->first)->text;
+    want = nd(s, file, nd(s, file, v->first)->next)->text;
+  }
+  axis_state *ost = nullptr;
+  const axis_state *ist = nullptr;
+  for (uint32_t k = 0; out != nullptr && axis != 0 && k < out->naxes; k++) {
+    ost = out->axes[k].axis == axis ? &out->axes[k] : ost;
+  }
+  for (uint32_t k = 0; in != nullptr && axis != 0 && k < in->naxes; k++) {
+    ist = in->axes[k].axis == axis ? &in->axes[k] : ist;
+  }
+  int cur = ist != nullptr ? axis_value_index(s, ist, ist->value) : -1;
+  int w = ist != nullptr ? axis_value_index(s, ist, want) : -1;
+  if (axis == 0 || ordered_output_arg(s, afile, anode, axis) == nullptr || ost == nullptr || ist == nullptr || w < 0 ||
+      w <= cur) {
+    diag_node(s, OZNI_D_TYP_untilTarget, file, v != nullptr ? v : until, args, 2);
+    return;
+  }
+  ost->value = want;
+  ost->args = 0;
+  uint32_t nc = out->comps != nullptr && in->comps != nullptr ? ozni_table_count(out->comps) : 0;
+  for (uint32_t i = 0; i < nc && i < ozni_table_count(in->comps); i++) {
+    food *co = *(food *const *)ozni_table_get(out->comps, i);
+    const food *ci = *(food *const *)ozni_table_get(in->comps, i);
+    for (uint32_t k = 0; k < co->naxes && k < ci->naxes; k++) {
+      if (co->axes[k].axis == axis) {
+        co->axes[k].value = axis_value_index(s, &ci->axes[k], ci->axes[k].value) < w ? want : ci->axes[k].value;
+      }
+    }
+  }
+  s->attend = true;
+  s->until_axis = axis;
+  s->until_value = want;
+  s->until_text = intern(s, text.p, text.len);
+  bool has_time = false;
+  for (uint32_t k = 0; k < np; k++) {
+    has_time = has_time || str_is(S(s, pnames[k]), "time");
+  }
+  if (timed || !has_time) {
+    return;
+  }
+  ozni_qty sum = {0};
+  bool found = false;
+  uint32_t n = in->comps != nullptr ? ozni_table_count(in->comps) : 1;
+  for (uint32_t i = 0; i < n; i++) {
+    const food *c = in->comps != nullptr ? *(food *const *)ozni_table_get(in->comps, i) : in;
+    ozni_qty q;
+    if (!until_time_of(s, c, act->text, want, &q)) {
+      continue;
+    }
+    if (!found) {
+      sum = q;
+      found = true;
+    } else {
+      sum.v.lo = ozni_rat_cmp(q.v.lo, sum.v.lo) < 0 ? q.v.lo : sum.v.lo;
+      sum.v.hi = ozni_rat_cmp(q.v.hi, sum.v.hi) > 0 ? q.v.hi : sum.v.hi;
+    }
+  }
+  if (!found) {
+    diag_node(s, OZNI_D_TYP_untilTime, file, v, args, 2);
+    return;
+  }
+  s->until_timed = true;
+  s->until_lo = sum.v.lo;
+  s->until_hi = sum.v.hi;
+}
+
 static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_index afile, ozni_index anode) {
   const ozni_node *call = nd(s, file, callnode);
   const ozni_node *act = nd(s, afile, anode);
@@ -4249,6 +4398,8 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
   for (uint32_t k = 0; k < 32; k++) {
     shown_of[k] = UINT32_MAX;
   }
+  const ozni_node *until = nullptr;
+  bool takes_until = ordered_output_arg(s, afile, anode, 0) != nullptr;
   for (ozni_index arg = nd(s, file, call->first)->next; arg != 0; arg = nd(s, file, arg)->next) {
     const ozni_node *an = nd(s, file, arg);
     if (an->kind == OZNI_N_Annotation) {
@@ -4256,6 +4407,15 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
     }
     ozni_index name = 0;
     value v;
+    if (an->kind == OZNI_N_NamedArg && takes_until && str_is(S(s, an->text), "until") && until == nullptr) {
+      until = an;
+      ozni_str ut = an->first != 0 ? src_text(s, file, nd(s, file, an->first)) : (ozni_str){"", 0};
+      if (nshown < 32) {
+        shown_names[nshown] = an->text;
+        shown[nshown++] = (value){.kind = V_STR, .name = intern(s, ut.p, ut.len)};
+      }
+      continue;
+    }
     if (an->kind == OZNI_N_NamedArg) {
       name = an->text;
       v = an->first != 0 ? eval(s, an->first) : unknown();
@@ -4314,7 +4474,7 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
         s->file = saved_file;
       }
     }
-    if (!has_default) {
+    if (!has_default && !(until != nullptr && str_is(S(s, pnames[k]), "time"))) {
       ozni_str args[2] = {S(s, act->text), S(s, pnames[k])};
       diag_node(s, OZNI_D_NAM_arity, file, call, args, 2);
     }
@@ -4492,9 +4652,23 @@ static value call_action(sema *s, ozni_index file, ozni_index callnode, ozni_ind
       raise_comps(s, out);
     }
   }
+  if (until != nullptr) {
+    const food *in = nullptr;
+    bool timed = false;
+    for (uint32_t k = 0; k < np; k++) {
+      in = in == nullptr && params[k].kind == V_FOOD ? params[k].f : in;
+      timed = timed || (str_is(S(s, pnames[k]), "time") && set[k]);
+    }
+    apply_until(s, file, until, act, afile, anode, in, out, pnames, np, timed);
+  }
   s->ir_call_file = file;
   s->ir_call_node = callnode;
   ozni_index irn = ir_record_call(s, act, afile, anode, params, pnames, np, out, nullptr, 0);
+  s->attend = false;
+  s->until_timed = false;
+  s->until_axis = 0;
+  s->until_value = 0;
+  s->until_text = 0;
   if (out != nullptr) {
     out->irn = irn;
   }
@@ -4894,6 +5068,56 @@ static bool cut_thickness(sema *s, const food *f, ozni_qty *out) {
   return false;
 }
 
+static bool heating_model(sema *s, const food *f, ozni_index m, int64_t kl, int64_t kh, ozni_qty *out) {
+  ozni_qty up, at, soften, thick;
+  if (!heating_field(s, f->file, m, "heatUp", &up) || !heating_field(s, f->file, m, "at", &at) ||
+      !heating_field(s, f->file, m, "soften", &soften)) {
+    return false;
+  }
+  if (!cut_thickness(s, f, &thick) || !dims_equal(thick.d, at.d)) {
+    thick = at;
+  }
+  ozni_ival ratio;
+  if (!ival_divide(thick.v, at.v, &ratio)) {
+    return false;
+  }
+  bool grows = ozni_rat_cmp(ratio.lo, ozni_rat_int(1)) >= 0;
+  ozni_rat pl, ph;
+  if (!rat_power(grows ? ratio.lo : ratio.hi, grows ? kl : kh, &pl) ||
+      !rat_power(grows ? ratio.hi : ratio.lo, grows ? kh : kl, &ph)) {
+    return false;
+  }
+  ozni_ival scaled;
+  if (!ival_mul(up.v, (ozni_ival){pl, ph}, &scaled) || ozni_ival_add(scaled, soften.v, &out->v) != OZNI_OK) {
+    return false;
+  }
+  out->d = up.d;
+  out->known = true;
+  return true;
+}
+
+static bool until_time_of(sema *s, const food *f, ozni_index method, ozni_index stage, ozni_qty *out) {
+  char mbuf[64], vbuf[64];
+  ozni_str ms = S(s, method), vs = S(s, stage);
+  if (f->file == NONE || ms.len >= sizeof mbuf || vs.len >= sizeof vbuf) {
+    return false;
+  }
+  ozni_copy(mbuf, ms.p, ms.len);
+  mbuf[ms.len] = '\0';
+  ozni_copy(vbuf, vs.p, vs.len);
+  vbuf[vs.len] = '\0';
+  ozni_index props = child_section(s, f->file, f->node, "props");
+  ozni_index heat = props != 0 ? child_section(s, f->file, props, "heating") : 0;
+  ozni_index m = heat != 0 ? child_section(s, f->file, heat, mbuf) : 0;
+  if (m == 0) {
+    return false;
+  }
+  if (heating_field(s, f->file, m, vbuf, out)) {
+    return true;
+  }
+  return str_is(vs, "done") && heating_model(s, f, m, 2, 2, out);
+}
+
 static value eval_heating(sema *s, const ozni_node *call) {
   ozni_index a0 = nd(s, s->file, call->first)->next;
   ozni_index a1 = a0 != 0 ? nd(s, s->file, a0)->next : 0;
@@ -4921,32 +5145,8 @@ static value eval_heating(sema *s, const ozni_node *call) {
   if (heating_field(s, f->file, m, "direct", &out.q)) {
     return out;
   }
-  ozni_qty up, at, soften, thick;
-  if (!heating_field(s, f->file, m, "heatUp", &up) || !heating_field(s, f->file, m, "at", &at) ||
-      !heating_field(s, f->file, m, "soften", &soften)) {
-    return unknown();
-  }
-  if (!cut_thickness(s, f, &thick) || !dims_equal(thick.d, at.d)) {
-    thick = at;
-  }
-  ozni_ival ratio;
-  if (!ival_divide(thick.v, at.v, &ratio)) {
-    return unknown();
-  }
   int64_t kl = ozni_rat_floor(nv.q.v.lo).num, kh = ozni_rat_ceil(nv.q.v.hi).num;
-  bool grows = ozni_rat_cmp(ratio.lo, ozni_rat_int(1)) >= 0;
-  ozni_rat pl, ph;
-  if (!rat_power(grows ? ratio.lo : ratio.hi, grows ? kl : kh, &pl) ||
-      !rat_power(grows ? ratio.hi : ratio.lo, grows ? kh : kl, &ph)) {
-    return unknown();
-  }
-  ozni_ival scaled;
-  if (!ival_mul(up.v, (ozni_ival){pl, ph}, &scaled) || ozni_ival_add(scaled, soften.v, &out.q.v) != OZNI_OK) {
-    return unknown();
-  }
-  out.q.d = up.d;
-  out.q.known = true;
-  return out;
+  return heating_model(s, f, m, kl, kh, &out.q) ? out : unknown();
 }
 
 static value eval_member(sema *s, const ozni_node *n) {
@@ -7078,6 +7278,24 @@ static void ir_json(sema *s, ozni_index name) {
     put_json_reqs(s, b, node->first_req, node->kind == OZNI_IR_CHOOSE ? 0 : node->nreqs);
     ozni_buf_puts(b, ",\"time\":");
     put_json_range(b, node->time_lo, node->time_hi);
+    const until_mark *um = nullptr;
+    for (ozni_index m = 0; s->until_marks != nullptr && m < ozni_table_count(s->until_marks); m++) {
+      const until_mark *mm = ozni_table_get(s->until_marks, m);
+      um = mm->irn == k + 1 ? mm : um;
+    }
+    if (um != nullptr && um->value != 0) {
+      ozni_str ua = S(s, um->axis), uv = S(s, um->value);
+      ozni_buf_puts(b, ",\"until\":{");
+      if (um->axis != 0) {
+        ozni_buf_puts(b, "\"axis\":");
+        ozni_buf_json(b, ua.p, ua.len);
+        ozni_buf_puts(b, ",\"value\":");
+      } else {
+        ozni_buf_puts(b, "\"cue\":");
+      }
+      ozni_buf_json(b, uv.p, uv.len);
+      ozni_buf_puts(b, "}");
+    }
     ozni_buf_puts(b, node->unattended ? ",\"unattended\":true,\"wave\":" : ",\"unattended\":false,\"wave\":");
     if (node->kind == OZNI_IR_PLATE && node->wave != 0) {
       ozni_buf_putu(b, node->wave);
@@ -8647,6 +8865,7 @@ static void schedule_dish(sema *s, ozni_index name) {
                               .hi = var != nullptr ? var->time_hi : node->time_hi,
                               .first_group = ozni_table_count(groups)};
         bool unattended = var != nullptr ? var->unattended : node->unattended;
+        alt.hands = !unattended && until_marked(s, s->ir_base + k + 1);
         for (uint32_t r = 0; r < nreqs; r++) {
           const ozni_ir_req *req = ozni_table_get(s->ir.reqs, first_req + r);
           ozni_str text = S(s, req->text);
