@@ -1125,6 +1125,27 @@ static ozni_index type_postfix(parser *p) {
   return t;
 }
 
+static ozni_index type_range(parser *p) {
+  mark(p, OZNI_R_type_range);
+  uint32_t start = cur(p)->start;
+  ozni_index lo = range(p);
+  if (lo == 0 || !at(p, OZNI_T_LT) || kind_at(p, 1) != OZNI_T_DOTDOT || tok_at(p, 1)->start != cur(p)->end) {
+    return lo;
+  }
+  ozni_node_kind k = N(p, lo)->kind;
+  if (k == OZNI_N_Range || k == OZNI_N_RangeFrom || k == OZNI_N_RangeTo || k == OZNI_N_NumberRange) {
+    return lo;
+  }
+  advance(p);
+  advance(p);
+  ozni_index n = node(p, OZNI_N_RangeAbove, start);
+  add(p, n, lo);
+  if (sum_start(p)) {
+    add(p, n, sum(p));
+  }
+  return p->failed ? 0 : finish(p, n);
+}
+
 static ozni_index type(parser *p) {
   if (p->failed) {
     return 0;
@@ -1146,7 +1167,7 @@ static ozni_index type(parser *p) {
     ozni_index r = node(p, OZNI_N_RangedType, start);
     advance(p);
     add(p, r, t);
-    add(p, r, range(p));
+    add(p, r, type_range(p));
     t = finish(p, r);
   }
   return p->failed ? 0 : t;

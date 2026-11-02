@@ -96,7 +96,8 @@ word          := IDENT | RESERVED_WORD ;
 list_sep      := ( ',' | SEP ) { SEP } ;
 
 type_list     := type_ref { ',' type_ref } ;
-type          := type_union [ 'in' range ] ;
+type          := type_union [ 'in' type_range ] ;
+type_range    := sum '<..' [ sum ] | range ;
 type_union    := type_postfix { '|' type_postfix } ;
 type_postfix  := type_atom [ '?' ] ;
 type_atom     := type_ref | list_type | record_type | tuple_type ;
