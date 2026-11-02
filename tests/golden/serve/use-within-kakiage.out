@@ -8,5 +8,6 @@ schedule kakiage level=1 cooks=1
   780..900 (900) %11 coat by cook1
   900..1500 (1500) %12 deepFry by cook1
   total 1500
-result ok errors=0 warnings=0 infos=0
+info NAM006 localOverride use-within-kakiage.ozen:8:1-10:2 args=["deepFry", "std.prelude"]: local override
+result ok errors=0 warnings=0 infos=1
 exit 0

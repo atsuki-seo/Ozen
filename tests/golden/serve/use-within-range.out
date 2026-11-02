@@ -5,5 +5,6 @@ schedule potatoTempura level=1 cooks=2
   1200..1320 (1320) %7 coat by cook1
   1320..1920 (1920) %8 deepFry by cook1
   total 1920
-result ok errors=0 warnings=0 infos=0
+info NAM006 localOverride use-within-range.ozen:11:1-13:2 args=["deepFry", "std.prelude"]: local override
+result ok errors=0 warnings=0 infos=1
 exit 0

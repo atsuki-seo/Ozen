@@ -1,3 +1,4 @@
+info NAM006 localOverride use-within-on-ingredient.ozen:10:1-12:2 args=["deepFry", "std.prelude"]: local override
 error TYP017 annotationTarget use-within-on-ingredient.ozen:15:16-15:34 args=["useWithin"]: annotation target
-result error errors=1 warnings=0 infos=0
+result error errors=1 warnings=0 infos=1
 exit 1
