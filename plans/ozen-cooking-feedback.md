@@ -1243,6 +1243,19 @@ Claude は機械的なゴールまでを担当する。以下はユーザーが�
 - わざと壊す確認: S881・正常系・`G-FB-SAMPLES-SUBJECT`（P1-1、2026-11-02）。`belly |> store` を `store(belly)` に戻すと「subject-first calls now: got '1'」で落ちた。戻すと合格した
 - わざと壊す確認: S881・境界・上限・`G-FB-SAMPLES-SUBJECT`（P1-1、2026-11-02）。組の束縛の `fish |> fillet` を `fillet(fish)` に戻すと「subject-first calls now: got '1'」で落ちた。戻すと合格した
 - わざと壊す確認: S883・時間と順序・`G-FB-SAMPLES-SUBJECT`（P1-1、2026-11-02）。書き直しは 1 つのコミットなので、`fb-pipe-end` をその 1 つ前（`fb-start`）に付け替えると「subject-first calls at fb-pipe-end: got '42'」で落ちた。タグを `2e3c10c` に戻すと合格した
+- 紹介ページの例の元（P1-2、2026-11-02）: §3.8 の監査では「かき揚げとグラタンの例は golden の抜粋」としていたが、かき揚げの例（玉ねぎとにんじん、`@useWithin(5 min)`）の元の golden は無かった（`serve/use-within-backward` はじゃがいもの天ぷらで別物）。また献立（`teishoku.ozen`）とマンゴーの例（`mango.ozen`）にも元の golden・サンプルは無い。そこで照合の道具は、(a) 札のファイル名と同じ名前の golden かサンプルが 1 つだけあればその入力と期待に照合し、(b) 無く、抜粋でもなければ、ページのコードをそのまま `ozen` で動かした出力に照合する（札の `ozen <引数> <ファイル>` の引数を使う。「〜にすると」の札は直前の例の最後の `let` の右辺を置き換えて `debug steps` で動かす）。抜粋で元が無いものは `unmapped` と数える。かき揚げは、ページに載せた段取りを再現する完全な入力（ページで省いた `whisk`・`coat`・`deepFry` の定義と `cooks: 1` の条件を補ったもの）を golden `serve/use-within-kakiage` として足し（`3ef5be1`。足す時点で合格する対照なので `scripts/red-first-exceptions.txt` に載せた）、ページの札を `use-within-kakiage.ozen（抜粋）` に直した。§5.2 の「新しい golden は作らない」から外れるのはこの 1 つだけ
+- 照合の道具の自己テストの合格の行（P1-2、2026-11-02）: `test-check-site-examples: 11 cases, 0 failed`
+- 期待を直した golden: `tests/golden/state/peel-missing.ozen` — 紹介ページの例の元。`cut(onion, style: slice)` を `onion |> cut(style: slice)` に直した（D106）
+- 期待を直した golden: `tests/golden/state/peel-missing.out` — 入力の書き直しで `onion` の位置が `3:20-3:25` から `3:16-3:21` に動いた（手で数えた）
+- 期待を直した golden: `tests/golden/linear/double-use.ozen` — 紹介ページの例の元。`wash(rice)` を 2 か所 `rice |> wash` に直した（D106）
+- 期待を直した golden: `tests/golden/linear/double-use.out` — 入力の書き直しで 2 回目の `rice` の位置が `4:26-4:30` から `4:21-4:25` に動いた（手で数えた）。1 つ目の `LIN005` の位置 `3:7-3:13`（`washed` の名前）は変わらない
+- 期待を直した golden: `tests/golden/sched/preheat-backward.ozen` — 紹介ページのグラタンの抜粋の元。`prepare(potato)`・`bake(prepared)` をパイプに直した（D106）。期待は変わらない
+- わざと壊す確認: S788・文書との一致・`G-FB-SITE`（P1-2、2026-11-02）。紹介ページの例を `cut(onion, style: slice)` に戻すと「subject-first lines on the site: got '1'」と「site-examples: 18 examples, 1 mismatched」で落ちた。戻すと合格した
+- わざと壊す確認: S789・文書との一致・`G-FB-SITE`（P1-2、2026-11-02）。紹介ページの例の出力の位置を直す前の `3:20-3:25` に戻すと「peel-missing output on the site: got '0'」で落ちた。戻すと合格した
+- わざと壊す確認: S789・実際の経路・`cgolden/state/peel-missing`（P1-2、2026-11-02）。golden の入力を `cut(onion, style: slice)` に戻すと、位置が `3:20-3:25` になって期待と合わず落ちた。戻すと合格した
+- わざと壊す確認: S882・文書との一致・`G-FB-SITE`（P1-2、2026-11-02）。§5.3 の行は「米の例の出力の位置を `3:7-3:13` に戻す」だが、`3:7-3:13`（`washed` の名前）は書き直しで動かないので、動いたほうの `4:21-4:25` を書き直す前の `4:26-4:30` に戻した。「mismatched output: double-use.ozen」「site-examples: 18 examples, 1 mismatched」で落ちた。戻すと合格した
+- わざと壊す確認: S882・文書との一致・`G-FB-SITE`（P1-2、2026-11-02）。グラタンの抜粋の `prepared |> bake` を元の golden に無い `prepared |> roast` にすると「mismatched code: preheat-backward.ozen」「site-examples: 18 examples, 1 mismatched」で落ちた。戻すと合格した
+- わざと壊す確認: S882・前提の固定・`G-REPO-SELFTESTS`（P1-2、2026-11-02）。照合の道具で出力の食い違いを数えないようにすると、自己テストの `golden-other-args`・`self-run-mismatch` が落ち「selftests: 46 scripts, 0 without test, 1 failed」で落ちた。戻すと合格した
 ---
 
 ## 10. リスク
