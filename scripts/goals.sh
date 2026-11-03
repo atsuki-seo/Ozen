@@ -771,9 +771,9 @@ rd_blk() { awk -v r="$1" '$0==r{s=1;next} s&&/^```text$/{t=1;next} t&&/^```$/{ex
 rd_example() { awk '/^```ozen$/{f=1;next} f&&/^```$/{f=0} f' README.md; }
 
 goal_G_RD_DECISIONS() {
-  want_eq "decided" 12 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_RD)"
-  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*【未決】' $PLAN_RD)"
-  want_eq "decision lines" 12 "$(grep -c '^- \*\*決定:' $PLAN_RD)"
+  want_eq "decided" 12 "$(grep -c '^### D[0-9]*\. .*\[decided\]' $PLAN_RD)"
+  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*\[open\]' $PLAN_RD)"
+  want_eq "decision lines" 12 "$(grep -c '^- \*\*Decision:' $PLAN_RD)"
 }
 
 goal_G_RD_COVERAGE() {
@@ -781,7 +781,7 @@ goal_G_RD_COVERAGE() {
     "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_RD | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
             <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_RD | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u))"
   want_eq "handoff items without reason" 0 \
-    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_RD | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_RD | grep '^- ' | grep -v 'Reason a command cannot decide:' | wc -l)"
 }
 
 goal_G_RD_PLAN_TESTS() {
@@ -1097,7 +1097,7 @@ goal_G_RD_ENGLISH() {
 }
 
 rd_excluded() {
-  grep -oE '^- 範囲に入った別の作業のコミット: [0-9a-f]{7,40}' $PLAN_RD | awk '{print $NF}' |
+  grep -oE "^- Other work's commit in range: [0-9a-f]{7,40}" $PLAN_RD | awk '{print $NF}' |
     while IFS= read -r c; do git rev-parse -q --verify "$c^{commit}" || echo "unknown:$c"; done
 }
 
@@ -1137,7 +1137,7 @@ goal_G_RD_GH_READMES() {
 }
 
 goal_G_RD_AUDIT() {
-  want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_RD)"
+  want_ge1 "audit records" "$(grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_RD)"
 }
 
 goal_G_QC_DECISIONS() {
