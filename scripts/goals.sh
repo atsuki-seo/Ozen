@@ -1796,7 +1796,7 @@ goal_G_DS_REFGEN() {
 
 goal_G_DS_INIT() {
   want_re "cli" '^cli: [0-9]+ cases, 0 failed$' "$(scripts/run-cli-tests.sh $OZ tests/cli 2>&1 | tail -n 1)"
-  want_eq "init cases" 9 "$(ls tests/cli/init-*.sh 2>/dev/null | wc -l)"
+  want_eq "init cases" 10 "$(ls tests/cli/init-*.sh 2>/dev/null | wc -l)"
   want_ge1 "usage" "$($OZ 2>&1 | grep -c 'ozen init')"
   want_ge1 "cli/README.md" "$(grep -c 'ozen init' cli/README.md)"
 }

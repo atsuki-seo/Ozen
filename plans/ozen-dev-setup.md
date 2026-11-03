@@ -582,7 +582,7 @@ When a goal fails, report which goal and which check failed.
 | `G-DS-JA-PLANS` | S1010 | 0 |
 | `G-DS-REFERENCE` | S1015, S1017, S1018 | 6 files; `0 mismatches`; markers 2; 0 Japanese characters |
 | `G-DS-REFGEN` | S1019–S1029 | `refgen: 3 files, 0 differ`; self-test ends with `0 failed`; the guide at most 65536 bytes |
-| `G-DS-INIT` | S1030, S1031, S1033–S1040, S1074, S1075 | `cli: <k> cases, 0 failed` with 9 `init-*` cases; usage and README counts at least 1 |
+| `G-DS-INIT` | S1030, S1031, S1033–S1040, S1074, S1075 | `cli: <k> cases, 0 failed` with 10 `init-*` cases; usage and README counts at least 1 |
 | `G-DS-VERSION` | S1041–S1049 | 0 literal versions; 1 placeholder in SARIF; package versions unchanged; self-test ends with `0 failed`; 0 roadmap reads; 3 end-tag reads; the goals exit 0 |
 | `G-DS-RELEASE-LOCAL` | S1052, S1054–S1059, S1061, S1062 | `release: <k> cases, 0 failed`; `release-tag: <k> cases, 0 failed` |
 | `G-DS-RELEASE-WORKFLOW` | S1050, S1051, S1053, S1060 | the workflow checks in the code block |
@@ -722,7 +722,7 @@ bash scripts/test-refgen.sh | tail -n 1                          # refgen: <k> c
 
 # G-DS-INIT
 scripts/run-cli-tests.sh $OZ tests/cli | tail -n 1               # cli: <k> cases, 0 failed
-ls tests/cli/init-*.sh | wc -l                                   # 9
+ls tests/cli/init-*.sh | wc -l                                   # 10
 $OZ 2>&1 | grep -c 'ozen init'; grep -c 'ozen init' cli/README.md
 
 # G-DS-VERSION
@@ -804,7 +804,7 @@ grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_DS
 | `sh/test-check-lists-copy.sh` | S998 (case added) | P0-3 |
 | `sh/test-check-translation.sh` | S1000–S1007 | P2-1 |
 | `sh/test-refgen.sh` | S1019–S1023, S1026, S1028, S1029 against the definitions JSON, `diag_codes.def` and a fixture `std` with a `local` action | P3-2 |
-| `cli/init-*` (9 cases) | S1030, S1031, S1033–S1038, S1040, S1074, S1075 | P3-4 |
+| `cli/init-*` (10 cases) | S1030, S1031, S1033–S1038, S1040, S1074, S1075 | P3-4 |
 | `sh/test-bump-version.sh` | S1044–S1047, S1049 | P4-2 |
 | `sh/test-check-release-tag.sh` | S1051, S1052 | P4-5 |
 | `sh/test-make-release.sh` | S1054–S1059, S1061, S1062 for `linux` and `wasm` (macOS runs in the release workflow) | P4-4 |
