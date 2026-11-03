@@ -527,7 +527,7 @@ goal_G_SAMPLE_CHECK() {
 
 goal_G_REND_TESTS() {
   local out pass_n rtest
-  out=$(node --test renderers/test/ 2>&1 | grep -E '^# (pass|fail)')
+  out=$(node --test --test-reporter=tap 'renderers/test/*.test.mjs' 2>&1 | grep -E '^# (pass|fail)')
   want_eq "renderer failures" "# fail 0" "$(grep '^# fail' <<< "$out")"
   pass_n=$(sed -nE 's/^# pass ([0-9]+)$/\1/p' <<< "$out")
   rtest=$(scripts/check-plan-tests.sh $PLAN 2>/dev/null | sed -nE 's/.* rtest=([0-9]+).*/\1/p')
