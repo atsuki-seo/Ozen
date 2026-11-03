@@ -1153,7 +1153,12 @@ static char *on_path(const char *argv0) {
     size_t len = end != nullptr ? (size_t)(end - p) : strlen(p);
     snprintf(buf, sizeof buf, "%.*s/%s", (int)len, len > 0 ? p : ".", argv0);
     if (access(buf, X_OK) == 0) {
-      return strdup(buf);
+      size_t n = strlen(buf) + 1;
+      char *copy = malloc(n);
+      if (copy != nullptr) {
+        memcpy(copy, buf, n);
+      }
+      return copy;
     }
     p += len + (end != nullptr ? 1 : 0);
   }
