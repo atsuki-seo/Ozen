@@ -774,7 +774,9 @@ grep -cF 'https://github.com/atsuki-seo/Ozen/tree/main/reference"' site/index.ht
 grep -cF 'https://github.com/atsuki-seo/Ozen/releases' site/index.html
 grep -oE '>(Reference|Releases)</a>' site/index.html | sort -u | wc -l    # 2
 gh api 'repos/atsuki-seo/Ozen/contents/reference?ref=main' --jq length
-gh run list --workflow pages.yml --commit "$(git log --format=%H -1 -- site/index.html)" --json conclusion --jq '.[0].conclusion'
+c=$(git log --format=%H -1 -- site/index.html)   # the newest Pages run of a pushed head that contains it:
+gh run list --workflow pages.yml --limit 20 --json headSha,conclusion --jq '.[] | .headSha + " " + .conclusion' |
+  while read -r h r; do git merge-base --is-ancestor $c $h && { echo $r; break; }; done
 
 # G-DS-GOLDEN-SAME (0)
 norm() { sed -E 's/"ozenVersion":"[^"]*"/"ozenVersion":"V"/g; s/"name":"ozen","version":"[^"]*"/"name":"ozen","version":"V"/g; s/\{\{STD_VERSION\}\}/V/g'; }

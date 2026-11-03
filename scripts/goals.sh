@@ -1868,7 +1868,9 @@ goal_G_DS_SITE() {
   want_eq "link texts" 2 "$(grep -oE '>(Reference|Releases)</a>' site/index.html | sort -u | wc -l)"
   want_ge1 "reference on GitHub" "$(gh api 'repos/atsuki-seo/Ozen/contents/reference?ref=main' --jq length 2>&1)"
   want_eq "pages run" success \
-    "$(gh run list --workflow pages.yml --commit "$(git log --format=%H -1 -- site/index.html)" --json conclusion --jq '.[0].conclusion' 2>&1)"
+    "$(c=$(git log --format=%H -1 -- site/index.html)
+       gh run list --workflow pages.yml --limit 20 --json headSha,conclusion --jq '.[] | .headSha + " " + .conclusion' 2>/dev/null |
+         while read -r h r; do git merge-base --is-ancestor "$c" "$h" 2>/dev/null && { echo "$r"; break; }; done)"
 }
 
 goal_G_DS_GOLDEN_SAME() {
