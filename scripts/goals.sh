@@ -4,17 +4,19 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: $0 [--root DIR] --list | GOAL-ID..." >&2
+  echo "usage: $0 [--root DIR] [--summary] --list | GOAL-ID..." >&2
   exit 2
 }
 
 root=""
 ids=()
 list_only=0
+summary=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --root) [ $# -ge 2 ] || usage; root="$2"; shift 2 ;;
     --list) list_only=1; shift ;;
+    --summary) summary=1; shift ;;
     -*) usage ;;
     *) ids+=("$1"); shift ;;
   esac
@@ -37,8 +39,10 @@ OZ=build/core-gcc-release/ozen
 OLD="git show readme-start:README.md"
 QC=qc-start..qc-end
 PLAN_QC=plans/ozen-quantity-checks.md
-FB=fb-start..HEAD
+FB=fb-start..fb-end
 PLAN_FB=plans/ozen-cooking-feedback.md
+DS=ds-start..HEAD
+PLAN_DS=plans/ozen-dev-setup.md
 DOCS_RD="README.md CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md"
 
 fct_source() {
@@ -1566,6 +1570,309 @@ goal_G_FB_AUDIT() {
   want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_FB)"
 }
 
+ds_excluded() {
+  grep -oE "^- Other work's commit in range: [0-9a-f]{7,40}" $PLAN_DS | awk '{print $NF}' |
+    while IFS= read -r c; do git rev-parse -q --verify "$c^{commit}" || echo "unknown:$c"; done
+}
+
+ds_commits() {
+  local ex
+  ex=$(ds_excluded)
+  git rev-list --no-merges $DS | grep -vxF -e "${ex:-none}"
+}
+
+ds_files() {
+  local c
+  for c in $(ds_commits); do git diff-tree --no-commit-id --name-only -r "$c"; done
+}
+
+ds_tag() {
+  want_eq "tag ds-start" ok "$(git rev-parse -q --verify refs/tags/ds-start >/dev/null && echo ok)"
+}
+
+want_tail_failed0() {
+  want_re "$1" "^$2: [0-9]+ cases, 0 failed$" "$(bash "$3" 2>&1 | tail -n 1)"
+}
+
+goal_G_DS_DECISIONS() {
+  want_eq "decided" 21 "$(grep -c '^### D[0-9]*\. .*\[decided\]' $PLAN_DS)"
+  want_eq "open" 0 "$(grep -c '^### D[0-9]*\. .*\[open\]' $PLAN_DS)"
+  want_eq "decision lines" 21 "$(grep -c '^- \*\*Decision:\*\*' $PLAN_DS)"
+}
+
+goal_G_DS_COVERAGE() {
+  want_eq "S items without a row" 0 \
+    "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_DS | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
+            <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_DS | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u) | wc -l)"
+  want_eq "hand-over items without a reason" 0 \
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_DS | grep '^- ' | grep -v 'Reason a command cannot decide:' | wc -l)"
+}
+
+goal_G_DS_PLAN_NAMES() {
+  want_re "plan-tests" '^plan-tests: [0-9]+ names, 0 missing$' "$(scripts/check-plan-tests.sh $PLAN_DS 2>/dev/null | tail -n 1)"
+}
+
+goal_G_DS_PLAN_TESTS() {
+  local out
+  out=$(scripts/check-plan-tests.sh --mutations $PLAN_DS 2>/dev/null | tail -n 1)
+  want_re "mutations" '^mutations: [0-9]+ rows, [0-9]+ recorded$' "$out"
+  want_eq "rows = recorded" "$(last_num "$out" 1)" "$(last_num "$out" 2)"
+}
+
+goal_G_DS_OWN_LABELS() {
+  want_eq "Japanese labels" 0 \
+    "$(sed '/^### 3\.4/,/^### 3\.5/d; /^| Japanese | English |/,/^- \*\*S993\*\*/d; /^### 5\.1/,/^### 5\.2/d; /^### 5\.3/,/^## 6\./d' $PLAN_DS |
+       grep -cE '【決定済み】|【未決】|決定:|機械で決められない理由|わざと壊す|テストまたはゴール|網羅の監査|範囲に入った別の作業|期待を直した')"
+}
+
+goal_G_DS_LABELS() {
+  local t
+  want_eq "label rows" 15 "$(wc -l < scripts/plan-labels.tsv)"
+  want_eq "Japanese labels in checkers" 0 \
+    "$(cut -f1 scripts/plan-labels.tsv | grep -cFf - scripts/check-plan-tests.sh scripts/check-rewrite-equivalence.py \
+         scripts/check-lists-copy.py | awk -F: '{s+=$2} END {print s}')"
+  for t in check-plan-tests check-rewrite-equivalence check-lists-copy; do
+    want_tail_failed0 "$t" "test-$t" "scripts/test-$t.sh"
+  done
+  want_ok "feedback plan goals" scripts/goals.sh G-FB-DECISIONS G-FB-COVERAGE G-FB-PLAN-TESTS G-FB-SCOPE
+  want_eq "FB range" "FB=fb-start..fb-end" "$(grep -E '^FB=' scripts/goals.sh)"
+}
+
+goal_G_DS_TOOLCHAIN() {
+  want_re "rulesync line" '^[0-9]+\.[0-9]+\.[0-9]+ npx$' "$(awk '$1 == "rulesync" { print $2, $3 }' toolchain.txt)"
+  want_eq "node >= 22.22" 1 "$(awk '$1 == "node" { split($2, v, "."); print (v[1] > 22 || (v[1] == 22 && v[2] >= 22)) }' toolchain.txt)"
+  want_ok "G-REPO-TOOLS" scripts/goals.sh G-REPO-TOOLS
+}
+
+goal_G_DS_RULESYNC() {
+  want_tail_failed0 "test-rulesync" rulesync scripts/test-rulesync.sh
+  want_ok "generate --check" scripts/rulesync.sh generate --check
+  want_eq "changes after generate" 0 \
+    "$(scripts/rulesync.sh generate >/dev/null 2>&1 && git status --porcelain --untracked-files=no | wc -l)"
+  want_eq "targets and features" "['agentsmd', 'claudecode', 'codexcli', 'copilot', 'cursor'] ['permissions', 'rules']" \
+    "$(python3 -c 'import json,re; c=json.loads(re.sub(r"(?m)^\s*//.*$","",open("rulesync.jsonc").read())); print(sorted(c["targets"]), sorted(c["features"]))' 2>&1)"
+  want_eq "rule files" 1 "$(ls .rulesync/rules 2>/dev/null | wc -l)"
+  want_eq "root rule" 1 "$(grep -c '^root: true' .rulesync/rules/overview.md 2>/dev/null)"
+  want_eq "untracked outputs" 0 \
+    "$(while read -r p; do git ls-files --error-unmatch "$p" >/dev/null 2>&1 || echo "$p"; done < scripts/agent-outputs.txt | wc -l)"
+}
+
+goal_G_DS_AGENT_FILES() {
+  local f p s r=.rulesync/rules/overview.md
+  for f in CLAUDE.md AGENTS.md; do
+    want_ge1 "noreply in $f" "$(grep -cF "$NOREPLY" $f 2>/dev/null)"
+  done
+  for p in 'ozen-roadmap.md.*G-.*plan-start' 'ozen-syntax-refresh.md.*G-RF-.*refresh-start' \
+           'ozen-readme-compact.md.*G-RD-.*readme-start' 'ozen-quantity-checks.md.*G-QC-.*qc-start' \
+           'ozen-cooking-feedback.md.*G-FB-.*fb-start' 'ozen-dev-setup.md.*G-DS-.*ds-start'; do
+    for f in CLAUDE.md AGENTS.md; do
+      want_eq "plan line $p in $f" 1 "$(grep -cE "$p" $f 2>/dev/null)"
+    done
+  done
+  want_eq "cursor alwaysApply" 1 "$(grep -c 'alwaysApply: true' $(grep '^\.cursor/' scripts/agent-outputs.txt 2>/dev/null) /dev/null 2>/dev/null | awk -F: '{s+=$NF} END {print s+0}')"
+  want_eq "copilot file" 1 "$(grep -cx '.github/copilot-instructions.md' scripts/agent-outputs.txt 2>/dev/null)"
+  want_eq "allow list" "" \
+    "$(diff <(python3 -c 'import json; print("\n".join(sorted(json.load(open(".claude/settings.json"))["permissions"]["allow"])))' 2>&1) \
+            <(sort scripts/agent-allow.txt 2>&1))"
+  want_eq "writing commands in the allow list" 0 "$(grep -cE 'git (push|commit|tag|reset)|(^| )rm |>' scripts/agent-allow.txt 2>/dev/null)"
+  want_ge1 "English rule" "$(grep -ciE 'committed .*(are|is) (written )?in English' $r 2>/dev/null)"
+  for s in 'site/' 'MEXT' 'phrases/ja.ftl' 'ozen-cooking-feedback.md' 'ozen-authoring-support.md' 'ozen-dev-environment.md' 'own settings'; do
+    want_ge1 "rule names $s" "$(grep -cF "$s" $r 2>/dev/null)"
+  done
+  for f in CLAUDE.md AGENTS.md; do
+    want_eq "Japanese folders in $f" 0 "$(grep -ciE '(under|in) `?(docs|plans)/`? (are|is) written in Japanese' $f)"
+    want_eq "ask before pushing in $f" 0 "$(grep -cF 'ask the user before pushing' $f)"
+  done
+  want_ge1 "G-REPO-NOREPLY in the rule" "$(grep -c 'G-REPO-NOREPLY' $r 2>/dev/null)"
+  want_ok "CLAUDE.md goals" scripts/goals.sh G-REPO-CLAUDEMD G-RD-CLAUDEMD G-QC-CLAUDEMD
+}
+
+goal_G_DS_HOOK() {
+  want_re "pre-push" '^pre-push: 2 cases, 0 failed$' "$(bash scripts/test-pre-push.sh 2>&1 | tail -n 1)"
+}
+
+goal_G_DS_NOREPLY() {
+  want_tail_failed0 "test-goals" test-goals scripts/test-goals.sh
+  want_eq "noreply cases" 4 "$(grep -c '^noreply_case ' scripts/test-goals.sh)"
+}
+
+goal_G_DS_CI_AGENTS() {
+  local a=.github/workflows/agents.yml
+  want_eq "push trigger" 1 "$(grep -c '^  push:' $a 2>/dev/null)"
+  want_eq "path filters" 0 "$(grep -cE 'paths(-ignore)?:' $a 2>/dev/null)"
+  want_eq "full history" 1 "$(grep -c 'fetch-depth: 0' $a 2>/dev/null)"
+  want_ge1 "node from toolchain.txt" "$(grep -c '$1 == "node"' $a 2>/dev/null)"
+  want_eq "noreply step" 1 "$(grep -c 'goals.sh G-REPO-NOREPLY' $a 2>/dev/null)"
+  want_eq "generate check step" 1 "$(grep -c 'rulesync.sh generate --check' $a 2>/dev/null)"
+}
+
+goal_G_DS_CI_AGENTS_RUN() {
+  local c
+  c=$(git log --format=%H -1 -- plans/)
+  want_eq "files outside plans/" 0 "$(git diff-tree --no-commit-id --name-only -r $c | grep -vc '^plans/')"
+  want_eq "agents run" success "$(gh run list --workflow agents.yml --commit $c --json conclusion --jq '.[0].conclusion' 2>&1)"
+}
+
+goal_G_DS_SETUP() {
+  want_tail_failed0 "test-setup" setup scripts/test-setup.sh
+  want_eq "install commands" 0 "$(grep -cE '\b(sudo|apt(-get)?|brew install|pip install|npm install)\b' scripts/setup.sh 2>/dev/null)"
+}
+
+goal_G_DS_CONCEPT16() {
+  want_eq "section 16" 0 "$(grep -c '^## 16\.' docs/concept.md)"
+  want_eq "last section" 15 "$(grep -oE '^## [0-9]+\.' docs/concept.md | tail -n 1 | tr -dc '0-9')"
+}
+
+goal_G_DS_ENTRY_DOCS() {
+  local w g p
+  w=$(sed -n '/^## Where things are/,/^## [^W]/p' CONTRIBUTING.md)
+  for p in docs/ plans/ reference/ site/ README .rulesync/ CLAUDE.md AGENTS.md; do
+    want_ge1 "where row $p" "$(grep '^| ' <<< "$w" | grep -cF "$p")"
+  done
+  g=$(sed -n '/^## Getting started/,/^## [^G]/p' CONTRIBUTING.md)
+  for p in scripts/setup.sh scripts/goals.sh .rulesync/; do
+    want_ge1 "getting started $p" "$(grep -cF "$p" <<< "$g")"
+  done
+  want_ge1 "README reference" "$(grep -cF 'reference/' README.md)"
+  want_ge1 "pointer line" "$(grep -cF 'plans/ozen-dev-setup.md' plans/ozen-dev-environment.md)"
+}
+
+goal_G_DS_TRANSLATION() {
+  want_re "translation" '^translation: 6 files, 0 problems$' \
+    "$(python3 -B scripts/check-translation.py --base ds-start docs/concept.md docs/prototype-report.md \
+         plans/ozen-roadmap.md plans/ozen-syntax-refresh.md plans/ozen-readme-compact.md plans/ozen-quantity-checks.md 2>/dev/null | tail -n 1)"
+  want_tail_failed0 "test-check-translation" check-translation scripts/test-check-translation.sh
+}
+
+goal_G_DS_GOALS_SAME() {
+  local t
+  want_eq "records" 6 \
+    "$(grep -cE '^- Goals before and after P2-[2-7]: `build/ds-goals-P2-[2-7]-before\.txt` and `-after\.txt`, same$' $PLAN_DS)"
+  want_eq "differing pairs" 0 \
+    "$(for t in 2 3 4 5 6 7; do diff build/ds-goals-P2-$t-before.txt build/ds-goals-P2-$t-after.txt >/dev/null 2>&1 || echo "P2-$t"; done | wc -l)"
+}
+
+goal_G_DS_CONCEPT_GOALS() {
+  local ids
+  want_eq "Japanese in concept goals" 0 \
+    "$(awk '/^[a-z_A-Z0-9]+\(\) \{/ {n=$1; b=""} {b=b "\n" $0} /^}/ {if (n ~ /^goal_G_/ && b ~ /docs\/concept\.md/) print b}' scripts/goals.sh |
+       grep -cP '[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]')"
+  ids=$(awk '/^[a-z_A-Z0-9]+\(\) \{/ {n=$1; b=""} {b=b "\n" $0} /^}/ {if (n ~ /^goal_G_/ && b ~ /docs\/concept\.md/) print n}' scripts/goals.sh |
+    sed 's/^goal_//; s/()$//; s/_/-/g')
+  want_ok "concept goals" scripts/goals.sh $ids
+}
+
+goal_G_DS_JA_PLANS() {
+  ds_tag
+  want_eq "Japanese plans changed" 0 "$(ds_files | grep -cxE 'plans/ozen-(cooking-feedback|authoring-support)\.md')"
+}
+
+goal_G_DS_REFERENCE() {
+  want_eq "reference files" 6 "$(ls reference 2>/dev/null | grep -c '\.md$')"
+  want_re "examples" '^readme: [0-9]+ examples, 0 mismatches$' \
+    "$(scripts/check-readme-example.sh --readme reference/language.md --ozen $OZ 2>&1 | tail -n 1)"
+  want_eq "guide markers" 2 "$(grep -cE '^<!-- ai-guide:(begin|end) -->$' reference/language.md 2>/dev/null)"
+  want_eq "Japanese characters" 0 "$(cat reference/*.md 2>/dev/null | grep -cP '[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]')"
+}
+
+goal_G_DS_REFGEN() {
+  want_re "refgen" '^refgen: 3 files, 0 differ$' "$(python3 -B tools/refgen/refgen.py --check 2>&1 | tail -n 1)"
+  want_tail_failed0 "test-refgen" refgen scripts/test-refgen.sh
+  want_eq "guide size" ok "$([ "$(wc -c < reference/ai-guide.md)" -le 65536 ] 2>/dev/null && echo ok)"
+}
+
+goal_G_DS_INIT() {
+  want_re "cli" '^cli: [0-9]+ cases, 0 failed$' "$(scripts/run-cli-tests.sh $OZ tests/cli 2>&1 | tail -n 1)"
+  want_eq "init cases" 9 "$(ls tests/cli/init-*.sh 2>/dev/null | wc -l)"
+  want_ge1 "usage" "$($OZ 2>&1 | grep -c 'ozen init')"
+  want_ge1 "cli/README.md" "$(grep -c 'ozen init' cli/README.md)"
+}
+
+goal_G_DS_VERSION() {
+  want_eq "literal ozenVersion" 0 "$(grep -rlE '"ozenVersion":"[0-9]' tests/golden | wc -l)"
+  want_eq "SARIF placeholder" 1 "$(grep -c '{{STD_VERSION}}' tests/golden/api/sarif-mapping.out)"
+  want_eq "package versions changed" 0 \
+    "$(git diff ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' | grep -E '^[-+][^-+]' |
+       grep -cE '(version|std): "[0-9]')"
+  want_tail_failed0 "test-bump-version" bump-version scripts/test-bump-version.sh
+  want_eq "roadmap reads" 0 "$(sed -n '/^goal_G_REPO_VERSION/,/^}/p' scripts/goals.sh | grep -c 'PLAN')"
+  want_eq "end-tag reads" 3 \
+    "$(sed -n '/^goal_G_\(RD\|QC\|FB\)_VERSION/,/^}/p' scripts/goals.sh | grep -cE 'git show (readme|qc|fb)-end:VERSION')"
+  want_ok "version goals" scripts/goals.sh G-REPO-VERSION G-RD-VERSION G-QC-VERSION G-FB-VERSION G-CORE-GOLDEN
+}
+
+goal_G_DS_RELEASE_LOCAL() {
+  want_tail_failed0 "test-check-release-tag" release-tag scripts/test-check-release-tag.sh
+  want_tail_failed0 "test-make-release" release scripts/test-make-release.sh
+}
+
+goal_G_DS_RELEASE_WORKFLOW() {
+  local f=.github/workflows/release.yml out
+  want_eq "tag trigger" 1 "$(grep -cE "tags: *\[ *'?v\*'? *\]" $f 2>/dev/null)"
+  want_eq "other triggers" 0 "$(grep -cE '^\s*(branches|pull_request|workflow_dispatch|schedule):' $f 2>/dev/null)"
+  out=$(scripts/check-release-tag.sh --workflow-first-step $f 2>&1)
+  want_re "first steps" '^ok [A-Za-z0-9_-]+$' "$out"
+  want_eq "contents: write" 1 "$(grep -cE '^\s*contents: write' $f 2>/dev/null)"
+  want_eq "other secrets" 0 "$(grep -oE 'secrets\.[A-Z_]+' $f 2>/dev/null | grep -vc '^secrets\.GITHUB_TOKEN$')"
+  want_eq "gh release create" 1 "$(grep -c 'gh release create' $f 2>/dev/null)"
+  want_eq "lipo -archs" 1 "$(grep -c 'lipo -archs' $f 2>/dev/null)"
+}
+
+goal_G_DS_RELEASE_PUBLISHED() {
+  local v t d out
+  v=$(cat VERSION); t="v$v"
+  want_eq "assets" 4 "$(gh release view "$t" --json assets --jq '.assets[].name' 2>/dev/null |
+    grep -cxE "ozen-$v-(linux-x86_64\.tar\.gz|macos-universal\.tar\.gz|wasm\.zip)|SHA256SUMS")"
+  d=build/ds-release; rm -rf $d; mkdir -p $d
+  out=$(gh release download "$t" -D $d 2>&1 &&
+    cd $d && sha256sum -c SHA256SUMS | grep -c ': OK$' && tar xzf ozen-$v-linux-x86_64.tar.gz && ozen-$v/bin/ozen --version)
+  want_eq "downloaded archives" "3
+ozen $v" "$out"
+  want_eq "release run" success \
+    "$(gh run list --workflow release.yml --commit "$(git rev-list -n 1 "$t" 2>/dev/null)" --json conclusion --jq '.[0].conclusion' 2>&1)"
+  want_eq "guide at the tag" reference/ai-guide.md \
+    "$(gh api "repos/atsuki-seo/Ozen/contents/reference/ai-guide.md?ref=$t" --jq .path 2>&1)"
+}
+
+goal_G_DS_SITE() {
+  want_eq "reference link" 1 "$(grep -cF 'https://github.com/atsuki-seo/Ozen/tree/main/reference"' site/index.html)"
+  want_eq "releases link" 1 "$(grep -cF 'https://github.com/atsuki-seo/Ozen/releases' site/index.html)"
+  want_ge1 "reference on GitHub" "$(gh api 'repos/atsuki-seo/Ozen/contents/reference?ref=main' --jq length 2>&1)"
+  want_eq "pages run" success \
+    "$(gh run list --workflow pages.yml --commit "$(git log --format=%H -1 -- site/index.html)" --json conclusion --jq '.[0].conclusion' 2>&1)"
+}
+
+goal_G_DS_GOLDEN_SAME() {
+  local norm='s/"ozenVersion":"[^"]*"/"ozenVersion":"V"/g; s/\{\{STD_VERSION\}\}/V/g'
+  ds_tag
+  want_eq "changed expectations" 0 \
+    "$(ds_files | sort -u | grep -E '^tests/golden/.*\.out$' | grep -v '^tests/golden/bundle/std-version-check' |
+       while read -r f; do cmp -s <(git show ds-start:"$f" 2>/dev/null | sed -E "$norm") <(sed -E "$norm" "$f" 2>/dev/null) || echo "$f"; done |
+       wc -l)"
+}
+
+goal_G_DS_SCOPE() {
+  ds_tag
+  want_eq "files outside scope" 0 "$(ds_files | sort -u | grep -vxEf <(cut -d' ' -f1 scripts/ds-scope.txt 2>/dev/null) | wc -l)"
+  want_eq "empty lines" 0 "$(grep -c '^$' scripts/ds-scope.txt 2>/dev/null)"
+  want_eq "scope list = 4.13" "" \
+    "$(diff <(sed -n '/^### 4\.13/,/^### 4\.14/p' $PLAN_DS | grep -oE '`[^`]+`' | tr -d '`' | sort -u) \
+            <(cut -d' ' -f2- scripts/ds-scope.txt 2>/dev/null | sort -u))"
+}
+
+goal_G_DS_SELFTESTS() {
+  local s
+  for s in rulesync.sh setup.sh check-translation.py bump-version.sh check-release-tag.sh make-release.sh; do
+    want_eq "selftest $s" 1 "$(grep -c "^scripts/$s " scripts/selftests.txt)"
+  done
+  want_ok "G-REPO-SELFTESTS" scripts/goals.sh G-REPO-SELFTESTS
+  want_eq "dist/ ignored" 1 "$(grep -cx 'dist/' .gitignore)"
+}
+
+goal_G_DS_AUDIT() {
+  want_ge1 "audit records" "$(grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_DS)"
+}
+
 all_ids() {
   declare -F | sed -nE 's/^declare -f goal_(G_.*)$/\1/p' | tr '_' '-'
 }
@@ -1585,6 +1892,11 @@ for id in "${ids[@]}"; do
   fi
   checks=0
   fails=0
+  if [ "$summary" -eq 1 ]; then
+    "$fn" >/dev/null 2>&1
+    if [ "$fails" -eq 0 ]; then echo "$id pass"; else echo "$id fail"; status=1; fi
+    continue
+  fi
   echo "== $id"
   "$fn"
   if [ "$fails" -eq 0 ]; then

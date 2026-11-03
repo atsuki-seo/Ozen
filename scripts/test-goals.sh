@@ -71,6 +71,18 @@ expect coverage-missing-row "$r" G-PLAN-COVERAGE "goal G-PLAN-COVERAGE: FAIL (1 
 r=$(new_repo); coverage_plan "$r" '| S2 | 正常系 |' '- item without a reason'
 expect coverage-handoff-reason "$r" G-PLAN-COVERAGE "goal G-PLAN-COVERAGE: FAIL (1 of 2 checks)" 1
 
+r=$(new_repo); coverage_plan "$r" '| S2 | 正常系 |' ''
+cases=$((cases + 1))
+set +e
+got=$("$goals" --root "$r" --summary G-REPO-LICENSE-TEXT G-PLAN-COVERAGE 2>&1)
+got_status=$?
+set -e
+if [ "$got" != "$(printf 'G-REPO-LICENSE-TEXT fail\nG-PLAN-COVERAGE pass')" ] || [ "$got_status" -ne 1 ]; then
+  echo "FAIL summary: got '$got' (status $got_status)" >&2
+  failed=$((failed + 1))
+fi
+rm -rf "$r"
+
 r=$(new_repo)
 expect unknown-goal "$r" G-NO-SUCH-GOAL "" 2
 
