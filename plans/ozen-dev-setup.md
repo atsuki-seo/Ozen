@@ -699,9 +699,9 @@ grep -cE '^- Goals before and after P2-[2-7]: `build/ds-goals-P2-[2-7]-before\.t
 for t in 2 3 4 5 6 7; do diff build/ds-goals-P2-$t-before.txt build/ds-goals-P2-$t-after.txt > /dev/null 2>&1 || echo "P2-$t"; done | wc -l
 
 # G-DS-CONCEPT-GOALS (0, exit 0)
-awk '/^goal_G_/ {n=$1; b=""} {b=b "\n" $0} /^}/ {if (b ~ /docs\/concept\.md/) print b}' scripts/goals.sh |
+awk '/^[a-z_A-Z0-9]+\(\) \{/ {n=$1; b=""} {b=b "\n" $0} /^}/ {if (n ~ /^goal_G_/ && b ~ /docs\/concept\.md/) print b}' scripts/goals.sh |
   grep -cP '[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]'
-ids=$(awk '/^goal_G_/ {n=$1; b=""} {b=b "\n" $0} /^}/ {if (b ~ /docs\/concept\.md/) print n}' scripts/goals.sh |
+ids=$(awk '/^[a-z_A-Z0-9]+\(\) \{/ {n=$1; b=""} {b=b "\n" $0} /^}/ {if (n ~ /^goal_G_/ && b ~ /docs\/concept\.md/) print n}' scripts/goals.sh |
   sed 's/^goal_//; s/()$//; s/_/-/g')
 scripts/goals.sh $ids > /dev/null 2>&1; echo "exit $?"
 
@@ -728,7 +728,7 @@ $OZ 2>&1 | grep -c 'ozen init'; grep -c 'ozen init' cli/README.md
 # G-DS-VERSION
 grep -rlE '"ozenVersion":"[0-9]' tests/golden | wc -l            # 0
 grep -c '{{STD_VERSION}}' tests/golden/api/sarif-mapping.out     # 1
-git diff ds-start -- samples tests | grep -E '^[-+][^-+]' | grep -cE '(version|std): "[0-9]'   # 0
+git diff ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' | grep -E '^[-+][^-+]' | grep -cE '(version|std): "[0-9]'   # 0
 bash scripts/test-bump-version.sh | tail -n 1                    # bump-version: <k> cases, 0 failed
 sed -n '/^goal_G_REPO_VERSION/,/^}/p' scripts/goals.sh | grep -c 'PLAN'                      # 0
 sed -n '/^goal_G_\(RD\|QC\|FB\)_VERSION/,/^}/p' scripts/goals.sh | grep -cE 'git show (readme|qc|fb)-end:VERSION'   # 3
@@ -1088,6 +1088,18 @@ Claude covers the machine-checked goals. The user checks these:
 - Goals at `ds-start` (P0-2, 2026-11-03): `build/ds-goals-start.txt`, 171 goals run, 169 pass. Not run: `G-CORE-FUZZ`, `G-CORE-BUILD`, `G-REPO-RED-FIRST`, `G-PLAT-CI`, `G-REPO-TOOLS-CI` and `G-RD-GH-*` (the network and rebuild goals of D124). The two failures are known: `G-FB-SCOPE` counts the two plan commits after `fb-end` (P0-3 closes `FB`), and `G-VOCAB-TESTS` was retired by roadmap D28 and fails since before the feedback plan (that plan's §9 records it). The prerequisite goals of this plan are therefore every goal except the six retired `G-VOCAB-SCHEMA`, `G-VOCAB-CHECK`, `G-VOCAB-SAMPLE`, `G-VOCAB-TESTS`, `G-VOCAB-READONLY` and `G-VOCAB-EXPECT-INDEPENDENT`.
 - Versions chosen (P0-2, 2026-11-03): Node.js `24.22.2`, the newest Node.js 24 release on <https://nodejs.org/dist/index.json>; rulesync `43.4.2` (`npm view rulesync version`), `engines.node` `>=22.22.0`.
 - Other work in progress at `ds-start` (P0-2, 2026-11-03): none. The working tree was clean, and no other plan has an open range besides `R` and `RF`, which stay open by design.
+- P0-3 (2026-11-03): `scripts/plan-labels.tsv` was written from the table of §4.5. Two commands of §5.1 were corrected while writing the goals. (1) `G-DS-CONCEPT-GOALS`: the awk started a body only at `goal_G_`, so a helper function after a goal (`fb_in_scope` names `docs/concept.md`) was counted as part of that goal; the awk now starts a body at every function and prints only goals. (2) `G-DS-VERSION`: the line for unchanged package versions also counted the `std` requirement of `std-version-check`, which S1044 changes on purpose; the diff now leaves out `tests/golden/bundle/std-version-check.*`, which `G-DS-GOLDEN-SAME` also leaves out. At P0-3, `G-DS-PLAN-NAMES` reports `plan-tests: 22 names, 18 missing`: the missing names are the tests that later tasks add.
+- Mutation check: `G-DS-ENTRY-DOCS` — S992, renamed the pointer to `plans/x.md`: failed (`pointer line: got '0'`). Restored: pass
+- Mutation check: `G-DS-LABELS` — S993, deleted the `Total` row of the TSV: failed (`label rows: got '14', want '15'`). Restored: pass
+- Mutation check: `G-DS-LABELS` — S994, wrote the Japanese mutation column name inline in `check-plan-tests.sh`: failed (`Japanese labels in checkers: got '1', want '0'`). Restored: pass
+- Mutation check: `sh/test-check-plan-tests.sh` — S995, read only the Japanese test column name: failed (`16 cases, 2 failed`, `english-names`). Restored: pass
+- Mutation check: `sh/test-check-plan-tests.sh` — S996, read only the Japanese count form: failed (`16 cases, 2 failed`, `english-count-short`). Restored: pass
+- Mutation check: `sh/test-check-rewrite-equivalence.sh` — S997, read only the Japanese rewrite record: failed (`17 cases, 1 failed`, `english-record`). Restored: pass
+- Mutation check: `sh/test-check-lists-copy.sh` — S998, skipped only the Japanese total row: failed (`6 cases, 1 failed`, `english-total`). The first version of the case put no identifier in the `Total` row and missed the break, so the row now holds one. Restored: pass
+- Mutation check: `G-DS-LABELS` — S999, made `G-FB-DECISIONS` read `[decided]`: failed (`feedback plan goals: exit 1`). Restored: pass
+- Mutation check: `sh/test-goals.sh` — S1012, stopped `--summary` at the first failure: failed (`8 cases, 1 failed`, `summary`). Restored: pass
+- Mutation check: `G-DS-LABELS` — S1013, left `FB=fb-start..HEAD`: failed (`FB range: got 'FB=fb-start..HEAD'`, `feedback plan goals: exit 1`). Restored: pass
+- Mutation check: `G-DS-OWN-LABELS` — S1014, wrote the Japanese decided label in the heading of D116: failed (`Japanese labels: got '1'`). Restored: pass
 
 ---
 
