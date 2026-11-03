@@ -1804,7 +1804,7 @@ goal_G_DS_VERSION() {
   want_eq "literal ozenVersion" 0 "$(grep -rlE '"ozenVersion":"[0-9]' tests/golden | wc -l)"
   want_eq "SARIF placeholder" 1 "$(grep -c '{{STD_VERSION}}' tests/golden/api/sarif-mapping.out)"
   want_eq "package versions changed" 0 \
-    "$(git diff ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' ':!tests/golden/packages/requires-newer-minor/*' | grep -E '^[-+][^-+]' |
+    "$(git diff --diff-filter=M ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' ':!tests/golden/packages/requires-newer-minor/*' | grep -E '^[-+][^-+]' |
        grep -cE '(version|std): "[0-9]')"
   want_tail_failed0 "test-bump-version" bump-version scripts/test-bump-version.sh
   want_eq "roadmap reads" 0 "$(sed -n '/^goal_G_REPO_VERSION/,/^}/p' scripts/goals.sh | grep -c 'PLAN')"

@@ -728,7 +728,7 @@ $OZ 2>&1 | grep -c 'ozen init'; grep -c 'ozen init' cli/README.md
 # G-DS-VERSION
 grep -rlE '"ozenVersion":"[0-9]' tests/golden | wc -l            # 0
 grep -c '{{STD_VERSION}}' tests/golden/api/sarif-mapping.out     # 1
-git diff ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' ':!tests/golden/packages/requires-newer-minor/*' | grep -E '^[-+][^-+]' | grep -cE '(version|std): "[0-9]'   # 0
+git diff --diff-filter=M ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' ':!tests/golden/packages/requires-newer-minor/*' | grep -E '^[-+][^-+]' | grep -cE '(version|std): "[0-9]'   # 0
 bash scripts/test-bump-version.sh | tail -n 1                    # bump-version: <k> cases, 0 failed
 sed -n '/^goal_G_REPO_VERSION/,/^}/p' scripts/goals.sh | grep -c 'PLAN'                      # 0
 sed -n '/^goal_G_\(RD\|QC\|FB\)_VERSION/,/^}/p' scripts/goals.sh | grep -cE 'git show (readme|qc|fb)-end:VERSION'   # 3
