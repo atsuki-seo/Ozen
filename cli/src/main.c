@@ -1142,8 +1142,27 @@ static char *sibling(const char *path, const char *rel) {
   return out;
 }
 
+static char *on_path(const char *argv0) {
+  const char *path = getenv("PATH");
+  if (strchr(argv0, '/') != nullptr || path == nullptr) {
+    return nullptr;
+  }
+  char buf[4096];
+  for (const char *p = path; *p != '\0';) {
+    const char *end = strchr(p, ':');
+    size_t len = end != nullptr ? (size_t)(end - p) : strlen(p);
+    snprintf(buf, sizeof buf, "%.*s/%s", (int)len, len > 0 ? p : ".", argv0);
+    if (access(buf, X_OK) == 0) {
+      return strdup(buf);
+    }
+    p += len + (end != nullptr ? 1 : 0);
+  }
+  return nullptr;
+}
+
 /* The renderer is JavaScript next to the source tree, so it is found from the executable's real path
-   (build/<dir>/ozen); OZEN_RENDERER overrides that for installs elsewhere. */
+   (build/<dir>/ozen); OZEN_RENDERER overrides that for installs elsewhere. macOS has no /proc/self/exe,
+   so a bare argv[0] is looked up on PATH as the shell did. */
 static char *find_renderer(const char *argv0) {
   const char *env = getenv("OZEN_RENDERER");
   if (env != nullptr) {
@@ -1154,21 +1173,24 @@ static char *find_renderer(const char *argv0) {
     return nullptr;
   }
   static const char *const rels[] = {"../../renderers/cli.mjs", "../renderers/cli.mjs"};
-  const char *exes[] = {"/proc/self/exe", argv0};
-  for (size_t e = 0; e < 2; e++) {
-    char *exe = realpath(exes[e], nullptr);
+  char *found = on_path(argv0);
+  const char *exes[] = {"/proc/self/exe", argv0, found};
+  for (size_t e = 0; e < 3; e++) {
+    char *exe = exes[e] != nullptr ? realpath(exes[e], nullptr) : nullptr;
     for (size_t r = 0; exe != nullptr && r < 2; r++) {
       char *cand = sibling(exe, rels[r]);
       char *real = cand != nullptr ? realpath(cand, nullptr) : nullptr;
       free(cand);
       if (real != nullptr && stat_file(real)) {
         free(exe);
+        free(found);
         return real;
       }
       free(real);
     }
     free(exe);
   }
+  free(found);
   fputs("cli: renderer not found; set OZEN_RENDERER to renderers/cli.mjs\n", stderr);
   return nullptr;
 }
