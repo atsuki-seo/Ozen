@@ -7,6 +7,7 @@ the [renderer](../renderers/README.md) through node.
 ## Commands
 
 ```
+ozen init [DIR] [--name NAME]           # a new cookbook: package.ozen and AGENTS.md
 ozen check [OPTIONS] [ENTRY|FILE]       # diagnostics (--format text|json|sarif)
 ozen build [OPTIONS] [ENTRY|FILE...]    # every entry into out/
 ozen render [OPTIONS] [ENTRY|FILE]      # text or HTML through the renderer
@@ -14,6 +15,11 @@ ozen bundle [ENTRY|DIR] [-o FILE]       # one shareable file
 ozen unbundle FILE [-o DIR]             # back to module files
 ozen debug ast|modules|definitions|steps|requires|ir|schedule|entry|options
 ```
+
+`ozen init` starts a cookbook in `DIR` (created if missing) or in the current folder. The
+package name is the folder's name, or `NAME`. It writes `package.ozen` and an `AGENTS.md`
+that points AI agents to the [guide](../reference/ai-guide.md) of the installed version, and
+it never overwrites either file.
 
 ## Check levels
 
