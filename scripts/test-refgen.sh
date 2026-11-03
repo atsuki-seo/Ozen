@@ -43,7 +43,7 @@ gen() {
 check() {
   local name=$1 cond=$2
   cases=$((cases + 1))
-  if ! eval "$cond"; then
+  if ! (eval "$cond"); then
     echo "FAIL $name: $cond" >&2
     failed=$((failed + 1))
   fi
