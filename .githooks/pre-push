@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+root=$(git rev-parse --show-toplevel) || exit 1
+exec "$root/scripts/goals.sh" --root "$root" G-REPO-NOREPLY
