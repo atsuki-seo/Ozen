@@ -50,3 +50,4 @@ tools/refgen/refgen.py scripts/test-refgen.sh
 scripts/check-translation.py scripts/test-check-translation.sh
 scripts/bump-version.sh scripts/test-bump-version.sh
 scripts/make-release.sh scripts/test-make-release.sh
+scripts/check-release-tag.sh scripts/test-check-release-tag.sh

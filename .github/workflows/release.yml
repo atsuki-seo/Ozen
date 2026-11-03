@@ -1,0 +1,168 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that the tag matches VERSION
+        run: bash scripts/check-release-tag.sh "$GITHUB_REF_NAME"
+      - name: Read the pinned Node.js version
+        run: echo "NODE_VERSION=$(awk '$1 == "node" { print $2 }' toolchain.txt)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Build and pack
+        run: |
+          bash scripts/build-core.sh --only core-gcc-release
+          bash scripts/make-release.sh linux
+      - name: Run the packed ozen
+        run: |
+          v=$(cat VERSION)
+          mkdir -p "$RUNNER_TEMP/x" "$RUNNER_TEMP/elsewhere"
+          tar xzf "dist/ozen-$v-linux-x86_64.tar.gz" -C "$RUNNER_TEMP/x"
+          bin="$RUNNER_TEMP/x/ozen-$v/bin"
+          [ "$("$bin/ozen" --version)" = "ozen $v" ]
+          python3 - README.md "$RUNNER_TEMP/elsewhere" <<'PY'
+          import os, re, sys
+          text = open(sys.argv[1], encoding="utf-8").read()
+          m = re.search(r"<!-- file: soup\.ozen -->\n```ozen\n(.*?)```.*?<!-- run: (.*?) -->\n```text\n(.*?)```", text, re.S)
+          open(os.path.join(sys.argv[2], "soup.ozen"), "w").write(m.group(1))
+          open(os.path.join(sys.argv[2], "want"), "w").write(m.group(3))
+          PY
+          cd "$RUNNER_TEMP/elsewhere"
+          "$bin/ozen" render --kind recipe --lang en soup.ozen > got-direct
+          PATH="$bin:$PATH" ozen render --kind recipe --lang en soup.ozen > got-path
+          cmp want got-direct
+          cmp want got-path
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: dist/*.tar.gz
+
+  macos:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that the tag matches VERSION
+        run: bash scripts/check-release-tag.sh "$GITHUB_REF_NAME"
+      - name: Install GNU tools used by the scripts
+        run: |
+          brew install bash coreutils gnu-tar
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Read the pinned Node.js version
+        run: echo "NODE_VERSION=$(awk '$1 == "node" { print $2 }' toolchain.txt)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Build a universal binary and pack it
+        run: |
+          cmake -S core -B build/macos -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/macos -j 4 --target ozen
+          bash scripts/make-release.sh macos
+      - name: Run the packed ozen
+        run: |
+          v=$(cat VERSION)
+          archs=$(lipo -archs build/macos/ozen)
+          echo "$archs"
+          case " $archs " in *" x86_64 "*) ;; *) exit 1 ;; esac
+          case " $archs " in *" arm64 "*) ;; *) exit 1 ;; esac
+          mkdir -p "$RUNNER_TEMP/x" "$RUNNER_TEMP/elsewhere"
+          tar xzf "dist/ozen-$v-macos-universal.tar.gz" -C "$RUNNER_TEMP/x"
+          bin="$RUNNER_TEMP/x/ozen-$v/bin"
+          [ "$("$bin/ozen" --version)" = "ozen $v" ]
+          python3 - README.md "$RUNNER_TEMP/elsewhere" <<'PY'
+          import os, re, sys
+          text = open(sys.argv[1], encoding="utf-8").read()
+          m = re.search(r"<!-- file: soup\.ozen -->\n```ozen\n(.*?)```.*?<!-- run: (.*?) -->\n```text\n(.*?)```", text, re.S)
+          open(os.path.join(sys.argv[2], "soup.ozen"), "w").write(m.group(1))
+          open(os.path.join(sys.argv[2], "want"), "w").write(m.group(3))
+          PY
+          cd "$RUNNER_TEMP/elsewhere"
+          "$bin/ozen" render --kind recipe --lang en soup.ozen > got-direct
+          PATH="$bin:$PATH" ozen render --kind recipe --lang en soup.ozen > got-path
+          cmp want got-direct
+          cmp want got-path
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: dist/*.tar.gz
+
+  wasm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that the tag matches VERSION
+        run: bash scripts/check-release-tag.sh "$GITHUB_REF_NAME"
+      - name: Install the pinned node, Emscripten and CMake
+        run: |
+          emcc=$(awk '$1 == "emcc" { print $2 }' toolchain.txt)
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install "$emcc" > /dev/null
+          "$RUNNER_TEMP/emsdk/emsdk" activate "$emcc" > /dev/null
+          echo "EMSDK=$RUNNER_TEMP/emsdk" >> "$GITHUB_ENV"
+          want=$(awk '$1 == "cmake" { print $2 }' toolchain.txt)
+          pipx install "cmake==$want"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "NODE_VERSION=$(awk '$1 == "node" { print $2 }' toolchain.txt)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Build and pack
+        run: |
+          bash scripts/build-core.sh --only core-gcc-release
+          bash scripts/build-wasm.sh
+          bash scripts/make-release.sh wasm
+      - name: Run the packed ozen
+        run: |
+          v=$(cat VERSION)
+          mkdir -p "$RUNNER_TEMP/w"
+          (cd "$RUNNER_TEMP/w" && unzip -q "$GITHUB_WORKSPACE/dist/ozen-$v-wasm.zip")
+          python3 - README.md "$RUNNER_TEMP/inputs.json" <<'PY'
+          import json, re, sys
+          text = open(sys.argv[1], encoding="utf-8").read()
+          m = re.search(r"<!-- file: soup\.ozen -->\n```ozen\n(.*?)```", text, re.S)
+          json.dump([{"path": "soup.ozen", "text": m.group(1)}], open(sys.argv[2], "w"))
+          PY
+          cd "$RUNNER_TEMP/w/ozen-$v"
+          node node-run.mjs ./ozen_bridge.js "$RUNNER_TEMP/inputs.json" "$RUNNER_TEMP/out.json"
+          node -e 'const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))[0];
+            process.exit(r !== null && JSON.parse(r).outcome.status === "ok" ? 0 : 1)' "$RUNNER_TEMP/out.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-wasm
+          path: dist/*.zip
+
+  publish:
+    needs: [linux, macos, wasm]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that the tag matches VERSION
+        run: bash scripts/check-release-tag.sh "$GITHUB_REF_NAME"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+      - name: Write the checksums
+        run: |
+          bash scripts/make-release.sh sums
+          cat dist/SHA256SUMS
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.zip dist/SHA256SUMS --title "Ozen $GITHUB_REF_NAME" --notes "Ozen ${GITHUB_REF_NAME#v}. See reference/ for the language, and SHA256SUMS for the checksums."
