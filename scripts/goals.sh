@@ -586,9 +586,9 @@ goal_G_BUNDLE_STABLE() {
 not_yet() { fail "$1: script added in $2"; }
 
 goal_G_RF_DECISIONS() {
-  want_eq "decided" 17 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_RF)"
-  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*【未決】' $PLAN_RF)"
-  want_eq "decision lines" 17 "$(grep -c '^- \*\*決定:' $PLAN_RF)"
+  want_eq "decided" 17 "$(grep -c '^### D[0-9]*\. .*\[decided\]' $PLAN_RF)"
+  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*\[open\]' $PLAN_RF)"
+  want_eq "decision lines" 17 "$(grep -c '^- \*\*Decision:' $PLAN_RF)"
 }
 
 goal_G_RF_COVERAGE() {
@@ -596,7 +596,7 @@ goal_G_RF_COVERAGE() {
     "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_RF | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
             <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_RF | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u))"
   want_eq "handoff items without reason" 0 \
-    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_RF | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_RF | grep '^- ' | grep -v 'Reason a command cannot decide:' | wc -l)"
 }
 
 goal_G_RF_PLAN_TESTS() {
@@ -763,7 +763,7 @@ goal_G_RF_CI_NO_PROTO() {
 }
 
 goal_G_RF_AUDIT() {
-  want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_RF)"
+  want_ge1 "audit records" "$(grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_RF)"
 }
 
 rd_sec() { awk -v h="## $1" '/^```/{f=!f} !f&&$0==h{s=1;next} s&&!f&&/^## /{exit} s' README.md; }
