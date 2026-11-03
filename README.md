@@ -48,6 +48,7 @@ versions of the tools are listed in [toolchain.txt](toolchain.txt).
 
 ## Documentation
 
+- [reference/](reference/README.md): writing Ozen: the language, the standard actions, the diagnostics, and a guide for AI agents
 - [cli/README.md](cli/README.md): the `ozen` command, check levels, schedules, and bundles
 - [core/README.md](core/README.md): the compiler core and its public API
 - [stdlib/README.md](stdlib/README.md): the standard library `std`
