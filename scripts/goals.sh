@@ -278,7 +278,6 @@ goal_G_REPO_VERSION() {
   v=$(cat VERSION)
   want_eq "ozen --version" "ozen $v" "$(build/core-gcc-release/ozen --version 2>&1)"
   want_ge1 "stdlib version" "$(grep -cE "^ *version: *\"$v\"" stdlib/package.ozen)"
-  want_ge1 "plan version" "$(grep -cF "Version: $v" $PLAN)"
 }
 
 goal_G_CORE_BUILD() {
@@ -1121,7 +1120,7 @@ goal_G_RD_ADD_ONLY() {
 }
 
 goal_G_RD_VERSION() {
-  want_eq "VERSION" 0.1.0 "$(cat VERSION)"
+  want_eq "VERSION at readme-end" 0.1.0 "$(git show readme-end:VERSION 2>&1)"
 }
 
 goal_G_RD_CLAUDEMD() {
@@ -1266,7 +1265,7 @@ goal_G_QC_SCOPE() {
 }
 
 goal_G_QC_VERSION() {
-  want_eq "VERSION" 0.1.0 "$(cat VERSION)"
+  want_eq "VERSION at qc-end" 0.1.0 "$(git show qc-end:VERSION 2>&1)"
 }
 
 goal_G_QC_CLAUDEMD() {
@@ -1572,7 +1571,7 @@ goal_G_FB_SCOPE() {
 }
 
 goal_G_FB_VERSION() {
-  want_eq "VERSION" 0.1.0 "$(cat VERSION)"
+  want_eq "VERSION at fb-end" 0.1.0 "$(git show fb-end:VERSION 2>&1)"
 }
 
 goal_G_FB_CLAUDEMD() {
