@@ -47,3 +47,4 @@ scripts/check-site-examples.py scripts/test-check-site-examples.sh
 scripts/rulesync.sh scripts/test-rulesync.sh
 scripts/setup.sh scripts/test-setup.sh
 tools/refgen/refgen.py scripts/test-refgen.sh
+scripts/check-translation.py scripts/test-check-translation.sh
