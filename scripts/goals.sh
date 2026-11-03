@@ -745,12 +745,12 @@ goal_G_RF_CONCEPT() {
   severity=$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md)
   want_ge1 "concept 4.4 pipe" "$(grep -c '|>' <<< "$syntax")"
   want_ge1 "concept 4.4 per serving" "$(grep -c 'per serving' <<< "$syntax")"
-  want_ge1 "concept 4.4 omitted parentheses" "$(grep -c '`()` を省く' <<< "$syntax")"
+  want_ge1 "concept 4.4 omitted parentheses" "$(grep -c 'omit `()`' <<< "$syntax")"
   want_ge1 "concept 4.1 unusedValue" "$(sed -n '/^### 4\.1/,/^### 4\.2/p' docs/concept.md | grep -c 'unusedValue')"
   want_ge1 "concept 4.2 preheat" "$(sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -c 'preheat')"
   want_ge1 "concept 4.5 useWithin" "$(sed -n '/^### 4\.5/,/^### 4\.6/p' docs/concept.md | grep -c 'useWithin')"
-  want_eq "concept 6.1 warnings" 2 "$(grep '^| 警告' <<< "$severity" | grep -oE 'unusedValue|useWithinMissed' | sort -u | wc -l)"
-  want_eq "concept 6.1 errors" 1 "$(grep '^| エラー' <<< "$severity" | grep -c 'servingsUnknown')"
+  want_eq "concept 6.1 warnings" 2 "$(grep '^| Warning' <<< "$severity" | grep -oE 'unusedValue|useWithinMissed' | sort -u | wc -l)"
+  want_eq "concept 6.1 errors" 1 "$(grep '^| Error' <<< "$severity" | grep -c 'servingsUnknown')"
 }
 
 goal_G_RF_CLAUDEMD() {
@@ -1229,10 +1229,10 @@ goal_G_QC_SYNTAX() {
   want_ge1 "fuzz dict" "$(grep -cxF '"<.."' core/fuzz/ozen.dict)"
   want_ge1 "concept 4.2 example" "$(grep -cF '0 s<..' <<< "$ranges")"
   want_ge1 "concept 4.2 upper end" "$(grep -cF 'a<..b' <<< "$ranges")"
-  want_ge1 "concept 4.2 upper end included" "$(grep -cF '上端は含む' <<< "$ranges")"
-  want_ge1 "concept 4.2 action arguments" "$(grep -F '範囲外は必ずエラー' <<< "$ranges" | grep -cF '動作の引数')"
+  want_ge1 "concept 4.2 upper end included" "$(grep -cF 'the upper end is included' <<< "$ranges")"
+  want_ge1 "concept 4.2 action arguments" "$(grep -F 'out of range is always an error' <<< "$ranges" | grep -cF 'action arguments')"
   want_ge1 "concept Options servings" "$(grep -cE '^  servings: +Count\? in 1\.\.' docs/concept.md)"
-  want_ge1 "concept 6.1 amount" "$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF '0 以下の量')"
+  want_ge1 "concept 6.1 amount" "$(sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF 'an amount of 0 or less')"
 }
 
 qc_excluded() {
@@ -1477,21 +1477,21 @@ goal_G_FB_CONCEPT() {
   s123=$(sed -n '/^### 12\.3/,/^### 12\.4/p' docs/concept.md)
   want_ge1 "4.1 inShell" "$(grep -cF 'inShell' <<< "$s41")"
   want_ge1 "4.1 !=" "$(grep -cF '!=' <<< "$s41")"
-  want_ge1 "4.1 per element" "$(grep -cF '要素ごと' <<< "$s41")"
-  want_ge1 "4.1 per ingredient doneness" "$(grep -cF '材料ごとの火の通り' <<< "$s41")"
+  want_ge1 "4.1 per element" "$(grep -cF 'per element' <<< "$s41")"
+  want_ge1 "4.1 per ingredient doneness" "$(grep -cF 'doneness per ingredient' <<< "$s41")"
   want_ge1 "4.2 pan" "$(grep -cF 'FryingPan<heated: heat>' <<< "$s42")"
   want_ge1 "4.2 Heat" "$(grep -cF 'enum Heat : ordered' <<< "$s42")"
-  want_ge1 "4.2 same vessel" "$(grep -cF '同じ鍋のまま' <<< "$s42")"
+  want_ge1 "4.2 same vessel" "$(grep -cF 'in the same pot' <<< "$s42")"
   want_ge1 "4.4 until" "$(grep -cF 'until: doneness >= par' <<< "$s44")"
   want_ge1 "4.4 TYP022" "$(grep -cF 'TYP022' <<< "$s44")"
   want_ge1 "4.4 Cue" "$(grep -cF 'enum Cue' <<< "$s44")"
-  want_ge1 "4.4 subject first" "$(grep -cF '材料を先に書く' <<< "$s44")"
-  want_ge1 "12.2 crack" "$(grep -cF '卵を割る' <<< "$s122")"
-  want_ge1 "12.2 beat" "$(grep -cF '溶く' <<< "$s122")"
-  want_ge1 "12.2 egg" "$(grep -E '^  - ' <<< "$s122" | grep -cF '卵')"
-  want_ge1 "12.3 egg shell" "$(grep -cF '卵の殻' <<< "$s123")"
+  want_ge1 "4.4 subject first" "$(grep -cF 'write the ingredient first' <<< "$s44")"
+  want_ge1 "12.2 crack" "$(grep -cF 'crack the egg' <<< "$s122")"
+  want_ge1 "12.2 beat" "$(grep -cF 'beat the egg' <<< "$s122")"
+  want_ge1 "12.2 egg" "$(grep -E '^  - ' <<< "$s122" | grep -cF 'egg')"
+  want_ge1 "12.3 egg shell" "$(grep -cF 'eggshell' <<< "$s123")"
   want_eq "concept lists actions" 3 "$(grep -cE '\{kind: action, id: (crack|beat|deepFry)\}' spec/coverage/concept-lists.yaml)"
-  want_ge1 "12.2 deep fry" "$(grep -cF '揚げる' <<< "$s122")"
+  want_ge1 "12.2 deep fry" "$(grep -cF 'deep-fry' <<< "$s122")"
   want_eq "vocab deepFry" 1 "$(grep -cE '^  deepFry:' spec/vocab/actions.yaml)"
   want_eq "concept lists Egg" 1 "$(grep -cE '\{kind: ingredient, id: Egg\}' spec/coverage/concept-lists.yaml)"
 }

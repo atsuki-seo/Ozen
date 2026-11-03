@@ -1,92 +1,92 @@
-# Ozen（料理言語プロジェクト）: コンセプトと方向性
+# Ozen (cooking language project): concept and direction
 
-> このドキュメントは、設計議論で決まったことと、まだ決まっていないことをまとめたもの。
-> Claude Code での詳細設計・試作の出発点として使う。
-> 言語名は **Ozen**（「お膳立て」から）、アプリ名は **Ozendate**、拡張子は **`.ozen`**（§4.6）。本文では言語を「本言語」とも呼ぶ。
+> This document collects what the design discussions decided and what is still open.
+> It is the starting point for detailed design and prototyping in Claude Code.
+> The language is named **Ozen** (from the Japanese word "ozendate", getting everything ready), the app is **Ozendate**, and the file extension is **`.ozen`** (§4.6). The text also calls the language "this language".
 
 ---
 
-## 1. 一行で言うと
+## 1. In one line
 
-**料理の手順を、型・並行性・資源制約として記述でき、コンパイルして「スケジュール付きの手順データ（IR）」を出せる言語と処理系。**
-処理系は C 系言語でコアを 1 つ書き、Web / iOS / Android / Linux（/ macOS）で動かす。
+**A language and a processor that describe cooking steps as types, concurrency and resource constraints, and compile them into "step data with a schedule (IR)".**
+The core of the processor is written once in a C-family language and runs on Web / iOS / Android / Linux (/ macOS).
 
-## 2. 目的と利用者
+## 2. Purpose and users
 
-- **主な利用者**: 料理好きで、プログラミングの素養がある人。
-- **開発体制**: オープンソース。基本的には 1 人（作者）が進める。
-- **やりたいこと**
-  - レシピを「文章」ではなく「検査できるプログラム」として書く。
-  - 人数・資源（コンロの口数、手の数、器具）に応じて、並行作業のスケジュールを自動で組む。
-  - 単位・食材・動作・手順を、ユーザーが言語内で拡張できる（メタプログラミング）。
-  - 最終的にレシピページ（HTML など）を出力する。
-- **外部連携（後回し）**: ロボットの制御向けに、機械可読な IR や制御コードを出す。
+- **Main users**: people who love cooking and have some programming background.
+- **Development**: open source. Basically one person (the author) drives it.
+- **Goals**
+  - Write recipes as "programs that can be checked", not as "prose".
+  - Build the schedule of concurrent work automatically, based on servings and resources (number of burners, number of hands, tools).
+  - Let users extend units, ingredients, actions and steps inside the language (metaprogramming).
+  - In the end, output a recipe page (HTML, etc.).
+- **External integration (later)**: output machine-readable IR or control code for robot control.
 
-## 3. 確定している方針（決定事項）
+## 3. Settled policies (decisions)
 
-| 項目 | 決定内容 |
+| Item | Decision |
 |---|---|
-| 名称 | 言語・コンパイラは **Ozen**、アプリは **Ozendate** |
-| 拡張子 | **`.ozen`** だけ。ファイルの種類を拡張子で区別しない（分類は中身から決め、置き場所はフォルダの規約で示す）。1 ファイルに全部書ける（§4.6） |
-| 構文 | **英語ベース**（キーワードは ASCII）。材料名・コメントは UTF-8 をそのまま通す |
-| 利用者像 | 料理好き + プログラミング素養あり |
-| 型 | 量の**次元型**、食材の**状態型**、消費される資源の**線形型**。台所スペックとビルド時の条件も型で検査する |
-| 並行性 | 書く側は「論理的に独立」を宣言するだけ。実際に並列になるかは**資源制約でスケジューラが決める** |
-| 拡張性 | 単位・食材・動作・資源・手順を、言語内で定義・拡張できる。**メタプログラミングはレベル 3 まで想定**（後述） |
-| コンパイル | 機械語は出さない。**型検査を通した曖昧さのない DAG（IR）を作り、ターゲットごとに出力**する |
-| 実装 | コアは **C 系言語**で 1 本書く（§9 参照） |
-| 対応環境 | **Web（WASM）、iOS、Android、Linux**（macOS も同じ系統で対応） |
-| 動かし方 | 各環境で「**レシピをコンパイルする処理系**が動く」。端末に C コンパイラは載せない |
-| ネットワーク | **オフラインで完結**。拡張・ライブラリはソースファイルで共有 |
-| 橋渡し | 最小限。公開 API は「テキスト入力 → 結果出力」の数個に絞る |
-| ロボット | 外部連携として後回し（IR に属性を足せる余地だけ残す） |
-| ライセンス | コードは MIT と Apache-2.0 のデュアル、ドキュメントやサンプルは CC BY 4.0（下記） |
+| Name | The language and compiler are **Ozen**; the app is **Ozendate** |
+| Extension | Only **`.ozen`**. File kinds are not told apart by extension (the kind is decided from the content, and the location is shown by folder conventions). Everything can be written in one file (§4.6) |
+| Syntax | **English-based** (keywords are ASCII). Ingredient names and comments pass through as UTF-8 |
+| Users | People who love cooking + have programming background |
+| Types | **Dimension types** for quantities, **state types** for ingredients, **linear types** for consumed resources. Kitchen specs and build-time conditions are also type-checked |
+| Concurrency | The writer only declares "logically independent". Whether things really run in parallel is **decided by the scheduler from resource constraints** |
+| Extensibility | Units, ingredients, actions, resources and steps can be defined and extended inside the language. **Metaprogramming is planned up to level 3** (see below) |
+| Compilation | No machine code. **Build an unambiguous, type-checked DAG (IR) and output it per target** |
+| Implementation | The core is written once in a **C-family language** (see §9) |
+| Platforms | **Web (WASM), iOS, Android, Linux** (macOS is supported in the same line) |
+| How it runs | On each platform, "**the processor that compiles recipes** runs". No C compiler on the device |
+| Network | **Fully offline**. Extensions and libraries are shared as source files |
+| Bridges | Minimal. The public API is limited to a few "text in → result out" calls |
+| Robots | Later, as external integration (only leave room to add attributes to the IR) |
+| License | Code is dual MIT and Apache-2.0; docs and samples are CC BY 4.0 (below) |
 
-### ライセンス
+### License
 
-| 対象 | ライセンス | 理由 |
+| Target | License | Reason |
 |---|---|---|
-| コア・CLI・各環境の橋渡し・レンダラー | MIT と Apache-2.0 のデュアルライセンス | アプリへの組み込みを妨げない。Apache-2.0 は特許の扱いも明記している |
-| 標準ライブラリ（本言語のソース） | 同上 | 書き手のパッケージが標準ライブラリを取り込んでも、制約が及ばないようにする |
-| ドキュメント・サンプルのレシピ・言い回しファイル | CC BY 4.0 | 文章や作品として再利用しやすい |
-| 外部のデータ（成分表由来の値など） | 出典の条件に従う | 別のフォルダに分け、出典と条件を明記する。『日本食品標準成分表』は文部科学省が自由な利用を認めており、アプリ等で二次利用するときは「日本食品標準成分表（八訂）増補2023年から引用（又は出典）」と記載する（NOTICE と、アプリの「このアプリについて」に載せる） |
+| Core, CLI, platform bridges, renderers | Dual license, MIT and Apache-2.0 | Does not block embedding in apps. Apache-2.0 also states how patents are handled |
+| Standard library (source in this language) | Same as above | So that a writer's package that includes the standard library gets no constraints from it |
+| Docs, sample recipes, phrase files | CC BY 4.0 | Easy to reuse as text and as works |
+| External data (values from the food composition table, etc.) | Follow the source's terms | Keep it in a separate folder and state the source and terms. MEXT allows free use of the "Standard Tables of Food Composition in Japan"; for secondary use in apps and the like, write "日本食品標準成分表（八訂）増補2023年から引用（又は出典）" (in the NOTICE and in the app's "About this app") |
 
-- **コンパイラの出力は使う人のもの**: Ozen で書いたレシピや、ビルドで出た段取り表・IR に、Ozen のライセンスは及ばないことを明記する。
-- **コピーレフト（GPL など）は採らない**: iOS や Android のアプリに組み込んで配る場面と相性が悪いとされるため。
+- **Compiler output belongs to the user**: state clearly that Ozen's license does not extend to recipes written in Ozen, or to the schedule tables and IR that a build produces.
+- **No copyleft (GPL, etc.)**: it is said to fit badly with embedding in iOS and Android apps and distributing them.
 
-### 補足: 「コンパイル」の 2 種類を混同しない
+### Note: do not confuse the two kinds of "compilation"
 
-| | 誰が | 何を | どこで |
+| | Who | What | Where |
 |---|---|---|---|
-| ① コアのビルド | 開発者 / CI | 処理系のソース（C 系言語）を機械語にする | 開発機・CI |
-| ② レシピのコンパイル | 利用者 | レシピを型検査し、スケジュールと IR を出す | 端末（アプリ内でコアの関数を呼ぶだけ） |
+| (1) Building the core | Developers / CI | Turns the processor source (C-family language) into machine code | Dev machine, CI |
+| (2) Compiling a recipe | Users | Type-checks the recipe and outputs the schedule and IR | Device (the app just calls core functions) |
 
-iOS 等は端末上での JIT・動的コード生成ができないが、本言語は**機械語を出さずデータ（IR）を出すだけ**なので、その制約に当たらない。
+iOS and others do not allow JIT or dynamic code generation on the device, but this language **outputs only data (IR), not machine code**, so it does not hit that restriction.
 
-## 4. 言語設計
+## 4. Language design
 
-### 4.1 型システム
+### 4.1 Type system
 
-1. **次元型（量）**
-   - 質量・体積・長さ・時間・温度などを型として持つ。`200 g + 2 tbsp` は単位エラー。
-   - `g ↔ ml` の変換は、食材ごとの密度が宣言されている場合のみ可能。
-   - 「適量」のように範囲も決められない量は `[any amount]` と書く。通常モードでは警告（`vagueAmount`）、厳密モードではエラー。「ひとつまみ」「少々」は範囲つきの単位として定義するので、厳密モードでも問題にしない（§4.4）。
-   - **厳密モード = 診断のまとまり `strict` をまとめてエラーにする**: `ozen build --strict` は `--deny strict` と同じ。コードでは `@deny(strict)` をパッケージやレシピに付けられる。`strict` に入るのは今は `vagueAmount` だけで、まとまりの中身は標準ライブラリで定義し、書き手も足せる。仮定（`ASM`）は環境の話なので、厳密モードでも情報のまま（§6.1）。
-   - **数は 1 つの次元（数）にまとめる**: 「個・本・枚・玉」などの助数詞は表示の問題なので、言い回しファイルで付ける（§7.1）。食材ごとに 1 つあたりの目安の重さ（「キャベツ 1 玉 ≈ 1 kg」）を属性で持ち、重さと換算できるようにする。¼ 玉のような分数は有理数でそのまま表す。
-2. **状態型（食材の状態）**
-   - 動作のシグネチャで、入力状態と出力状態を宣言する。動作は「どの軸をどう変えるか」だけを宣言し、他の軸には触れない（例: `fry` は火の通りを進め、形状は変えない）。
-   - 例: `peel: Onion<shape: whole> -> Onion<shape: peeled>` / `slice: Onion<shape: peeled> -> Onion<shape: cut(slice, 3 mm)>`
-   - `peel` を忘れて `slice` すると型エラー。
-   - **状態は独立した軸の組み合わせ**（一本の遷移にしない）。一本の遷移では組み合わせの数だけ状態が増え、「ゆでてから皮をむく（じゃがいも・卵）」「焼いてから切る（ステーキ）」のような逆順の調理も書けないため。
-   - **軸の型は 3 種類**:
+1. **Dimension types (quantities)**
+   - Mass, volume, length, time, temperature and so on are types. `200 g + 2 tbsp` is a unit error.
+   - `g ↔ ml` conversion is possible only when the ingredient's density is declared.
+   - An amount that cannot even be given a range, such as "as needed", is written `[any amount]`. It is a warning (`vagueAmount`) in normal mode and an error in strict mode. "A pinch" and "a dash" are defined as units with a range, so they are fine even in strict mode (§4.4).
+   - **Strict mode = turn the diagnostic group `strict` into errors**: `ozen build --strict` is the same as `--deny strict`. In code, `@deny(strict)` can be put on a package or a recipe. Right now `strict` contains only `vagueAmount`; the group's contents are defined in the standard library, and writers can add to it. Assumptions (`ASM`) are about the environment, so they stay info even in strict mode (§6.1).
+   - **Counts share one dimension (count)**: counter words (the Japanese words for pieces, sticks, sheets, heads and so on) are a display matter, so phrase files add them (§7.1). Each ingredient holds a typical weight per piece as an attribute ("1 head of cabbage ≈ 1 kg"), so counts convert to weight. Fractions such as ¼ head are kept as rationals as they are.
+2. **State types (ingredient state)**
+   - An action's signature declares the input state and the output state. An action declares only "which axes it changes and how", and does not touch the other axes (e.g. `fry` advances doneness and does not change shape).
+   - Example: `peel: Onion<shape: whole> -> Onion<shape: peeled>` / `slice: Onion<shape: peeled> -> Onion<shape: cut(slice, 3 mm)>`
+   - Calling `slice` after forgetting `peel` is a type error.
+   - **State is a combination of independent axes** (not one single chain of transitions). With one chain, the number of states grows with every combination, and reverse-order cooking such as "boil, then peel (potatoes, eggs)" or "grill, then cut (steak)" cannot be written.
+   - **Three kinds of axis types**:
 
-     | 軸の型 | 例 | 性質 |
+     | Axis type | Example | Behavior |
      |---|---|---|
-     | 順序つき列挙 | 中の火の通り: 生 < 表面だけ < 下ゆで・半熟 < 中まで<br>表面の焼き色: なし < 薄い < こんがり < 濃い < 焦げ | 一方向にしか進まない。比較（`>=`）で要求を書ける |
-     | 引数つき列挙 | 形状: 丸ごと / 皮むき / 切った（切り方: 薄切り・角切り・せん切り…、大きさ） | 切り方は細かくする方向にだけ進める（角切り → みじん切りは可、逆は不可） |
-     | 実施済みの集合 | 下処理: 洗った、浸水した（30 分）、塩をした、漬け込んだ（たれ） | 増える一方。項目ごとに引数を持てる |
+     | Ordered enum | Inner doneness: raw < surface only < parboiled / half-cooked < cooked through<br>Surface browning: none < light < golden < dark < charred | Moves in one direction only. Requirements can be written with a comparison (`>=`) |
+     | Enum with arguments | Shape: whole / peeled / cut (cut style: slice, dice, julienne..., size) | The cut can only move toward finer (dice → mince is allowed, the reverse is not) |
+     | Set of done items | Prep: washed, soaked (30 min), salted, marinated (sauce) | Only grows. Each item can have arguments |
 
-   - **標準の軸は 4 つ**: 中の火の通り（`doneness`）、表面の焼き色（`browning`）、形状（`shape`）、下処理（`prep`）。食材ごとに使わない軸・段階は省ける。**書き手も同じ書き方で軸を足せる**。
+   - **Four standard axes**: inner doneness (`doneness`), surface browning (`browning`), shape (`shape`) and prep (`prep`). Each ingredient can leave out axes and stages it does not use. **Writers can add axes the same way.**
 
      ```
      axis doneness : ordered { raw, surface, par, done }
@@ -95,51 +95,51 @@ iOS 等は端末上での JIT・動的コード生成ができないが、本言
      axis prep     : set { washed, soaked(time: Time), salted, marinated(with: Sauce) }
      ```
 
-   - **加熱と焼き色は独立**: 表面だけ焼き色を付けて中は低温で、という調理（ローストビーフなど）も素直に書ける。
-   - **食品衛生の検査**: 生の豚肉・鶏肉など（`Hazard`）は、出す前に `doneness >= done` でなければエラー（§6.1）。刺身のように生で食べる前提の食材は、その食材の定義で例外にする。
-   - **混ぜたら新しい値**: 玉ねぎ・肉・ルウを煮込んだ時点で「カレー」という新しい値になり、以後は個々の食材の状態を追わない（カレーとしての状態だけを持つ）。線形型の量は合計として保存される。
-     - ただし加熱不足の検査のために、混ぜた物は材料ごとの火の通りを覚える。加熱の動作で混ぜた物の火の通りが上がると、各材料は「材料の今の値」と「混ぜた物の新しい値」の大きいほうになり、出すときは材料ごとに確かめる（先に火を通した鶏肉と半熟の卵を合わせた親子丼の具で、鶏肉を加熱不足にしない）。
-   - **卵は殻付きで始まる**: std の `Egg` の初期の形は `inShell`（殻付き）。中身が要る動作（`mix`・`fry` など）は `T<shape != inShell>` を要求するので、`egg |> crack`（割る）・`beat`（溶く）を書かずに混ぜたり焼いたりすると型エラーになる。殻は値にせず、捨てる部分（廃棄率）として持つ。ゆで卵の殻をむくのは `peel`（`shape: inShell, doneness >= done`）。半熟（`par`）の卵は加熱不足のエラーにせず、警告 `SAF005 lightlyCookedEgg` を出す（`props { safeDoneness: par }`）。
-   - **「〜でない」（`!=`）**: 状態の要求に `T<shape != inShell>` と書ける。軸を持たない食材（水）は満たす扱い、実施済みの集合の軸では「その項目を含まない」。
-   - **リストは要素ごとに照合する**: 動作の食材の引数にリストを渡したとき（`mix([egg, milk])`）、要求はリストの要素ごとに照合し（各要素が選択肢のどれか 1 つをトレイトと軸を合わせて満たす）、混ぜた物には照合しない。
-   - 食材ごとの制約（玉ねぎは皮をむかないと切れない、にんじんは皮付きでも切れる）は、動作の要求とトレイト（`SkinEdible` など）で表す。
-3. **線形型（消費される資源）**
-   - 食材は消費されたら再使用できない。量の合計が保存される。
-   - 同じ名前を 2 回消費する、量が足りない、はエラー。
-   - `let` は 1 回だけ束縛（SSA）。線形型との相性が良い。
+   - **Heating and browning are independent**: cooking that browns only the surface and cooks the inside at low heat (roast beef, etc.) is easy to write.
+   - **Food safety check**: raw pork, chicken and the like (`Hazard`) are an error unless `doneness >= done` before serving (§6.1). Ingredients meant to be eaten raw, such as sashimi, are exempted in that ingredient's definition.
+   - **Mixing makes a new value**: once onion, meat and roux are simmered, they become a new value, "curry", and from then on the states of the individual ingredients are not tracked (only the state as curry is kept). Linear-type amounts are kept as a total.
+     - However, for the undercooking check, a mixture remembers doneness per ingredient. When a heating action raises the mixture's doneness, each ingredient becomes the larger of "the ingredient's current value" and "the mixture's new value", and serving checks each ingredient (so in an oyakodon topping, made by combining chicken cooked earlier with half-cooked egg, the chicken is not left undercooked).
+   - **Eggs start in the shell**: the initial shape of std `Egg` is `inShell` (in the shell). Actions that need the contents (`mix`, `fry`, etc.) require `T<shape != inShell>`, so mixing or frying without writing `egg |> crack` (crack) or `beat` (beat) is a type error. The shell is not a value; it is kept as a discarded part (waste ratio). Peeling a boiled egg is `peel` (`shape: inShell, doneness >= done`). A half-cooked (`par`) egg is not an undercooking error; it gives the warning `SAF005 lightlyCookedEgg` (`props { safeDoneness: par }`).
+   - **"Not" (`!=`)**: a state requirement can be written `T<shape != inShell>`. An ingredient without the axis (water) counts as satisfying it, and on a set-of-done-items axis it means "does not contain that item".
+   - **Lists are matched per element**: when a list is passed as an action's ingredient argument (`mix([egg, milk])`), the requirement is matched per element (each element must satisfy one of the alternatives, traits and axes together), not against the mixture.
+   - Per-ingredient constraints (an onion cannot be cut until it is peeled; a carrot can be cut with its skin on) are expressed by action requirements and traits (`SkinEdible`, etc.).
+3. **Linear types (consumed resources)**
+   - Once an ingredient is consumed, it cannot be reused. The total amount is preserved.
+   - Consuming the same name twice, or not having enough, is an error.
+   - `let` binds only once (SSA). This fits well with linear types.
 
-**食材の表現: 型にするものと属性にするもの**
+**Ingredient representation: what becomes a type and what becomes an attribute**
 
-全部を型にすると書くのが苦しくなるので、「間違えたらエラーにしたいもの」だけを型にし、「目安・量として計算に使うもの」は属性（データ）として持つ。食材は次の 5 層で表す。
+Making everything a type makes writing painful, so only "things that should be errors when wrong" become types, and "things used in calculations as estimates or amounts" are kept as attributes (data). An ingredient is represented in the following 5 layers.
 
-| 層 | 例 | 表し方 | 使い道 |
+| Layer | Example | Representation | Use |
 |---|---|---|---|
-| 種類 | onion、carrot | 名前（型） | 動作の対象を決める |
-| 分類 | 皮をむける、根菜、葉物 | トレイト（性質の集合） | 動作を食材ごとに書かずに済ませる |
-| 状態 | 火の通り・焼き色・形状・下処理の軸の組み合わせ | 状態型 | 手順の抜け・順序違い・加熱不足を型エラーにする |
-| 性質 | 加熱時間の目安、硬さ、密度、水分量 | 属性値（`props`） | 所要時間の計算、単位換算、警告 |
-| 調理中にしか分からないもの | 実際の加熱時間、火の通り | 範囲（`15..20 min`）+ 調理時の値 | スケジュールは範囲で組み、確定は調理中（センサー待ちは外部連携） |
+| Kind | onion, carrot | Name (type) | Decides what an action applies to |
+| Category | peelable, root vegetable, leafy vegetable | Trait (set of properties) | Avoids writing actions per ingredient |
+| State | Combination of the doneness, browning, shape and prep axes | State type | Makes missing steps, wrong order and undercooking type errors |
+| Properties | Typical heating time, hardness, density, water content | Attribute values (`props`) | Time calculation, unit conversion, warnings |
+| Things known only while cooking | Actual heating time, doneness | Range (`15..20 min`) + value at cooking time | The schedule is built with ranges and fixed while cooking (waiting for sensors is external integration) |
 
-- **分類はトレイトで表す**: `peel` は `Peelable` な食材なら何でも受け付ける。野菜ごとに動作を定義しない。
-- **切り方は操作の型 + 状態の引数**: `slice` / `dice` などの動作で状態を変え、大きさを状態に持たせる。加熱時間は下の「加熱時間のモデル」でコンパイル時に計算する（レベル 3 のコンパイル時評価）。
-- **加熱時間のモデル: 2 つの和**
-  - **中まで温まる時間**: (厚さ ÷ 基準の厚さ)ⁿ に比例する。指数 n は調理法ごとの既定値で、範囲で持てる（指数が範囲なら時間も範囲になり、段取りは安全側に組まれる）。暫定の値は次のとおりで、§12.3 の出どころの優先順位に従って置き換えていく。
+- **Categories are traits**: `peel` accepts any `Peelable` ingredient. Actions are not defined per vegetable.
+- **Cuts = the action's type + state arguments**: actions such as `slice` / `dice` change the state, and the size is kept in the state. Heating time is computed at compile time by the "heating time model" below (level 3 compile-time evaluation).
+- **Heating time model: a sum of two parts**
+  - **Time to heat through to the center**: proportional to (thickness ÷ reference thickness)ⁿ. The exponent n has a default per cooking method and can be a range (if the exponent is a range, the time is a range too, and the schedule is built on the safe side). The provisional values are below; they will be replaced following the source priority in §12.3.
 
-    | 調理法 | 暫定の指数 n | 根拠 |
+    | Cooking method | Provisional exponent n | Basis |
     |---|---|---|
-    | 煮る・ゆでる・蒸す | 2 | 熱伝導 |
-    | フライパン・鉄板で焼く | 2 | 加熱面との接触で熱がよく入る（ステーキの熱伝導解析で加熱面 900・空気側 60 W/m²℃。arXiv:2206.13900） |
-    | 炒める | 1.5〜2 | 接触と空気が混ざる（返しながら加熱するため） |
-    | オーブン・トースター | 1〜2 | 空気からの熱伝達が弱い。出典なし（暫定） |
-    | 電子レンジ | 使わない | 内部から加熱されるので厚さの式が当てはまらない。時間は属性で直接持つ |
-  - **大きさによらない時間**: 野菜が柔らかくなる時間（ペクチンの分解。温度が届いた後に進む化学反応）など。食材と調理法ごとの属性として持つ。
-  - 「厚さ」の取り方は切り方ごとに決める（薄切りは厚さ、角切りは一辺、乱切り・ざく切りは目安の大きさ）。葉物のように形がばらばらなものは、式を使わず属性で直接持つ。
-  - どちらも範囲で持ち、食材ごとに上書きできる。
-  - 根拠: 中心まで温度が届く時間は厚さの 2 乗に比例する（熱伝導、フーリエ数）。ただし表面から熱が入りにくい場合（ビオ数が小さい、空気中で焼くなど）は 2 乗より小さくなり、野菜の軟化は大きさによらない一次の反応速度で進む。参照は §11.4。
-- **硬さは型にせず属性にする**: 「硬いものから先に入れる」の検査に使う（例: にんじんより先にキャベツを鍋に入れたら警告）。
-- **加熱時間は範囲で持つ**: 実際の時間は鍋・火力で変わるため、コンパイル時には確定しない。§4.3 の「値の時期を分ける」方針に従う。
+    | Simmer, boil, steam | 2 | Heat conduction |
+    | Grill in a frying pan or on a griddle | 2 | Contact with the hot surface puts heat in well (a heat-conduction analysis of steak used 900 on the heated side and 60 W/m²°C on the air side. arXiv:2206.13900) |
+    | Stir-fry | 1.5–2 | A mix of contact and air (because the food is tossed while heating) |
+    | Oven, toaster oven | 1–2 | Heat transfer from the air is weak. No source (provisional) |
+    | Microwave | Not used | It heats from the inside, so the thickness formula does not apply. The time is kept directly as an attribute |
+  - **Time independent of size**: for example, the time for vegetables to soften (pectin breakdown, a chemical reaction that proceeds after the heat has arrived). Kept as an attribute per ingredient and cooking method.
+  - How "thickness" is taken is decided per cut (slices: the thickness; dice: the side length; rolling cut and rough chop: the typical size). For things with irregular shapes, such as leafy vegetables, the formula is not used and the time is kept directly as an attribute.
+  - Both are kept as ranges and can be overridden per ingredient.
+  - Basis: the time for heat to reach the center is proportional to the square of the thickness (heat conduction, Fourier number). But when heat enters the surface poorly (small Biot number, grilling in air, etc.), the power is smaller than 2, and vegetable softening proceeds as a first-order reaction independent of size. References are in §11.4.
+- **Hardness is an attribute, not a type**: it is used for the "put harder things in first" check (e.g. a warning if cabbage goes into the pot before carrots).
+- **Heating time is kept as a range**: the actual time depends on the pot and the heat, so it is not fixed at compile time. This follows the "separate the timing of values" policy in §4.3.
 
-構文のイメージ（細部は未確定）:
+Syntax sketch (details not settled):
 
 ```
 trait Peelable
@@ -162,18 +162,18 @@ action simmer(x: T<shape: cut>, ...) -> T<doneness: done> where T: Vegetable {
 }
 ```
 
-**肉・魚の部位、呼び名、使い切り**
+**Meat and fish cuts, names, and using everything up**
 
-判断の基準は「**違いが調理に効くかどうか**」。調理に効く違い（脂の量、硬さ、骨の有無、加熱時間）は型・属性で持ち、呼び方だけの違い（出世魚の名前、地域名、料理の文脈による呼び名）は言い回しファイル（§7.1）で持つ。
+The criterion is "**does the difference matter for cooking**". Differences that matter for cooking (fat content, hardness, bones or not, heating time) are kept in types and attributes; differences only in name (names of fish that change as they grow, regional names, names that depend on the dish) are kept in phrase files (§7.1).
 
-| 違い | 例 | 表し方 |
+| Difference | Example | Representation |
 |---|---|---|
-| 部位 | ロース、肩ロース、バラ、カマ、腹身、アラ | 型の引数（`Pork<belly>`）。親子関係は継承、性質はトレイト |
-| 成長段階 | ハマチ → ブリ | 属性（`stage`）。名前は言い回しファイルが属性から選ぶ |
-| 旬 | ブリは冬、鰹は春と秋 | 型にも属性にも持たない。メタ情報（`meta`）として持つ（下記） |
-| 地域の呼び名 | イナダ（関東）/ ハマチ（関西） | 言い回しファイルだけ（`$dialect`）。型には関係しない |
-| 売り場の名前 | カルビ（多くはバラだが、店により他の部位も含む） | 部位の候補の和集合としての型の別名（`alias`） |
-| 別の種類だが代わりに使える | カンパチとブリ（ハマチ） | 別の食材として定義し、共通のトレイトを持たせる。違いは属性で表す |
+| Cut | loin, shoulder loin, belly, collar, fish belly, bones and trimmings | Type argument (`Pork<belly>`). Parent-child relations are inheritance, properties are traits |
+| Growth stage | hamachi → buri | Attribute (`stage`). The phrase file picks the name from the attribute |
+| Peak season | buri in winter, bonito in spring and autumn | Neither a type nor an attribute. Kept as meta information (`meta`) (below) |
+| Regional name | inada (Kanto) / hamachi (Kansai) | Phrase files only (`$dialect`). Unrelated to types |
+| Store name | karubi (usually belly, but some stores include other cuts) | A type alias that is the union of the candidate cuts (`alias`) |
+| A different kind that can substitute | kanpachi and buri (hamachi) | Define them as separate ingredients with a shared trait. Express the differences as attributes |
 
 ```
 ingredient Pork : Meat {
@@ -192,12 +192,12 @@ ingredient Kanpachi : Amberjack { props { fat: medium, firmness: high } }
 let fish = teriyaki(x: Amberjack<fillet>, ...)   // どちらを買っても通る
 ```
 
-- **部位が確定していなくても検査できる（和集合の型の別名の意味）**: `Karubi` のような和集合の型は「候補のどれか 1 つ」。コンパイル時にはどれか分からないので、**候補すべてで成り立つこと**だけを認める。
-  - 型: ある動作が `Fatty` を要求するなら、候補がすべて `Fatty` なら通り、1 つでも外れればエラー。レシピは「脂の多い部位なら何でも」（`Pork<Fatty>`）のように要求を書ける。
-  - 属性（加熱時間など）: 候補の範囲を合わせた、一番広い範囲を使う（段取りは安全側に組まれる）。
-  - 安全: 候補のどれかが `Hazard` なら `Hazard` として扱う。
-  - 名前: 別名は型の上では展開するが、表示と診断では別名の名前（「カルビ」）を使う。言い回しファイルで別名ごとに呼び名を持てる。
-- **「どれか」と「混ざったもの」を区別する**: `|`（和集合）は「豚**か**牛のどちらか 1 つ」にだけ使う。合いびき肉のように「豚**と**牛の両方が入っている」ものは、§4.1 の「混ぜたら新しい値」に従い、構成を属性に持つ食材（`Mixture`）として定義する。
+- **Checks work even when the cut is not fixed (meaning of a union type alias)**: a union type such as `Karubi` means "one of the candidates". At compile time it is unknown which one, so **only what holds for all candidates** is accepted.
+  - Types: if an action requires `Fatty`, it passes when all candidates are `Fatty`, and it is an error if even one is not. A recipe can write a requirement such as "any fatty cut" (`Pork<Fatty>`).
+  - Attributes (heating time, etc.): use the widest range, combining the candidates' ranges (the schedule is built on the safe side).
+  - Safety: if any candidate is `Hazard`, it is treated as `Hazard`.
+  - Names: an alias is expanded in types, but display and diagnostics use the alias's name ("karubi"). Phrase files can hold a name per alias.
+- **Tell "one of" from "a mix of"**: `|` (union) is used only for "one of pork **or** beef". Something like mixed ground meat, which "contains **both** pork **and** beef", is defined as an ingredient whose makeup is an attribute (`Mixture`), following "mixing makes a new value" in §4.1.
 
   ```
   ingredient Aibiki : Mixture {
@@ -208,9 +208,9 @@ let fish = teriyaki(x: Amberjack<fillet>, ...)   // どちらを買っても通�
   }
   ```
 
-  - 構成の割合は範囲で持てる。売られている合いびき肉は割合が分からないことが多いため。属性は範囲全体で一番広い（安全側の）値を使う。
-  - 割合が不明でも、入っているものは確定している。**安全の検査とアレルゲンは、入っているものすべてを持つ**として扱う（どちらかが `Hazard` なら合いびきも `Hazard`、どちらかにアレルゲンがあれば合いびきにもある）。
-- **季節の概念は言語に持たない。旬はメタ情報**: 季節によって型検査や段取りを変えることはしない（レシピは季節によらず作れ、季節で変わる脂の量などの差は属性の範囲に含める）。旬の情報は、食材の `meta` に書けるメタ情報とし、型検査・段取りには使わない。レンダラーや検索（「今が旬の料理」など）が使う。
+  - Makeup ratios can be ranges, because the ratio of store-bought mixed ground meat is often unknown. Attributes use the widest (safe-side) value over the whole range.
+  - Even if the ratio is unknown, what is inside is known. **Safety checks and allergens treat it as having everything that is inside** (if either one is `Hazard`, the mixed ground meat is `Hazard`; if either one has an allergen, the mixed ground meat has it too).
+- **The language has no notion of seasons. Peak season is meta information**: type checks and schedules do not change with the season (a recipe can be made in any season, and seasonal differences such as fat content are included in attribute ranges). Peak season is meta information that can be written in an ingredient's `meta`, and is not used by type checks or scheduling. Renderers and search ("dishes in season now", etc.) use it.
 
   ```
   ingredient Buri : RoundFish {
@@ -218,55 +218,55 @@ let fish = teriyaki(x: Amberjack<fillet>, ...)   // どちらを買っても通�
     ...
   }
   ```
-- **捌く動作は複数の出力を持つ**: 一尾を三枚におろすと「切り身・カマ・腹身・アラ」と、内臓などの捨てる部分が出る。歩留まりは魚の属性として範囲で持ち、量の合計は保存される。塊肉の切り分けも同じ仕組み。
-- **使い切りの追跡（線形型）**: 使い切らなかった部位は黙って消えない。宣言がなければ「アラ 300 g が残ります」と**情報**として報告する（多くはわざと残すため、警告にはしない）。`store(ara)`（取っておく）や `discard(...)`（捨てる）と意図を書けば、段取り表に載るだけで診断は出さない。「使い切り」を目標にした日は、設定で警告に上げられる（§6.1）。
-- **使われない値（`unusedValue`）**: 作ったのにどこにも使わない食材の値（束縛した値、束縛していない式の文の値、宣言しただけの材料）は、料理の評価の終わりに**警告** `LIN005 unusedValue` として報告する。炊いたご飯を丸ごと捨てるのはほぼ書き間違いだから。最後の値（料理の出力）とその組、出した値、部位（部位の残りは上の情報 `LIN003`）、割り算で一部を取り出した途中の食材、`store(x)`・`discard(x)` に渡した値には出さない。`make` で呼ばれた料理の中と、合成した動作の `steps` の中も対象外（その料理を単体で評価したときに出る）。`@allow(unusedValue)` で隠せる。
-- **献立の中で出力を回す**: 刺身は切り身、カマ焼きはカマ、ブリ大根はアラ、のように、捌いた出力を別のレシピの材料として受け渡す。献立全体を 1 つにコンパイルすれば、どの部位がどこで使われたかを型で追える。
+- **Butchering actions have several outputs**: filleting a whole fish into three pieces yields "fillets, collar, fish belly, bones and trimmings" plus discarded parts such as innards. The yield is kept as a range attribute of the fish, and the total amount is preserved. Cutting up a block of meat uses the same mechanism.
+- **Tracking use (linear types)**: unused cuts do not silently disappear. Without a declaration, "300 g of fish bones and trimmings remain" is reported as **info** (often they are left on purpose, so it is not a warning). If the intent is written with `store(ara)` (keep) or `discard(...)` (throw away), it only appears in the schedule table and gives no diagnostic. On a day that aims to "use everything up", a setting can raise it to a warning (§6.1).
+- **Unused values (`unusedValue`)**: an ingredient value that is made but never used (a bound value, the value of an expression statement that is not bound, an ingredient that is only declared) is reported as the **warning** `LIN005 unusedValue` at the end of evaluating the dish, because throwing away a whole batch of cooked rice is almost always a writing mistake. It is not given for the last value (the dish's output) and its tuple, served values, cuts (leftover cuts are the info `LIN003` above), intermediate ingredients from which a part was taken by division, or values passed to `store(x)` / `discard(x)`. Dishes called with `make` and the `steps` of composed actions are also excluded (it appears when that dish is evaluated on its own). `@allow(unusedValue)` hides it.
+- **Passing outputs around within a menu**: sashimi uses the fillet, grilled collar uses the collar, and buri daikon uses the bones and trimmings; the outputs of butchering are passed as ingredients to other recipes. If the whole menu is compiled as one, types track which cut is used where.
 
-### 4.2 並行性・並列性・資源制約
+### 4.2 Concurrency, parallelism and resource constraints
 
-- `parallel { branch ... }` は **fork-join**。各 `branch` 内は順次、全部の枝が終わるまで次へ進まない。
-- **「並行（独立している）」と「並列（実際に同時に動く）」は別**。書く側は並行だけを宣言し、並列はスケジューラが資源から決める（1 人ならほぼ直列、2 人なら並列）。
-- **効果の注釈**:
-  - `@unattended`（放置。手を解放する。浸水・炊飯・煮込みなど）
-  - 手を使う（デフォルト）
-  - センサー待ち（外部連携として後回し）
-- **資源**: コンロ、作業場所、洗い場、まな板、鍋、炊飯器などの種類を `resource` として宣言する。容量（口数・台数など）は、レシピではなく**台所スペック**から与える。作り手の人数は**ビルド時の条件**から与える（後述）。
-- **データ依存が暗黙の合流点**になる（`plate ... { rice, curry }` は両方の出力を待つ）。
-- **出す時刻の決め方（`goal` は持たない）**: 同時に出すことは提供の波（§4.5）が表す。残るのは「いつ出すか」だけで、これは今日の都合なのでビルド時の条件にする。
-  - `--serve-at 19:00` を指定したら、その時刻から逆算して、なるべく遅く始める。
-  - 省略したら、なるべく早く始めて、早く出す。
-  - 細かい優先（洗い物を減らす、待ち時間を減らす など）も、ビルド時の条件（`--prefer fewerWashes` など）で渡す。
-  - これで、レシピや献立のコードには「何を作るか」だけが残る。
-- **コンパイル時に検出するもの**: 並行する枝が同じ食材を両方消費、資源容量の超過が避けられない、など。診断には展開前のソース位置を示す。
-- **スケジューラの実装**: 実スレッドは使わず、離散イベントシミュレーションで開始・終了時刻を計算する。
-  - **基本は資源制約つきリストスケジューリング**: 依存が終わった作業を優先度の高い順に、空いている資源（人・場所・道具）に割り当てる。決定的で速い。
-  - **向きは出す時刻で切り替える**: `--serve-at` なしなら前から詰める（なるべく早く始めて早く出す）。ありなら出す時刻から後ろ向きに詰める（なるべく遅く始める）。
-  - **洗いは割り当ての途中で挿入する**（段取り替え時間。後述の「洗い物と片付け」）。
-  - **予熱も割り当ての途中で挿入する（`preheat`）**: 動作の `uses` に温まった能力を `HeatSource<oven, heated: 200 degC>` のように書く（温度は動作の引数の式でもよい）。スケジューラは、その作業が使う個体と同じ個体に、無人の予熱の作業を入れる。所要時間は設備の種類の属性 `preheatTime` から取る。予熱は作業の始まりに終わるように先読みして置き、前の作業と並行に進める。予熱の始まりから作業の終わりまで、その個体はほかの作業に使わせない。続けて同じかそれより低い温度で使うときは入れ直さず、より高い温度なら入れ直す。台所の個体の `maxTemp` が要る温度より低ければ、台所が要求を満たさない（`KIT002`）。予熱は IR に入れない（洗いと同じく、台所が決まる段取りの段階で入れる）。
-    - **フライパンと油の予熱**: `fry` は `uses ..., FryingPan<heated: heat>` で、温度でなく火加減で予熱する。火加減は順序つきの列挙 `enum Heat : ordered { low, medium, high }` で、続けて同じか弱い火加減なら温め直さず、強ければ温め直す。揚げる `deepFry` は `Pot<heated: temp>`（既定 170 ℃）で鍋の油を温める。コンロで温める道具の予熱は、使う作業と同じコンロの口も予熱の始まりから占有する。所要時間は `FryingPan`・`Pot` の `preheatTime`（暫定）。段取りの文章と表に「フライパンを中火で温める」「油を170℃に熱する」と出し、レシピの文章には出さない。
-  - **同じ鍋のまま続ける**: 中身を入れる道具（能力 `Holding`。std では `Pot`・`FryingPan`・`MixingBowl`・`Blender`）を使う動作の出力は、入っている道具を覚える（`season` のように `Holding` の道具を使わない動作の後も入ったまま）。同じ種類の道具を使う次の動作は、入力（リストなら書いた順で最初の要素）が入っている個体のまま続け、洗いと予熱を入れず、前の作業の終わりから次の作業の始まりまでほかの作業に使わせない。違う種類の道具なら移す。`@sameVessel` は続けることを確かめ（続けられなければ `TYP017`）、`@newVessel` は別の個体に移す。レシピの文章では「3 に溶き卵を加え、…」のように前の手順に足す形で書く。
-  - **組み終わった段取りを、前後に詰め直して改善する**: 資源制約つきスケジューリングでよく使われる軽い改善の手順。最適解は保証しないが、決定的で、家庭の献立の規模なら一瞬で終わる。
-  - **同点のときの決め方を固定する**: 優先度が同じ作業は IR のノード番号の順。どの環境でも同じ段取りになる（§6）。
-  - **厳密な最適化（数理計画など）はコアに入れない**: 計算時間が読めず、決定性も保ちにくいため。
-  - **目指すものの順番**: (1) 出してよい時間の幅と波の制約を守る（必須） → (2) 全体の時間を短くする（`--serve-at` があるなら、始める時刻をなるべく遅くする） → (3) `--prefer` で指定したもの（指定した順に優先）。
-  - **`--prefer` の種類**: `fewerWashes`（洗い物の回数を減らす。同じ道具を続けて使う並びを優先）、`lessWaiting`（作り手の手待ち時間を減らす）、`fewerTools`（使う道具の数を減らす）、`steadyPace`（同時に複数の作業を抱える時間を減らす）。
+- `parallel { branch ... }` is **fork-join**. Each `branch` runs in order inside, and nothing goes on until all branches finish.
+- **"Concurrent (independent)" and "parallel (actually running at the same time)" are different**. The writer declares only concurrency, and the scheduler decides parallelism from resources (one cook: nearly serial; two cooks: parallel).
+- **Effect annotations**:
+  - `@unattended` (left alone; frees the hands; soaking, cooking rice, simmering, etc.)
+  - Uses hands (the default)
+  - Waiting for sensors (later, as external integration)
+- **Resources**: kinds such as stove, work spot, sink, cutting board, pot and rice cooker are declared as `resource`. The capacity (number of burners, number of units, etc.) comes from the **kitchen spec**, not from the recipe. The number of cooks comes from the **build-time conditions** (below).
+- **Data dependencies are implicit join points** (`plate ... { rice, curry }` waits for both outputs).
+- **How the serving time is set (there is no `goal`)**: serving things together is expressed by serving waves (§4.5). What remains is only "when to serve", which is today's circumstance, so it is a build-time condition.
+  - With `--serve-at 19:00`, the schedule is worked back from that time and starts as late as possible.
+  - Without it, start as early as possible and serve early.
+  - Finer preferences (fewer washes, less waiting, etc.) are also passed as build-time conditions (`--prefer fewerWashes`, etc.).
+  - This leaves only "what to make" in the recipe and menu code.
+- **What is detected at compile time**: concurrent branches that both consume the same ingredient, a resource capacity overflow that cannot be avoided, etc. Diagnostics point at the source location before expansion.
+- **Scheduler implementation**: no real threads are used; start and end times are computed by discrete-event simulation.
+  - **The base is resource-constrained list scheduling**: work whose dependencies are done is assigned, in order of priority, to free resources (people, places, tools). Deterministic and fast.
+  - **The direction switches on the serving time**: without `--serve-at`, pack forward (start as early as possible and serve early). With it, pack backward from the serving time (start as late as possible).
+  - **Washing is inserted during assignment** (setup time; see "Washing up and cleanup" below).
+  - **Preheating is also inserted during assignment (`preheat`)**: an action's `uses` writes the heated capability like `HeatSource<oven, heated: 200 degC>` (the temperature can also be an expression of the action's arguments). The scheduler puts an unattended preheat task on the same unit that the task uses. Its duration comes from the equipment kind's attribute `preheatTime`. Preheating is placed ahead of time so that it ends when the task starts, and it runs in parallel with earlier tasks. From the start of preheating to the end of the task, that unit is not given to other tasks. When the next use is at the same or a lower temperature, it is not preheated again; at a higher temperature it is. If the kitchen unit's `maxTemp` is lower than the needed temperature, the kitchen does not meet the requirement (`KIT002`). Preheating is not put in the IR (like washing, it is inserted at the scheduling stage, where the kitchen is known).
+    - **Preheating frying pans and oil**: `fry` has `uses ..., FryingPan<heated: heat>` and preheats by heat level rather than by temperature. The heat level is the ordered enum `enum Heat : ordered { low, medium, high }`; at the same or a lower heat level next it is not reheated, and at a higher one it is. Deep frying, `deepFry`, heats the oil in the pot with `Pot<heated: temp>` (default 170 °C). Preheating a tool that is heated on the stove also occupies, from the start of preheating, the same burner as the task that uses it. The durations are the `preheatTime` of `FryingPan` and `Pot` (provisional). The schedule text and table show "heat the frying pan over medium heat" and "heat the oil to 170 °C"; the recipe text does not.
+  - **Continue in the same pot**: the output of an action that uses a tool that holds contents (capability `Holding`; in std, `Pot`, `FryingPan`, `MixingBowl` and `Blender`) remembers the tool it is in (it stays in after an action that uses no `Holding` tool, such as `season`). The next action that uses the same kind of tool continues in the unit that holds its input (for a list, the first element in written order), inserts no washing or preheating, and lets no other task use the unit between the end of the previous task and the start of the next. With a different kind of tool, the contents are moved. `@sameVessel` checks that it continues (`TYP017` if it cannot), and `@newVessel` moves to another unit. The recipe text adds to the previous step, like "Add the beaten egg to 3, ...".
+  - **Improve the finished schedule by repacking it forward and backward**: a light improvement procedure often used in resource-constrained scheduling. It does not guarantee the optimum, but it is deterministic and finishes instantly at the size of a home menu.
+  - **Fix the tie-break**: tasks with the same priority go in IR node number order. Every platform gets the same schedule (§6).
+  - **Exact optimization (mathematical programming, etc.) is not in the core**: its computation time is unpredictable and determinism is hard to keep.
+  - **Order of aims**: (1) keep the allowed serving window and the wave constraints (required) → (2) shorten the total time (with `--serve-at`, start as late as possible) → (3) what `--prefer` names (in the given order).
+  - **Kinds of `--prefer`**: `fewerWashes` (fewer washes; prefers orders that use the same tool in a row), `lessWaiting` (less idle waiting for the cooks), `fewerTools` (fewer tools used) and `steadyPace` (less time handling several tasks at once).
 
-**入力を 3 つに分ける（要求・設備・今日の条件）**
+**Split the input in three (requirements, equipment, today's conditions)**
 
-並列性の設計の柱。レシピに設備や人数を書き込むと、そのレシピは書いた人の台所・その日の状況でしか正しく動かない。そこで、**レシピは「何が要るか」だけを書き、「何があるか」は台所スペック、「今日どうするか」はビルド時の条件として外から渡す**。
+This is the pillar of the parallelism design. If equipment or the number of cooks is written into a recipe, the recipe only works correctly in the writer's kitchen on that day. So **the recipe writes only "what is needed"; "what is available" comes from the kitchen spec and "what to do today" from the build-time conditions, both passed in from outside**.
 
-| 入力 | 書くこと | 例 | 変わる頻度 |
+| Input | What it says | Example | How often it changes |
 |---|---|---|---|
-| レシピ（コード） | 何を作るか、抽象的な要求 | 加熱源が 1 つ、炊飯ができるもの、手が要る | レシピごと |
-| 台所スペック | その家の場所と道具 | IH 3 口、調理台 1 か所、洗い場 1、まな板 2 枚 | めったに変わらない |
-| ビルド時の条件 | 今日の都合 | 何人で作るか、何人分作るか（上書き）、何時に出すか、片付けをいつまでに | 毎回 |
+| Recipe (code) | What to make, abstract requirements | One heat source, something that can cook rice, needs hands | Per recipe |
+| Kitchen spec | The home's places and tools | 3-burner IH, 1 counter, 1 sink, 2 cutting boards | Rarely |
+| Build-time conditions | Today's circumstances | How many cooks, how many servings (override), when to serve, when cleanup must be done | Every time |
 
-コンパイルは「レシピ × 台所 × 今日の条件 → 段取り表」。同じカレーでも、1 人 + 2 口なら直列寄り、2 人 + 3 口なら並列寄りになる。
+Compilation is "recipe × kitchen × today's conditions → schedule table". The same curry comes out closer to serial with 1 cook + 2 burners, and closer to parallel with 2 cooks + 3 burners.
 
-**台所スペック: 場所と道具で切る**
+**Kitchen spec: split into places and tools**
 
-境界の基準: **場所はそこへ行って作業する地点で、汚れたらその場で拭くもの（`wipe`）。道具は作業で使われ、汚れたら洗い場で洗うもの（`clean`）**。洗い物の仕組み（§4.2 後述）と揃えるための基準で、炊飯器（内釜を洗う）は道具、電子レンジ（その場で拭く）は場所になる。標準の語彙は §12.3。
+The boundary: **a place is a spot you go to and work at, and it is wiped where it is when dirty (`wipe`). A tool is used in the work, and it is washed at the sink when dirty (`clean`)**. This criterion matches the washing-up mechanism (later in §4.2): a rice cooker (its inner pot is washed) is a tool, and a microwave (wiped in place) is a place. The standard vocabulary is in §12.3.
 
 ```
 kitchen myHome {
@@ -291,8 +291,8 @@ kitchen myHome {
 }
 ```
 
-- **記法は「名前: 種類 { 属性 }」に揃える**: 種類は型なので、IH コンロは `IHStove`、ガスは `GasStove` のように `Stove` の一種として表す。`count` を省けば 1 つ。器は道具の一種だが、数が多く見通しが悪くなるので `tableware` に分けて書く。`: Kitchen` の型注釈は書かなくても `Kitchen`。
-- **動作は「場所 + 道具 + 手」を要求する**: 動作のシグネチャに `uses` で宣言する。`fry` はコンロ 1 口 + フライパン + 手、`slice` は調理台 + まな板 + 手。
+- **The notation is "name: kind { attributes }"**: the kind is a type, so an IH stove is `IHStove` and a gas stove is `GasStove`, each a kind of `Stove`. Leaving out `count` means 1. Tableware is a kind of tool, but there is a lot of it and it hurts readability, so it is written separately under `tableware`. Without the `: Kitchen` type annotation, it is still `Kitchen`.
+- **Actions require "place + tool + hands"**: this is declared with `uses` in the action signature. `fry` needs one burner + frying pan + hands; `slice` needs a counter + cutting board + hands.
 
   ```
   action slice(x: T<shape: peeled>, t: Length = 3 mm) -> T<shape: cut(slice, t)> {
@@ -300,7 +300,7 @@ kitchen myHome {
   }
   ```
 
-- **動作の `uses` は能力（トレイト）で書く**: 具体的な設備の種類ではなく、能力で要求する。台所の設備は、その種類（`kind`）の定義で能力を持つ。
+- **An action's `uses` is written in capabilities (traits)**: it asks for capabilities, not for specific equipment kinds. Kitchen equipment gets its capabilities from the definition of its kind (`kind`).
 
   ```
   // パントリー: 設備の種類が能力を持つ
@@ -315,11 +315,11 @@ kitchen myHome {
   }
   ```
 
-  - **量から要求が決まる**: 「鍋の容量は中身の量の 1.2 倍以上」のように、線形型で分かっている量から必要な大きさを自動で計算する。2 L のカレーなら、それが入る鍋が必要という検査になる。
-  - **1 台が複数の能力を持てる**: オーブンレンジはオーブンとしても電子レンジとしても使える。ただし、どちらかの能力で使っている間は、その 1 台全体が埋まる。能力は「同じ設備の別の見え方」で、取り合いは設備単位で数える。
-  - **新しい家電は能力を宣言して足す**: 自動調理鍋のような家電も、書き手が種類と能力を定義すれば、そのまま既存の動作で使える。
-  - 標準の能力は §12.3。
-- **やり方の候補（`variant`）: 設備がないときの代替**: 1 つの動作の中に、使う設備と手順だけが違う候補を並べる。入出力の型は同じ（名前の多重定義ではない。§4.3）。
+  - **The amount sets the requirement**: like "pot capacity at least 1.2 times the contents", the needed size is computed automatically from the amount known through linear types. For 2 L of curry, the check requires a pot that holds it.
+  - **One unit can have several capabilities**: a combination oven-microwave works as an oven and as a microwave. But while it is used for either one, the whole unit is taken. Capabilities are "different views of the same equipment", and contention is counted per unit of equipment.
+  - **New appliances are added by declaring capabilities**: an appliance such as an automatic cooking pot works with the existing actions as soon as a writer defines its kind and capabilities.
+  - The standard capabilities are in §12.3.
+- **Alternative methods (`variant`): fallbacks when equipment is missing**: one action lists alternatives that differ only in the equipment and steps they use. The input and output types are the same (this is not name overloading; §4.3).
 
   ```
   action cookRice(x: Rice<prep has soaked>) -> CookedRice {
@@ -338,30 +338,30 @@ kitchen myHome {
   }
   ```
 
-  - **レシピは台所を意識しない**: レシピ側は `cookRice` と書くだけで、どの台所でも通る（要求と設備の分離）。
-  - **型検査は、すべての候補に対して行う**: 使われない候補の中の誤りも、台所がなくても見つかる。
-  - **IR には候補をすべて「どれか 1 つを選ぶ分岐」として入れる**: どの候補を使うかは段取りの段階で決めるので、IR は台所によらず同じになる。
-  - **台所で使えない候補は外す**: 台所が注入されたら（レベル 2）、`uses` を満たせない候補を外す。全部外れたら、候補を並べたエラー（`KIT`）にする。
-  - **残った候補からは、段取りの中で選ぶ**: 割り当てのときに、一番早く終わる候補を選ぶ（コンロが埋まっていたらレンジで温める、など）。同点なら候補の順。研究では multi-mode と呼ばれる問題で、スケジューラは「いつ」に加えて「どのやり方で」も選ぶ。
-  - **選ばれた候補は情報として出す**: 「炊飯器がないため、鍋で炊きます」のように段取り表に出す。
-  - **台所がないとき（レベル 0・1）は最初の候補を使う**: 設備は無制限と仮定し、作者の標準のやり方（最初に書いた候補）で目安を出す。仮定の一覧に「炊飯は最初の候補（炊飯器）と仮定。ほかに鍋・電子レンジの候補あり」のように出す。
-  - **足された候補の順番**: `extend action` で足された候補は、元の定義の候補の後ろに、パッケージ名の順で並べる。最初の候補は必ず元の定義のもの。どの候補が足されたかは仮定の一覧に出す。
-- **要求（`requires`）は基本的に動作から自動で決まる**: レシピの要求は、使っている動作の `uses` を集めれば分かる。書き手が `requires` を書くのは、動作からは分からない追加の条件があるときだけ。書き方は型の `< >` と同じ（§4.4）。
+  - **Recipes do not care about the kitchen**: a recipe just writes `cookRice` and works in any kitchen (requirements are separate from equipment).
+  - **Type checks run on all alternatives**: errors inside alternatives that are not used are found even without a kitchen.
+  - **The IR holds all alternatives as a "pick one" branch**: which one is used is decided at the scheduling stage, so the IR is the same for every kitchen.
+  - **Alternatives the kitchen cannot use are dropped**: once a kitchen is injected (level 2), alternatives whose `uses` cannot be met are dropped. If all of them are dropped, it is an error that lists the alternatives (`KIT`).
+  - **The remaining alternatives are chosen during scheduling**: at assignment time, the alternative that finishes earliest is chosen (heat it in the microwave if the stove is full, etc.). On a tie, the alternatives' order decides. Research calls this a multi-mode problem: the scheduler chooses "which way" as well as "when".
+  - **The chosen alternative is reported as info**: it appears in the schedule table, like "There is no rice cooker, so the rice is cooked in a pot".
+  - **Without a kitchen (levels 0 and 1), the first alternative is used**: equipment is assumed to be unlimited, and the author's standard method (the first alternative written) gives the estimate. The assumption list says something like "Cooking rice assumes the first alternative (rice cooker). There are also pot and microwave alternatives".
+  - **Order of added alternatives**: alternatives added with `extend action` go after the original definition's alternatives, in package name order. The first alternative is always one from the original definition. The assumption list shows which alternatives were added.
+- **Requirements (`requires`) are basically derived from the actions automatically**: a recipe's requirements are known by collecting the `uses` of the actions it uses. A writer writes `requires` only for extra conditions that the actions do not reveal. The syntax is the same as the type `< >` (§4.4).
 
   ```
   recipe roastBeef(servings: 4)
     requires Oven<maxTemp >= 250 °C>
   { ... }
   ```
-- **数（容量）だけで表す**: 位置・広さ・動線・移動距離は持ち込まない（定義の負担に対して得られる精度が見合わない）。
-- **省略時は既定値**: 洗い場 1、作業場所 1 など。台所スペックは短く書け、こだわる人だけ細かく書ける。
-- **調理法ごとの補正を書ける**: 「うちのオーブンは表示より遅い」のような台所ごとの差は、標準の値では吸収できないので、使う人が台所スペックに補正を書く（`calibration { oven: 1.1 }` など）。何度か作った経験から自分で調整する。補正は台所の一部なので、共有するレシピには入らない（§4.6）。
-- **コンパイル時の値として使える**: 台所の容量はコンパイル時の値（§4.3）。`ceil(meat / pan.capacity)` のような分割回数が、その家の設備で決まる。
-- **設備がないときの扱い**: 動作のやり方の候補（`variant`）から、台所で使えるものを選ぶ（例: 炊飯器がなければ鍋 + コンロで炊く）。使える候補がなければコンパイルエラーで示す（上の「やり方の候補」）。
-- **献立（複数レシピ）の同時計画**: 複数のレシピを 1 つの台所に流し込み、コンロや洗い場の取り合いまで含めた段取りを組める。台所が独立した入力だからできる。
-- **扱いは他のソースと同じ**: 台所スペックもテキストのソースで、オフラインで共有できる。共有されたものは信頼できない入力として扱う（§10）。Ozendate では「わが家の台所」として登録しておき、毎回それを渡す。
+- **Only counts (capacities)**: positions, area, movement paths and distances are left out (the precision gained does not justify the burden of defining them).
+- **Defaults when omitted**: 1 sink, 1 work spot, etc. A kitchen spec can be short, and only those who care write the details.
+- **Corrections per cooking method can be written**: differences per kitchen, such as "my oven is slower than its display says", cannot be absorbed by the standard values, so the user writes a correction in the kitchen spec (`calibration { oven: 1.1 }`, etc.) and adjusts it from experience after cooking a few times. Corrections are part of the kitchen, so they are not in shared recipes (§4.6).
+- **Usable as compile-time values**: kitchen capacities are compile-time values (§4.3). A split count such as `ceil(meat / pan.capacity)` is decided by the home's equipment.
+- **When equipment is missing**: a usable one is picked from the action's alternative methods (`variant`) (e.g. without a rice cooker, cook rice in a pot on the stove). If none is usable, a compile error says so (see "alternative methods" above).
+- **Planning a menu (several recipes) together**: several recipes can be poured into one kitchen and scheduled, including contention for the stove and the sink. This works because the kitchen is a separate input.
+- **Handled like any other source**: a kitchen spec is also text source and can be shared offline. Shared ones are treated as untrusted input (§10). In Ozendate, it is registered as "my kitchen" and passed in every time.
 
-**ビルド時の条件: 「何人分」と「何人で」は別物**
+**Build-time conditions: "how many servings" and "how many cooks" are different things**
 
 ```
 ozen build recipes.curry --servings 4            # 何を作るか（レシピの既定値を上書き）
@@ -371,28 +371,28 @@ ozen build recipes.curry --servings 4            # 何を作るか（レシピ�
                              --cleanup beforeMeal # 片付けをいつまでに（後述）
 ```
 
-| | 何人分作るか（servings） | 何人で作るか（cooks） |
+| | How many servings (servings) | How many cooks (cooks) |
 |---|---|---|
-| 変わるもの | 料理そのもの（材料の量、バッチ数、必要な鍋の大きさ） | 段取りだけ |
-| 効く段階 | 展開・型検査 | スケジューラのみ |
-| 置き場所 | レシピ（または献立）の値。ビルド時に上書きできる | ビルド時の条件 |
+| What changes | The dish itself (ingredient amounts, number of batches, needed pot size) | Only the schedule |
+| Stage it affects | Expansion, type check | Scheduler only |
+| Where it lives | A value of the recipe (or menu). Can be overridden at build time | Build-time conditions |
 
-- **不変条件: cooks や台所を変えても IR（DAG）は変わらない。変わるのはスケジュールだけ。** 洗いの挿入もやり方の候補の選択も、スケジュールの段階で行うため。servings を変えると IR が変わりうる（量・`repeat` の回数）。テストで「cooks や台所だけ変えたら、テキスト IR ダンプは同一でスケジュールだけ違う」を確かめる。
-- 作業を人で分けたい場合（例: 玉ねぎ 4 個を 2 人で切る）は、レシピ側で独立した作業として書き、誰に割り振るかはスケジューラに任せる。
-- 「同時に立てる人数」は台所の性質なので `floor` に置く。「今日何人で作るか」とは別の制約。
-- 人ごとの属性（包丁を使えるか等）は、ビルド時の条件の側に持たせる。
-- servings と cooks はどちらもコンパイル時の値なので、`if` / `repeat` で使える。
+- **Invariant: changing cooks or the kitchen does not change the IR (DAG). Only the schedule changes.** This is because washing insertion and the choice of alternative methods both happen at the scheduling stage. Changing servings can change the IR (amounts, `repeat` counts). A test checks that "changing only cooks or the kitchen gives an identical text IR dump and only a different schedule".
+- To split work between people (e.g. two people cutting 4 onions), write independent tasks in the recipe and leave the assignment of who does what to the scheduler.
+- "How many people can stand at once" is a property of the kitchen, so it is on `floor`. It is a different constraint from "how many people cook today".
+- Per-person attributes (whether they can use a knife, etc.) belong to the build-time conditions.
+- servings and cooks are both compile-time values, so they can be used in `if` / `repeat`.
 
-**洗い物と片付け（初期から設計に含める）**
+**Washing up and cleanup (part of the design from the start)**
 
-洗い物を考えずに料理はできないため、**仕組みと語彙（汚れの種類・ルール）を最初から設計する**。これは生産スケジューリングでいう「段取り替え時間（sequence-dependent setup time）」と同じ構造で、リストスケジューリングの延長で扱える。
+Cooking is impossible without thinking about washing up, so **the mechanism and the vocabulary (kinds of dirt, rules) are designed from the start**. This has the same structure as "sequence-dependent setup time" in production scheduling, and can be handled as an extension of list scheduling.
 
-- **道具と場所に状態を持たせる**: 食材の状態型と同じ仕組みで、`clean` と `dirty(汚れの種類)` を持つ。道具・器は `clean(t, level)`（`level` は洗い方）、場所（調理台・コンロなど）は `wipe` で `clean` に戻す。食材を洗う `wash` とは名前を分ける（§4.3）。
-- **汚れは食材と動作から決まる**: 食材の属性（`leaves`）と動作（`fry` は鍋に油を残す）から自動で決まる。レシピを書く人が汚れを意識して書く必要はない。
-- **汚れは種類 + 分類（トレイト）で表す**: 洗い方と時間は分類から決める。食品衛生に関わるルール（`Hazard`）は緩められない制約にする。
-- **相性ルールはパントリーで定義する**: 「生肉の後は何に使うにも洗いが必要」「野菜の後に野菜ならそのまま使える」など。標準の汚れの種類と相性ルールは §12.3。
-- **洗い方は順序つき列挙**: なにもしない < すすぐ < 洗剤で洗う < 浸け置きしてから洗う。浸け置きは `@unattended` の作業。
-- **洗いもただの作業**: 「洗い場 + 手 + 時間」を使う。所要時間は道具の属性から取る。浸け置きは `@unattended` の作業として表す。
+- **Tools and places have state**: with the same mechanism as ingredient state types, they have `clean` and `dirty(汚れの種類)`. Tools and tableware go back to `clean` with `clean(t, level)` (`level` is the washing method), and places (counter, stove, etc.) with `wipe`. The name differs from `wash`, which washes ingredients (§4.3).
+- **Dirt is decided by ingredients and actions**: it is decided automatically from ingredient attributes (`leaves`) and actions (`fry` leaves oil in the pan). The recipe writer does not need to think about dirt.
+- **Dirt is a kind + a category (trait)**: the washing method and time are decided by the category. Food safety rules (`Hazard`) are constraints that cannot be relaxed.
+- **Compatibility rules are defined in the pantry**: "after raw meat, washing is needed before any use", "vegetables after vegetables can go as is", etc. The standard dirt kinds and compatibility rules are in §12.3.
+- **Washing methods are an ordered enum**: nothing < rinse < wash with detergent < soak, then wash. Soaking is `@unattended` work.
+- **Washing is just work too**: it uses "sink + hands + time". The duration comes from the tool's attribute. Soaking is expressed as `@unattended` work.
 
 ```
 dirt rawMeat : Hazard          // 衛生上、必ず洗う
@@ -416,31 +416,31 @@ rule after Smelly: rinse before RawEdible
 rule after Light:  none
 ```
 
-- **洗いの挿入はスケジュールの段階で行う**: 洗いが要るかは「どの順で道具を使うか」で決まるため、スケジュール前の IR には入れない（cooks の不変条件を保つ）。道具を割り当てるとき、相性の合うきれいな道具がなければ「別の道具が空くのを待つ」か「洗いを挟む」かを選ぶ。優先度の工夫で「同じまな板なら野菜を先、肉を後」のような並びも出る。
-- **挿入した作業には理由を付ける**: 「まな板 1、生肉の後」のように。段取り表で説明できるようにする。
-- **片付けの定義**: 片付けは「終わったときに台所（道具と場所）がどの状態であるべきか」の指定。いつまでに片付けるかはビルド時の条件にする。
+- **Washing is inserted at the scheduling stage**: whether washing is needed depends on "the order in which tools are used", so it is not in the IR before scheduling (this keeps the cooks invariant). When assigning a tool, if no compatible clean tool is available, the scheduler chooses between "wait for another tool to become free" and "insert a wash". Priority tweaks also produce orders such as "on the same cutting board, vegetables first and meat later".
+- **Inserted tasks carry a reason**: like "cutting board 1, after raw meat", so that the schedule table can explain them.
+- **Definition of cleanup**: cleanup specifies "what state the kitchen (tools and places) should be in at the end". When cleanup must be done by is a build-time condition.
 
-| `--cleanup` | 意味 | 波が複数あるとき | 出す時刻との関係 |
+| `--cleanup` | Meaning | With several waves | Relation to the serving time |
 |---|---|---|---|
-| `none`（既定） | 調理中に必要な洗いだけ。終了時は汚れていてよい | 同じ | 影響なし |
-| `beforeMeal` | 出す時点で、それまでに使い終わった道具と場所はきれいにしておく。食器は含まない | 波ごとに「その波を出すまでに使い終わったもの」をきれいにする | 出す時刻までの経路に乗る |
-| `afterMeal` | 最後の食事が終わった後に、食器も含めて全部きれいにする | 最後の波の食事の後 | 乗らない |
+| `none` (default) | Only the washing needed during cooking. It may be dirty at the end | Same | No effect |
+| `beforeMeal` | At serving time, the tools and places finished with by then are clean. Tableware is not included | Per wave, clean "what was finished with before serving that wave" | On the path to the serving time |
+| `afterMeal` | After the last meal ends, clean everything, tableware included | After the last wave's meal | Not on it |
 
-- 場所（調理台・コンロ）の拭き掃除は、`none` 以外のすべてに含める。
-- 残りの保存（`store` で取っておくもの。冷蔵庫へしまう作業）は、片付けに含めて段取りに入れる。
-- 食事中は手が塞がる（§4.5）ので、食事中に進む片付けは放置の作業だけ（食洗機を回す、浸け置きする など）。`afterMeal` でも、食事中に食洗機を回せるならスケジューラがそう組む。
+- Wiping places (counter, stove) is included in every option except `none`.
+- Storing leftovers (things kept with `store`; putting them in the fridge) is included in cleanup and goes into the schedule.
+- Hands are busy during the meal (§4.5), so the only cleanup that goes on during the meal is unattended work (running the dishwasher, soaking, etc.). Even with `afterMeal`, if the dishwasher can run during the meal, the scheduler plans it that way.
 
-- **乾かしは扱わない**: 洗った道具はすぐ使えるとみなす。乾燥時間・水切りかごの容量・拭き上げはコンセプトの対象外（§12 非ゴール）。
+- **Drying is not handled**: washed tools are treated as usable at once. Drying time, dish rack capacity and drying with a towel are outside this concept (§12 non-goals).
 
-**盛り付けと器**
+**Plating and tableware**
 
-器も、これまでの仕組み（トレイト、台所スペックの道具、線形型、洗い物）で表す。カレーは深皿、味噌汁は汁椀、のような対応を検査・割り当てできるようにする。
+Tableware is also expressed with the existing mechanisms (traits, kitchen spec tools, linear types, washing up). Pairings such as curry in a deep plate and miso soup in a soup bowl can be checked and assigned.
 
-| 書く場所 | 書くこと |
+| Where | What |
 |---|---|
-| パントリー | 器の種類と分類（深皿、平皿、汁椀、飯碗、丼、小鉢、大皿など） |
-| 台所スペック | その家にある器の枚数と容量（道具 `tableware` として） |
-| レシピ | どの分類の器に盛るか（抽象的な要求）。具体的にどの器を使うかはコンパイラが決める |
+| Pantry | Kinds and categories of tableware (deep plate, flat plate, soup bowl, rice bowl, donburi, small bowl, platter, etc.) |
+| Kitchen spec | How many pieces of tableware the home has and their capacity (as the tool `tableware`) |
+| Recipe | Which category of tableware to plate in (abstract requirement). The compiler decides which actual piece to use |
 
 ```
 // パントリー
@@ -462,23 +462,23 @@ plate perPerson on DeepPlate or Donburi {
 }
 ```
 
-- **必須と代替順を分ける**: 「汁物は液体を保てる器でないとだめ」は料理の状態（液体）から導ける必須の制約。「カレーは深皿が良いが、丼でも可」は**器の代替順**として `on DeepPlate or Donburi` と書く（深皿を優先し、足りなければ丼）。器が足りなければまず代替順に回し、それでも無理ならコンパイルエラーにする。
-- **枚数の検査**: 盛り付けた器は食事が終わるまで使用中になる（線形の資源）。「servings × 1 人あたりの器の数 ≤ 枚数」を検査し、「深皿が 4 人分に対して 3 枚、丼を 1 枚使う」のように割り当てや診断を出す。
-- **1 枚に複数の料理 / 取り分け**: カレーライスはごはんとカレーで 1 枚。おかずを大皿にまとめる場合もある。`perPerson`（1 人ずつ）と `shared`（取り分け）の 2 種類で表す。
-- **量の分配**: 盛り付けは「全体の量を servings で割って各器に入れる」動作。線形型で合計が保存されるので、盛り残し・盛りすぎを検査でき、器の容量を超えたら警告する。
-- **洗い物とのつながり**: 下ごしらえで小鉢やボウルを使った場合、盛り付け前の洗いは既存の洗いの挿入で扱う。食後の食器の洗いは `--cleanup afterMeal` の対象。
-- **盛り付けにも時間がかかる**: 人数分を盛る作業は手を使う。出す時刻からの逆算に含める。
-- **扱わないもの**: 器を温める、見た目の配置（盛り付けの美しさ）、器と料理の格の合わせ方（§12 非ゴール）。
+- **Separate "required" from "preference order"**: "soup must go in tableware that holds liquid" is a required constraint derived from the dish's state (liquid). "Curry is best in a deep plate, but a donburi is fine" is a **tableware preference order**, written `on DeepPlate or Donburi` (deep plates first, donburi if they run short). If tableware runs short, the preference order is used first; if that still does not work, it is a compile error.
+- **Count check**: plated tableware is in use until the meal ends (a linear resource). The check is "servings × pieces per person ≤ count", and it gives assignments and diagnostics such as "3 deep plates for 4 servings, so 1 donburi is used".
+- **Several dishes on one plate / sharing**: curry rice puts the rice and the curry on one plate. Side dishes may also go together on one platter. Two kinds express this: `perPerson` (one per person) and `shared` (shared from one dish).
+- **Dividing amounts**: plating is an action that "divides the total amount by servings into each piece of tableware". Linear types keep the total, so leftovers and over-plating can be checked, and going over a piece's capacity gives a warning.
+- **Link to washing up**: if small bowls or mixing bowls are used in prep, washing them before plating is handled by the existing washing insertion. Washing the tableware after the meal is covered by `--cleanup afterMeal`.
+- **Plating takes time too**: plating for everyone uses hands. It is included when working back from the serving time.
+- **Not handled**: warming tableware, visual arrangement (the beauty of plating), and matching the formality of tableware and dish (§12 non-goals).
 
-**台所スペックと条件の型**
+**Types of kitchen specs and conditions**
 
-注入する設定（台所スペック・ビルド時の条件）も、レシピと同じ言語・同じ型検査器で扱う。台所が持つ器・道具の種類と数も、型に従って定義する。
+Injected settings (kitchen specs, build-time conditions) are handled by the same language and the same type checker as recipes. The kinds and counts of the tableware and tools a kitchen has are also defined following types.
 
-| 層 | 書く場所 | 内容 |
+| Layer | Where | Content |
 |---|---|---|
-| 定義 | パントリー | 器・道具・場所の種類と、台所スペック・条件の「形」を型として宣言する |
-| 値 | 台所スペック・ビルド時の条件 | 型に従って書かれた具体的な設定 |
-| 要求 | レシピ | 「こういう台所が要る」を型の制約（`requires`）として書く |
+| Definition | Pantry | Declare the kinds of tableware, tools and places, and the "shape" of kitchen specs and conditions, as types |
+| Value | Kitchen spec, build-time conditions | Concrete settings written following the types |
+| Requirement | Recipe | Write "this kind of kitchen is needed" as a type constraint (`requires`) |
 
 ```
 // パントリー: 形を定義する
@@ -513,9 +513,9 @@ recipe roastBeef(servings: 4)
 { ... }
 ```
 
-- **設定ミスもコンパイルエラーになる**: 単位のない `capacity: 500`、`count: -1`、`cleanup: afterDinner` のような綴り間違いを、span 付きで診断する。次元型がそのまま台所スペックにも効く。
-- **レシピと台所の相性を先に検査する**: 「オーブンが要るが、この台所にはない」を、スケジュールの前に型の不一致として出す。代替の動作があればそちらに回す。
-- **範囲制約は区間だけを型に持つ**: `a..b`、`a..`、`..b` の区間を、数にも単位つきの量にも書ける。下端を含まないときは `a<..`（上端もあるときは `a<..b` と書き、上端は含む）と書く。`<` と `..` は空けずに続けて書き、「a より大きい」を表す。たとえば `Time in 0 s<..` は 0 秒を含まず、それより長い時間だけを許す。任意の条件式（「偶数であること」など）は型には持たない（型検査が必ず止まり、診断も分かりやすいままにするため）。台所スペック・ビルド時の条件・レシピの引数・動作の引数はすべてコンパイル時の値なので、範囲外は必ずエラー（`TYP`）として検出できる。
+- **Setting mistakes are compile errors too**: a unitless `capacity: 500`, `count: -1`, and misspellings such as `cleanup: afterDinner` are diagnosed with a span. Dimension types work on kitchen specs as they are.
+- **Recipe-kitchen fit is checked first**: "an oven is needed, but this kitchen has none" is reported as a type mismatch before scheduling. If there is an alternative action, it is used instead.
+- **Range constraints keep only intervals in types**: the intervals `a..b`, `a..` and `..b` can be written for numbers and for quantities with units. When the lower end is excluded, write `a<..` (with an upper end too, write `a<..b`, and the upper end is included). Write `<` and `..` together with no space between them; this means "greater than a". For example, `Time in 0 s<..` excludes 0 seconds and allows only longer times. Arbitrary condition expressions (such as "must be even") are not kept in types (so that type checking always terminates and diagnostics stay easy to understand). Kitchen specs, build-time conditions, recipe arguments and action arguments are all compile-time values, so out of range is always an error (`TYP`) and can be detected.
 
   ```
   recipe curry(servings: Count in 1..20 = 4) { ... }
@@ -525,7 +525,7 @@ recipe roastBeef(servings: 4)
   action boil(x: T, time: Time in 0 s<..) -> T<doneness: done> { ... }
   ```
 
-- **項目同士の検査は、型の定義に名前つきの `check` として書く**: 「作る人の数が、同時に立てる人数を超える」のように複数の値にまたがる規則。各 `check` は診断の名前と既定の重さを持ち、重さは §6.1 の仕組みで変えられる。既定の重さは書いた人が決める（標準ライブラリでは「続行できるなら警告、料理として成り立たないならエラー」という §6.1 の基準に従う）。
+- **Checks across fields are written as named `check`s in the type definition**: these are rules over several values, such as "the number of cooks exceeds the number of people who can stand at once". Each `check` has a diagnostic name and a default severity, and the severity can be changed with the mechanism in §6.1. The writer decides the default severity (the standard library follows the criterion in §6.1: "a warning if it can continue, an error if it does not work as a dish").
 
   ```
   type Options {
@@ -534,74 +534,74 @@ recipe roastBeef(servings: 4)
   }
   ```
 
-  - 台所を参照する `check` は、台所が注入されたとき（検証レベル 2）にだけ評価する。注入されていないときは評価せず、診断も出さない（§5.1 の単調性に合う）。
-  - `check` の式はコンパイル時評価の部分集合で書くので、燃料の上限も効く。
-- **拡張が同じ書き方で済む**: 新しい器や家電の種類は、パントリーに型を 1 つ足すだけ。
-- **設定画面を型から作れる**: Ozendate の「わが家の台所」「今日の条件」の入力画面を、型の定義から生成できる。項目を足してもアプリ側のコードを書き換えずに済む（画面生成はコアの外）。
-- **時期**: 台所スペックと条件はすべてコンパイル時の値。`if kitchen.has(Oven)` のような分岐に使える（§4.3 の「値の時期を分ける」方針の範囲内）。
+  - A `check` that refers to the kitchen is evaluated only when a kitchen is injected (verification level 2). When none is injected, it is not evaluated and gives no diagnostic (this fits the monotonicity in §5.1).
+  - `check` expressions are written in a subset of compile-time evaluation, so the fuel limit applies too.
+- **Extensions use the same syntax**: a new kind of tableware or appliance only needs one more type in the pantry.
+- **Settings screens can be built from types**: Ozendate's "my kitchen" and "today's conditions" input screens can be generated from the type definitions. Adding a field needs no change to the app code (screen generation is outside the core).
+- **Timing**: kitchen specs and conditions are all compile-time values. They can be used in branches such as `if kitchen.has(Oven)` (within the "separate the timing of values" policy in §4.3).
 
-### 4.3 拡張性（メタプログラミング）
+### 4.3 Extensibility (metaprogramming)
 
-単位・食材・動作・資源・手順を、標準ライブラリと同じ構文で定義できる。標準ライブラリ自体も、言語のソースとして同梱する。
+Units, ingredients, actions, resources and steps can be defined with the same syntax as the standard library. The standard library itself ships as source in this language.
 
-| レベル | 内容 | 扱い |
+| Level | Content | Status |
 |---|---|---|
-| 1. 宣言 | 次元・単位・食材（状態遷移グラフ）・動作・資源の定義 | 対象 |
-| 2. 合成 | 動作を組み合わせた新しい動作（引数つき、使用時に DAG へ展開） | 対象 |
-| 3. コンパイル時評価・マクロ | `if` / `for` / `repeat` をコンパイル時の値で評価、`macro` + `quote` で手順を生成 | 対象（実装方式は評価器の試作で決める） |
+| 1. Declarations | Definitions of dimensions, units, ingredients (state transition graphs), actions and resources | In scope |
+| 2. Composition | New actions that combine actions (with arguments, expanded into the DAG where used) | In scope |
+| 3. Compile-time evaluation, macros | Evaluate `if` / `for` / `repeat` on compile-time values; generate steps with `macro` + `quote` | In scope (the implementation approach is decided by the evaluator prototype) |
 
-**レベル 3 の設計方針（合意済み）**
+**Level 3 design policy (agreed)**
 
-- コンパイル時のコードは、**レシピ本体と同じ言語の部分集合**で書く。別言語は作らない。
-- 値の「時期」を分ける: **コンパイル時の値**（人数・材料量・資源容量・リスト）は `if`/`for` に使える。**調理時の値**（温度センサー等）は使えない（型エラー）。
-- マクロは文字列置換ではなく**構文木を扱う**（`quote` / `$` による構築）。**衛生的（hygienic）**にして、名前衝突を避ける。
-- **衛生性の実装: 展開ごとに印を付ける**
-  - マクロを 1 回展開するたびに、一意な番号（展開の印）を振る。
-  - `quote` の中でマクロ自身が書いた名前にはその印を付け、マクロを定義した場所の名前空間で解決する。`$x` で受け取った引数の名前は、呼び出し元の印のままにする。マクロ内の一時的な名前（`tmp` など）が呼び出し元とぶつからない。
-  - **マクロを作るマクロは持たない**（より一般的な方式〔scope sets〕が必要になるのは主にこの場面で、料理の手順の生成には不要）。
-  - **わざと名前を捕まえる抜け道は持たない**: 呼び出し元に名前を見せたいときは、その名前を引数で渡す（例: `marinate(meat, into: marinated)`）。共有されたマクロが呼び出し元の名前を勝手に上書きできない。
-  - 展開の印は、診断の展開履歴（§10）にもそのまま使う。
-- 評価は**純粋かつ必ず停止**: ファイル・時刻・乱数・ネットワーク不可。**燃料（fuel）制**で、評価ステップ数・再帰深度・生成ノード数に上限を置く。信頼できない入力（共有レシピ）を扱うため必須。
-- 型検査は**展開後**の AST に対して行う。マクロ定義時には最低限（引数の数、未定義名）だけ検査する。
-- エラー位置は**展開履歴**を持つ（マクロ内のエラーが、呼び出し元の行も指す）。
-- 値の型は絞る: 数量・文字列・リスト・食材参照・構文木の 5 種類程度。
+- Compile-time code is written in **a subset of the same language as the recipe body**. No separate language is made.
+- Separate the "timing" of values: **compile-time values** (servings, ingredient amounts, resource capacities, lists) can be used in `if`/`for`. **Cooking-time values** (temperature sensors, etc.) cannot (type error).
+- Macros **work on syntax trees**, not on string substitution (built with `quote` / `$`). They are **hygienic**, to avoid name clashes.
+- **Implementing hygiene: mark each expansion**
+  - Each time a macro is expanded, it gets a unique number (the expansion mark).
+  - Names that the macro itself writes inside `quote` get that mark and are resolved in the namespace where the macro was defined. Argument names received through `$x` keep the caller's mark. Temporary names inside the macro (`tmp`, etc.) do not clash with the caller.
+  - **No macros that make macros** (the more general approach [scope sets] is needed mainly in this case, and generating cooking steps does not need it).
+  - **No escape hatch for capturing names on purpose**: to show a name to the caller, pass that name as an argument (e.g. `marinate(meat, into: marinated)`). A shared macro cannot silently overwrite the caller's names.
+  - The expansion marks are also used as they are in the expansion history of diagnostics (§10).
+- Evaluation is **pure and always terminates**: no files, time, random numbers or network. With a **fuel** system, there are limits on evaluation steps, recursion depth and the number of generated nodes. This is required because untrusted input (shared recipes) is handled.
+- Type checks run on the AST **after expansion**. When a macro is defined, only the minimum (number of arguments, undefined names) is checked.
+- Error locations carry the **expansion history** (an error inside a macro also points at the caller's line).
+- Value types are kept few: about 5 kinds, namely quantities, strings, lists, ingredient references and syntax trees.
 
-**名前の多重定義は持たない**
+**No name overloading**
 
-- 同じ名前で、型ごとに別の定義を持つこと（多重定義）は言語として持たない。似た動作を食材ごとにまとめたいときは、トレイトで表す（`Peelable` なら何でも `peel` できる）。
-- 理由: 型で区別できても、診断の文面・段取り表・言い回しファイルのキーがすべて「どちらの定義か」を区別する必要があり、結局どこかで名前を分けることになるため。
-- 例: 食材を洗う `wash` と、道具・器を洗う `clean`、場所を拭く `wipe` は別の名前にする。
+- The language does not have overloading (several definitions under one name, one per type). To group similar actions across ingredients, use traits (anything `Peelable` can take `peel`).
+- Reason: even if types can tell them apart, diagnostic text, schedule tables and phrase file keys would all have to tell "which definition", so the names end up being split somewhere anyway.
+- Example: `wash` for washing ingredients, `clean` for washing tools and tableware, and `wipe` for wiping places are separate names.
 
-**拡張に伴う落とし穴**
+**Pitfalls of extension**
 
-- ユーザー定義の状態機械は、定義時に検査する（到達不能状態、遷移の矛盾）。
-- 単位定義の循環（`unit a = 2 b`、`unit b = 3 a`）の検出。基準単位は後から変えられない。
-- 名前空間と `import`。`cup`（米国式 / 日本式）のような衝突は、`std.units.jp` / `std.units.us` のどちらを取り込むかで選ぶ（§4.7）。
-- 拡張は**ソース配布のみ**。ネイティブコードの動的ロードはしない（iOS の署名・審査の制約にも合う）。
+- User-defined state machines are checked at definition time (unreachable states, conflicting transitions).
+- Detecting cycles in unit definitions (`unit a = 2 b`, `unit b = 3 a`). The base unit cannot be changed later.
+- Namespaces and `import`. Clashes such as `cup` (US / Japanese) are settled by choosing whether to import `std.units.jp` or `std.units.us` (§4.7).
+- Extensions are **source distribution only**. Native code is not loaded dynamically (this also fits the iOS signing and review rules).
 
-### 4.4 構文
+### 4.4 Syntax
 
-**決定事項**
+**Decisions**
 
-- **ブロック**: 波括弧 `{ }`。インデントには意味を持たせない（共有やコピペで空白が崩れても意味が変わらないため）。
-- **文の区切り**: 改行。1 行に並べたいときだけ `;`。
-- **束縛**: `let name = ...`。1 回だけ束縛（SSA）で、再代入はできない（§4.1）。
-- **引数**: 位置引数のあとに名前付き引数（`name: value`）。既定値がある引数は省略できる。例: `fry(sliced, 10 min, heat: medium)`
-- **注釈**: `@name` または `@name(引数)` を、対象の式や宣言の**後ろ**に付ける。例: `let cooked = cook(soaked, cooker, 40 min) @unattended`、`serve main { ... } @serveWithin(5 min)`
-- **パイプ `|>`**: `x |> f(a)` は `f(x, a)` と同じ。左の値を右の呼び出しの第 1 引数に入れる。右に書けるのは名前か呼び出しだけで（`p.cut` のような修飾した名前も書ける）、`x |> f` は `f(x)`。優先順位は最も低く、`rice |> wash |> soak(30 min)` のように続けて書ける。注釈は最後の段に付く。構文木では呼び出しに組み替えるので、IR は入れ子の呼び出しと同じになる。値に `.` を付けて動作を呼ぶ書き方（`negi.cut(slice, 2 mm)`）は無く、`NAM019 methodCall`（エラー）で `negi |> cut` のように `|>` を案内する。呼べるのは動作とマクロだけで、食材や料理を呼ぶ書き方（`Onion(onion)`、`gohan()`）は `NAM020 notCallable`（エラー）になる。料理は `make gohan` で作る。値には欄が無く、`sliced.size` は `NAM021 valueField`（エラー）になる。
-  - **終わりの状態で書く `until:`**: 加熱の動作（出力に順序つきの軸を宣言する動作）は、時間の代わりに終わりの状態を `until: doneness >= par` のように書ける（`simmer([simmered, beaten], until: doneness >= par)`）。出力のその軸はその値になり、作業には作る人がつく。時間を省いたときは、食材の `heating { <動作> { <値>: <範囲> } }` から見積もり（混ぜた物は材料までたどって一番広い範囲）、`done` で欄が無ければ加熱のモデルを使う。どちらも無く `time` も無ければ `TYP022 untilTime`（エラー）。宣言していない軸・入力より前か同じ値・比較でも合図でもない値は `TYP023 untilTarget`（エラー）。状態の軸で表せない合図は `enum Cue { fragrant, translucent, boiling, thickened }` の値を `until: fragrant` と書き、状態は変えず `time` が要る。文章は「卵が半熟になるまで弱火で煮る（約 1〜2 分）」「香りが立つまで中火で炒める（約 1 分）」の形になる。
-  - **材料を先に書く**: 1 段だけの呼び出しも、材料を先に書いて `chicken |> cut(biteSize, 30 mm)`・`soaked |> cookRice` と書くのを基本にする。料理する人は「鶏肉を切る」と材料から考えるため。リストを渡す呼び出し（`simmer([a, b], 10 min)`）と `make` はそのまま書く。サンプル（`samples/`）と紹介ページの例もこの書き方にそろえている。
-- **引数の無いレシピ・献立は `()` を省く**: `recipe gohan { ... }`、`make cookedRice`。`()` を書いても同じ意味になる。
-- **1 人あたりの量 `per serving`**: 材料の量に `per serving` を付けると、人数に比例する（`rice: 75 g per serving`）。印の無い量は人数で変わらない総量。人数は料理の引数 `servings`、無ければビルド時の条件の `servings` から取り、どちらも無ければ `TYP020 servingsUnknown`（エラー）。`per` と `serving` は予約語にせず、文脈の語として読む。人数（`Count` の値）は次元を持たないので、`150 g * servings` は質量のままになる。
-- **量のリテラル**: 数と単位を空白で並べる（`200 g`）。範囲は `15..20 min`、分数は `1/4`（有理数のまま保持）。同じ次元の量を並べた `1 h 30 min` は足し算として読む。
-- **単位の名前の解決**: 数の直後に置かれた名前は単位として解決する。単位も `import` で取り込む名前の一つ（`std.units.jp` など。§4.7）。修飾して使うときは空白を入れずに `2 jp.cup` と書く。
-- **コメント**: `//`（行末まで）と `/* */`（ブロック）。
-- **名前の付け方（キャメルケース）**: 値・動作・レシピ・献立・フィールド・列挙型の値・診断の名前・モジュール（ファイル名）・パッケージ名は先頭小文字のキャメルケース（`cookRice`、`perPerson`、`leftoverPart`、`katsuCurryNight`）。型・食材・トレイト・設備の種類・別名は先頭大文字のキャメルケース（`Onion`、`Pork`、`DeepPlate`、`HeatSource`、`IHStove`）。部位や軸の値は値なので先頭小文字（`Pork<belly>`、`shape: peeled`）。言語としては強制せず（名前の解決は大文字・小文字に頼らない）、標準ライブラリはこの規約に従う。
-  - 例外: CLI のオプションはケバブケース（`--serve-at`）、言い回しファイル（Fluent）のキーはケバブケース（`action-slice`）、C の公開 API はスネークケース（`recipe_build`）。それぞれの世界の慣習に合わせる。
-- **材料の宣言**: `名前: 型 量`（`roux: CurryRoux 100 g`）。名前が型名の先頭を小文字にしたものと同じなら、型は省略できる（`rice: 600 g` は `Rice`）。
-- **文字列**: `"..."`（UTF-8）。複数行の文字列は `"""..."""`（束ねたファイルの言い回しなど。§4.7）。識別子は ASCII だけで、材料の表示名は言い回しファイルや文字列で持つ（§3）。
+- **Blocks**: braces `{ }`. Indentation has no meaning (so the meaning does not change when sharing or copy-paste breaks the spaces).
+- **Statement separator**: a newline. Use `;` only when you want several on one line.
+- **Binding**: `let name = ...`. A name is bound only once (SSA) and cannot be reassigned (§4.1).
+- **Arguments**: positional arguments first, then named arguments (`name: value`). Arguments with a default value can be left out. Example: `fry(sliced, 10 min, heat: medium)`
+- **Annotations**: put `@name` or `@name(引数)` **after** the expression or declaration it applies to. Examples: `let cooked = cook(soaked, cooker, 40 min) @unattended`, `serve main { ... } @serveWithin(5 min)`
+- **Pipe `|>`**: `x |> f(a)` is the same as `f(x, a)`. It puts the value on the left into the first argument of the call on the right. Only a name or a call can be on the right (a qualified name such as `p.cut` is also allowed), and `x |> f` is `f(x)`. It has the lowest precedence, so you can chain it as in `rice |> wash |> soak(30 min)`. An annotation attaches to the last step. The syntax tree rewrites it into calls, so the IR is the same as for nested calls. There is no way to call an action by putting `.` after a value (`negi.cut(slice, 2 mm)`); it is `NAM019 methodCall` (error), which points to `|>` as in `negi |> cut`. Only actions and macros can be called; calling an ingredient or a dish (`Onion(onion)`, `gohan()`) is `NAM020 notCallable` (error). A dish is made with `make gohan`. Values have no fields, and `sliced.size` is `NAM021 valueField` (error).
+  - **`until:` written as an end state**: a heating action (an action that declares an ordered axis on its output) can give an end state instead of a time, as in `until: doneness >= par` (`simmer([simmered, beaten], until: doneness >= par)`). That axis of the output takes that value, and the task gets the cook. When the time is left out, it is estimated from the ingredient's `heating { <動作> { <値>: <範囲> } }` (for a mixture, it follows back to the ingredients and takes the widest range), and with `done` and no such field it uses the heating model. If neither exists and there is no `time` either, it is `TYP022 untilTime` (error). An undeclared axis, a value earlier than or equal to the input, or a value that is neither a comparison nor a cue is `TYP023 untilTarget` (error). A cue that a state axis cannot express is written as a value of `enum Cue { fragrant, translucent, boiling, thickened }`, as in `until: fragrant`; it does not change the state and needs a `time`. The text takes the form "Simmer over low heat until the egg is soft-set (about 1–2 min)" or "Stir-fry over medium heat until fragrant (about 1 min)".
+  - **Write the ingredient first**: even for a call with only one step, the basic style is to write the ingredient first, as in `chicken |> cut(biteSize, 30 mm)` / `soaked |> cookRice`. This is because a cook thinks from the ingredient: "cut the chicken". Calls that take a list (`simmer([a, b], 10 min)`) and `make` are written as they are. The samples (`samples/`) and the examples on the introduction page also follow this style.
+- **Recipes and menus without arguments omit `()`**: `recipe gohan { ... }`, `make cookedRice`. Writing `()` means the same thing.
+- **Amount per person `per serving`**: adding `per serving` to an ingredient's amount makes it scale with the number of people (`rice: 75 g per serving`). An amount without the mark is a total that does not change with the number of people. The number of people comes from the dish's argument `servings`, or else from the build condition `servings`; if neither exists, it is `TYP020 servingsUnknown` (error). `per` and `serving` are not reserved words; they are read as contextual words. The number of people (a `Count` value) has no dimension, so `150 g * servings` stays a mass.
+- **Quantity literals**: a number and a unit side by side with a space (`200 g`). A range is `15..20 min`, a fraction is `1/4` (kept as a rational number). Quantities of the same dimension written in a row, as in `1 h 30 min`, are read as a sum.
+- **Resolving unit names**: a name placed right after a number is resolved as a unit. Units are also names brought in by `import` (`std.units.jp` and so on; §4.7). To use one qualified, write it without spaces: `2 jp.cup`.
+- **Comments**: `//` (to the end of the line) and `/* */` (block).
+- **Naming (camel case)**: values, actions, recipes, menus, fields, enum values, diagnostic names, modules (file names) and package names use camel case starting with a lowercase letter (`cookRice`, `perPerson`, `leftoverPart`, `katsuCurryNight`). Types, ingredients, traits, kinds of equipment and aliases use camel case starting with an uppercase letter (`Onion`, `Pork`, `DeepPlate`, `HeatSource`, `IHStove`). Cuts and axis values are values, so they start with a lowercase letter (`Pork<belly>`, `shape: peeled`). The language does not enforce this (name resolution does not rely on case), and the standard library follows this convention.
+  - Exceptions: CLI options use kebab case (`--serve-at`), keys in phrase files (Fluent) use kebab case (`action-slice`), and the C public API uses snake case (`recipe_build`). Each follows the customs of its own world.
+- **Ingredient declarations**: `名前: 型 量` (`roux: CurryRoux 100 g`). If the name is the type name with its first letter lowercased, the type can be left out (`rice: 600 g` is `Rice`).
+- **Strings**: `"..."` (UTF-8). A multi-line string is `"""..."""` (for phrases in a bundled file and so on; §4.7). Identifiers are ASCII only, and the display names of ingredients are kept in phrase files or strings (§3).
 
-**型の `< >` の中の書き分け**
+**What goes inside a type's `< >`**
 
 ```
 Pork<belly>                    // 部位
@@ -613,22 +613,22 @@ Rice<prep has washed>          // 実施済みの集合に含まれる
 Pork<belly, doneness: raw, shape: cut(slice, 3 mm)>   // 組み合わせ
 ```
 
-- **部位は先頭に裸で書く**: 名前だけで `:` や比較を持たないものが部位（または部位のトレイト）。部位を持たない食材では書けない。
-- **状態は「軸 + 演算子 + 値」**: `:` はその値（`cut` のように引数を省くと引数は問わない）、`>=` / `<=` は順序つきの軸の比較、`has` は実施済みの集合に含まれるか。
-- **部位とトレイトは名前の解決で区別する**: 部位は食材の定義の中で、トレイトは名前空間で宣言されるので、定義から分かる。同じ名前の部位とトレイトがあれば定義の時点でエラー。部位は先頭小文字、トレイトは先頭大文字という規約（§4.4 の名前の付け方）はあるが、言語としては大文字・小文字に頼らない。
-- **書かなかった軸は問わない**: 入力の型では「何でもよい」、動作の出力の型では「入力から引き継ぐ」。`fry` の出力に `doneness` だけを書けば、形状や部位はそのまま残る。
+- **A cut is written bare, at the front**: something with only a name and no `:` or comparison is a cut (or a cut trait). It cannot be written for an ingredient that has no cuts.
+- **A state is "axis + operator + value"**: `:` means exactly that value (if the arguments are left out, as in `cut`, any arguments match), `>=` / `<=` compare on an ordered axis, and `has` tests whether something is in the set of done steps.
+- **Cuts and traits are told apart by name resolution**: cuts are declared inside the ingredient's definition and traits in a namespace, so the definitions tell them apart. If a cut and a trait have the same name, it is an error at definition time. There is a convention that cuts start lowercase and traits start uppercase (naming in §4.4), but the language does not rely on case.
+- **An axis you did not write matches anything**: in an input type it means "anything is fine"; in an action's output type it means "carried over from the input". If `fry`'s output only names `doneness`, the shape and the cut stay as they were.
 
-**リテラルの扱い: 書き方は固定、語彙は拡張できる**
+**Literals: the forms are fixed, the vocabulary can be extended**
 
-- **書き方は固定**: 「数 + 単位」「範囲」「分数」「文字列」などのリテラルの形は言語で決めたものだけ。書き手がパーサーに新しい書き方を足す仕組み（リーダーマクロのようなもの）は持たない。
-  - 理由: マクロは構文木を扱う方針（§4.3）。書き方まで変えられると、パーサー・エラー位置・エディタ連携が不安定になる。共有されたファイルが、読み込む人のパーサーの挙動を変えられない（§10）。
-  - 日本語の「大さじ 1」のような単位が先に来る書き方は不要（識別子は ASCII。表示の語順は言い回しファイルで決める。§7.1）。
-- **語彙は拡張できる**:
-  - 単位: `unit gou : Volume = 180 ml` と定義すれば `2 gou` と書ける。
-  - 範囲を持つ単位: 「ひとつまみ」「少々」のような曖昧な量も、`unit pinch : Mass = 0.3..0.5 g` のように範囲つきの単位として定義できる。「適量」のように範囲も決められないものは `[any amount]`（§4.1）。
-  - 列挙型の値: `heat: medium` のような値は、`enum` を定義すれば増やせる。
+- **The forms are fixed**: literal forms such as "number + unit", "range", "fraction" and "string" are only those the language defines. There is no way for authors to add new forms to the parser (nothing like reader macros).
+  - Reason: macros work on the syntax tree (§4.3). If even the forms could change, the parser, error positions and editor support would become unstable. A shared file must not be able to change the behavior of the reader's parser (§10).
+  - A form with the unit first, like the Japanese "1 tablespoon" written as "tablespoon 1", is not needed (identifiers are ASCII; the display word order is decided by the phrase files; §7.1).
+- **The vocabulary can be extended**:
+  - Units: define `unit gou : Volume = 180 ml` and you can write `2 gou`.
+  - Units with a range: vague amounts such as "a pinch" or "a little" can also be defined as units with a range, as in `unit pinch : Mass = 0.3..0.5 g`. Something whose range cannot be fixed either, like "to taste", is `[any amount]` (§4.1).
+  - Enum values: values such as `heat: medium` can be added by defining an `enum`.
 
-**構文スケッチ**
+**Syntax sketch**
 
 ```
 dimension Mass, Volume, Length, Time
@@ -674,7 +674,7 @@ recipe curryRice(servings: 4) {
 }
 ```
 
-レベル 3 のイメージ:
+A picture of level 3:
 
 ```
 let batches = ceil(meat / pan.capacity)     // コンパイル時に計算
@@ -687,24 +687,24 @@ macro marinate(x, minutes) {
 }
 ```
 
-### 4.5 献立（一食）と料理の連携
+### 4.5 Menus (one meal) and how dishes work together
 
-**献立はコンパイラの中心に置く。** 台所の取り合い、洗い物、器の枚数、使い切りは、複数の料理を一緒に作るときに一番効くため。単品のレシピは「料理が 1 つだけの献立」とみなし、特別扱いしない。対象は**一食**に限る（何日分もの食事計画は段取りの対象外）。
+**The menu is at the center of the compiler.** Competition for the kitchen, washing up, the number of vessels and using things up matter most when several dishes are made together. A single recipe is treated as "a menu with only one dish", with no special handling. The scope is **one meal** only (meal plans over several days are outside scheduling).
 
-**連携の種類**
+**Kinds of links between dishes**
 
-| 例 | 連携の種類 | コンパイラがやること |
+| Example | Kind of link | What the compiler does |
 |---|---|---|
-| カツカレー | **合成**: 別々の料理の出力を 1 つの料理にまとめる | レシピを関数として呼び、出力を受け渡す。DAG を 1 つにつなぐ |
-| パフェ | **組み立て**: 前もって作った部品を、出す直前に重ねる | 部品は先に作って保存し、組み立ては提供直前に置く。重ねる順序を守る |
-| カレーとサラダ | **並べる**: データの受け渡しはなく、同じ食事に出す | 台所の取り合いと、出すタイミング（温かい・冷たい）だけを調整する |
-| ライスやナン | **選択**: どちらか、または人ごとに違う | 人ごとの選択から量を計算する（ライス 2 人分・ナン 2 人分など） |
-| ラーメンとチャーハン | **共有**: 共通の材料や下ごしらえがある | 共通の材料（チャーシュー、ネギ）を分け、量を合算する。切る作業はまとめられる |
+| Katsu curry | **Composition**: combine the outputs of separate dishes into one dish | Calls recipes as functions and passes the outputs along. Joins the DAGs into one |
+| Parfait | **Assembly**: layer parts made in advance just before serving | Makes and stores the parts first, and places the assembly just before serving. Keeps the layering order |
+| Curry and salad | **Side by side**: no data passes between them; they are served at the same meal | Adjusts only competition for the kitchen and serving timing (hot / cold) |
+| Rice or naan | **Choice**: one or the other, or different per person | Computes amounts from each person's choice (rice for 2, naan for 2, and so on) |
+| Ramen and fried rice | **Sharing**: they have common ingredients or prep | Splits the common ingredients (chashu, green onion) and adds up the amounts. Cutting tasks can be combined |
 
-**設計の柱**
-- **レシピは型つきの出力を持つ関数**: レシピの結果を値として返し、別のレシピや献立の材料にする。捌いた部位の受け渡し（§4.1）も同じ仕組み。
-  - **出力は食材と同じ型**: `Dish<...>` のような特別な型は作らない。§4.1 の「混ぜたら新しい値」により、カレーは「カレー」という食材の値になる。
-  - **出力の型は書けば明示、書かなければレシピ名の型**: `-> Curry` を省くと、レシピ名を先頭大文字にした名前の型（`curry` なら `Curry`）が自動で作られる。複数の出力も持てる。
+**Design pillars**
+- **A recipe is a function with a typed output**: it returns the recipe's result as a value, which becomes an ingredient of another recipe or a menu. Passing along the parts of a butchered fish or animal (§4.1) uses the same mechanism.
+  - **The output has the same type as an ingredient**: there is no special type like `Dish<...>`. By §4.1's "mixing makes a new value", curry becomes a value of the ingredient "curry".
+  - **The output type is explicit if written, otherwise the recipe name's type**: if `-> Curry` is left out, a type named after the recipe with its first letter uppercased (`Curry` for `curry`) is created automatically. A recipe can also have several outputs.
 
     ```
     recipe curry(servings: 4) -> Curry { ... }              // 出力の型を明示
@@ -712,26 +712,26 @@ macro marinate(x, minutes) {
     recipe filletBuri(fish: Buri) -> (Buri<fillet>, Buri<kama>, Buri<ara>)   // 複数の出力
     ```
 
-  - **作るか買うかの入れ替えは、型が同じことで成り立つ**: `make homemadeNaan` と `buy Naan` が同じ `Naan` 型を返すので、献立で入れ替えられる。
-  - **出力の性質は材料から自動で決まる**: アレルゲンは材料の和、安全（`Hazard`）は最後の火の通りから判定、状態の軸は最後の動作の結果を持つ。書き手がトレイトを足すこともできる。
-  - **`Dish` はトレイト**: 「盛り付けて出せるもの」を表す。器の既定値（`@vessel`）や出すタイミングの性質（`@serveWithin` など）の既定を持てる。だしのような中間の材料には付けない。
-- **作るか買うかを入れ替えられる**: カツ、アイス、ナン、ルウは、レシピで作っても市販品を買ってもよい。「型を満たすものなら、作っても買っても同じ」にする（拡張性の強みと合う）。
-- **出すタイミングを料理の性質として持つ**: 「すぐ出す（ラーメン、揚げたてのカツ）」「保温して待てる（カレー。ただしコンロを 1 口使い続ける）」「冷やしておく（サラダ）」「直前に組み立てる（パフェ）」など。スケジューラは、料理ごとの「出してよい時間の幅」を満たすように段取りを組む。揚げたてを順に出す場合も、コースではなく料理ごとの `@serveWithin` で表す。
-  - **語彙**:
+  - **Swapping make and buy works because the types are the same**: `make homemadeNaan` and `buy Naan` return the same `Naan` type, so they can be swapped in a menu.
+  - **The output's properties are decided automatically from the ingredients**: allergens are the union of the ingredients, safety (`Hazard`) is judged from the last doneness, and the state axes hold the result of the last action. Authors can also add traits.
+  - **`Dish` is a trait**: it means "something that can be plated and served". It can hold defaults for the vessel (`@vessel`) and for serving-timing properties (`@serveWithin` and so on). It is not put on intermediate ingredients such as dashi.
+- **Make or buy can be swapped**: katsu, ice cream, naan and roux can be made from a recipe or bought ready-made. "Anything that satisfies the type is the same, whether made or bought" (this fits the strength of extensibility).
+- **Serving timing is a property of the dish**: "serve right away (ramen, freshly fried katsu)", "can wait while kept warm (curry, though it keeps one burner busy)", "keep chilled (salad)", "assemble just before (parfait)" and so on. The scheduler builds the schedule so that each dish's "window in which it may be served" is met. Serving freshly fried items one after another is also expressed with each dish's `@serveWithin`, not with courses.
+  - **Vocabulary**:
 
-    | 性質 | 意味 | 例 | スケジューラへの効き方 |
+    | Property | Meaning | Example | Effect on the scheduler |
     |---|---|---|---|
-    | `@serveWithin(t)` | 仕上がってから t 以内に出す | ラーメン、揚げたてのカツ、ジュース | 仕上がりを出す時刻の直前に置く |
-    | `@keepWarm(on, max)` | 保温すれば max まで待てる | カレー（コンロ弱火）、ごはん（炊飯器の保温） | 待つ間、保温に使う設備を埋める |
-    | `@chilled` | 出すまで冷蔵庫で冷やしておく | サラダ、冷やした器 | 待つ間、冷蔵庫を使う |
-    | `@frozen` | 出す（組み立てる）まで冷凍庫に置く | アイス、氷 | 待つ間、冷凍庫を使う |
-    | `@justBeforeServe` | 出す直前に盛る・組み立てる | パフェ | `@serveWithin(2 min)` の別名として標準ライブラリで定義 |
+    | `@serveWithin(t)` | Serve within t after it is finished | Ramen, freshly fried katsu, juice | Places the finish just before the serving time |
+    | `@keepWarm(on, max)` | Can wait up to max if kept warm | Curry (burner on low), rice (rice cooker's keep-warm) | While waiting, occupies the equipment used to keep it warm |
+    | `@chilled` | Kept chilled in the fridge until served | Salad, chilled vessels | Uses the fridge while waiting |
+    | `@frozen` | Kept in the freezer until served (assembled) | Ice cream, ice | Uses the freezer while waiting |
+    | `@justBeforeServe` | Plate or assemble just before serving | Parfait | Defined in the standard library as an alias of `@serveWithin(2 min)` |
 
-  - **どこに書くか**: 料理の型（`Dish` トレイト）に既定値として書き、献立の `plate` で上書きできる。
-  - **何も書かないとき**: 制約はなく、常温で待てるものとして扱う。仕上がってから出すまでに長く待つ料理（30 分を超えるなど）は情報として出す（「カレーが 40 分待ちます」）。
-  - **保温は設備を使う**: カレーを保温している間はコンロが 1 口埋まる、ごはんを保温している間は炊飯器が埋まる。コンロの取り合いが正しく計算される。
-  - **作ってから使うまでの期限 `@useWithin(t)`**: 天ぷらの衣や切ったりんごのように、途中の値にも鮮度がある。`let batter = whisk([egg, water]) @useWithin(10 min)` と書くと、その値を作った作業の終わりから、その値を入力に取る**それぞれの**作業の始まりまでを t 以内にする（`@serveWithin` と同じく、作る作業を遅らせて組み直す）。守れなければ警告 `SCH011 useWithinMissed`。材料そのものに付けたときは `TYP017`。使う作業の無い値に付けても制約も診断も無い（使われないことは `unusedValue` が知らせる）。`make` で作った値にも効き、IR は変えない。
-  - **曖昧な時間の言い方は、範囲を持つ名前つきの性質として標準で定義する**: 「温かいうちに」「熱々で」のような表現も許容する。
+  - **Where to write it**: as a default on the dish's type (the `Dish` trait); a menu's `plate` can override it.
+  - **When nothing is written**: there is no constraint, and the dish is treated as able to wait at room temperature. A dish that waits a long time between being finished and served (say, more than 30 minutes) is reported as information ("The curry waits 40 minutes").
+  - **Keeping warm uses equipment**: while curry is kept warm, one burner is busy; while rice is kept warm, the rice cooker is busy. Competition for burners is computed correctly.
+  - **Deadline from making to using, `@useWithin(t)`**: intermediate values also have freshness, like tempura batter or cut apples. Writing `let batter = whisk([egg, water]) @useWithin(10 min)` keeps the time from the end of the task that made the value to the start of **each** task that takes the value as input within t (as with `@serveWithin`, the making task is delayed and the schedule rebuilt). If this cannot be kept, it is the warning `SCH011 useWithinMissed`. Putting it on an ingredient itself is `TYP017`. Putting it on a value with no task that uses it gives no constraint and no diagnostic (`unusedValue` reports that it is unused). It also works on values made with `make`, and does not change the IR.
+  - **Vague time expressions are defined in the standard library as named properties with a range**: expressions such as "while it is warm" or "piping hot" are allowed.
 
     ```
     property whileWarm   = serveWithin(5..15 min)    // 温かいうちに
@@ -741,19 +741,19 @@ macro marinate(x, minutes) {
     plate perPerson on DeepPlate { rice, curry } @whileWarm
     ```
 
-    - 範囲で持つので、スケジューラは範囲の内側で段取りを組める。厳密モードでも曖昧とはみなさない（§4.1 の範囲つきの単位と同じ扱い）。
-    - 表示は言葉のまま: 段取り表やレシピには「温かいうちに」と出す（言い回しファイルが性質ごとの呼び名を持つ。§7.1）。
-    - 料理ごとに範囲を上書きできる（薄いものは早く冷めるので狭める、など）。家の言い方も、書き手が同じ形で定義できる。
-    - 「粗熱が取れたら」は出すタイミングではなく待つ作業。冷ます動作（`cool`）を、`@unattended` で「ぬるくなるまで（目安の範囲）」として手順に書く。
+    - Because it is a range, the scheduler can build the schedule within the range. Strict mode does not treat it as vague either (the same as units with a range in §4.1).
+    - It is shown in words: the schedule table and the recipe say "while it is warm" (the phrase files hold a name for each property; §7.1).
+    - The range can be overridden per dish (narrowed for thin things that cool quickly, and so on). Authors can define their household's own expressions in the same form.
+    - "Once it has cooled a bit" is not a serving timing but a waiting task. Write the cooling action (`cool`) in the steps with `@unattended`, as "until lukewarm (an estimated range)".
 
-**提供の波（コース）**
+**Serving waves (courses)**
 
-一食の中のコースは、「**いつ出すかの波**」として軽く持つ。波の構造（記法・IR・JSON）と、複数の波のスケジュール（間隔、食事中に手を塞ぐ扱い）を対象とする。波は段取り表の章立てにも使う。
+Courses within one meal are kept lightly, as "**waves of when to serve**". The scope is the structure of waves (notation, IR, JSON) and the scheduling of several waves (intervals, and how hands are occupied during the meal). Waves are also used for the chapters of the schedule table.
 
-- 波は「同時に出すもののまとまり」と「前の波からの間隔」だけを持つ。既定は波 1 つ（全部いっしょに出す）。一汁三菜のような普通の食事は、波を書かなくて済む。
-- **波と波のあいだは「食事中」**: 作り手も食べているので手を塞ぐ。食事中に進められるのは放置の作業（`@unattended`。オーブンで焼く、冷やし固めるなど）だけ。食事の長さは間隔から取る。
-- **波は IR に入れる**: 出す時刻と食事中の手の扱いを決めるスケジュールの制約だから。波の名前（「メイン」「デザート」）は表示用なので、AST のメタデータ側に置く（§6）。
-- **入れないもの**: 入れ子のコース、皿ごとのペース配分（食べる速さは調理時の値で、コンパイル時に決まらない）、食卓で作り続ける料理（焼肉・鍋・手巻き寿司は「食卓に出すまで」を対象にする）。
+- A wave holds only "a group of things served together" and "the interval from the previous wave". The default is one wave (everything served together). An ordinary meal, such as one soup and three dishes, needs no waves written.
+- **Between waves is "during the meal"**: the cook is eating too, so their hands are occupied. Only unattended tasks (`@unattended`: baking in the oven, chilling to set, and so on) can progress during the meal. The length of the meal comes from the interval.
+- **Waves go into the IR**: they are scheduling constraints that decide serving times and how hands are handled during the meal. The wave names ("main", "dessert") are for display, so they go on the AST metadata side (§6).
+- **Not included**: nested courses, pacing per plate (eating speed is a value at cooking time and cannot be decided at compile time), and dishes cooked continuously at the table (for yakiniku, hot pot and hand-rolled sushi, the scope is "until it is brought to the table").
 
 ```
 menu katsuCurryNight(people: 4) {
@@ -774,41 +774,41 @@ menu katsuCurryNight(people: 4) {
 }
 ```
 
-**献立の記法（決定事項）**
+**Menu notation (decisions)**
 
-- **`plate` は動作、`serve` は波**: `plate` は料理を器に盛る動作（手と器を使い、時間がかかる。分け方 `perPerson` / `shared` と器の要求を持つ）。`serve` はいつ出すかの波（盛り付けたものをまとめ、出す時刻の制約を持つ）。`serve` の中に `plate` を並べる。
-- **器の代替順**: `on A or B` は「A を優先し、足りなければ B」。順序のない和集合（`alias` の `|`）とは記号を分ける。
-- **作る / 買う**: `make レシピ(引数)` と `buy 品名`。型が同じなら入れ替えられる。
-- **選択**: `choose perPerson from { make cookedRice, buy Naan }`。誰が何を選ぶかの内訳はビルド時の条件（人ごとの属性）で渡す。省略時は均等に分け、仮定の一覧に出す（§5.1）。
-- **組み立て**: `assemble { ... }` の並び順が、そのまま重ねる順。
-- **波**: `serve 名前 { ... }`。2 つ目以降は `after 前の波 + 間隔` を付ける。`serve` を書かなければ、すべてを 1 つの波で出す。
-- **出す時刻**: コードには書かない。ビルド時の条件 `--serve-at` で渡す（§4.2）。
-- **単品のレシピ**: レシピ側に器の既定値（`@vessel(DeepPlate or Donburi)` など）を書いておくと、料理 1 つの献立として自動で盛り付けと波が補われる。献立から使うときは、献立側の `plate` が優先される。
-- **共有**: 同じ食材を同じ切り方で切る作業は、記法なしでスケジューラが自動でまとめる。一度作ったものを分ける場合（チャーシューなど）は、献立で作り、`split` で分けてから、それぞれのレシピに引数として渡す。レシピは材料を引数で受け取れる（`recipe ramen(chashu: Chashu<shape: cut>)`）。
+- **`plate` is an action, `serve` is a wave**: `plate` is the action of putting a dish on a vessel (it uses hands and vessels and takes time; it has a split, `perPerson` / `shared`, and a vessel requirement). `serve` is a wave of when to serve (it groups what was plated and holds the constraint on the serving time). `plate` statements go inside `serve`.
+- **Vessel fallback order**: `on A or B` means "prefer A, and use B if there are not enough". It uses a different symbol from an unordered union (`|` in `alias`).
+- **Make / buy**: `make レシピ(引数)` and `buy 品名`. If the types are the same, they can be swapped.
+- **Choice**: `choose perPerson from { make cookedRice, buy Naan }`. The breakdown of who chooses what is given as a build condition (per-person attributes). If left out, it is split evenly and shown in the list of assumptions (§5.1).
+- **Assembly**: the order inside `assemble { ... }` is the layering order as is.
+- **Waves**: `serve 名前 { ... }`. The second and later waves get `after 前の波 + 間隔`. If no `serve` is written, everything is served in one wave.
+- **Serving time**: not written in the code. It is given as the build condition `--serve-at` (§4.2).
+- **A single recipe**: if the recipe has a default vessel (such as `@vessel(DeepPlate or Donburi)`), plating and a wave are filled in automatically as a one-dish menu. When used from a menu, the menu's `plate` takes priority.
+- **Sharing**: tasks that cut the same ingredient the same way are combined automatically by the scheduler, with no notation. When something made once is divided (chashu and so on), make it in the menu, divide it with `split`, and pass each part to a recipe as an argument. Recipes can take ingredients as arguments (`recipe ramen(chashu: Chashu<shape: cut>)`).
 
-### 4.6 ファイルの単位と拡張子
+### 4.6 File units and extension
 
-**拡張子: `.ozen` だけ**
+**Extension: only `.ozen`**
 
-| 置き場所（規約） | 例 | 中身の目安 |
+| Location (convention) | Example | What it usually holds |
 |---|---|---|
-| `pantry/` | `pantry/fish.ozen` | 食材・動作・器・汚れ・トレイト・別名 |
-| `recipes/` | `recipes/curry.ozen` | 1 料理 1 ファイル |
-| `menus/` | `menus/katsuCurryNight.ozen` | 一食の献立 |
-| `kitchens/` | `kitchens/myHome.ozen` | 台所スペック |
-| どこでも | `katsuCurry.ozen` | 何でも混在してよい（おすそわけ用の 1 ファイルなど） |
+| `pantry/` | `pantry/fish.ozen` | Ingredients, actions, vessels, dirt, traits, aliases |
+| `recipes/` | `recipes/curry.ozen` | One dish per file |
+| `menus/` | `menus/katsuCurryNight.ozen` | A menu for one meal |
+| `kitchens/` | `kitchens/myHome.ozen` | Kitchen spec |
+| Anywhere | `katsuCurry.ozen` | Anything may be mixed (a single file to share with others, and so on) |
 
-- **OS の関連付けは `.ozen` の 1 つ**: iOS の型識別子（UTType）も 1 つで済み、他のツールと衝突しない（`.recipe` は AutoPkg、`.menu` は Cooklang が使っている）。
-- **ファイルの種類を拡張子で区別しない**: 内側に `.recipe` などを付ける二重拡張子は使わない。
-  - **分類は中身から決める**: Ozendate はどのみちコアを呼んでファイルを解析するので、「料理が入っている」「台所が入っている」は中身から正確に分かる。アイコンや分類はこれで付ける（フォルダ単位でまとめて見せることもできる）。
-  - **フォルダがすでに目印になる**: `recipes/curry.ozen` で人にも中身の見当がつく。拡張子でも同じことを言うと重複になる。
-  - 目印と中身の食い違いという問題そのものが起きない。
-  - OS のファイル一覧では、すべて同じ `.ozen` のアイコンになる。ここは割り切る。
-- **`.oz` は使わない**: 既存の言語（Mozart/Oz）が使っている。
+- **One OS file association, `.ozen`**: iOS also needs only one type identifier (UTType), and it does not clash with other tools (`.recipe` is used by AutoPkg, `.menu` by Cooklang).
+- **File kinds are not told apart by extension**: no double extensions with `.recipe` and the like inside.
+  - **The kind is decided from the content**: Ozendate calls the core to parse the file anyway, so it can tell exactly from the content that "it has a dish" or "it has a kitchen". Icons and categories are set this way (it can also show things grouped by folder).
+  - **The folder is already a marker**: from `recipes/curry.ozen`, a person can guess the content too. Saying the same thing with the extension would be duplication.
+  - The problem of the marker and the content disagreeing never happens at all.
+  - In the OS file list, everything gets the same `.ozen` icon. We accept this.
+- **`.oz` is not used**: an existing language (Mozart/Oz) uses it.
 
-**ファイルの単位: 1 ファイル = 1 モジュール（名前空間）。ファイル同士は `import` でつなぐ**
+**File unit: one file = one module (namespace). Files are connected with `import`**
 
-おすすめの構成（規約。言語としては強制しない）:
+Recommended layout (a convention; the language does not enforce it):
 
 ```
 myKitchen/
@@ -831,17 +831,17 @@ menu katsuCurryNight(people: 4) {
 }
 ```
 
-- **依存は一方向**: 献立 → 料理 → 定義。料理が献立を `import` したり、ファイル同士が循環したりしたらエラー。
-- **台所は誰も `import` しない**: 献立も料理も台所を知らず、ビルド時に注入する（§4.2）。依存の向きがそのまま「要求と設備の分離」を守る。
-- **料理は献立をまたいで再利用できる**: 同じ `curry` を、カツカレーとカレーライスの献立の両方から使う。人数などの引数は献立から渡す。
+- **Dependencies go one way**: menu → dish → definitions. It is an error if a dish does an `import` of a menu, or if files form a cycle.
+- **Nobody does an `import` of a kitchen**: neither menus nor dishes know the kitchen; it is injected at build time (§4.2). The direction of dependencies itself keeps "requirements separate from equipment".
+- **Dishes can be reused across menus**: the same `curry` is used from both the katsu curry menu and the curry rice menu. Arguments such as the number of people are passed from the menu.
 
-**1 ファイルに全部書けるためのルール**
+**Rules that let you write everything in one file**
 
-1. **どの宣言も、どのファイルにも書ける**: 定義・料理・献立・台所を 1 ファイルに混ぜてよい。ファイルの種類で書ける宣言を縛らない（料理ファイルにその料理専用の小さな動作を書きたい場面も多い）。
-2. **宣言の順番に依存しない**（前方参照を許す）: 献立を先頭に書き、使う料理や定義を下に並べる、という読みやすい順で書ける。
-3. **入口は自動で決まり、複数あれば名前で選ぶ**: ファイルに献立が 1 つならそれが入口。複数あれば、プロジェクト内ではモジュール名で（`ozen build menus.dinners.katsuCurryNight`）、1 ファイルを単体で扱うときは `--entry` で選ぶ（§5.2）。献立がなく料理だけなら、料理 1 つの献立として扱う（書きかけの料理を単体で `ozen check` できる）。
-4. **台所も書けるが、自動では注入しない**: 共有したファイルに作者の台所が入っていても、受け取った人の段取りに勝手に使われないようにする。`--kitchen myHome` のように名前で選んだときだけ使う。料理や献立から台所を名前で参照するのはエラー。
-5. **分割しても、まとめても意味が変わらない**: 参照は名前で解決し、`import` は名前を持ち込むだけにする。1 ファイルで書き始め、育ってきたら料理を別ファイルに切り出して `import` を足す流れを自然にする。切り出しの前後で IR が同じになることをテストで確かめる。
+1. **Any declaration can go in any file**: definitions, dishes, menus and kitchens may be mixed in one file. The kind of file does not limit which declarations can be written (there are many cases where you want to write a small action just for that dish in the dish's file).
+2. **Declaration order does not matter** (forward references are allowed): you can write in a readable order, such as the menu at the top with the dishes and definitions it uses below.
+3. **The entry is decided automatically, and chosen by name if there are several**: if a file has one menu, that is the entry. If there are several, choose by module name inside a project (`ozen build menus.dinners.katsuCurryNight`), or with `--entry` when handling a single file on its own (§5.2). If there is no menu and only dishes, it is treated as a one-dish menu (so a half-written dish can be run through `ozen check` on its own).
+4. **Kitchens can be written too, but are not injected automatically**: even if a shared file contains the author's kitchen, it must not be used for the receiver's schedule without them knowing. It is used only when chosen by name, as in `--kitchen myHome`. Referring to a kitchen by name from a dish or a menu is an error.
+5. **Splitting or combining does not change the meaning**: references are resolved by name, and `import` only brings names in. This makes it natural to start writing in one file, and when it grows, move dishes out into separate files and add `import`. Tests confirm that the IR is the same before and after moving them out.
 
 ```
 // katsuCurry.ozen（1 ファイルに全部）
@@ -857,14 +857,15 @@ recipe tonkatsu(pieces: 4) { ... }
 action marinate(...) { ... }        // この献立専用の小さな定義
 ```
 
-共有されたファイルは信頼できない入力なので、1 ファイルが大きくなっても入力サイズや燃料の上限（§10）はそのまま効く。
+A shared file is untrusted input, so even if one file grows large, the limits on input size and fuel (§10) still apply.
 
-### 4.7 パッケージ・名前空間・import
+### 4.7 Packages, namespaces and import
 
-**パッケージ = 宣言ファイルを持つフォルダ**
+**Package = a folder with a declaration file**
 
-- フォルダ直下に `package.ozen` を置き、名前と版を**本言語で**書く。設定ファイル用の別形式（TOML など）は持ち込まない。
-- 標準ライブラリもパッケージ（名前は `std`）。`std` は予約名で、他のパッケージやモジュールは名乗れない。
+- Put `package.ozen` directly in the folder and write the name and version **in this language**. No separate format for configuration files (TOML and so on) is brought in.
+- The standard library is also a package (named `std`). `std` is a reserved name, and no other package or module can use it.
+
 
 ```
 // ourCookbook/package.ozen
@@ -878,25 +879,25 @@ package ourCookbook {
 }
 ```
 
-- 項目は名前、版、依存（`requires`）、ライセンス（省略可）だけ。既定値の項目は持たない（§5.2）。
+- The only fields are the name, the version, the dependencies (`requires`) and the license (optional). There are no fields for defaults (§5.2).
 
-**モジュール名 = パッケージ名 + フォルダの道筋**
+**Module name = package name + folder path**
 
-- `dashi/pantry/fish.ozen` は `dashi.pantry.fish`。
-- **同じパッケージ内はパッケージ名を省く**: 自分のパッケージの中はルートからの道筋だけで書き（`import recipes.curry`）、他のパッケージはパッケージ名から書く（`import dashi.pantry.fish`）。自分のパッケージの最上位のフォルダ名と、依存しているパッケージの名前が同じ場合は、読み込んだ時点で曖昧エラー。
+- `dashi/pantry/fish.ozen` is `dashi.pantry.fish`.
+- **Within the same package, the package name is left out**: inside your own package, write only the path from the root (`import recipes.curry`); for other packages, start with the package name (`import dashi.pantry.fish`). If a top-level folder name in your package is the same as the name of a package you depend on, it is an ambiguity error at load time.
 
-**公開・非公開（モジュール間のアクセス制御）**
+**Public and private (access control between modules)**
 
-- **既定は公開、`local` で隠せる**: `local` を付けた定義は、そのファイルの中だけで使える。`local` の名前を `import` しようとしたらエラー。
+- **Public by default, hidden with `local`**: a definition marked `local` can be used only inside that file. Trying to `import` a `local` name is an error.
 
   ```
   local action marinateBase(...) { ... }   // このファイルの中だけで使う
   ```
 
-- **目的**: パックを配った後も、作者が内部の補助的な動作の名前を変えたり消したりでき、それを使う側の料理が壊れない。エディタの補完やレンダラーの動作一覧に、内部の補助的なものが並ばない。
-- 束ねたとき（`ozen bundle`）も、`local` はそのモジュールの中に閉じたまま残る。
+- **Purpose**: even after a pack is distributed, the author can rename or remove internal helper actions without breaking the dishes that use the pack. Internal helpers do not show up in editor completion or in a renderer's list of actions.
+- When bundled (`ozen bundle`) too, `local` stays closed inside its module.
 
-**import の書き方**
+**How to write import**
 
 ```
 import std.units                  // units.cup のように修飾して使う
@@ -904,36 +905,36 @@ import std.units.{cup, tbsp}      // 個別に取り込む
 import dashi.pantry.fish as fish  // 別名
 ```
 
-- 基本の語彙（よく使う単位や動作）は `std.prelude` として**暗黙に取り込む**。それ以外は明示。
-- `*` で全部取り込む書き方は用意しない（衝突のもとになる）。
-- `import` は名前を持ち込むだけ。分割・統合しても意味が変わらない（§4.6）。
+- The basic vocabulary (common units and actions) is **brought in implicitly** as `std.prelude`. Everything else is explicit.
+- There is no form that brings in everything with `*` (it causes clashes).
+- `import` only brings names in. Splitting or combining does not change the meaning (§4.6).
 
-**名前の衝突**
+**Name clashes**
 
-- 2 つの `import` から同じ名前が来たら、**使った場所で**「曖昧」というエラーにする。取り込んだだけではエラーにしない。
-- ファイル内の定義は `import` より優先し、上書きしたことを情報として出す（§6.1）。
-- 地域で意味が違う語彙は、モジュールを分けて取り込み側で選ぶ（例: `cup` は `std.units.jp` と `std.units.us`）。これが「スコープごとの上書き」の中身。
+- If the same name comes from two `import`s, it is an "ambiguous" error **at the place where it is used**. Only bringing it in is not an error.
+- Definitions in the file take priority over `import`, and the override is reported as information (§6.1).
+- Vocabulary whose meaning differs by region is split into modules, and the importing side chooses (for example, `cup` is in `std.units.jp` and `std.units.us`). This is what "overriding per scope" means.
 
-**版の付け方と互換**
+**Versioning and compatibility**
 
-- **セマンティックバージョニング**: `主.副.修正`（`1.3.0`）。修正は不具合の修正だけ、副は既存のレシピを壊さない変更（語彙の追加など）、主は既存のレシピが通らなくなりうる変更。
-- **`std` はコンパイラに同梱し、同じ版番号にする**: `std` だけを別に入れ替えることはないので、版を 2 つ管理しない。
-- **`requires` に版の文字列だけ書いたら「互換」**: `"1.3"` は「1.3 以上で、主の版が同じもの」。範囲を細かく書く記法（`>=` など）は持たない。コピーして置いた依存は、そのコピーの版そのもの（下記）。
-- **合わないときはエラー（`PKG`）**: 手元の `std` より新しい副の版を要求している（`"1.5"` を 1.3 で読む）なら「Ozen を更新してください」と出す。主の版が違う場合もエラー。束ねたファイルに記録された `std` の版も、同じ規則で検査する。
-- **廃止の手順**: `std` の語彙を消すときは、先に副の版で非推奨の警告（`deprecated`）を出し、次の主の版で消す。
+- **Semantic versioning**: `主.副.修正` (`1.3.0`). Patch is only for bug fixes, minor is for changes that do not break existing recipes (adding vocabulary and so on), and major is for changes that may make existing recipes fail.
+- **`std` ships with the compiler and has the same version number**: `std` is never replaced on its own, so we do not manage two versions.
+- **A plain version string in `requires` means "compatible"**: `"1.3"` means "1.3 or later, with the same major version". There is no notation for detailed ranges (`>=` and so on). A dependency copied into the project is exactly the version of that copy (below).
+- **A mismatch is an error (`PKG`)**: if a newer minor version than the local `std` is required (reading `"1.5"` with 1.3), it says "Please update Ozen". A different major version is also an error. The `std` version recorded in a bundled file is checked by the same rule.
+- **Deprecation steps**: to remove vocabulary from `std`, first give a deprecation warning (`deprecated`) in a minor version, then remove it in the next major version.
 
-**版とオフライン**
+**Versions and offline use**
 
-- 依存するパッケージは、プロジェクトの中にコピーして置く（取り込み済みのコピーが、そのまま版の固定になる）。ネットワークから取ってこない。
-- 同じパッケージの 2 つの版が 1 つのプロジェクトに混ざったらエラー（1 人開発の規模ではこれで十分）。
+- Packages you depend on are copied into the project (the copy that was brought in is itself the version pin). Nothing is fetched from the network.
+- It is an error if two versions of the same package are mixed in one project (this is enough at the scale of one developer).
 
-**1 ファイルに束ねて共有する（`ozen bundle`）**
+**Bundling into one file to share (`ozen bundle`)**
 
-- `std` 以外の依存をすべて 1 ファイルに入れ込む。入れ込んだ部分は `module dashi.pantry.fish { ... }` のようなインラインのモジュールとして残し、名前空間を保つ。
-- 束ねたファイルには、作るときに使った `std` の版を記録する。
-- 束ねたファイルを単体でビルドするときは中のモジュールを使う。プロジェクトに取り込むとき、同じパッケージの別の版があればエラー。
-- 束ねたファイルの中で `std` を名乗るモジュールはエラー（標準ライブラリのすり替えを防ぐ。§10）。
-- **形式**: 束ねたファイルも普通の `.ozen` として読める。
+- All dependencies except `std` are put into one file. The parts put in stay as inline modules such as `module dashi.pantry.fish { ... }`, keeping their namespaces.
+- The bundled file records the `std` version used to make it.
+- When a bundled file is built on its own, the modules inside it are used. When it is brought into a project, it is an error if there is another version of the same package.
+- A module in a bundled file that calls itself `std` is an error (this prevents swapping out the standard library; §10).
+- **Format**: a bundled file can also be read as an ordinary `.ozen` file.
 
   ```
   // katsuCurry.ozen（ozen bundle で作ったもの）
@@ -956,13 +957,13 @@ import dashi.pantry.fish as fish  // 別名
   menu katsuCurryNight(people: 4) { ... }
   ```
 
-  - **入れるもの**: 入口と、そこから `import` されている定義・料理（依存パッケージの分も、使っている部分だけ）、言い回し（`phrases` ブロックに Fluent の本文をそのまま入れる）。
-  - **入れないもの**: 台所スペック、`std`（受け取る人の手元のものを使う）、使われていない定義。
-  - **並び順を固定する**: モジュール名の順。同じ入力からは毎回同じファイルができ、差分が取れる。
-  - **元に戻せる**: `ozen unbundle` で、モジュールごとのファイルとフォルダに戻せる（§4.6 の「分割しても、まとめても意味が変わらない」の逆向き）。
-  - **位置づけ**: パッケージの宣言（`package.ozen`）は SPM の `Package.swift` と同じく言語自身で書くマニフェスト。配布用の 1 ファイル化は SQLite の amalgamation に近い（ただしモジュールの境界を残すので戻せる）。
+  - **What goes in**: the entry and the definitions and dishes that it brings in with `import` (for dependency packages too, only the parts in use), and the phrases (the Fluent text is put as is into a `phrases` block).
+  - **What does not go in**: the kitchen spec, `std` (the receiver's local one is used), and unused definitions.
+  - **The order is fixed**: by module name. The same input always gives the same file, so diffs work.
+  - **It can be undone**: `ozen unbundle` turns it back into files and folders per module (the reverse of §4.6's "splitting or combining does not change the meaning").
+  - **Where it stands**: the package declaration (`package.ozen`) is a manifest written in the language itself, like SPM's `Package.swift`. Making one file for distribution is close to SQLite's amalgamation (but it keeps the module boundaries, so it can be undone).
 
-## 5. コンパイルパイプライン
+## 5. Compile pipeline
 
 ```
 DSL テキスト
@@ -977,15 +978,15 @@ DSL テキスト
  → （外部連携）ロボット向け   CBOR / FlatBuffers / 機種別コード（コア外のプラグイン）
 ```
 
-### 5.1 検証レベル（入力の有無で深さが変わる）
+### 5.1 Check levels (the depth changes with the inputs given)
 
-**与えた入力の分だけ検証が深くなり、与えていないものは「仮定」として明示する。** 1 つのパイプラインで、レシピだけの検査から完全な段取り表までをまかなう。
+**The checks go as deep as the inputs given, and what is not given is stated explicitly as an "assumption".** One pipeline covers everything from checking just a recipe to a complete schedule table.
 
-| レベル | 与えるもの | 検証すること | 仮定すること | 出力 |
+| Level | What is given | What is checked | What is assumed | Output |
 |---|---|---|---|---|
-| 0: レシピだけ | レシピ | 構文、次元・状態・線形の型、要求（`requires`）の書き方 | servings はレシピの既定値。人も設備も無制限 | IR と、最短でかかる時間（クリティカルパス） |
-| 1: 条件つき | + servings・cooks | 量の再展開、人手の取り合い | 設備は無制限 | 人手だけを考えた段取り |
-| 2: 台所つき | + 台所スペック | 要求と台所の照合、設備・器の枚数、洗い物の挿入、片付け | なし | 完全な段取り表 |
+| 0: Recipe only | Recipe | Syntax, types for dimensions, states and linearity, how requirements (`requires`) are written | servings is the recipe's default. Unlimited people and equipment | IR and the shortest possible time (critical path) |
+| 1: With conditions | + servings, cooks | Re-expanding amounts, competition for hands | Unlimited equipment | A schedule that considers only hands |
+| 2: With kitchen | + kitchen spec | Matching requirements against the kitchen, numbers of equipment and vessels, inserting washing up, cleanup | None | Complete schedule table |
 
 ```
 ozen check recipes.curry                                 # レベル 0（スケジュールを組まず型検査で止める）
@@ -993,26 +994,26 @@ ozen build recipes.curry --servings 6 --cooks 2          # レベル 1
 ozen build recipes.curry --kitchen myHome --cooks 2     # レベル 2
 ```
 
-- **レベルは入力から決まる**: コマンドでレベルを選ばせず、渡した入力で決める。`check` だけは型検査で止める高速版として分け、エディタで打つたびに検査する用途（LSP は外部連携）に使う。
-- **仮定を出力に含める**: 「台所未指定のため、設備は無制限と仮定」のような一覧を結果に付ける。Ozendate はそれを見て「この時間は最短の目安」と表示できる。仮定は診断の「情報」（分類: 仮定）と同じ形で返す（§6.1）。
-- **不変条件: 情報を足すと、制約と診断は増えるだけ（減らない）**。レベル 0 で出たエラーは、レベル 2 でも必ず出る。テストで確かめる。
-- **レベルに合わないオプションは診断する**: 例: `--cleanup` は洗い場や道具の数が分からないと意味がないので、台所なしで指定されたら警告して無視する。どのオプションがどの入力を前提にするかは、`Options` の型定義に書く（§4.2）。
-- **API は同じ関数のまま**: `recipe_build` の `kitchen_utf8` / `options_utf8` に NULL を渡すと「未注入」（§8）。公開 API を増やさない。
+- **The level is decided by the inputs**: the command does not ask you to choose a level; the inputs you pass decide it. Only `check` is separate, as a fast version that stops at the type check, used for checking on every keystroke in an editor (LSP is an external integration).
+- **Assumptions are included in the output**: the result has a list such as "No kitchen given, so equipment is assumed unlimited". Ozendate can see this and show "this time is the shortest estimate". Assumptions are returned in the same form as diagnostic "information" (category: assumption) (§6.1).
+- **Invariant: adding information only adds constraints and diagnostics (never removes them)**. An error found at level 0 is always found at level 2 too. Tests confirm this.
+- **Options that do not fit the level are diagnosed**: for example, `--cleanup` means nothing without knowing the sink and the number of tools, so if it is given without a kitchen, it warns and ignores it. Which option assumes which input is written in the type definition of `Options` (§4.2).
+- **The API stays the same function**: passing NULL to `kitchen_utf8` / `options_utf8` of `recipe_build` means "not injected" (§8). The public API does not grow.
 
-### 5.2 ビルドの単位とコマンド
+### 5.2 Build units and commands
 
-**ビルドの単位**
+**Build units**
 
-| すること | 最小単位 | 理由 |
+| What you do | Smallest unit | Reason |
 |---|---|---|
-| 型の検査（レベル 0） | 定義（モジュール） | 単位の循環や状態の矛盾は、定義だけで検査できる。段取りはない |
-| ビルド（段取りまで） | 料理（レシピ） | 料理 1 つの献立として自動で包む（器の既定値と波 1 つ。§4.5） |
-| 実際に作る単位 | 献立（一食） | 台所の取り合い、洗い物、器、使い切りが効くのは献立 |
+| Type check (level 0) | Definitions (module) | Unit cycles and state contradictions can be checked with definitions alone. There is no schedule |
+| Build (through the schedule) | Dish (recipe) | Automatically wrapped as a one-dish menu (the default vessel and one wave; §4.5) |
+| Unit you actually cook | Menu (one meal) | Competition for the kitchen, washing up, vessels and using things up matter at the menu level |
 
-- **料理を単体でビルドするとき**: 材料を引数で受け取るレシピは、引数を「外から来る材料（買ってきた扱い）」と仮定する。器の既定値がないレシピは、盛り付けを省いて「仕上がるまで」の段取りにする。どちらも仮定の一覧に出す（§5.1）。
-- **コンパイルの単位は献立**: 料理を別々にコンパイルしてから献立でつなぐ（分割コンパイル）はしない。同じ料理でも、献立によって人数や引数が変わり IR が変わるため。献立ごとに必要な料理をまとめてコンパイルする。速さが必要になったら、引数ごとに結果をキャッシュする形で足す。
+- **When building a dish on its own**: for a recipe that takes ingredients as arguments, the arguments are assumed to be "ingredients from outside (treated as bought)". For a recipe without a default vessel, plating is left out and the schedule goes "until it is finished". Both are shown in the list of assumptions (§5.1).
+- **The compile unit is the menu**: dishes are not compiled separately and then joined in the menu (separate compilation). Even the same dish gets a different number of people and arguments, and so a different IR, depending on the menu. The dishes each menu needs are compiled together. If speed becomes necessary, it will be added as a cache of results per set of arguments.
 
-**入口の指し方**
+**How to point to the entry**
 
 ```
 ozen build menus.katsuCurryNight            # モジュールの入口が 1 つならこれで決まる
@@ -1021,28 +1022,28 @@ ozen build menus/katsuCurryNight.ozen       # ファイルの道筋も使える
 ozen build katsuCurry.ozen --entry katsuCurryNight   # 1 ファイルを単体で扱うとき
 ```
 
-- 先頭から順にモジュールとして解決し、残りを入口の名前として読む。
-- `file:name` の書き方は使わない（ファイル名に `:` を使える OS があり区別できないため）。
-- 入口が複数あるのに指定がなければ、候補を並べたエラーにする。
+- It is resolved as a module from the start, and the rest is read as the entry name.
+- The form `file:name` is not used (some OSes allow `:` in file names, so it cannot be told apart).
+- If there are several entries and none is given, it is an error that lists the candidates.
 
-**台所などの注入**
+**Injecting the kitchen and so on**
 
-- `-k home` はプロジェクト内の台所の宣言から名前で探す（`kitchens/` に置くのは規約で、強制しない）。ファイルの道筋も受け付ける。同じ名前が複数見つかったら曖昧エラー。
-- **既定値の仕組みは持たない**: 台所などは毎回注入する。省略したら、台所なしのレベルで検査されるだけ（§5.1）。
+- `-k home` searches the kitchen declarations in the project by name (putting them in `kitchens/` is a convention, not enforced). A file path is also accepted. If the same name is found more than once, it is an ambiguity error.
+- **There is no mechanism for defaults**: the kitchen and the like are injected every time. If left out, the check just runs at the level without a kitchen (§5.1).
 
-**オプションの短い形**
+**Short forms of options**
 
-| 長い形 | 短い形 |
+| Long form | Short form |
 |---|---|
 | `--kitchen` | `-k` |
 | `--cooks` | `-c` |
 | `--servings` | `-s` |
 | `--serve-at` | `-t` |
 
-- `--entry`・`--cleanup`・`--prefer` など毎回は使わないものは、長い形だけ。
-- 長い形の途中までの省略（`--kit` で `--kitchen`）は入れない（後でオプションを足したときに、それまでの省略形が曖昧になって壊れるため）。
+- Options not used every time, such as `--entry`, `--cleanup` and `--prefer`, have only the long form.
+- Abbreviating a long form partway (`--kit` for `--kitchen`) is not supported (when options are added later, earlier abbreviations would become ambiguous and break).
 
-**プロジェクト単位のビルド**
+**Building a whole project**
 
 ```
 ozen check                 # プロジェクト全体を検査
@@ -1052,11 +1053,11 @@ ozen build recipes -k home # 料理フォルダ以下だけ
 ozen build menus.curryNight menus.yakisobaLunch -k home   # 複数を指定
 ```
 
-- **対象**: 指定した範囲のすべての入口。献立はそのまま、料理は料理 1 つの献立として扱う。定義だけのモジュール（パントリー）は検査だけをする。入口を指定しなければプロジェクト全体。
-- **それぞれ独立にビルドする**: 献立ごとに段取り表が 1 つずつ出て、献立同士の台所の取り合いは考えない（献立は一食。§4.5）。
-- **順番**: モジュール名の順に直列で回す。結果の並びが毎回同じになり、差分が取りやすい。
-- **失敗しても止めない**: 1 つでエラーが出ても残りは続ける。最後に「何件中何件が通ったか」の一覧を出し、1 件でもエラーがあれば終了コードを失敗にする（CI で使うため）。
-- **出力**: 入口ごとに、IR・段取り表・診断を、モジュールの道筋に合わせたフォルダへ出す。
+- **Targets**: all entries in the given scope. Menus are taken as they are, and dishes are treated as one-dish menus. Modules with only definitions (pantry) are only checked. If no entry is given, the whole project.
+- **Each is built independently**: one schedule table comes out per menu, and competition for the kitchen between menus is not considered (a menu is one meal; §4.5).
+- **Order**: run one after another in module name order. The order of the results is the same every time, which makes diffs easy.
+- **Do not stop on failure**: even if one has an error, the rest continue. At the end, a list of "how many passed out of how many" is shown, and if there is even one error, the exit code is failure (for use in CI).
+- **Output**: for each entry, the IR, schedule table and diagnostics are written to a folder that follows the module path.
 
   ```
   out/
@@ -1065,77 +1066,77 @@ ozen build menus.curryNight menus.yakisobaLunch -k home   # 複数を指定
     index.json                 全入口の一覧と結果（レンダラーが使う）
   ```
 
-**責務の分け方**
+**How responsibilities are split**
 
-- **コア**: 入口を 1 つ受け取って、1 つ分の結果を返すだけ。ファイルを読まない純粋な関数なので（§8）、プロジェクトを歩く処理は持たない。
-- **ドライバー（CLI・Ozendate）**: フォルダを歩いて入口を集め、コアを順番に呼び、出力を書き出す。標準ライブラリの解析結果などは、1 回のビルドの中で使い回してよい。
-- **レンダラー**: `index.json` と各入口の結果を読んで、本やページの形にする。目次や章立てなど「本としての見せ方」はレンダラーの責務（§7.1）。
+- **Core**: only takes one entry and returns one result. It is a pure function that does not read files (§8), so it has no code that walks a project.
+- **Driver (CLI, Ozendate)**: walks folders to collect entries, calls the core in order, and writes out the output. Things like the parsed standard library may be reused within one build.
+- **Renderer**: reads `index.json` and each entry's result and turns them into a book or pages. "How it looks as a book", such as the table of contents and chapters, is the renderer's job (§7.1).
 
-## 6. IR とデータ表現の原則
+## 6. Principles of the IR and data representation
 
-> **コアは機械が扱いやすい形だけを持ち、人に見せる形は端（コアの外）に寄せる。**
+> **The core holds only forms that are easy for machines to handle, and forms shown to people are pushed to the edge (outside the core).**
 
-- **正本は、アリーナ上の構造体配列の IR**（整数 ID 参照、タグ付き union、SSA）。JSON やテキスト IR は、その場で書き出す**ビュー**に過ぎない。
-- **AST と IR は別物**: AST は編集の正本（構文の見た目に近い）、IR は検査後の成果物（正規化済み、依存グラフ・資源要求つき）。
-- **テキスト IR（LLVM IR 風）**: デバッグ・テスト期待値・差分確認用。コアの出力の 1 つとして最初に実装すると、型検査やスケジューラのテストが書きやすい。正本にはしない。
+- **The source of truth is the IR as arrays of structs on an arena** (references by integer ID, tagged unions, SSA). JSON and the text IR are only **views** written out on the spot.
+- **The AST and the IR are different things**: the AST is the source of truth for editing (close to how the syntax looks), and the IR is the product after checking (normalized, with a dependency graph and resource requirements).
+- **Text IR (in the style of LLVM IR)**: for debugging, test expectations and checking diffs. Implementing it first as one of the core's outputs makes it easier to write tests for the type checker and the scheduler. It is not made the source of truth.
   ```
   %o1 = slice  %onion : Onion<shape: peeled> -> Onion<shape: cut(slice, 3 mm)>  [hands, Counter, CuttingSurface 2m]
   %o2 = fry    %o1    : Onion<shape: cut> -> Onion<doneness: done>             [hands, HeatSource<stovetop>, FryingPan 10m]
   ```
-- **JSON**: UI・他プログラムへの受け渡し用ビュー。DAG はノード配列 + 整数 ID 参照（+ 必要ならエッジ表）で表す。ノード種別は `"op"` タグ。数量は `{value, unit}`（有理数は `{num, den}`）。`schemaVersion` を入れる。
-- **機器向け（外部連携）**: ロボットや調理家電との連携に着手するときに入れる。それまではテキスト IR ダンプと JSON だけ。
-  - 第一候補は CBOR（RFC 8949）: JSON と同じデータの形をそのままバイナリにでき、スキーマのコンパイルが要らない。JSON 出力と同じ構造をほぼそのまま書き出せる。
-  - FlatBuffers は、機器側が必要とする場合だけ追加する（読み込み時のコピーが要らない利点がある一方、スキーマの管理が増える）。
-  - 今のうちに守ること: IR を平らな表で、整数の ID で参照し合う形に保つ（どの形式への書き出しも機械的にできる）。IR に属性を足せる余地を残す（§3）。
-- **診断**: コアは**エラーコード + span + 引数**だけを返し、日本語/英語の文面は表示層で作る（多言語化にも効く）。
-- **IR に表示用情報を混ぜない**（材料の並び順・見出しなどは AST / メタデータ側）。例: 提供の波は IR に入れる（スケジュールの制約）が、波の名前はメタデータ側に置く（§4.5）。
-- **数値**: 浮動小数点を避け、**有理数または固定小数点**で持つ（環境間で結果を一致させる）。
+- **JSON**: a view for handing data to the UI and other programs. The DAG is a node array + references by integer ID (+ an edge table if needed). The node kind is the `"op"` tag. Quantities are `{value, unit}` (rational numbers are `{num, den}`). It includes `schemaVersion`.
+- **For devices (external integration)**: added when work starts on integration with robots and cooking appliances. Until then, only the text IR dump and JSON.
+  - The first choice is CBOR (RFC 8949): it can turn the same data shape as JSON directly into binary, with no schema compilation. The same structure as the JSON output can be written out almost as is.
+  - FlatBuffers is added only if a device needs it (it has the advantage of no copying when reading, but adds schema management).
+  - What to keep now: keep the IR as flat tables that refer to each other by integer IDs (so writing out to any format can be done mechanically). Leave room to add attributes to the IR (§3).
+- **Diagnostics**: the core returns only **an error code + span + arguments**, and the Japanese/English text is made in the display layer (this also helps localization).
+- **No display information mixed into the IR** (ingredient order, headings and so on belong to the AST / metadata side). Example: serving waves go into the IR (they are scheduling constraints), but wave names go on the metadata side (§4.5).
+- **Numbers**: avoid floating point and keep **rational or fixed-point** numbers (so results match across environments).
 
-### 6.1 診断の設計（エラー・警告・情報）
+### 6.1 Diagnostic design (errors, warnings, information)
 
-診断はどの段階（構文、型検査、台所との照合、スケジュール）からも出るため、重さの基準を揃える。
+Diagnostics come from every stage (syntax, type check, matching against the kitchen, scheduling), so the severity criteria are made consistent.
 
-| 重さ | 基準 | 例 |
+| Severity | Criterion | Example |
 |---|---|---|
-| エラー | このままでは料理として成り立たない、または安全でない | 状態の抜け（皮をむかずに切る）、量の不足、二重消費、単位の不一致、生肉の後に洗わず使う、生の豚肉・鶏肉の加熱不足、台所が要求を満たさない、人数が決まらないのに 1 人あたりの量がある（`servingsUnknown`）、0 以下の量（`nonPositiveAmount`）、`until:` の時間が分からない（`untilTime`）、`until:` で進められない状態（`untilTarget`） |
-| 警告 | おそらく間違いだが、続行はできる | 「適量」（通常モード）、器の容量超過、硬い食材より先に柔らかい食材を入れる、立てる人数より作る人が多い、レベルに合わないオプション、使われない値（`unusedValue`）、作ってから使うまでの期限を守れない（`useWithinMissed`）、半熟の卵を出す（`lightlyCookedEgg`。生で食べられる新鮮な卵を使う前提を伝える） |
-| 情報 | 問題ではないが、知っておくと役に立つ事実 | 残った部位（アラ 300 g）、挿入した洗い、代わりに使った器（丼を 1 枚）、仮定（設備は無制限）、最短時間 |
+| Error | As it is, it does not work as cooking, or it is not safe | Missing state (cutting without peeling), not enough of an amount, consuming twice, unit mismatch, using something after raw meat without washing, undercooked raw pork or chicken, the kitchen does not meet the requirements, an amount per person when the number of people is not decided (`servingsUnknown`), an amount of 0 or less (`nonPositiveAmount`), the time for `until:` is unknown (`untilTime`), a state that `until:` cannot advance to (`untilTarget`) |
+| Warning | Probably a mistake, but it can go on | "To taste" (normal mode), over a vessel's capacity, adding a soft ingredient before a hard one, more cooks than people who can stand in the kitchen, an option that does not fit the level, an unused value (`unusedValue`), a deadline from making to using that cannot be kept (`useWithinMissed`), serving a soft-boiled egg (`lightlyCookedEgg`; it tells the assumption that fresh eggs safe to eat raw are used) |
+| Information | Not a problem, but a useful fact to know | Leftover parts (fish trimmings 300 g), inserted washing, a vessel used instead (one donburi bowl), assumptions (unlimited equipment), the shortest time |
 
-迷ったときの基準: **作り手がそのまま進めたら困るか**。困るならエラーか警告、困らないなら情報。
+The rule when unsure: **would the cook be in trouble if they went on as is?** If so, it is an error or a warning; if not, it is information.
 
-**ルール**
-- **重さは診断コードごとの既定値で、設定で変えられる**（コンパイラの警告フラグと同じ考え方）。例: 厳密モードでは「適量」をエラーに、「使い切り」を目標にした日は残った部位を警告に上げる。設定はビルド時の条件（型つき、§4.2）や、レシピ内の注釈（`@allow(leftoverPart)` など）で渡す（下の「重さの設定」）。
-- **安全に関わるエラーは下げられない**: 食品衛生（`Hazard`）とアレルゲンのエラー（分類 `SAF`）は、設定で警告にできない。
-- **意図を書けば、出さなくてよい**: `store(ara)` と書いてあれば、残りは「保存」として段取り表に載るだけで、診断は出さない。
-- **線形型の保証は保つ**: 残りが黙って消えることはなく、宣言がなくても必ず情報として報告される。
-- **単調性（§5.1）は同じ設定の下で成り立つ**: 入力を足しても診断は減らない。重さの設定を変えたときは、その限りではない。
+**Rules**
+- **Severity is a default per diagnostic code and can be changed by settings** (the same idea as a compiler's warning flags). Example: in strict mode, "to taste" becomes an error, and on a day aiming at "using everything up", leftover parts are raised to warnings. Settings are passed as build conditions (typed, §4.2) or as annotations in the recipe (`@allow(leftoverPart)` and so on) (see "Severity settings" below).
+- **Safety errors cannot be lowered**: errors about food hygiene (`Hazard`) and allergens (category `SAF`) cannot be turned into warnings by settings.
+- **If you write the intent, it need not be reported**: if `store(ara)` is written, the rest just appears in the schedule table as "store", and no diagnostic is given.
+- **The guarantee of linear types is kept**: leftovers never disappear silently; they are always reported as information, even without a declaration.
+- **Monotonicity (§5.1) holds under the same settings**: adding inputs never reduces diagnostics. This does not hold when the severity settings are changed.
 
-**診断の中身**
-- 診断コード、重さ（既定値と、設定で変わった後の値）、分類（仮定など）
-- span と引数（文面は表示層で作る）
-- 関連する位置（マクロの展開履歴、関係する別の行）
-- 直し方の候補（機械で読める形）: 「`peel` を足す」「丼を使う」など。エディタの修正提案や Ozendate のボタンに使う。
+**What a diagnostic contains**
+- Diagnostic code, severity (the default and the value after settings change it), category (assumption and so on)
+- Span and arguments (the text is made in the display layer)
+- Related locations (macro expansion history, other related lines)
+- Candidate fixes (in a machine-readable form): "add `peel`", "use a donburi bowl" and so on. Used for fix suggestions in editors and for buttons in Ozendate.
 
-**診断コード: 分類 + 番号、それに名前を付ける**
+**Diagnostic codes: category + number, plus a name**
 
-| 分類 | 内容 | 例 |
+| Category | What it covers | Example |
 |---|---|---|
-| `SYN` | 構文 | 括弧の対応 |
-| `NAM` | 名前の解決・import | 曖昧な名前、`local` の import |
-| `TYP` | 型（次元・状態） | 単位の不一致、皮をむかずに切る |
-| `LIN` | 線形（量） | 量の不足、二重消費、残った部位 |
-| `SAF` | 安全 | 加熱不足、生肉の後に洗わず使う、アレルゲン |
-| `KIT` | 台所との照合 | 設備がない、器が足りない |
-| `SCH` | 段取り | 器の容量超過、立てる人数を超える |
-| `MAC` | 評価・マクロ | 燃料切れ、展開の上限 |
-| `PKG` | パッケージ・ファイル | 版の混在、依存の循環 |
-| `ASM` | 仮定 | 設備は無制限と仮定 |
+| `SYN` | Syntax | Matching brackets |
+| `NAM` | Name resolution, import | Ambiguous names, import of a `local` |
+| `TYP` | Types (dimensions, states) | Unit mismatch, cutting without peeling |
+| `LIN` | Linearity (amounts) | Not enough of an amount, consuming twice, leftover parts |
+| `SAF` | Safety | Undercooking, using something after raw meat without washing, allergens |
+| `KIT` | Matching against the kitchen | No equipment, not enough vessels |
+| `SCH` | Schedule | Over a vessel's capacity, more than the number of people who can stand |
+| `MAC` | Evaluation, macros | Out of fuel, expansion limit |
+| `PKG` | Packages, files | Mixed versions, dependency cycles |
+| `ASM` | Assumptions | Equipment assumed unlimited |
 
-- すべての診断は `TYP012` のようなコード（分類の接頭辞 + 3 桁の番号。Flake8・Ruff と同じ形）と、`peelMissing` のような名前を持つ。出力には両方を出し、設定では読みやすい名前を使う。
-- 重さはコードに含めない（重さは設定で変わるため）。
-- 一度使ったコードと名前は、廃止しても再利用しない。
+- Every diagnostic has a code such as `TYP012` (a category prefix + a 3-digit number, the same form as Flake8 and Ruff) and a name such as `peelMissing`. Both are shown in the output, and settings use the readable name.
+- The severity is not part of the code (because the severity changes with settings).
+- A code and name once used are never reused, even after being retired.
 
-**重さの設定**
+**Severity settings**
 
 ```
 ozen build -k home --deny vagueAmount --warn leftoverPart
@@ -1148,51 +1149,51 @@ recipe tonjiru(...) @warn(staining) { ... }   // このレシピ全体
 let ara = ... @expect(leftoverPart)         // 出るはず。出なくなったら警告
 ```
 
-- **ビルド時**（`--allow` / `--warn` / `--deny`）: その回のビルド全体の既定を変える。厳密モード（`--strict`）は、診断のまとまり `strict` に対する `--deny`（§4.1）。名前のほか、分類の接頭辞（`LIN` など）や、名前つきのまとまり（`strict` など）でもまとめて指定できる。
-- **コード**（`@allow` / `@warn` / `@deny` / `@expect`）: 付けた宣言や式の範囲だけを変える。
-- **`@expect`**: 診断を抑えつつ、その診断が出なくなったら警告する（料理を直してアラが残らなくなったのに、古い注釈が残る、を防ぐ）。
-- **優先順位**: 狭い範囲が優先。コードの注釈 > ビルド時の指定 > 標準の既定値（書いた場所の意図が一番具体的なため）。
-- **`SAF` の診断はどこからも下げられない**: `@allow` を付けてもエラーのままで、「この診断は下げられません」という情報を足して出す（Rust の `forbid` と同じ考え方）。
-- **取り込んだパッケージの診断は既定で表示を抑える**: 自分のコードの診断だけを見せる（Cargo が依存先に `--cap-lints allow` を渡すのと同じ考え方）。ただし `SAF` のエラーは依存先のものでも必ず出す。束ねた共有ファイルの中の注釈は、そのモジュールの中だけで効く。
+- **At build time** (`--allow` / `--warn` / `--deny`): changes the defaults for that whole build. Strict mode (`--strict`) is `--deny` on the diagnostic group `strict` (§4.1). Besides names, you can also set several at once by category prefix (`LIN` and so on) or by a named group (`strict` and so on).
+- **In code** (`@allow` / `@warn` / `@deny` / `@expect`): changes only the scope of the declaration or expression it is put on.
+- **`@expect`**: suppresses the diagnostic, and warns if that diagnostic stops appearing (this prevents an old annotation from staying after the dish was fixed and no trimmings are left any more).
+- **Priority**: the narrower scope wins. Code annotations > build-time settings > standard defaults (because the intent at the place it is written is the most specific).
+- **`SAF` diagnostics cannot be lowered from anywhere**: even with `@allow`, they stay errors, and an extra piece of information "This diagnostic cannot be lowered" is given (the same idea as Rust's `forbid`).
+- **Diagnostics from packages brought in are hidden by default**: only the diagnostics of your own code are shown (the same idea as Cargo passing `--cap-lints allow` to dependencies). However, `SAF` errors are always shown, even from dependencies. Annotations inside a bundled shared file work only inside that module.
 
-**出力形式**
+**Output format**
 
-- 標準は本言語の `diagnostics.json`。`--format sarif` で SARIF 2.1.0（OASIS の静的解析結果の交換形式）としても書き出せる。診断の中身（コード、重さ、span、関連する位置、直し方の候補）は、SARIF の ruleId・level・locations・relatedLocations・fixes にほぼ 1 対 1 で対応する（重さの「情報」は SARIF の `note`）。
+- The standard is this language's own `diagnostics.json`. With `--format sarif`, it can also be written as SARIF 2.1.0 (OASIS's exchange format for static analysis results). The contents of a diagnostic (code, severity, span, related locations, candidate fixes) map almost one to one to SARIF's ruleId, level, locations, relatedLocations and fixes (the severity "information" is SARIF's `note`).
 
-## 7. コアの責務の線引き
+## 7. Where the core's responsibilities end
 
-| 項目 | 置き場所 | 理由 |
+| Item | Where it lives | Reason |
 |---|---|---|
-| パース、AST、展開・評価、型検査、スケジュール、IR | コア | 言語の本体 |
-| 診断（コード + span） | コア | 各 UI が描画する |
-| テキスト IR ダンプ、JSON 出力 | コア（ビュー） | テスト・連携用 |
-| HTML、ガント図、PDF | **コアの外** | 見た目の話。JS/TS 等で書き、全環境の WebView 等で共有できる |
-| 買い物リスト集計 | どちらでも可 | 計算寄りならコア |
-| ロボット向けコード | コアの外（プラグイン） | 機種依存。外部連携として後回し |
-| 文章の材料になる構造データ、動作シグネチャ一覧（JSON） | コア（ビュー） | レンダラーと整合チェックの入力 |
-| プロジェクトを歩いて入口を集め、順番にビルドし、出力を書き出す | **コアの外**（ドライバー: CLI・Ozendate） | コアはファイルを読まない純粋な関数（§5.2） |
-| レシピ文章・段取り表の生成、言い回し（多言語） | **コアの外** | 見た目と言語の話。コードには持たない（§7.1） |
+| Parsing, AST, expansion and evaluation, type check, scheduling, IR | Core | The body of the language |
+| Diagnostics (code + span) | Core | Each UI draws them |
+| Text IR dump, JSON output | Core (view) | For tests and integration |
+| HTML, Gantt chart, PDF | **Outside the core** | A matter of appearance. Written in JS/TS or similar, and shared by the WebView or similar on every platform |
+| Shopping list totals | Either | In the core if it leans toward calculation |
+| Code for robots | Outside the core (plugin) | Depends on the machine. Deferred as an external integration |
+| Structured data that feeds the text, list of action signatures (JSON) | Core (view) | Input to the renderer and to the consistency check |
+| Walking the project to collect entry points, building them in order, and writing the output | **Outside the core** (driver: CLI / Ozendate) | The core is a pure function that reads no files (§5.2) |
+| Generating recipe text and the schedule table, phrases (many languages) | **Outside the core** | A matter of appearance and language. Not kept in the code (§7.1) |
 
-### 7.1 文章の生成（レンダラー）と言い回しの分離
+### 7.1 Generating text (the renderer) and keeping phrases separate
 
-レシピの文章は、**後続のアプリ（レンダラー）**が作る。コアは言い回しを一切知らない。**コードは言語に依存しない識別子だけを持ち、言い回しは別ファイルに分ける**（アプリの多言語化と同じ分け方）。
+The recipe text is made by **a later app (the renderer)**. The core knows nothing about phrases. **The code holds only language-independent identifiers, and the phrases go in separate files** (the same split as app localization).
 
-**コアが出すもの**
-- 文章の材料になる構造データ（JSON ビューの一種）: 各手順の動作、引数、食材の表示名、所要時間、使う資源、挿入した洗いの理由など。
-- 動作シグネチャ一覧（JSON）: 言い回しとの整合チェックに使う。
+**What the core outputs**
+- Structured data that feeds the text (a kind of JSON view): for each step, the action, arguments, display names of ingredients, time needed, resources used, reasons for inserted washing, and so on.
+- A list of action signatures (JSON): used to check consistency with the phrases.
 
-**レンダラーが持つもの**
-- **2 種類の文章**:
-  - レシピ: 依存の順に並べた、台所によらない手順書。検証レベル 0 の出力から作る（§5.1）。
-  - 段取り表: 「18:00 玉ねぎを切る（あなた）」のような、台所と人数に合わせた時刻つきの手順。レベル 2 の出力から作る。
-- **手順のまとめ方**: 細かい動作を「玉ねぎは皮をむいて薄切りにする」のように 1 文にまとめる判断。
-  - 基本はレンダラーが DAG から推定する（同じ食材に続けて行う作業〔皮をむく → 切る〕を 1 文にまとめる）。
-  - 書き手が明示したいときだけ `@group(見出しのキー)` を付ける。その範囲を 1 つのまとまりとして表示する。表示だけの情報で、AST のメタデータに残り、IR には入らない（§6）。
+**What the renderer holds**
+- **Two kinds of text**:
+  - Recipe: a step list in dependency order that does not depend on the kitchen. Made from the output of verification level 0 (§5.1).
+  - Schedule table: timed steps fitted to the kitchen and the number of people, such as "18:00 Cut the onion (you)". Made from the output of level 2.
+- **How steps are grouped**: deciding to merge small actions into one sentence, such as "Peel the onion and slice it thin".
+  - By default the renderer infers this from the DAG (work done in a row on the same ingredient [peel → cut] becomes one sentence).
+  - Only when the writer wants to be explicit, they add `@group(見出しのキー)`. That range is shown as one group. It is display-only information: it stays in the AST metadata and does not go into the IR (§6).
 
     ```
     let sliced = slice(peel(onion), 3 mm) @group(onion-prep)
     ```
-- **提供の波を章立てに使う**（§4.5）: 段取り表では「〜を出す」を見出しにし、その間の作業をまとめる。波と波のあいだには「食事中」の欄を設け、放置で進む作業を載せる。時刻のないレシピでは「メイン」「デザート」の区切りにする。「下ごしらえ」「調理」の区切りは、最初の波より前の作業を出す時刻からの距離でレンダラーが分ける（ソースに書かせない）。
+- **Use serving waves as chapters** (§4.5): in the schedule table, "Serve ..." becomes a heading, and the work in between is grouped under it. Between waves there is a "During the meal" row that lists work that proceeds while left alone. In a recipe without times, the split is "Main" and "Dessert". The split into "Prep" and "Cooking" is made by the renderer from how far the work before the first wave is from the serving time (the source does not have to say it).
 
 ```
 17:30〜 下ごしらえ
@@ -1204,10 +1205,10 @@ let ara = ... @expect(leftoverPart)         // 出るはず。出なくなった
   食事中: パフェ用の器を冷やす（放置）
 19:10 デザートを出す: パフェ（直前に組み立て 5分）
 ```
-- 見出し、材料一覧の並び、HTML・印刷向けの体裁。
-- 置き場所: Ozendate の機能として持ち、CLI からも `ozen render` のように呼べるようにする。JS/TS で書き、全環境の WebView で共有する。
+- Headings, the order of the ingredient list, and the layout for HTML and print.
+- Where it lives: held as a feature of Ozendate, and also callable from the CLI as `ozen render` or similar. Written in JS/TS and shared by the WebView on every platform.
 
-**言い回しファイル**
+**Phrase files**
 
 ```
 dashiPack/
@@ -1223,8 +1224,8 @@ action-slice = { $x }を{ $t }の厚さに切る
 action-simmer = { $x }を{ $time }煮込む
 ```
 
-- **形式**: Mozilla の Fluent（`.ftl`）。語順・助詞・複数形などを翻訳側で吸収でき、JS 実装があるのでレンダラーと相性が良い。
-- **キーの付け方**: 種類ごとの接頭辞 + 名前のケバブケース。診断の文面もここに置く（コアはコードと引数だけを返す。§6）。
+- **Format**: Mozilla's Fluent (`.ftl`). Word order, particles, plurals and so on can be absorbed on the translation side, and it has a JS implementation, so it suits the renderer.
+- **How keys are named**: a prefix per kind + the name in kebab case. Diagnostic messages also go here (the core returns only the code and the arguments; §6).
 
   ```
   ingredient-buri = ブリ
@@ -1235,12 +1236,12 @@ action-simmer = { $x }を{ $time }煮込む
   diag-peel-missing = { $x }の皮をむいてから切ってください
   ```
 
-- **重ね方**: `std` → 依存しているパッケージ（パッケージ名の順）→ 自分のプロジェクト、の順に読み、後のものが前のものを上書きする。家の呼び名（「うちのカレー」）は、自分のプロジェクトの `phrases/` に書けば効く。
-- **拡張の共有単位（パック）**: 独自の動作を共有するときは、定義ファイル（`pantry/` の `.ozen`）と `phrases/` を一緒に配る。
-- **翻訳だけの貢献ができる**: コードを触らずに、言い回しのファイルだけを足せる。
-- **ずれの検査**: 動作シグネチャ一覧と言い回しを突き合わせ、「言い回しのない動作」「シグネチャにない引数」を警告するツールを用意する。
-- **言い回しがないときの代替**: 利用者の言語 → 英語 → 識別子から機械的に作った表示（`slice(onion, 3 mm)` など）の順。言い回しを書かなくても、レシピとしては必ず表示できる。
-- **属性・文脈・地域で呼び名を選ぶ**: 出世魚の段階（属性）、焼肉か煮込みか（料理の文脈）、関東か関西か（`$dialect`、レンダラーの設定）で呼び名を選ぶ。
+- **Layering**: read in the order `std` → packages depended on (in package-name order) → your own project, and later ones override earlier ones. A household name (such as "our house curry") takes effect if you write it in your own project's `phrases/`.
+- **Unit of sharing for extensions (pack)**: when you share your own actions, distribute the definition files (`.ozen` in `pantry/`) together with `phrases/`.
+- **Translation-only contributions are possible**: you can add only phrase files without touching the code.
+- **Drift check**: provide a tool that compares the list of action signatures with the phrases and warns about "actions without phrases" and "arguments not in the signature".
+- **Fallback when there is no phrase**: the user's language → English → a display made mechanically from the identifiers (such as `slice(onion, 3 mm)`), in that order. Even without writing any phrases, the recipe can always be shown.
+- **Choose names by property, context and region**: the name is chosen by the growth stage of a fish that changes names as it grows (property), by whether it is for yakiniku or for simmering (the dish context), and by Kanto or Kansai (`$dialect`, a renderer setting).
 
 ```
 # phrases/ja.ftl
@@ -1257,20 +1258,20 @@ ing-buri = { $stage ->
 }
 ```
 
-- **部位つきの名前は固有名を優先する**: 「中落ち」「大トロ」のような固有の言い方は、組み合わせ専用のキー（`ing-buri-kama` など）で定義する。なければ「種類 + 部位」で組み立てる（「豚バラ」「ブリカマ」）。
+- **For names with a cut, prefer the proper name**: proper names such as "nakaochi" (meat scraped off the backbone) or "otoro" (fattiest tuna belly) are defined with a key just for that combination (such as `ing-buri-kama`). If there is none, the name is built as "kind + cut" ("pork belly", "yellowtail collar").
 
-## 8. プラットフォーム戦略
+## 8. Platform strategy
 
-**コア 1 本 + 薄い橋渡し**。公開 API は「テキスト入力 → 結果出力」に絞る。
+**One core + thin bridges**. The public API is narrowed to "text in → result out".
 
-| 環境 | 配布形態 | 橋渡し |
+| Platform | How it ships | Bridge |
 |---|---|---|
-| iOS / macOS | 静的ライブラリ / `.xcframework` | ヘッダー + module map（Swift から直接呼ぶ） |
-| Android | ABI ごとの `.so`（NDK） | JNI ラッパー（C 数十行）または JNA。**文字列は UTF-8 の `ByteArray` で受け渡す**（JNI の modified UTF-8 で絵文字が壊れるため） |
-| Linux | 共有ライブラリ / CLI | 直接リンク |
-| Web | `.wasm` | Emscripten + JS 数十行。Web Worker 推奨、Service Worker でオフライン化 |
+| iOS / macOS | Static library / `.xcframework` | Header + module map (called directly from Swift) |
+| Android | `.so` per ABI (NDK) | JNI wrapper (a few dozen lines of C) or JNA. **Strings are passed as UTF-8 in a `ByteArray`** (because JNI's modified UTF-8 breaks emoji) |
+| Linux | Shared library / CLI | Linked directly |
+| Web | `.wasm` | Emscripten + a few dozen lines of JS. Web Worker recommended, offline support with a Service Worker |
 
-**API の方針（所有権の例）**
+**API policy (ownership example)**
 
 ```c
 // 返された文字列は呼び出し側が recipe_free_string で解放する
@@ -1281,371 +1282,371 @@ char *recipe_build(const char *src_utf8, const char *kitchen_utf8,
 void  recipe_free_string(char *s);
 ```
 
-- ASTノードを 1 つずつ操作する細かい API にはしない（各言語のラッパーが膨らむ）。
-- グローバル状態を持たず、コンテキスト構造体を渡す。
-- I/O を持たない純粋な関数群にする（WASM・WebView でそのまま動く）。
-- メモリ確保関数を差し替え可能にする。
-- コア内で C 標準ライブラリ以外（スレッド、`dlopen`、プラットフォーム固有 API）に依存しない。
+- Do not make a fine-grained API that handles AST nodes one at a time (the wrappers for each language would grow large).
+- Hold no global state; pass a context struct.
+- Make it a set of pure functions with no I/O (they run as is in WASM and WebView).
+- Make the memory allocation functions replaceable.
+- Inside the core, depend on nothing other than the C standard library (no threads, `dlopen`, or platform-specific APIs).
 
-**iOS の制約メモ**: JIT・fork・ダウンロードしたネイティブバイナリの実行は不可。本設計は「データ（IR）を出すだけ」なのでこれらに抵触しない。拡張もソース（テキスト）として共有する。ファイルの関連付けは `.ozen` の型識別子 1 つで行う（§4.6）。
+**Notes on iOS limits**: JIT, fork, and running downloaded native binaries are not allowed. This design "only outputs data (IR)", so it does not run into these. Extensions are also shared as source (text). File association is done with one type identifier for `.ozen` (§4.6).
 
-**オフライン前提の注意**: 同梱データ（単位換算・密度表・標準ライブラリ）はバンドル。Web のレシピ HTML は自己完結（CSS/JS はインライン、CDN・Web フォント不使用）。iCloud 等の実体化に注意（プロジェクトは必要ならサンドボックス内に置く）。
+**Notes on working offline**: bundled data (unit conversion, density table, standard library) ships in the bundle. Recipe HTML on the Web is self-contained (CSS/JS inline, no CDN or web fonts). Watch out for files that iCloud or similar has not yet downloaded (put the project inside the sandbox if needed).
 
-## 9. コア実装言語: C 系言語
+## 9. Core implementation language: a C-family language
 
-動機は「**最小の変換層で、クロスプラットフォームに動く環境を提供すること**」。C 系言語（C ABI で公開でき、各 OS のツールチェーンでビルドしやすい言語）は、この条件を素直に満たす。
+The motivation is "**to provide an environment that runs cross-platform with the thinnest translation layer**". A C-family language (one that can expose a C ABI and is easy to build with each OS's toolchain) meets this condition directly.
 
-| 観点 | 求めること |
+| Aspect | What is wanted |
 |---|---|
-| ビルド依存 | 少ないこと（各 OS のツールチェーンでビルドできる） |
-| 言語の安定性 | 高いこと（1 人で追従できる） |
-| iOS 統合 | 静的ライブラリ / `.xcframework` にできる |
-| 橋渡し | C ABI で公開できる |
-| 既存 C ライブラリ | そのまま使える |
-| 安全性 | 規律 + ASan/UBSan + ファズ |
+| Build dependencies | Few (buildable with each OS's toolchain) |
+| Language stability | High (one person can keep up) |
+| iOS integration | Can be a static library / `.xcframework` |
+| Bridge | Can expose a C ABI |
+| Existing C libraries | Usable as is |
+| Safety | Discipline + ASan/UBSan + fuzzing |
 
-**弱点と対策**: 評価器・AST は書きにくくなりがち（網羅性チェックがない、手動メモリ管理）。アリーナ 1 つ + 添字参照、タグ付き union と `switch` の規律、ASan / UBSan とファズで補う。
+**Weaknesses and countermeasures**: the evaluator and the AST tend to be hard to write (no exhaustiveness check, manual memory management). Make up for this with one arena + index references, the discipline of tagged unions and `switch`, and ASan / UBSan and fuzzing.
 
-**配布**: 外部開発者向けには、**ビルド済み成果物（`.a` / `.so` / `.wasm`）をリリースで配布**する。利用者（レシピを書く人）はビルド不要。
+**Distribution**: for outside developers, **ship prebuilt artifacts (`.a` / `.so` / `.wasm`) in releases**. Users (people who write recipes) do not need to build anything.
 
-**逃げ道**: 公開境界が「テキスト入力 → 結果出力」の C ABI なので、**コア実装だけを後から別言語に差し替えられる**。各 OS 側のコードは変わらない。
+**Escape hatch**: because the public boundary is a C ABI of "text in → result out", **only the core implementation can later be swapped for another language**. The code on each OS does not change.
 
-**試作で確認すること**: **評価器（レベル 3 部分）の小さな試作**（`if` / `for` / `quote` / 燃料制）を作り、次を確かめる。
-1. 書き心地とバグ量が許容できるか
-2. iOS（静的ライブラリ）と WASM で同じ結果が出るか
-3. ファズで出る問題が管理できる範囲か
+**What the prototype checks**: build **a small prototype of the evaluator (the level 3 part)** (`if` / `for` / `quote` / fuel) and check the following.
+1. Whether the feel of writing it and the number of bugs are acceptable
+2. Whether iOS (static library) and WASM give the same results
+3. Whether the problems found by fuzzing are within a manageable range
 
-## 10. 安全性・品質（信頼できない入力への備え）
+## 10. Safety and quality (preparing for untrusted input)
 
-共有されたレシピや拡張ライブラリ（AirDrop・ファイル共有経由）は信頼できない入力として扱う。
+Shared recipes and extension libraries (via AirDrop or file sharing) are treated as untrusted input.
 
-- 入力サイズ・再帰深度・展開ノード数・評価ステップ数に上限（燃料制）を置く。
-- アリーナ 1 つ + ノード参照は添字（範囲チェックを 1 か所に集める）、文字列はインターン（整数 ID 化）。
-- ASan / UBSan + ファズ（展開器・パーサー重点）を **CI で常時**回す。
-- 4 環境（+ WASM）のクロスビルドを**最初から** CI に入れる（後回しにするほど辛い）。
-- 診断は配列に溜めて最後に返す（途中で abort せず、複数エラーを同時に出す）。
-- 全ノードに span（位置情報）を最初から持たせる。展開履歴も引き継ぐ。
-- `std` は予約名。共有されたファイルやパッケージが `std` を名乗る、またはインストール済みのパッケージを黙ってすり替えることはできない（§4.7）。
+- Put limits (fuel) on input size, recursion depth, number of expanded nodes, and number of evaluation steps.
+- One arena + node references by index (range checks gathered in one place); strings are interned (turned into integer IDs).
+- Run ASan / UBSan + fuzzing (focused on the expander and the parser) **always in CI**.
+- Put cross builds for the 4 platforms (+ WASM) into CI **from the start** (the later it is done, the more painful it gets).
+- Diagnostics are collected in an array and returned at the end (no abort midway; several errors are reported at once).
+- Give every node a span (position information) from the start. Expansion history is carried along too.
+- `std` is a reserved name. A shared file or package cannot call itself `std`, or silently swap out an installed package (§4.7).
 
-## 11. 既存物との関係（新規性の分析）
+## 11. Relation to existing work (analysis of novelty)
 
-> 2026 年 10 月時点の調査。**部品ごとに見ると、ほぼすべてに先行例がある**。特に、台所の設備・人数を考えた複数料理の段取り（洗い物を含む）は、日本の研究で 10 年以上前から扱われている。本言語の新しさは部品ではなく、**それらを静的に型検査される言語にまとめ、台所や条件を注入して段階的に検証できるようにした組み合わせ**にある。
+> A survey as of October 2026. **Looked at part by part, almost everything has prior examples**. In particular, scheduling several dishes with the kitchen's equipment and number of people in mind (including washing up) has been studied in Japanese research for more than 10 years. What is new in this language is not the parts but **the combination: putting them into a statically type-checked language and allowing step-by-step verification by injecting the kitchen and conditions**.
 
-### 11.1 既存のものとの比較
+### 11.1 Comparison with existing work
 
-| 分類 | 代表例 | 重なるところ | 本言語との違い |
+| Category | Examples | Where it overlaps | How this language differs |
 |---|---|---|---|
-| レシピ記法 | Cooklang | 材料・器具・時間の記述、人数スケーリング、買い物リスト、レシピ参照、献立（`.menu`）、LSP | 文章への注釈。型検査・資源・段取りはない（公式ブログで型検査器の構想は語られている） |
-| 「同時に仕上げる」アプリ | Chef's Multi-Dish Timer、Cooking Time Planner、MealTime など多数 | 完成時刻からの逆算、オーブンの共有 | 手・コンロ・洗い場の取り合い、レシピ内部の構造を扱わない |
-| 調理スケジューリング研究 | Matsushima・Funabiki ら（2011〜2015）、Nakabe ら（奈良先端大、2021）、Yamabuki ら、Kayahara ら（2017） | 料理人・鍋・まな板・コンロ・流しの台所モデル、「洗う」を含む調理ステップ、道具の状態遷移、洗いの考慮、RCPSP としての定式化、動的な組み直し、仕上がり温度 | 台所はアルゴリズムへの入力データ。言語・型検査・利用者による拡張はない |
-| 形式表現・ロボット | MILK（2008）、FOON、行動グラフ DSL（2025）、Cook2LTL | 型付き述語、物体と動作のグラフ、状態、環境・並行性の表現 | 文章からの構造抽出、オントロジー、ロボット計画が目的。家庭向けの静的検査コンパイラは主題でない（2025 年の DSL は要旨のみ確認、本文は要確認） |
-| ガイド調理家電 | Thermomix（Cookidoo） | レシピを機械が実行できる手順データとして扱う（ロボット向け IR の将来像と重なる） | 1 台の機器向けの直列手順。閉じたエコシステム |
-| その他 | schema.org/Recipe、Chef（難解言語）、Bwyd（料理メモ DSL）、Corel（料理 DSL の卒業研究） | 構造化、DSL という形 | 型検査・資源・段取りはない、または小規模 |
+| Recipe markup | Cooklang | Describing ingredients, equipment and time, scaling by servings, shopping list, recipe references, menus (`.menu`), LSP | Annotations on text. No type check, resources or scheduling (an idea for a type checker is mentioned on the official blog) |
+| "Finish at the same time" apps | Chef's Multi-Dish Timer, Cooking Time Planner, MealTime, and many more | Working back from the finish time, sharing the oven | Do not handle competition for hands, burners and the sink, or the internal structure of recipes |
+| Cooking scheduling research | Matsushima, Funabiki et al. (2011–2015), Nakabe et al. (NAIST, 2021), Yamabuki et al., Kayahara et al. (2017) | A kitchen model of cooks, pots, cutting boards, burners and the sink; cooking steps that include "wash"; tool state transitions; taking washing into account; formulation as RCPSP; dynamic rescheduling; finishing temperature | The kitchen is input data for an algorithm. No language, type check, or user extension |
+| Formal representation and robots | MILK (2008), FOON, action graph DSL (2025), Cook2LTL | Typed predicates, graphs of objects and actions, state, representing the environment and concurrency | The aims are extracting structure from text, ontologies, and robot planning. A static-checking compiler for home use is not the subject (for the 2025 DSL only the abstract was checked; the full text still needs checking) |
+| Guided cooking appliances | Thermomix (Cookidoo) | Treats recipes as step data a machine can run (overlaps with the future picture of an IR for robots) | Linear steps for one device. A closed ecosystem |
+| Others | schema.org/Recipe, Chef (esoteric language), Bwyd (cooking-notes DSL), Corel (graduation project on a cooking DSL) | Structuring, the form of a DSL | No type check, resources or scheduling, or small in scale |
 
-### 11.2 新規性がありそうな点
+### 11.2 Points that seem novel
 
-**最大の強み: 書き手が型と手順を語彙ごと定義・拡張できる。** 型システムや台所の注入などは、この拡張できる仕組みの上に成り立つものとして位置づける。
+**The biggest strength: writers can define and extend types and steps, vocabulary and all.** The type system, injecting the kitchen and so on are positioned as things built on top of this extensible mechanism.
 
-1. **書き手が語彙そのものを増やせる**: 先行例はどれも語彙が固定されている（研究は調理ステップの種類があらかじめ決まっている。FOON・MILK は研究者が決めた語彙で注釈する。Thermomix はメーカーが用意した機能の範囲でしか書けない。Cooklang も記法は固定で、意味づけは各ツール任せ）。本言語は標準ライブラリも同じ言語で書くため、組み込みの特権的な語彙がない。書き手が定義した `ingredient` や `action` も、標準のものと同じ扱いで型検査される。
-   - 和食の出汁や発酵、地域の単位（日本式の `cup`）、家にしかない家電、新しい汚れや器の種類まで、書き手が足せる。
-   - 定義をソースとして共有（おすそわけ）でき、知識が人から人へ広がる。
-   - 拡張の安全装置は設計済み: 定義時の検査（状態遷移の矛盾、単位の循環、到達できない状態）、必ず停止するコンパイル時評価（燃料制）、展開履歴つきの診断（§4.3、§10）。
-2. **料理向けの静的型システムの組み合わせ**: 次元型・状態型・線形型をコンパイラが検査し、手順の抜け・量の不足・二重消費をエラーにする。調べた範囲では、この組み合わせは見当たらない。拡張された語彙にも同じ検査が効く。
-3. **要求・設備・今日の条件の分離と型による照合**: 研究では台所はアルゴリズムへの入力データだった。レシピが `requires` で要求を宣言し、台所スペックを型で照合する言語設計は新しい（§4.2）。台所スペックや条件の型も、書き手が拡張できる。
-4. **検証レベルと仮定の明示**: 入力の量に応じて検証が深くなり、診断は減らない（単調性）。コンパイラ・ビルドシステムの考え方を料理に持ち込んだ点（§5.1）。
-5. **オフラインで決定的に動く単一コア**: 新規性というより工学的な差別化。研究のプロトタイプにはない強み（§8）。
+1. **Writers can grow the vocabulary itself**: every prior example has a fixed vocabulary (in the research the kinds of cooking steps are decided in advance; FOON and MILK annotate with a vocabulary chosen by the researchers; Thermomix can only be written within the functions the maker provides; Cooklang also has a fixed notation and leaves meaning to each tool). This language writes its standard library in the same language, so there is no privileged built-in vocabulary. An `ingredient` or `action` defined by a writer is type-checked the same way as the standard ones.
+   - Writers can add Japanese dashi and fermentation, regional units (the Japanese `cup`), appliances only their home has, and even new kinds of dirt and dishes.
+   - Definitions can be shared as source (passed on like sharing food with neighbors), and knowledge spreads from person to person.
+   - Safety devices for extension are already designed: checks at definition time (contradictory state transitions, circular units, unreachable states), compile-time evaluation that always stops (fuel), and diagnostics with expansion history (§4.3, §10).
+2. **A combination of static type systems for cooking**: the compiler checks dimension types, state types and linear types, and makes missing steps, too little quantity and double use errors. As far as we looked, this combination does not exist elsewhere. The same checks apply to extended vocabulary.
+3. **Separating requirements, equipment and today's conditions, and matching them by type**: in research, the kitchen was input data for an algorithm. A language design where a recipe declares its needs with `requires` and the kitchen spec is matched by type is new (§4.2). Writers can also extend the types of kitchen specs and conditions.
+4. **Verification levels and stating assumptions**: verification gets deeper with the amount of input, and diagnostics never decrease (monotonicity). This brings the thinking of compilers and build systems into cooking (§5.1).
+5. **A single core that runs offline and deterministically**: an engineering difference rather than novelty. A strength research prototypes do not have (§8).
 
-**位置づけ（誇張なく言える表現）**: 料理の段取り研究の成果を、書き手が語彙ごと拡張できる型付き言語とコンパイラにしたもの。
+**Positioning (a phrasing that does not exaggerate)**: the results of cooking scheduling research turned into a typed language and compiler whose vocabulary writers can extend.
 
-### 11.3 注意点
+### 11.3 Cautions
 
-- **スケジューリング自体は新規性として主張しない**。先行研究のモデル（調理ステップの分類、洗いの扱い、道具の状態遷移）は、§13 の動作シグネチャ表の出発点として参考にする。
-- **用語の衝突**: Cooklang は `pantry.conf` を「台所に今ある食材の在庫」の意味で使っている。本言語の「パントリー」（定義・ライブラリ）とは意味が違う。拡張子は `.ozen` だけで、`pantry` はフォルダの規約名にとどまるため、ファイル名の上での衝突はない（§4.6）。用語の説明では混同に注意する。
-- **書く負担と価値の釣り合い**: Cooklang の強みは「普通の文章に少しずつ印を足せる」手軽さ。型付きで書く手間に見合う価値（検査と段取り）を、最初のサンプルで分かりやすく見せる必要がある。
-- **語彙の分裂**: 各自が独自の `onion` を定義すると、レシピ同士が混ぜられなくなる。標準ライブラリを共通の土台として育て、独自の定義はそれを拡張する（トレイトを足す、属性を上書きする）形を推奨する。名前空間と `import` の設計（§4.3）で支える。
-- **Cooklang との連携はしない**: インポーターは作らない。Cooklang には状態・設備・量の厳密さがなく、変換しても骨組みにしかならず、書き直しの手間がゼロから書くのと変わらないため。仕様への追従の負担も大きく、想定する利用者（§2）は最初から本言語で書ける。需要がはっきり出てきたら改めて検討する（§12 非ゴール）。
+- **Do not claim scheduling itself as novel**. The models of earlier research (classification of cooking steps, handling of washing, tool state transitions) are used as a starting point for the action signature table in §13.
+- **Term collision**: Cooklang uses `pantry.conf` to mean "the stock of ingredients currently in the kitchen". This differs from this language's "pantry" (definitions and libraries). The file extension is only `.ozen`, and `pantry` is just a conventional folder name, so there is no collision in file names (§4.6). Take care not to mix them up when explaining terms.
+- **Balancing the effort of writing against the value**: Cooklang's strength is the ease of "adding marks little by little to ordinary text". The first samples need to show clearly that the value (checks and scheduling) is worth the effort of writing with types.
+- **Vocabulary split**: if everyone defines their own `onion`, recipes can no longer be mixed. Grow the standard library as a common base, and recommend that custom definitions extend it (add traits, override properties). This is supported by the design of namespaces and `import` (§4.3).
+- **No integration with Cooklang**: no importer is made. Cooklang lacks the strictness of state, equipment and quantity, so a conversion would only give a skeleton, and rewriting would take as much effort as writing from scratch. Keeping up with its spec would also be a large burden, and the intended users (§2) can write in this language from the start. Reconsider if demand clearly appears (§12 non-goals).
 
-### 11.4 参照（要再確認のものを含む）
+### 11.4 References (including some that need rechecking)
 
-- Cooklang: https://cooklang.org/ 、仕様 https://cooklang.org/docs/spec/ 、規約（`.menu`・pantry）https://cooklang.org/docs/conventions/
+- Cooklang: https://cooklang.org/ , spec https://cooklang.org/docs/spec/ , conventions (`.menu`, pantry) https://cooklang.org/docs/conventions/
 - Matsushima, Funabiki, Nakanishi, "A Proposal of Cooking Model and Cooking Step Scheduling Algorithm for Multiple Dishes", IMECS 2011
 - Nakabe, Mizumoto, Suwa, Yasumoto, "Optimal Cooking Procedure Presentation System for Multiple Recipes and Investigating Its Effect", Algorithms 14(2), 2021 https://www.mdpi.com/1999-4893/14/2/67
 - Kayahara, Kuwabara, Kunieda, "Dynamic Scheduling Method of Cooking Process Considering The Finishing Temperature of Dishes", IEICE Tech. Rep. MVE2017-21
-- Tasse, Smith, MILK / CURD corpus（2008）
-- Paulius, Sun ほか, FOON（Functional Object-Oriented Network）
-- Kumbhakern ほか, "Towards an Action-Centric Ontology for Cooking Procedures Using Temporal Graphs", arXiv:2509.04159（2025）
-- Thermomix Guided Cooking（Cookidoo）
-- 焼く調理の熱伝達係数の例: ステーキ・パティの焼き方の熱伝導解析 arXiv:2206.13900（加熱面 900・空気側 60 W/m²℃）
-- 加熱時間のモデルの根拠: Alan Davidson（1980）の調理時間の規則（厚さの 2 乗）、"Boiling, steaming or rinsing? (physics of the Chinese cuisine)" arXiv:1806.09912（板の昇温時間 ∝ L²、見積もりのずれの考察）、「加熱によるダイコンの軟化およびペクチンの分解に関する速度論的解析」（広島大学学術情報リポジトリ https://ir.lib.hiroshima-u.ac.jp/00030155 。軟化は一次の速度式。著者・掲載誌は要確認）
-- 診断の設計の参考: rustc のリントの重さ（allow / warn / deny / forbid / expect、`--cap-lints`）https://doc.rust-lang.org/rustc/lints/levels.html 、Ruff のルール選択と抑制（接頭辞による選択、unused-noqa）https://docs.astral.sh/ruff/linter/ 、SARIF 2.1.0 https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html
-- 歩留まりの出どころ: 文部科学省『日本食品標準成分表（八訂）増補 2023 年』（廃棄率・廃棄部位、調理による重量変化率）、「給食実習における食品廃棄率の測定値と日本食品標準成分表値の比較（第 1 報）」（実測値は成分表の値より高くなることがある）
+- Tasse, Smith, MILK / CURD corpus (2008)
+- Paulius, Sun et al., FOON (Functional Object-Oriented Network)
+- Kumbhakern et al., "Towards an Action-Centric Ontology for Cooking Procedures Using Temporal Graphs", arXiv:2509.04159 (2025)
+- Thermomix Guided Cooking (Cookidoo)
+- Example heat transfer coefficients for cooking by searing: heat conduction analysis of how to cook steaks and patties, arXiv:2206.13900 (heated surface 900, air side 60 W/m²℃)
+- Basis for the heating time model: Alan Davidson's (1980) rule for cooking time (square of the thickness); "Boiling, steaming or rinsing? (physics of the Chinese cuisine)" arXiv:1806.09912 (time to heat a slab ∝ L², discussion of estimation errors); "Kinetic analysis of the softening of daikon radish and the degradation of pectin by heating" (Hiroshima University Institutional Repository https://ir.lib.hiroshima-u.ac.jp/00030155 . Softening follows a first-order rate equation. Authors and journal need checking)
+- References for the design of diagnostics: rustc lint levels (allow / warn / deny / forbid / expect, `--cap-lints`) https://doc.rust-lang.org/rustc/lints/levels.html , Ruff's rule selection and suppression (selection by prefix, unused-noqa) https://docs.astral.sh/ruff/linter/ , SARIF 2.1.0 https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html
+- Sources for yield: MEXT, "Standard Tables of Food Composition in Japan (Eighth Revised Edition), Supplement 2023" (refuse rate and refuse parts, weight change rate from cooking); "Comparison of measured food refuse rates in food service practice with the values of the Standard Tables of Food Composition in Japan (Report 1)" (measured values can be higher than the table values)
 
-## 12. スコープ
+## 12. Scope
 
-段階で区切らない。言語・処理系・アプリの出力は全体を対象とし、後回しにするのは外部連携とブロックエディタだけ。作る順番は §13 のロードマップで決める。
+Not split into stages. The whole of the language, the processor and the app outputs is in scope; only external integrations and the block editor are deferred. The order of building is set by the roadmap in §13.
 
-### 対象
-- パーサー（手書き再帰下降、波括弧構文）、AST、全ノードに span
-- 拡張: レベル 1〜3（宣言、合成、コンパイル時評価とマクロ `macro` / `quote`）
-- 型検査（次元・状態・線形・資源衝突）
-- 資源制約つきスケジューラ（波と出す時刻、細かい優先の指定。§4.2）
-- 台所スペック（場所と道具）とビルド時の条件（cooks・servings・cleanup・人ごとの属性）
-- 台所スペックと条件の型検査、レシピの要求（`requires`）との照合
-- 検証レベル（0: レシピだけ / 1: 条件つき / 2: 台所つき）と、仮定の一覧の出力
-- 洗い物: 道具と場所の状態、汚れの分類、相性ルール、洗い・拭きの挿入、洗い場の取り合い、片付けの指定、食洗機、アレルゲン混入の検査
-- 盛り付けと器: 器の分類と枚数、必須の制約と器の代替順、枚数の検査、`perPerson` / `shared`、量の分配
-- 肉・魚: 部位（型の引数、継承、トレイト）、売り場の名前（`alias`）、捌く動作の複数出力、`store` / `discard` による使い切りの追跡
-- 献立（一食）: 献立を最上位の単位にする、レシピの型つき出力、合成・組み立て・並べる・選択・共有、作るか買うかの入れ替え、出すタイミングの性質（`@serveWithin` など）、献立をまたぐ受け渡しと献立単位の使い切り
-- 提供の波: 構造（記法・IR・JSON）と、複数の波のスケジュール（間隔、食事中に手を塞ぐ扱い）
-- ファイルの単位: モジュールと `import`、依存の向きと循環の検出、前方参照、入口の選択、1 ファイルに全部書けること、拡張子 `.ozen`
-- ビルドの単位とコマンド: 料理単体のビルド、献立単位のコンパイル、モジュール名による入口の指定、オプションの短い形、プロジェクト単位のビルドと出力（§5.2）
-- パッケージと import: `package.ozen`、モジュール名の決まり方、`std.prelude`、個別取り込み・別名、曖昧な名前のエラー、版の混在の検出、`ozen bundle`（インラインのモジュール）
-- IR、テキスト IR ダンプ、JSON 出力、診断（コード + 名前 + span、エラー・警告・情報の 3 段階、重さの設定と `@expect`、直し方の候補、SARIF 出力。§6.1）
-- 標準ライブラリ（言語ソースとして同梱）。範囲は基準の献立で決める（§12.1）
-- レンダラー（コアの外）: 文章（レシピ・段取り表）、HTML、ガント図、言い回しファイル（`phrases/`）、動作シグネチャ一覧の JSON と整合チェック、属性・文脈・地域による呼び名の選択
-- 型の定義からの設定画面の生成（Ozendate。コアの外）
-- 4 環境のビルド
+### In scope
+- Parser (hand-written recursive descent, brace syntax), AST, a span on every node
+- Extension: levels 1–3 (declarations, composition, compile-time evaluation and macros `macro` / `quote`)
+- Type check (dimension, state, linear, resource conflicts)
+- Scheduler with resource constraints (waves and serving times, fine-grained priority settings; §4.2)
+- Kitchen spec (places and tools) and build-time conditions (cooks, servings, cleanup, per-person properties)
+- Type check of the kitchen spec and conditions, and matching against the recipe's needs (`requires`)
+- Verification levels (0: recipe only / 1: with conditions / 2: with kitchen) and output of the list of assumptions
+- Washing up: state of tools and places, classification of dirt, compatibility rules, inserting washing and wiping, competition for the sink, cleanup settings, dishwasher, check for allergen cross-contact
+- Plating and dishes: classification and count of dishes, required constraints and the fallback order of dishes, count check, `perPerson` / `shared`, dividing quantities
+- Meat and fish: cuts (type arguments, inheritance, traits), store names (`alias`), multiple outputs from the butchering action, tracking that everything is used up with `store` / `discard`
+- Menu (one meal): the menu as the top-level unit, typed outputs of recipes, composition, assembly, side by side, choice, sharing, swapping between making and buying, serving-timing properties (`@serveWithin` and so on), hand-over across menus and use-up per menu
+- Serving waves: structure (notation, IR, JSON) and scheduling several waves (intervals, how work during the meal ties up hands)
+- Units of files: modules and `import`, dependency direction and cycle detection, forward references, choosing the entry point, being able to write everything in one file, the `.ozen` extension
+- Units of building and commands: building a single dish, compiling per menu, naming the entry point by module name, short forms of options, building and output per project (§5.2)
+- Packages and import: `package.ozen`, how module names are decided, `std.prelude`, importing single items and aliases, errors for ambiguous names, detecting mixed versions, `ozen bundle` (inline modules)
+- IR, text IR dump, JSON output, diagnostics (code + name + span, three levels of error, warning and info, severity settings and `@expect`, suggested fixes, SARIF output; §6.1)
+- Standard library (shipped as language source). Its range is set by the reference menus (§12.1)
+- Renderer (outside the core): text (recipe and schedule table), HTML, Gantt chart, phrase files (`phrases/`), JSON list of action signatures and the consistency check, choosing names by property, context and region
+- Generating settings screens from type definitions (Ozendate; outside the core)
+- Builds for the 4 platforms
 
-### 後回し（外部連携とブロックエディタ）
-- ロボット関連一式（許容誤差、センサー条件 `until`、安全情報、能力照合）、機器向け形式（CBOR / FlatBuffers 等）
-- OS への深い統合（File Provider 等）
-- LSP・構文ハイライト（tree-sitter 文法）などエディタとの連携
-- ブロックエディタ（AST が正本なので後から足せる。利用者像がプログラミング素養ありのため）
+### Deferred (external integrations and the block editor)
+- Everything for robots (tolerances, sensor conditions `until`, safety information, capability matching), formats for devices (CBOR / FlatBuffers, etc.)
+- Deep OS integration (File Provider, etc.)
+- Editor integration such as LSP and syntax highlighting (tree-sitter grammar)
+- Block editor (it can be added later because the AST is the source of truth; deferred because the intended users have some programming background)
 
-### 12.1 基準の献立
+### 12.1 Reference menus
 
-標準ライブラリの範囲と、全体のテストの基準にする献立。献立の連携の種類（§4.5）と提供の波を、それぞれ最低 1 つは含む。
+The menus that set the range of the standard library and serve as the reference for testing the whole. Together they include at least one of each kind of menu link (§4.5) and of serving waves.
 
-| 献立 | 含むパターン |
+| Menu | Patterns included |
 |---|---|
-| A. 焼きそば | 単品（料理 1 つの献立） |
-| B. カレーライス | 合成（§13 の最小サンプル「カレーとごはん」） |
-| C. 豚肉とキャベツの炒め物 + キャベツの味噌汁 + ごはん | 並べる、共有（キャベツを両方で使い、切る作業をまとめる）、生肉によるまな板の汚れ、汁物と器 |
-| D. カレー（ライスか市販のナンを人ごとに選ぶ）+ サラダ、食後にパフェ | 選択、組み立て、作るか買うか、波 2 つ（メインとデザート）、冷たい料理 |
-| E. ミックスジュース（バナナ・いちご・牛乳） | 飲み物、家電（ミキサー）の取り合いと洗い（`Sticky`）、作りたてで出す（分離・変色するため `@serveWithin`）、氷（要冷凍）、乳のアレルゲン |
+| A. Yakisoba | Single item (a menu of one dish) |
+| B. Curry rice | Composition (the minimal sample "curry and rice" in §13) |
+| C. Stir-fried pork and cabbage + cabbage miso soup + rice | Side by side, sharing (cabbage used in both, with the cutting done together), cutting board dirtied by raw meat, soup and its bowl |
+| D. Curry (each person chooses rice or store-bought naan) + salad, with a parfait after the meal | Choice, assembly, make or buy, two waves (main and dessert), cold dishes |
+| E. Mixed juice (banana, strawberry, milk) | Drink, competition for and washing of an appliance (blender) (`Sticky`), served freshly made (`@serveWithin` because it separates and discolors), ice (must be frozen), milk allergen |
 
-### 12.2 標準ライブラリの範囲
+### 12.2 Range of the standard library
 
-基準の献立 5 つ（§12.1）から逆算する。
+Worked back from the 5 reference menus (§12.1).
 
-- **動作（25 前後）**
-  - 下処理: 米を研ぐ、浸水、洗う（野菜）、皮をむく、ほぐす（麺）、水気を切る、卵を割る（`crack`）、溶く（`beat`）。ゆで卵の殻をむくのは `peel`
-  - 切る: 切る（切り方は引数: 薄切り・角切り・乱切り・ざく切り・せん切り・一口大）、ちぎる
-  - 加熱: 炊く、炒める、煮る、ゆでる、湯を沸かす、溶かし入れる（ルウ・味噌）、温める（ナン）、揚げる（`deepFry`。油を材料として受け取り、鍋の油を温度まで温める予熱が段取りに入る）
-  - 混ぜる系: 混ぜる、和える、泡立てる、味付けする、ミキサーにかける（`blend`）
-  - 待つ: 冷やす、置く
-  - 仕上げ: 盛る、重ねる（組み立て）
-  - 片付け・残り: 道具・器を洗う（`clean`）、拭く（`wipe`）、`store`、`discard`
-  - 名前の付け方: 食材を洗うのは `wash`（下処理の軸に「洗った」が加わる）。米を「研ぐ」と「洗う」の言い分けは言い回しファイルが食材のトレイト（穀物）で選ぶ（§7.1）
-  - 火加減（弱火・中火・強火）は単位ではなく、加熱の動作の引数（列挙型）にする
-- **食材（30 前後）**
-  - 主食: 米、中華蒸し麺、ナン（市販）
-  - 肉: 豚肉（こま切れ・バラは部位と売り場の名前で表す）
-  - 卵: 卵（殻付きで買う。割る・溶く・ゆでて殻をむく）
-  - 野菜: 玉ねぎ、にんじん、じゃがいも、キャベツ、もやし、レタス、トマト、きゅうり
-  - 汁物: 味噌、だし、豆腐、わかめ
-  - 調味料: 塩、こしょう、油、カレールウ、ソース、ドレッシング
-  - デザート: バニラアイス（市販）、生クリーム、砂糖、いちご、バナナ、コーンフレーク、チョコソース
-  - 飲み物: 牛乳、氷
-- **単位**
-  - 量: g、kg、ml、L、大さじ（15 ml）、小さじ（5 ml）、合（180 ml）。カップは `std.units.jp`（200 ml）と `std.units.us`（240 ml）に分ける
-  - 長さ・時間・温度: mm、cm、秒、分、時間、℃
-  - 数: 次元は 1 つ。助数詞は言い回しファイルで付ける（§4.1）
+- **Actions (about 25)**
+  - Prep: wash rice, soak, wash (vegetables), peel, loosen (noodles), drain, crack the egg (`crack`), beat the egg (`beat`). Peeling the shell off a boiled egg is `peel`
+  - Cutting: cut (the cut style is an argument: thin slices, cubes, rolling cut, rough chop, julienne, bite-size), tear
+  - Heating: cook rice, stir-fry, simmer, boil, boil water, dissolve in (roux, miso), warm (naan), deep-fry (`deepFry`; it takes the oil as an ingredient, and preheating the oil in the pot to temperature goes into the schedule)
+  - Mixing: mix, dress, whip, season, blend in a blender (`blend`)
+  - Waiting: chill, let stand
+  - Finishing: serve onto dishes, layer (assembly)
+  - Cleanup and leftovers: wash tools and dishes (`clean`), wipe (`wipe`), `store`, `discard`
+  - Naming: washing an ingredient is `wash` ("washed" is added to the prep axis). Whether rice is "polished" or "washed" in the text is chosen by the phrase file from the ingredient's trait (grain) (§7.1)
+  - Heat level (low, medium, high) is not a unit but an argument (an enum) of the heating actions
+- **Ingredients (about 30)**
+  - Staples: rice, steamed Chinese noodles, naan (store-bought)
+  - Meat: pork (komagire and belly are expressed with cuts and store names)
+  - Eggs: egg (bought in the shell; cracked, beaten, or boiled and peeled)
+  - Vegetables: onion, carrot, potato, cabbage, bean sprouts, lettuce, tomato, cucumber
+  - Soup: miso, dashi, tofu, wakame
+  - Seasonings: salt, pepper, oil, curry roux, sauce, dressing
+  - Dessert: vanilla ice cream (store-bought), fresh cream, sugar, strawberry, banana, cornflakes, chocolate sauce
+  - Drinks: milk, ice
+- **Units**
+  - Quantity: g, kg, ml, L, tablespoon (15 ml), teaspoon (5 ml), go (180 ml). The cup is split into `std.units.jp` (200 ml) and `std.units.us` (240 ml)
+  - Length, time, temperature: mm, cm, seconds, minutes, hours, ℃
+  - Count: one dimension. Counter words are added by the phrase file (§4.1)
 
-### 12.3 標準のトレイトと属性
+### 12.3 Standard traits and properties
 
-- **トレイト（分類）**
-  - 食品の種類: 野菜、根菜、葉物、肉、魚、穀物、麺、乳製品、果物、調味料
-  - 扱い方: 皮をむける（`Peelable`）、皮ごと食べられる（`SkinEdible`）、生で食べられる（`RawEdible`）、衛生上の注意が要る（`Hazard`）
-  - 保存: 要冷蔵、要冷凍（アイスは出す直前まで冷凍庫、という段取りに効く）
-  - アレルゲン: 種類を引数に持つトレイト（`Allergen(卵)` など）。標準の種類は日本の表示義務の品目を出発点にする
-- **標準ライブラリのデータの出どころ（優先順位）**: 加熱時間・歩留まり・密度などの値は、次の順で出どころを選ぶ。実測は前提にしない（環境がないため）。
-  1. **一次情報**: 家電・調理器具メーカーの公式の情報（取扱説明書・技術資料など）、公的機関の資料（『日本食品標準成分表』など）、研究・論文のデータ
-  2. **計算**: 一次情報がない場合、出典のあるパラメータ（食材の熱物性、調理法ごとの表面の熱伝達係数など）を使った熱伝導の数値計算。計算の条件と出典を値と一緒に記録する
-  3. **暫定**: どちらもない場合の仮の値（範囲を広めに取る）
-  - 出典のはっきりしないウェブの計算ツールやまとめ記事は使わない。
-  - 値には出どころ（一次情報・計算・暫定）を記録し、「暫定」の値を使った段取りは仮定の一覧に出す（§5.1）。計算や暫定の値は、一次情報が見つかりしだい置き換える。
-- **属性（`props`）の標準の項目**
-  - 量の換算: 密度、1 つあたりの目安の重さ
-  - 加熱の目安: 調理法ごとに「中まで温まる時間（基準の厚さで）」と「大きさによらない時間」を範囲で持つ（§4.1 の加熱時間のモデル）
-  - 性質: 硬さ（列挙型）、脂の量（部位ごと）
-  - 歩留まり: 皮むきなどで減る割合（範囲）。卵の殻も捨てる部分として、同表の `12004 鶏卵 全卵 生` の廃棄率（14 %）で持つ。中心値は『日本食品標準成分表』の廃棄率、加熱による重量の変化は同表の重量変化率から取る。実測では成分表より高くなることがあるため範囲で持つ。魚を捌いたときの部位ごとの割合は成分表の粒度では分からないので、§12.3 の出どころの優先順位（論文などの一次情報 → 計算 → 暫定）か、書き手の入力で決める
-  - 汚れ: 切ったり触ったりしたときに道具に残す汚れの種類（`leaves`）
-- **汚れの種類と分類**
+- **Traits (classification)**
+  - Kind of food: vegetable, root vegetable, leafy vegetable, meat, fish, grain, noodles, dairy, fruit, seasoning
+  - Handling: can be peeled (`Peelable`), skin can be eaten (`SkinEdible`), can be eaten raw (`RawEdible`), needs hygiene care (`Hazard`)
+  - Storage: must be refrigerated, must be frozen (this affects the schedule, e.g. ice cream stays in the freezer until just before serving)
+  - Allergens: a trait that takes the kind as an argument (such as `Allergen(卵)`). The standard kinds start from the items Japan requires on labels
+- **Where the standard library's data comes from (priority order)**: values such as heating time, yield and density get their source in the following order. Measuring ourselves is not assumed (there is no setup for it).
+  1. **Primary sources**: official information from makers of appliances and cookware (manuals, technical documents, etc.), documents from public bodies (the "Standard Tables of Food Composition in Japan", etc.), and data from research and papers
+  2. **Calculation**: when there is no primary source, numerical heat conduction calculations using parameters with a source (thermal properties of ingredients, surface heat transfer coefficients per cooking method, etc.). The calculation conditions and sources are recorded with the value
+  3. **Provisional**: a tentative value when neither exists (with a wide range)
+  - Web calculators and summary articles with unclear sources are not used.
+  - Each value records its source (primary, calculation or provisional), and a schedule that uses a "provisional" value is listed in the list of assumptions (§5.1). Calculated and provisional values are replaced as soon as a primary source is found.
+- **Standard items of properties (`props`)**
+  - Quantity conversion: density, approximate weight per piece
+  - Heating guide: per cooking method, ranges for "time to heat through to the center (at a reference thickness)" and "time that does not depend on size" (the heating time model in §4.1)
+  - Qualities: hardness (enum), fat content (per cut)
+  - Yield: the share lost to peeling and so on (a range). The eggshell is also held as a discarded part, with the refuse rate (14 %) of `12004 鶏卵 全卵 生` in the same table. The central value comes from the refuse rate in the "Standard Tables of Food Composition in Japan", and the weight change from heating comes from that table's weight change rate. Measured values can be higher than the table, so ranges are used. The share of each part when butchering a fish cannot be known at the table's level of detail, so it is decided by the source priority in §12.3 (primary sources such as papers → calculation → provisional) or by the writer's input
+  - Dirt: the kind of dirt left on tools when cutting or touching (`leaves`)
+- **Kinds and classes of dirt**
 
-  | 汚れ | 分類 | 主な出どころ |
+  | Dirt | Class | Main sources |
   |---|---|---|
-  | 生肉 | `Hazard` | 豚肉・牛肉・鶏肉を切る、触る |
-  | 生魚 | `Hazard`、`Smelly` | 魚を捌く、切る |
-  | 生卵 | `Hazard` | 卵を割る、溶く |
-  | 泥 | `Soiled` | 洗う前の根菜（じゃがいも・にんじん） |
-  | 油 | `Greasy` | 炒める、揚げる、生クリーム |
-  | でんぷん・糖 | `Sticky` | 米、じゃがいも、麺、チョコソース |
-  | におい | `Smelly` | 玉ねぎ、にんにく、カレー |
-  | 色移り | `Staining` | カレー、トマト |
-  | 焦げ | `Burnt` | 鍋やフライパンの焦げつき |
-  | 軽い汚れ | `Light` | においの弱い野菜、水 |
-  | アレルゲン | `Allergen(種類)` | 卵・乳・小麦などを扱った道具（食材のトレイトから引き継ぐ） |
+  | Raw meat | `Hazard` | Cutting or touching pork, beef, chicken |
+  | Raw fish | `Hazard`, `Smelly` | Butchering or cutting fish |
+  | Raw egg | `Hazard` | Cracking or beating eggs |
+  | Mud | `Soiled` | Root vegetables before washing (potato, carrot) |
+  | Oil | `Greasy` | Stir-frying, deep-frying, fresh cream |
+  | Starch and sugar | `Sticky` | Rice, potato, noodles, chocolate sauce |
+  | Smell | `Smelly` | Onion, garlic, curry |
+  | Color transfer | `Staining` | Curry, tomato |
+  | Scorching | `Burnt` | Food burnt onto pots or frying pans |
+  | Light dirt | `Light` | Mild-smelling vegetables, water |
+  | Allergen | `Allergen(種類)` | Tools that handled egg, milk, wheat, etc. (carried over from the ingredient's trait) |
 
-- **洗い方**: なにもしない < すすぐ < 洗剤で洗う < 浸け置きしてから洗う（順序つき列挙）
-- **相性ルール（次に何に使うかで、必要な洗い方が決まる）**
-  - `Hazard` の後: 何に使うにも洗剤で洗う。ただし同じ食材を同じ状態で続けて扱うなら（生の豚肉を続けて切る）、そのまま使える
-  - `Allergen(k)` の後: そのアレルギーを持つ人の分に使う前は、洗剤で洗う。それ以外には条件なし
-  - `Soiled` の後: 生で食べるもの（`RawEdible`）に使う前は洗う。加熱するものならすすぐ
-  - `Smelly` の後: 生で食べるもの・デザートに使う前はすすぐ。加熱する料理ならそのまま使える（玉ねぎの後ににんじん、など）
-  - `Greasy` の後: まな板や器は洗剤で洗う。フライパンを続けて炒め物に使うなら、そのまま使える
-  - `Sticky`・`Burnt` の後: 浸け置きしてから洗う
-  - `Staining` の後: 使用は妨げない。情報として出すだけ（樹脂のまな板に色が残る、など）
-  - `Light` の後: そのまま使える
-  - `Hazard` と `Allergen` のルールは設定で緩められない（§6.1）。それ以外は標準の既定値で、パントリーで上書きできる
+- **Ways of washing**: nothing < rinse < wash with detergent < soak and then wash (an ordered enum)
+- **Compatibility rules (what the tool is used for next decides how it must be washed)**
+  - After `Hazard`: wash with detergent whatever it is used for next. But if the same ingredient in the same state is handled again in a row (cutting raw pork again), it can be used as is
+  - After `Allergen(k)`: wash with detergent before using it for the portion of a person with that allergy. No condition otherwise
+  - After `Soiled`: wash before using it for something eaten raw (`RawEdible`). Rinse if the next thing is cooked
+  - After `Smelly`: rinse before using it for something eaten raw or for dessert. It can be used as is for a cooked dish (carrot after onion, for example)
+  - After `Greasy`: wash cutting boards and dishes with detergent. A frying pan used again for stir-frying can be used as is
+  - After `Sticky` or `Burnt`: soak and then wash
+  - After `Staining`: does not prevent use. Only reported as information (color stays on a plastic cutting board, for example)
+  - After `Light`: can be used as is
+  - The `Hazard` and `Allergen` rules cannot be relaxed by settings (§6.1). The others are standard defaults and can be overridden in the pantry
 
-- **標準の能力（設備の対応づけ。§4.2）**
+- **Standard capabilities (mapping to equipment; §4.2)**
 
-  | 能力 | 満たす設備の例 |
+  | Capability | Example equipment that provides it |
   |---|---|
-  | `HeatSource<stovetop / oven / microwave / toaster>` | コンロ、オーブン、電子レンジ、トースター |
-  | `CuttingSurface` | まな板 |
-  | `Container<capacity>` | 鍋、ボウル |
-  | `RiceCooking` | 炊飯器 |
-  | `Blending` | ミキサー |
-  | `Chilling` / `Freezing` | 冷蔵庫 / 冷凍庫 |
-  | `Washing` | 洗い場、食洗機 |
-  | `Vessel`（器の分類） | 器 |
+  | `HeatSource<stovetop / oven / microwave / toaster>` | Stove, oven, microwave, toaster |
+  | `CuttingSurface` | Cutting board |
+  | `Container<capacity>` | Pot, bowl |
+  | `RiceCooking` | Rice cooker |
+  | `Blending` | Blender |
+  | `Chilling` / `Freezing` | Refrigerator / freezer |
+  | `Washing` | Sink, dishwasher |
+  | `Vessel` (class of dish) | Dish |
 
-- **台所スペックの語彙（場所と道具）**
+- **Vocabulary of the kitchen spec (places and tools)**
 
-  | 区分 | 項目 | 容量の表し方 |
+  | Group | Item | How capacity is expressed |
   |---|---|---|
-  | 場所 | 立つ場所（`floor`） | 同時に立てる人数 |
-  | 場所 | 調理台（`counter`） | まな板を広げられる数 |
-  | 場所 | 洗い場（`sink`） | 数 |
-  | 場所 | コンロ（`stove`。ガス / IH） | 口数 |
-  | 場所 | オーブン、電子レンジ、トースター | 台数 |
-  | 場所 | 冷蔵庫、冷凍庫 | 既定は「十分に入る」 |
-  | 場所 | 食洗機 | 一度に入る量 |
-  | 道具 | まな板、包丁、ピーラー | 数 |
-  | 道具 | フライパン、鍋、ボウル、ざる | 数と大きさ |
-  | 道具 | 菜箸、お玉、泡立て器、計量スプーン | 数 |
-  | 道具 | 炊飯器（内釜を洗う）、ミキサー（容器を洗う） | 数と容量 |
-  | 道具 | 器（下の「器の分類」） | 数と大きさ |
+  | Place | Standing space (`floor`) | Number of people who can stand at once |
+  | Place | Counter (`counter`) | Number of cutting boards that can be laid out |
+  | Place | Sink (`sink`) | Count |
+  | Place | Stove (`stove`; gas / IH) | Number of burners |
+  | Place | Oven, microwave, toaster | Number of units |
+  | Place | Refrigerator, freezer | Default is "room for everything" |
+  | Place | Dishwasher | Amount that fits at once |
+  | Tool | Cutting board, knife, peeler | Count |
+  | Tool | Frying pan, pot, bowl, colander | Count and size |
+  | Tool | Cooking chopsticks, ladle, whisk, measuring spoons | Count |
+  | Tool | Rice cooker (wash the inner pot), blender (wash the jar) | Count and capacity |
+  | Tool | Dishes (see "Classes of dishes" below) | Count and size |
 
-  - 境界の基準: 場所はそこへ行って作業し、その場で拭くもの。道具は使われて、洗い場で洗うもの（§4.2）
-  - 小さな道具の既定値: 菜箸やボウルを省略したときは「足りる数がある」と仮定し、仮定の一覧に出す（§5.1）。T2 のアレルゲン検査のように数が効く場面では、書いておけば検査される
-  - 冷蔵庫・冷凍庫は、冷やす・冷凍のまま待たせる（アイス・氷）作業の置き場所。容量の既定は無制限で、書いたときだけ取り合いを検査する
-- **部位の語彙**
+  - The boundary: a place is where you go to work and is wiped on the spot. A tool is used and then washed at the sink (§4.2)
+  - Defaults for small tools: when cooking chopsticks or bowls are left out, "there are enough" is assumed and shown in the list of assumptions (§5.1). Where the count matters, such as the allergen check in T2, it is checked if written
+  - The refrigerator and freezer are where chilling and keeping things frozen while waiting (ice cream, ice) happen. Capacity is unlimited by default, and competition is checked only when it is written
+- **Vocabulary of cuts**
 
-  | 食材 | 部位 | 使う場面 |
+  | Ingredient | Cuts | Used in |
   |---|---|---|
-  | 豚肉 | 肩、肩ロース、ロース、ヒレ、バラ、もも | 炒め物、焼きそば、カレー |
-  | 鶏肉 | もも、むね、ささみ、手羽先、手羽元 | 親子丼（T2） |
-  | 牛肉 | 肩、肩ロース、リブロース、サーロイン、ヒレ、バラ、もも | 牛カルビ丼（T4） |
-  | 丸魚（ブリなど） | 頭、カマ、背身、腹身、中骨、皮、内臓、うろこ | 捌きと使い切り（T1） |
+  | Pork | Shoulder, shoulder loin, loin, tenderloin, belly, leg | Stir-fry, yakisoba, curry |
+  | Chicken | Thigh, breast, tenderloin, wing tip, drumette | Oyakodon (T2) |
+  | Beef | Shoulder, chuck roll, rib loin, sirloin, tenderloin, belly, round | Beef kalbi bowl (T4) |
+  | Whole fish (yellowtail, etc.) | Head, collar, back meat, belly meat, backbone, skin, innards, scales | Butchering and using it up (T1) |
 
-  - 売り場の名前は `alias` で表す: 「こま切れ」は部位ではなく「部位は問わず小さく切ったもの」なので、部位の和集合と形状を組み合わせた別名にする。「カルビ」は牛のバラを中心とした別名（T4）
-  - 魚は型で共通化する: 丸魚の部位は `RoundFish` トレイトに一度だけ定義し、ブリ・アジ・サバなどはそれを持つ。内臓とうろこは捨てる部分として、捌く動作の出力で `discard` 扱いになる
-- **器の分類**
+  - Store names are expressed with `alias`: "komagire" is not a cut but "small pieces from any cut", so it is an alias that combines a union of cuts with a shape. "Kalbi" is an alias centered on beef belly (T4)
+  - Fish share structure through types: the cuts of a whole fish are defined once in the `RoundFish` trait, and yellowtail, horse mackerel, mackerel and so on have it. Innards and scales are discarded parts and are treated as `discard` in the output of the butchering action
+- **Classes of dishes**
 
-  | 器 | 分類 | 使う料理（献立・テスト） |
+  | Dish | Class | Dishes served in it (menus, tests) |
   |---|---|---|
-  | 平皿 | `FlatPlate` | 焼きそば、炒め物、ナン |
-  | 長皿 | `LongPlate : FlatPlate` | カマ焼き（T1） |
-  | 深皿 | `DeepPlate`、`HoldsLiquid` | カレー |
-  | 丼 | `Donburi`、`HoldsLiquid` | 親子丼（T2）、牛カルビ丼（T4） |
-  | 飯碗 | `RiceBowl` | ごはん |
-  | 汁椀 | `SoupBowl`、`HoldsLiquid` | 味噌汁 |
-  | 鉢 | `Bowl`、`HoldsLiquid` | アラ煮（T1）、サラダ |
-  | 小鉢 | `SmallBowl`、`HoldsLiquid` | 小さな副菜 |
-  | 小皿 | `SmallPlate` | 醤油（刺身に添える）、取り皿 |
-  | 大皿 | `Platter` | 取り分ける料理（`shared`） |
-  | グラス | `Glass`、`HoldsLiquid` | パフェ、ジュース |
+  | Flat plate | `FlatPlate` | Yakisoba, stir-fry, naan |
+  | Long plate | `LongPlate : FlatPlate` | Grilled collar (T1) |
+  | Deep plate | `DeepPlate`, `HoldsLiquid` | Curry |
+  | Donburi bowl | `Donburi`, `HoldsLiquid` | Oyakodon (T2), beef kalbi bowl (T4) |
+  | Rice bowl | `RiceBowl` | Rice |
+  | Soup bowl | `SoupBowl`, `HoldsLiquid` | Miso soup |
+  | Bowl | `Bowl`, `HoldsLiquid` | Simmered fish trimmings (T1), salad |
+  | Small bowl | `SmallBowl`, `HoldsLiquid` | Small side dishes |
+  | Small plate | `SmallPlate` | Soy sauce (served with sashimi), plates for sharing out |
+  | Platter | `Platter` | Dishes shared out (`shared`) |
+  | Glass | `Glass`, `HoldsLiquid` | Parfait, juice |
 
-  - 大きさは分類ではなく属性（`diameter`、`capacity`）。容量の検査（§4.5）もこの属性で行う
-  - 刺身皿のような専用の器は、長皿と同じく継承で書き手が足せる
-  - 電子レンジ・オーブンに使えるかは標準に入れず、書き手が足せる属性とする
-  - 標準の器の代替順: 深皿 → 丼 → 鉢（カレーなど）、飯碗 → 丼、平皿 → 大きめの平皿 → 大皿、小鉢 → 小皿（汁気のないものだけ）。液体を保てるか（`HoldsLiquid`）は必須の制約なので、汁物が小皿に回ることはない
+  - Size is not a class but a property (`diameter`, `capacity`). The capacity check (§4.5) also uses these properties
+  - Special dishes such as a sashimi plate can be added by writers through inheritance, like the long plate
+  - Whether a dish can go in a microwave or oven is not in the standard; it is a property writers can add
+  - Standard fallback order of dishes: deep plate → donburi bowl → bowl (curry, etc.), rice bowl → donburi bowl, flat plate → larger flat plate → platter, small bowl → small plate (only for things without liquid). Holding liquid (`HoldsLiquid`) is a required constraint, so soup never ends up on a small plate
 
-### 12.4 機能別のテスト用レシピ
+### 12.4 Test recipes per feature
 
-基準の献立は献立の連携を網羅するが、次の機能は含まない。これらは献立とは別に、機能ごとのテスト用レシピで試す。
+The reference menus cover the menu links, but they do not include the following features. These are tried with test recipes per feature, separate from the menus.
 
-| テスト | 内容 | 試す機能 |
+| Test | Content | Features tried |
 |---|---|---|
-| T1. 魚の捌きと使い切り | ブリ 1 尾を捌いて、刺身・カマ焼き・アラ煮の献立にする | 部位、歩留まり、捌く動作の複数出力、献立をまたぐ受け渡し、残りの情報表示、生で食べる食材の例外、生魚によるまな板の汚れ |
-| T2. アレルゲンと人ごとの属性 | 卵アレルギーの人を含む 4 人の献立。親子丼（その 1 人分は卵なしの鶏丼）と味噌汁 | 同じボウルや菜箸を通じた混入の検査、人ごとの違い |
-| T3. 台所の違い | 基準の献立 B と C を、(a) 炊飯器がない台所、(b) 食洗機があり `--cleanup afterMeal` を指定した台所で通す | 設備がないときの代替（鍋で炊く）、食洗機、食後の片付け |
-| T4. 売り場の名前 | カルビ（`alias`）で作る牛カルビ丼 | 部位が確定しない和集合の型、トレイト（`Fatty`）による要求 |
+| T1. Butchering a fish and using it up | Butcher one whole yellowtail and make a menu of sashimi, grilled collar and simmered trimmings | Cuts, yield, multiple outputs from the butchering action, hand-over across menus, showing information about leftovers, the exception for ingredients eaten raw, cutting board dirtied by raw fish |
+| T2. Allergens and per-person properties | A menu for 4 people including one with an egg allergy. Oyakodon (for that one person, a chicken bowl without egg) and miso soup | Check for cross-contact through the same bowl or cooking chopsticks, per-person differences |
+| T3. Different kitchens | Run reference menus B and C through (a) a kitchen without a rice cooker and (b) a kitchen with a dishwasher and `--cleanup afterMeal` set | Fallback when equipment is missing (cooking rice in a pot), dishwasher, cleanup after the meal |
+| T4. Store names | Beef kalbi bowl made with kalbi (`alias`) | Union types where the cut is not fixed, needs expressed with a trait (`Fatty`) |
 
-### 非ゴール
-- 端末上での C コンパイル、機械語生成
-- ネットワーク必須の機能（パッケージの動的ダウンロード等）
-- 汎用プログラミング言語化（あくまで料理手順の記述が目的）
-- 乾かし（乾燥時間、水切りかごの容量、拭き上げ）。洗った道具はすぐ使えるとみなす
-- 台所内の位置・動線・移動距離のモデル化
-- 何日分もの食事計画の段取り、入れ子のコース、皿ごとのペース配分、食卓で作り続ける料理の段取り（焼肉・鍋など）
-- 器を温める、盛り付けの見た目、器と料理の格の合わせ方
-- Cooklang との連携（インポーター・書き出し）。需要がはっきり出てきたら改めて検討する（§11.3）
+### Non-goals
+- C compilation or machine code generation on the device
+- Features that require a network (dynamic download of packages, etc.)
+- Becoming a general-purpose programming language (the aim is only describing cooking steps)
+- Drying (drying time, capacity of the dish rack, drying with a towel). Washed tools are treated as ready to use at once
+- Modeling positions, paths of movement and travel distances inside the kitchen
+- Scheduling meal plans for many days, nested courses, pacing per plate, scheduling dishes cooked continuously at the table (yakiniku, hot pot, etc.)
+- Warming dishes, the look of plating, matching the formality of dishes and food
+- Integration with Cooklang (importer, export). Reconsider if demand clearly appears (§11.3)
 
-## 13. 開発ロードマップ（案）
+## 13. Development roadmap (draft)
 
-1. **動作シグネチャ表**（基準の献立に必要な動作。§12.1）と、量・状態・資源の型定義。道具・場所・汚れ・器・部位の定義も含める。調理スケジューリング研究のモデル（§11.3）を出発点として参考にする。属性の値は §12.3 の出どころの優先順位（一次情報 > 計算 > 暫定）で集める。言語選択に依存しないので先に書ける。
-2. **評価器の試作**（C 系言語）: `if` / `for` / `quote` / 燃料制。実装方式を決めるための試作で、範囲を削るためのものではない。
-3. **試作の結果を確認**（§9 の確認項目）。
-4. パーサー + アリーナ + 診断の基盤。
-5. 型検査（次元 → 状態 → 線形・資源衝突）。
-6. IR + スケジューラ（洗い・拭きの挿入を含む）+ テキスト IR ダンプ。
-7. 公開 API とヘッダー、JSON 出力。
-8. 4 環境（iOS / Android / Linux / WASM）のビルドと呼び出し確認（CI 整備）。
-9. 最小サンプル「カレーとごはん」（献立の「合成」の最小例）を全環境で同じ結果にする。
-10. 基準の献立 5 つ（§12.1）と機能別のテスト用レシピ 4 つ（§12.4）を全環境で通す。
-11. レンダラー（文章・HTML・ガント図、言い回しファイル）と、型の定義からの設定画面の生成。
-12. `ozen bundle`。
-13. 外部連携（後回し。§12）。
+1. **Action signature table** (the actions needed for the reference menus; §12.1) and type definitions for quantity, state and resources. Also include definitions of tools, places, dirt, dishes and cuts. Use the models of cooking scheduling research (§11.3) as a starting point. Property values are collected by the source priority in §12.3 (primary source > calculation > provisional). This does not depend on the choice of language, so it can be written first.
+2. **Prototype of the evaluator** (C-family language): `if` / `for` / `quote` / fuel. A prototype to decide how to implement it, not to cut the scope.
+3. **Review the prototype results** (the check items in §9).
+4. Parser + arena + diagnostics foundation.
+5. Type check (dimension → state → linear and resource conflicts).
+6. IR + scheduler (including inserting washing and wiping) + text IR dump.
+7. Public API and header, JSON output.
+8. Builds and call checks for the 4 platforms (iOS / Android / Linux / WASM) (setting up CI).
+9. Make the minimal sample "curry and rice" (the smallest example of menu "composition") give the same result on every platform.
+10. Pass the 5 reference menus (§12.1) and the 4 test recipes per feature (§12.4) on every platform.
+11. Renderer (text, HTML, Gantt chart, phrase files) and generating settings screens from type definitions.
+12. `ozen bundle`.
+13. External integrations (deferred; §12).
 
-## 14. 未決事項
+## 14. Open questions
 
-決める時期（§13 のロードマップのどの段階の前に決めるか）で分けて整理する。上のものほど早く決める必要がある。
+Sorted by when they must be decided (before which stage of the roadmap in §13). The higher an item, the sooner it must be decided.
 
-### 14.1 動作シグネチャ表の前（§13-1）: 標準の語彙
+### 14.1 Before the action signature table (§13-1): standard vocabulary
 
-- （すべて決定済み。決定内容は §4.1・§12.1〜§12.4）
+- (All decided. The decisions are in §4.1 and §12.1–§12.4)
 
-### 14.2 評価器の試作の前後（§13-2・3）: 実装の基盤
+### 14.2 Around the evaluator prototype (§13-2, 3): implementation foundation
 
-- コアの具体的な実装言語（C 系言語の中で。§9 の試作で確認する。会話の中では決められないため、試作待ち）
+- The concrete implementation language of the core (within the C family; checked by the prototype in §9. It cannot be decided in conversation, so it waits for the prototype)
 
-### 14.3 パーサーの前（§13-4）: 記法
+### 14.3 Before the parser (§13-4): notation
 
-- （すべて決定済み）
+- (All decided)
 
-### 14.4 型検査の前（§13-5）: 検査の規則
+### 14.4 Before the type check (§13-5): checking rules
 
-- （すべて決定済み）
+- (All decided)
 
-### 14.5 スケジューラの前（§13-6）: 段取りの規則
+### 14.5 Before the scheduler (§13-6): scheduling rules
 
-- （すべて決定済み）
+- (All decided)
 
-### 14.6 公開・配布の前（§13-7・8）
+### 14.6 Before publishing and distribution (§13-7, 8)
 
-- （すべて決定済み）
+- (All decided)
 
-### 14.7 レンダラーと束ねる仕組みの前（§13-11・12）
+### 14.7 Before the renderer and the bundling mechanism (§13-11, 12)
 
-- （すべて決定済み）
+- (All decided)
 
-### 14.8 外部連携（後回し）
+### 14.8 External integrations (deferred)
 
-- （すべて決定済み。機器向け形式は §6、Cooklang との連携は §12 非ゴール）
+- (All decided. Formats for devices are in §6, and integration with Cooklang is in the §12 non-goals)
 
-## 15. リスクと対策
+## 15. Risks and countermeasures
 
-| リスク | 対策 |
+| Risk | Countermeasure |
 |---|---|
-| レベル 3 の評価器が、C 系言語ではバグの温床になる | 先に小さく試作。アリーナと規律で書き、ASan / UBSan とファズを最初から回す。必要ならコアだけ別言語に差し替え（境界は C ABI） |
-| マクロ展開でエラーが分かりにくくなる | span に展開履歴を持たせる設計を最初から入れる |
-| 状態型が細かすぎて書き味が悪くなる | 状態を独立した軸の組み合わせにして組み合わせの爆発を避ける。混ぜたら新しい値として扱い、個々の食材の状態は追わない（§14.1） |
-| 浮動小数点で環境ごとに結果が変わる | 有理数 / 固定小数点 |
-| 共有レシピ / 拡張が悪意ある入力になる | 燃料制・上限・サニタイズ・ファズ |
-| 新規性の誤認（研究・既存物との重複） | §11 の分析に沿って、スケジューリング自体ではなく言語としての組み合わせを新規性として打ち出す。2025 年の行動グラフ DSL など、近い研究の本文を確認する |
-| 語彙の分裂（各自が独自に定義し、レシピ同士が混ぜられなくなる） | 標準ライブラリを共通の土台として育てる。独自定義は標準の拡張として書く形を推奨。名前空間・`import`・スコープごとの上書きで衝突を管理する |
-| 洗い物の挿入でスケジューラが複雑になる | 段取り替え時間として扱う。仕組みと語彙を最初から一緒に設計し、後付けによる作り直しを避ける |
+| The level 3 evaluator becomes a breeding ground for bugs in a C-family language | Build a small prototype first. Write it with an arena and discipline, and run ASan / UBSan and fuzzing from the start. If needed, swap only the core for another language (the boundary is the C ABI) |
+| Macro expansion makes errors hard to understand | Build in the design that gives spans an expansion history from the start |
+| State types are too fine-grained and make writing unpleasant | Make state a combination of independent axes to avoid a combinatorial explosion. Treat a mixture as a new value and do not track the state of each ingredient in it (§14.1) |
+| Floating point gives different results on different platforms | Rationals / fixed point |
+| Shared recipes or extensions become malicious input | Fuel, limits, sanitizing, fuzzing |
+| Mistaken novelty (overlap with research and existing work) | Following the analysis in §11, present the combination as a language, not scheduling itself, as the novelty. Check the full text of close research such as the 2025 action graph DSL |
+| Vocabulary split (everyone defines their own, and recipes can no longer be mixed) | Grow the standard library as a common base. Recommend writing custom definitions as extensions of the standard. Manage collisions with namespaces, `import`, and overrides per scope |
+| Inserting washing up makes the scheduler complex | Treat it as setup (changeover) time. Design the mechanism and the vocabulary together from the start, to avoid rebuilding when it is added later |
