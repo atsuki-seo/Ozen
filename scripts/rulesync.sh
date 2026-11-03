@@ -24,11 +24,12 @@ if [ -z "$version" ]; then
   exit 2
 fi
 
+run=(npx --yes "rulesync@$version" "$@")
 if [ "$generate" -eq 0 ] || [ "$check" -eq 1 ]; then
-  exec npx --yes "rulesync@$version" "$@"
+  exec "${run[@]}"
 fi
 
-out=$(npx --yes "rulesync@$version" "$@")
+out=$("${run[@]}")
 status=$?
 printf '%s\n' "$out"
 [ "$status" -eq 0 ] || exit "$status"
