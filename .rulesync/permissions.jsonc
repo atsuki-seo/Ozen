@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+{
+  "permission": {
+    "bash": {
+      "scripts/goals.sh *": "allow",
+      "scripts/run-golden.sh *": "allow",
+      "scripts/run-cli-tests.sh *": "allow",
+      "scripts/check-*.sh *": "allow",
+      "scripts/build-core.sh *": "allow",
+      "scripts/setup.sh": "allow",
+      "scripts/rulesync.sh generate --check": "allow",
+      "build/*/ozen check *": "allow",
+      "build/*/ozen debug *": "allow",
+      "build/*/ozen render *": "allow",
+      "git status *": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "git show *": "allow"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(build/*/ozen check *)",
+      "Shell(build/*/ozen debug *)",
+      "Shell(build/*/ozen render *)",
+      "Shell(git diff *)",
+      "Shell(git log *)",
+      "Shell(git show *)",
+      "Shell(git status *)",
+      "Shell(scripts/build-core.sh *)",
+      "Shell(scripts/check-*.sh *)",
+      "Shell(scripts/goals.sh *)",
+      "Shell(scripts/rulesync.sh generate --check)",
+      "Shell(scripts/run-cli-tests.sh *)",
+      "Shell(scripts/run-golden.sh *)",
+      "Shell(scripts/setup.sh)"
+    ]
+  }
+}

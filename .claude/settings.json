@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(build/*/ozen check *)",
+      "Bash(build/*/ozen debug *)",
+      "Bash(build/*/ozen render *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git status *)",
+      "Bash(scripts/build-core.sh *)",
+      "Bash(scripts/check-*.sh *)",
+      "Bash(scripts/goals.sh *)",
+      "Bash(scripts/rulesync.sh generate --check)",
+      "Bash(scripts/run-cli-tests.sh *)",
+      "Bash(scripts/run-golden.sh *)",
+      "Bash(scripts/setup.sh)"
+    ]
+  }
+}
