@@ -1084,6 +1084,10 @@ Claude covers the machine-checked goals. The user checks these:
 - Mutation checks (each task): `- Mutation check: <test> — <how it was broken>: failed (<message>). Restored: pass`
 - Coverage audit (P5-3): `- Coverage audit: <k> findings, <m> taken`
 - Other work's commits in the range: `- Other work's commit in range: <sha>`
+- `fb-end` (P0-2, 2026-11-03): the feedback plan's final gate is recorded in `4cc5906` (P9-4 of that plan, run at `667fa46`). That plan had not set `fb-end`, so P0-2 set it on `4cc5906`, the plan's last commit. `ds-start` is `2d2f971`.
+- Goals at `ds-start` (P0-2, 2026-11-03): `build/ds-goals-start.txt`, 171 goals run, 169 pass. Not run: `G-CORE-FUZZ`, `G-CORE-BUILD`, `G-REPO-RED-FIRST`, `G-PLAT-CI`, `G-REPO-TOOLS-CI` and `G-RD-GH-*` (the network and rebuild goals of D124). The two failures are known: `G-FB-SCOPE` counts the two plan commits after `fb-end` (P0-3 closes `FB`), and `G-VOCAB-TESTS` was retired by roadmap D28 and fails since before the feedback plan (that plan's §9 records it). The prerequisite goals of this plan are therefore every goal except the six retired `G-VOCAB-SCHEMA`, `G-VOCAB-CHECK`, `G-VOCAB-SAMPLE`, `G-VOCAB-TESTS`, `G-VOCAB-READONLY` and `G-VOCAB-EXPECT-INDEPENDENT`.
+- Versions chosen (P0-2, 2026-11-03): Node.js `24.22.2`, the newest Node.js 24 release on <https://nodejs.org/dist/index.json>; rulesync `43.4.2` (`npm view rulesync version`), `engines.node` `>=22.22.0`.
+- Other work in progress at `ds-start` (P0-2, 2026-11-03): none. The working tree was clean, and no other plan has an open range besides `R` and `RF`, which stay open by design.
 
 ---
 
