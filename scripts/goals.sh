@@ -1141,9 +1141,9 @@ goal_G_RD_AUDIT() {
 }
 
 goal_G_QC_DECISIONS() {
-  want_eq "decided" 19 "$(grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_QC)"
-  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*【未決】' $PLAN_QC)"
-  want_eq "decision lines" 19 "$(grep -c '^- \*\*決定:' $PLAN_QC)"
+  want_eq "decided" 19 "$(grep -c '^### D[0-9]*\. .*\[decided\]' $PLAN_QC)"
+  want_eq "undecided" 0 "$(grep -c '^### D[0-9]*\. .*\[open\]' $PLAN_QC)"
+  want_eq "decision lines" 19 "$(grep -c '^- \*\*Decision:' $PLAN_QC)"
 }
 
 goal_G_QC_COVERAGE() {
@@ -1151,7 +1151,7 @@ goal_G_QC_COVERAGE() {
     "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_QC | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
             <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_QC | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u))"
   want_eq "handoff items without reason" 0 \
-    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_QC | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_QC | grep '^- ' | grep -v 'Reason a command cannot decide:' | wc -l)"
 }
 
 goal_G_QC_PLAN_NAMES() {
@@ -1185,7 +1185,7 @@ goal_G_QC_GOLDEN_CHANGED() {
   want_eq "tag qc-start" ok "$(git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok)"
   want_eq "changed expectations not named in the plan" 0 \
     "$(git diff --name-only --diff-filter=M qc-start qc-end -- 'tests/golden/**/*.out' 'renderers/test/**' 'samples/*/expect.yaml' |
-       while IFS= read -r f; do grep -qF -- "- 期待を直した golden: \`$f\`" $PLAN_QC || echo "$f"; done | wc -l)"
+       while IFS= read -r f; do grep -qF -- "- Golden with a corrected expectation: \`$f\`" $PLAN_QC || echo "$f"; done | wc -l)"
 }
 
 goal_G_QC_PRELUDE() {
@@ -1236,7 +1236,7 @@ goal_G_QC_SYNTAX() {
 }
 
 qc_excluded() {
-  grep -oE '^- 範囲に入った別の作業のコミット: [0-9a-f]{7,40}' $PLAN_QC | awk '{print $NF}' |
+  grep -oE "^- Other work's commit in range: [0-9a-f]{7,40}" $PLAN_QC | awk '{print $NF}' |
     while IFS= read -r c; do git rev-parse -q --verify "$c^{commit}" || echo "unknown:$c"; done
 }
 
@@ -1309,7 +1309,7 @@ goal_G_QC_ISSUES() {
 }
 
 goal_G_QC_AUDIT() {
-  want_ge1 "audit records" "$(grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_QC)"
+  want_ge1 "audit records" "$(grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_QC)"
 }
 
 goal_G_FB_DECISIONS() {

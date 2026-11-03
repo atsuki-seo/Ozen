@@ -1,26 +1,26 @@
-# 動作の引数の単位と、0 以下の量を検査する計画
+# Plan to check the units of action arguments and amounts of zero or less
 
-- 作成日: 2026-11-02
-- 参照元: なし（コードの参照元は持たない）。要求は GitHub Issue [atsuki-seo/Ozen#1](https://github.com/atsuki-seo/Ozen/issues/1)（動作の引数の単位が検査されない）と [atsuki-seo/Ozen#2](https://github.com/atsuki-seo/Ozen/issues/2)（マイナスや 0 の時間・量がエラーにならない）。どちらも報告者は sin-45、報告時のコミットは `8db17e6`
-- 実装先: `/home/atsuki/ドキュメント/Ozen`、`main`（D81）。着手点は `8db17e6`（紹介ページの OGP の追加まで）
-- 前提ルール: `CLAUDE.md`（`main` だけで作業する、push の前に `G-REPO-NOREPLY` を回す、`plans/` と `docs/` は日本語、それ以外のコミットする成果物は英語）、`~/.claude/rules/plan-language.md`、`~/.claude/rules/repo-language.md`、`~/.claude/rules/git-commit.md`、`~/.claude/rules/comment-style.md`、`~/.claude/rules/github.md`。既存の計画 `plans/ozen-roadmap.md`（以下「ロードマップ」）、`plans/ozen-syntax-refresh.md`（以下「記法の計画」）、`plans/ozen-readme-compact.md`（以下「README の計画」）の §5 のゴールを前提ゴールとして引用する（§5）
+- Created: 2026-11-02
+- Reference source: none (there is no code reference source). The requests are GitHub Issue [atsuki-seo/Ozen#1](https://github.com/atsuki-seo/Ozen/issues/1) (the units of action arguments are not checked) and [atsuki-seo/Ozen#2](https://github.com/atsuki-seo/Ozen/issues/2) (negative or zero times and amounts are not errors). Both were reported by sin-45, at commit `8db17e6`
+- Implementation target: `/home/atsuki/ドキュメント/Ozen`, `main` (D81). The starting point is `8db17e6` (up to the addition of OGP to the introduction page)
+- Prerequisite rules: `CLAUDE.md` (work only on `main`, run `G-REPO-NOREPLY` before a push, `plans/` and `docs/` are in Japanese, other committed artifacts are in English), `~/.claude/rules/plan-language.md`, `~/.claude/rules/repo-language.md`, `~/.claude/rules/git-commit.md`, `~/.claude/rules/comment-style.md`, `~/.claude/rules/github.md`. The §5 goals of the existing plans `plans/ozen-roadmap.md` (below, "the roadmap"), `plans/ozen-syntax-refresh.md` (below, "the syntax plan") and `plans/ozen-readme-compact.md` (below, "the README plan") are cited as prerequisite goals (§5)
 
-## 0. この計画の読み方
+## 0. How to read this plan
 
-- 本計画は README の計画の後に続く作業の計画で、番号を引き継ぐ。設計判断は **D69** から、仕様項目は **S695** から付ける（README の計画の最後は D68・S694）。
-- タスクの完了条件は、すべて **コマンドで合否が決まる形** で書く。人による確認はタスクにせず、§8 の引き渡しリストに回す。
-- 完了条件は、§5 で列挙する前提ゴールと、本計画 §5 で定義する `G-QC-*` で参照する。判定コマンドは §5 のコードブロックが正。表には書かない（表の中では `|` が `\|` になるため）。
-- §2 の D69〜D72 は、計画を書く前の 2026-11-02 にユーザーが決めた（Issue の確認の後、方針を 3 つの質問で確認した）。D73〜D87 は、計画を書いた後の 2026-11-02 にユーザーに 1 件ずつ確認して決めた（15 件すべて個別確認。範囲に関わる D85・D86・D78 を先に、その後は番号順。すべて推奨案）。D76 は、確認の途中で示した例（人数が範囲外でも `0 g per serving` は `TYP021`）に合わせて推奨の文を正確にしてから書き込み、S785 を足した。各節の先頭に「決定:」の行があり、推奨と代替の比較は経緯として残す（P0-1）。
-- 実装先の事実は、2026-11-02 に `8db17e6` のファイルを読み、`build/core-gcc-release/ozen`（`8db17e6` の core と同じソースからのビルド。全 golden 448 個が合格）で実行して確かめた（§3）。書き終えた後に独立したサブエージェントの監査を 1 回受け、指摘を取り込んだ（§5.3 の末尾と §9）。
-- §4 の確かめられる主張には仕様項目 ID を付けてある。§5.3 の網羅表が、S 項目ごとにテストか §8 への引き渡し（理由付き）を示す。
+- This plan is for the work that follows the README plan, and it continues the numbering. Design decisions start at **D69** and spec items start at **S695** (the README plan ended at D68 and S694).
+- Every task completion condition is written **so that a command decides pass or fail**. Human checks are not tasks; they go to the hand-over list in §8.
+- Completion conditions refer to the prerequisite goals listed in §5 and to the `G-QC-*` goals defined in §5 of this plan. The judgment commands in the §5 code blocks are authoritative. They are not written in tables (because `|` becomes `\|` in a table).
+- In §2, D69 to D72 were decided by the user on 2026-11-02, before the plan was written (after reading the Issues, the direction was confirmed with 3 questions). D73 to D87 were decided on 2026-11-02, after the plan was written, by asking the user one by one (all 15 confirmed individually; D85, D86 and D78, which affect the scope, came first, then the rest in number order; all took the recommendation). For D76, the recommendation text was made exact to match an example shown during the confirmation (`0 g per serving` is `TYP021` even when the servings are out of range) before it was written in, and S785 was added. Each section starts with a "Decision:" line, and the comparison of the recommendation and alternatives is kept as history (P0-1).
+- Facts about the implementation target were checked on 2026-11-02 by reading the files at `8db17e6` and running `build/core-gcc-release/ozen` (built from the same source as the core at `8db17e6`; all 448 goldens pass) (§3). After writing, the plan received one audit by an independent subagent, and its findings were taken in (end of §5.3 and §9).
+- Checkable claims in §4 carry spec item IDs. The coverage table in §5.3 shows, for each S item, a test or a hand-over to §8 (with a reason).
 
 ---
 
-## 1. 目的とスコープ
+## 1. Purpose and scope
 
-**目的**: 動作に渡す量が、動作の宣言した次元（時間・長さなど）と合わないときにエラーにする（#1）。あわせて、材料の量・動作の時間と大きさ・人数（`servings`）に 0 や負の値を書いたときにエラーにする（#2）。どちらも、今は誤った値がそのまま段取りやレシピの文章に出る（「卵を中火で3 ml炒める」「水を-300 sゆでる」）。同じ誤りが別の書き方（両端に単位を書いた範囲 `3 ml..5 ml`、献立の `make` の引数、`-s` と条件）から通らないようにする。
+**Purpose**: Make it an error when an amount passed to an action does not match the dimension the action declares (time, length, and so on) (#1). Also make it an error to write zero or a negative value for an ingredient amount, an action's time or size, or the servings (`servings`) (#2). In both cases, the wrong value now goes straight into the schedule and the recipe text ("fry the egg over medium heat 3 ml", "boil the water -300 s"). Make sure the same mistakes do not pass through other ways of writing them (a range with units on both ends `3 ml..5 ml`, the arguments of `make` in a menu, `-s` and the options).
 
-直した後の診断の例:
+Example diagnostics after the fix:
 
 ```text
 $ ozen check case1.ozen          # let x = fry(egg, 3 ml)
@@ -31,201 +31,201 @@ error TYP021 nonPositiveAmount case2.ozen:3:12-3:19 args=["water", "-100 ml"]: n
 error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<.."]: range violation
 ```
 
-（位置と引数の並びは §4 の仕様から書いた見込み。正しい値は各 golden の期待として P1・P2・P3 で手で書く）
+(The positions and the order of arguments are expected values written from the spec in §4. The correct values are written by hand as each golden's expectation in P1, P2 and P3)
 
-### スコープ内
+### In scope
 
-- 動作の呼び出しで、量の引数を宣言の型と照合する（D69）
-- 両端に単位を書いた範囲（`3 ml..5 ml`）を区間として評価し、照合と量の検査に掛かるようにする（D85）
-- 献立の `make` で料理に渡す量の引数を、料理の引数の宣言と照合する（D86）
-- 型の範囲に、下端を含まない書き方を足す（D70・D73・D74・D79）
-- 標準ライブラリの動作の時間・大きさに、0 より大きい範囲を付ける（D70）
-- 材料の量が 0 以下のときの新しい診断（D71・D75・D76）
-- 人数（`servings`）を、レシピと献立の見出し・`make` の引数・`-s`・ビルド時の条件のすべてで 1 以上に制限し、同じ値に診断を 1 つだけ出す（D72・D77）
-- `docs/concept.md`・`core/grammar.ebnf`・`core/src/rules.def`・`core/fuzz/ozen.dict`・`schemas/result.schema.json` の更新
-- `scripts/goals.sh` への `G-QC-*` の追加と、`CLAUDE.md` の Plan の節への本計画の追加（D82）
-- 完了した計画の範囲のゴールを、後の作業で壊れない形に直す（D80・D87）
+- In an action call, check quantity arguments against the declared type (D69)
+- Evaluate a range with units on both ends (`3 ml..5 ml`) as an interval, so that the check and the amount checks apply to it (D85)
+- Check the quantity arguments that `make` in a menu passes to a dish against the dish's argument declarations (D86)
+- Add a way to write a type range whose lower end is not included (D70, D73, D74, D79)
+- Give the time and size of standard library actions a range greater than 0 (D70)
+- A new diagnostic for ingredient amounts of zero or less (D71, D75, D76)
+- Limit the servings (`servings`) to 1 or more in every place: the recipe and menu headers, the arguments of `make`, `-s`, and the build-time options; give only one diagnostic for the same value (D72, D77)
+- Update `docs/concept.md`, `core/grammar.ebnf`, `core/src/rules.def`, `core/fuzz/ozen.dict` and `schemas/result.schema.json`
+- Add `G-QC-*` to `scripts/goals.sh`, and add this plan to the Plan section of `CLAUDE.md` (D82)
+- Fix the range goals of completed plans so that later work does not break them (D80, D87)
 
-### スコープ外（理由）
+### Out of scope (reasons)
 
-- **量でない値と量の取り違え（`cut(slice, dice)`、`cut(3 mm)`、`fry(egg, 3 min, 3 ml)`）**: 列挙の値を次元の引数に、量を列挙の引数に渡す誤りで、Issue の「単位」とは別の照合（列挙と量の取り違え）が要る。今も通ることは監査で確かめた（§3.7）。最終ゲートの後に別の作業として提案する。
-- **状態の型の中の引数（`T<shape: cut(slice, 0 mm)>`、`soaked(time: Time)` の軸の引数）**: 照合の経路（状態の型の照合）が別。同じ穴があるかは P1-2 で確かめて §9 に書き、あれば別の作業として提案する。
-- **動作の引数の既定値の検査**: D78 の推奨どおりなら外す（決定で変わる）。
-- **`-1..2 g` の読み方（`-(1..2 g)` と読まれる）**: 演算子の優先順位の問題で、Issue に無い。本計画では、この量の下端が 0 以下としてエラーになることだけを確かめる（S731）。
-- **ループ（`repeat`）の中で同じ診断が回数分出ること**: 既存の診断（`TYP006` など）と同じ振る舞いで、本計画の診断もそれに従う。まとめるかは診断全体の設計の問題。
-- **人数を式で書いた見出し（`servings: Count = 1 - 1`）**: 見出しの既定値の式は今も評価されない（`value_qty` が読めない）。Issue に無い。
-- **`servings` の引数を持たない料理への `make gohan(servings: 0)`**: 名前の合わない引数が黙って捨てられる別の挙動（§3.7）。最終ゲートの後に別の作業として提案する。
-- **範囲に `..` の無い単独の値（`Time in 0 s`）が黙って無視されること、数だけの範囲（`1..20`）が型の一覧の JSON に出ないこと**: 既存の挙動で、Issue に無い（§3.7）。
-- **`servings` の小数（`1.5`）**: 範囲 `1..` は小数を許す今の閉区間の判定のまま。
-- **`buy Naan 0 pcs` のような買う量、分ける量**: Issue は材料の量だけを挙げている。同じ穴があるかは P3-2 で確かめて §9 に書く。
-- **温度の引数の範囲**: 負の温度（冷凍庫の -18 °C）が正しい値なので、範囲を付けない（D70）。
-- **語彙の表（`spec/vocab/actions.yaml`）の更新**: 表は引数の次元だけを持ち、範囲を持たない。表から標準ライブラリを作る `tools/std-from-vocab/convert.py` はどのゴールからも呼ばれていない（R7）。
-- **Issue へのコメントと閉じる操作の文面**: D84 で決め、最終ゲートの後にユーザーの確認を取ってから行う。
-- **人による確認**: §8 で引き渡す。
-
----
-
-## 2. 設計判断
-
-### D69. 動作の量の引数の検査（#1） 【決定済み】
-
-- **決定:** 動作の呼び出しで、宣言が次元の型の引数に渡した既知の量を宣言と照合し、次元が違えば既存の `TYP001 dimension` を出す。単位の無い数も次元の無い量としてエラーにする。（2026-11-02、ユーザー確認）
-- 経緯: 型と値を照合する `check_value`（`core/src/sema.c:2640`）はあるが、レシピの引数・台所の設定・ビルド時の条件でしか呼ばれていない。動作を呼ぶ `call_action`（`core/src/sema.c:4046`）は、食材の引数の状態だけを照合している（§3.1）。
-
-### D70. 0 と負の時間・大きさを弾く方法 【決定済み】
-
-- **決定:** 型の範囲に下端を含まない書き方を足し、標準ライブラリの動作の `time`・`size` に付けて、0 と負の値を `TYP012 rangeViolation` にする。温度の引数には付けない。綴りは `0 s<..` を第一候補とし、パーサーとの衝突を調べて決める（D73）。（2026-11-02、ユーザー確認）
-- 代替だった案: 文法を変えずに `in 0 s..` と書き、負の値だけを弾く。`simmer(x, 0 min)` が通ったままになる。
-
-### D71. 材料の量の診断 【決定済み】
-
-- **決定:** 材料の量が 0 以下なら、新しい診断（エラー）を出す。範囲の量は下端で判定し、`[any amount]` は対象外。（2026-11-02、ユーザー確認）
-- 代替だった案: `TYP012 rangeViolation` を使い回し、範囲の欄に `0<..` などを入れる。宣言の無い範囲を表示することになる。
-
-### D72. 人数（servings）の範囲 【決定済み】
-
-- **決定:** レシピの見出しの `servings` と、ビルド時の条件の `servings` の両方を `Count in 1..` で検査する。（2026-11-02、ユーザー確認）
-- 代替だった案: ビルド時の条件（`Options.servings`）だけ。レシピの見出しの `servings: 0` が通ったままになる。
-
-### D73. 下端を含まない範囲の綴り 【決定済み】
-
-- **決定:** 推奨のとおり、綴りは `a<..`（上端もあるときは `a<..b`）。`<` と `..` は空白を挟まず続けて書く。（2026-11-02、ユーザー確認）
-- **推奨**: `a<..`（上端もあるときは `a<..b`）。`<` と `..` は空白を挟まず続けて書く。読みは「a < 値 ..」で、`<` が「a より大きい」を表す。
-  - 衝突の調査（§3.2）: 今のパーサーでは、型の `in` の後の `0 s<..` は構文エラー（`SYN003 args=["<"]`）になるので、今の正しいプログラムの読み方は変わらない。量の後の `<` は単位の一部として読まれない（単位は名前と `/名前` だけ）。式の中の `3 min<..5 min` は今は比較（`3 min < ..5 min`）と読まれるが、D74 の推奨どおり型の範囲だけで読むなら式の読み方は変わらない。
-  - 型の引数の `<`（`T<shape: cut>`）とは、`<` の前が量か数であることと、直後が `..` であることで区別がつく。
-- 代替: `a^..`（Raku の `^..` に倣う）。他の言語に前例があるが、`^` は今の字句に無い記号で、新しいトークンが要り、読み手に意味が伝わりにくい。
-- 代替: `>a`（`Time in >0 s`）。読みやすいが、上端との組み合わせ（`>0 s..10 min`）の形が範囲の文法から外れ、規則が 2 つに分かれる。
-
-### D74. 下端を含まない書き方を使える場所 【決定済み】
-
-- **決定:** 推奨のとおり、下端を含まない書き方は型の `in` の後の範囲だけで使え、新しい文法規則 `type_range` を立てる。式の中の範囲と量の範囲のリテラルには足さない。（2026-11-02、ユーザー確認）
-- **推奨**: 型の `in` の後の範囲だけ（台所の設定・ビルド時の条件・レシピの引数・動作の引数の型）。式の中の範囲・量の範囲のリテラル（`15..20 min`）には足さない。文法には新しい規則 `type_range` を立て（`core/grammar.ebnf` と `core/src/rules.def`）、式と共用の `range` は変えない。
-  - 理由: 範囲の制約は型に持つ、という今の仕様（`docs/concept.md` §4.2）の中に収まり、式の評価（区間の計算）に「端を含まない」を持ち込まずに済む。式の中の `<` の読み方も変えない。
-- 代替: 式の中の範囲にも足す。`let t = 0 s<..10 min` のような値が書けるが、区間の計算・比較・表示のすべてに開いた端の扱いが要り、Issue の解決に必要ない。
-
-### D75. 新しい診断のコードと名前 【決定済み】
-
-- **決定:** 推奨のとおり、`TYP021 nonPositiveAmount`（エラー）を `diag_codes.def` の末尾に足す。引数は `[材料の名前, 書いた量の文字]`、言い回しのキーは `diag-non-positive-amount`、引数の種類は `['name']`。（2026-11-02、ユーザー確認）
-- **推奨**: `TYP021 nonPositiveAmount`（エラー）。`core/src/diag_codes.def` の末尾に追記する（既存の番号を変えない。`G-CORE-DIAG-APPEND`）。引数は 2 つで、`[材料の名前, 書いた量の文字]`（例 `["water", "-100 ml"]`）。言い回しのキーは `diag-non-positive-amount`、`renderers/lib/names.mjs` の引数の種類は `['name']`（`unusedValue` と同じ）。
-  - 日本語の文（案）: `{ $arg1 }の量 { $arg2 } は 0 より大きくしてください`。英語の文（案）: `The amount { $arg2 } of { $arg1 } must be more than zero`。
-- 代替: 名前を `amountNotPositive` にする。並びは自然だが、既存の名前（`vagueAmount`・`servingsUnknown`）は「形容 + 名詞」の順で、推奨のほうが揃う。
-- 代替: 分類を `LIN`（量の不足 `insufficient` と同じ）にする。`LIN` は消費の検査（二重消費・不足）の分類で、書いた値そのものの誤りは `TYP`（`vagueAmount` と同じ）が合う。
-
-### D76. 材料の量を判定する値と、人数の誤りとの重なり 【決定済み】
-
-- **決定:** 推奨のとおり、材料の量は書いた値（`per serving` は人数を掛ける前）で判定する。人数が範囲外のときは、式に `servings` を含む量に `TYP021` を、`per serving` の総量に `TYP020` を足さない。`0 g per serving` は人数が範囲外でも `TYP021`。（2026-11-02、ユーザー確認）
-- **推奨**: 書いた式を評価した値（`per serving` なら人数を掛ける前）で判定する。下端が 0 以下ならエラー。人数が決まらない（`TYP020`）ときも、書いた値だけで判定できるので出す。`per serving` の量は人数を掛ける前に判定するので、人数の誤りに左右されない（人数が範囲外でも `0 g per serving` は `TYP021`、`100 g per serving` は診断なし）。人数が範囲外（D77 の `TYP012` を出した）ときは、人数を未知として扱い、式に `servings` を含む量（`150 ml * servings`）には `TYP021` を、`per serving` の総量には `TYP020` を足さない。
-  - 理由: 誤りは書いた量にあり、診断の引数にも書いた量を出せる。人数の誤りが原因で 0 になった量にまで診断を出すと、同じ原因の診断が 2 つ以上出る（監査の指摘。`-s 0` で `150 ml * servings` が `0 ml` になることを確かめた）。
-- 代替: 人数を掛けた後の総量で判定する。`150 g * servings` と同じ値を見られるが、人数の誤りと量の誤りの診断が重なり、人数が決まらないときに判定できない。
-
-### D77. 人数の範囲外の診断と、同じ値に 1 つだけ出す規則 【決定済み】
-
-- **決定:** 推奨のとおり、人数の範囲外は既存の `TYP012` で、同じ値には 1 つだけ出す。条件の側で誤りなら料理の見出しの側では検査しない。見出しに自分で範囲を宣言していればその範囲だけで検査する。（2026-11-02、ユーザー確認）
-- **推奨**: 既存の `TYP012 rangeViolation` を使う。引数は `["servings", 書いた値, 範囲の文字]`。同じ値には診断を 1 つだけ出す。具体的には次のとおり。
-  - 条件（`-s`・`--options`）から来た人数は、条件の側（`Options.servings` の型 `Count? in 1..`、S741）で検査する。条件の側で誤りなら、料理の見出しの側ではもう検査しない。条件の側で通れば、見出しに自分で宣言した範囲（`servings: Count in 1..20`）でも検査する。
-  - 見出しの既定値（条件が無いとき）と `make` の引数は、見出しに自分で範囲を宣言していればその範囲だけで、宣言していなければ `1..` で検査する。
-  - 今は `-s 3ml` で同じ `TYP001` が 2 行出る（§3.7）。この規則で、次元の誤りも 1 行になる。
-  - 理由: 人数には `Options.servings` の型という宣言があり、範囲の違反として読める。新しい診断を足すより、言い回し・登録の追加が少ない。
-- 代替: 人数専用の診断（例 `TYP022 servingsNotPositive`）を足す。文を「人数は 1 人以上にしてください」と具体的にできるが、登録の手間が 1 つ増え、重なりの規則は同じく要る。
-- 代替: 重なりを許す（条件と見出しの両方で出す）。実装は簡単だが、今の `TYP001` の重複と同じく、1 つの誤りに 2 行出る。
-
-### D78. 動作の引数の既定値を検査するか 【決定済み】
-
-- **決定:** 推奨のとおり、動作の引数の既定値は本計画では検査しない（スコープ外）。（2026-11-02、ユーザー確認）
-- **推奨**: 本計画では検査しない（スコープ外）。既定値は動作の定義の誤りで、呼び出しの誤りではない。呼び出しのたびに検査すると、同じ定義の誤りが呼び出しの数だけ出る。標準ライブラリの既定値（`soak` の `30 min`、`cut` の `3 mm`）が範囲に入ることは、`bounds/soak-default` の golden で確かめる。
-- 代替: 既定値を使った呼び出しでも同じ検査をし、診断を既定値の位置に出す。利用者が定義した動作の誤った既定値（`time: Time = 3 ml`）も見つかるが、同じ位置の診断が重複する。
-- 代替: 動作の定義を読むときに 1 回だけ検査する。重複は無いが、定義の検査（レベル 0）に新しい経路を足す作業が増える。
-
-### D79. 型の一覧の JSON での、下端を含まない範囲の表し方 【決定済み】
-
-- **決定:** 推奨のとおり、型の一覧の JSON で下端を含まないときだけ `"minExclusive":true` を足し、スキーマに任意の真偽値として足す。`min` は下端の文字のまま。（2026-11-02、ユーザー確認）
-- **推奨**: 型の一覧の JSON（`ozen check --format json --emit types` の型のフィールド）で、下端を含まないときだけ `"minExclusive":true` を足す。含むときはキーを出さない。`schemas/result.schema.json` に任意の真偽値として足す。`min` の文字は下端の値（`0 s`）のまま。
-  - 理由: 今の出力（golden `api/types-json` など）が、`Options.servings` の `min`（S741）を除いて変わらない。`min` を使う設定画面（`renderers/lib/settings.mjs`）は HTML の `min` 属性に渡すだけで、開いた端を表せないので、今のまま下端を渡す。
-- 代替: すべての型の欄に `"minExclusive":false` を出す。読む側が分岐しなくて済むが、型の欄を含む golden がすべて変わる。
-- 代替: JSON には出さない。情報が落ち、`min` だけを見る道具が 0 を許すと誤解する。
-
-### D80. 記法の計画の `G-RF-GOLDEN-COUNT` の扱い 【決定済み】
-
-- **決定:** 推奨のとおり、`G-RF-GOLDEN-COUNT` を「`readme-start` にあった golden が今もすべてある」と「`readme-start` の時点の数が N0 + 85」の形に直し、記法の計画の §9 に理由を 1 行足す。（2026-11-02、ユーザー確認）
-- **推奨**: `G-RF-GOLDEN-COUNT` を「タグ `readme-start` にあった golden が、今もすべてある（消えた golden が 0）」と「`readme-start` の時点の数が N0 + 85」の 2 つに直す。前者が本来の検査で、後者はタグの中身なので変わらない記録として残す。記法の計画の §9 にも直した理由を 1 行足す（記法の計画が P8 で増える数を直した前例と同じ形）。
-  - 理由: 今の形（今の数がちょうど N0 + 85）は、後の計画が golden を 1 つ足すだけで落ちる。本計画は golden を 72 個足す（§5.2）。記法の計画が確かめたかったこと（85 個増やした golden が消えていないこと）を保ったまま、後の計画の golden に左右されない。
-- 代替: 「今の数が N0 + 85 以上」にする。直す量は最小だが、記法の計画の golden が消えて別の golden が足された場合に気づけない。
-- 代替: 「N0 + 85 + 本計画で足した数」にする。正確だが、後の計画のたびに直す必要が残る。
-
-### D81. 作業の場所と範囲の基点 【決定済み】
-
-- **決定:** 推奨のとおり、`main` で作業し、P0-2 でタグ `qc-start` を打って範囲 `QC=qc-start..HEAD` を数える。push は確認なしで行い、その前に毎回 `G-REPO-NOREPLY` を回す。わざと壊す確認の一時的なコミットは一時的な worktree で作って消し、push しない。（2026-11-02、ユーザー確認）
-- **推奨**: `main` で作業する（`CLAUDE.md`）。P0-2 で `main` にタグ `qc-start` を打ち、本計画の差分の範囲を `QC=qc-start..HEAD` で数える。push は、記憶にあるユーザーの指示（Ozen では push の確認は不要）に従い、そのつど確認を取らずに行う。push の前には毎回 `G-REPO-NOREPLY` を回す。範囲に別の作業のコミットが入ったときは、README の計画の D68 と同じく §9 に名指しで書いて除く。わざと壊す確認のための一時的なコミットは、一時的な worktree の中で作って `git reset --hard` で消し、`main` には入れない（push しない）。
-- 代替: 作業ブランチ `quantity-checks` を切り、最終ゲートの後に `main` へ `--no-ff` でマージする。別の作業と分けられるが、`CLAUDE.md` の「`main` だけで作業する」に反し、既存のゴールの範囲（`plan-start..HEAD`）の考え方とも揃わない。
-
-### D82. 計画ファイルとゴールの置き場所 【決定済み】
-
-- **決定:** 推奨のとおり、本ファイルを新しい計画として置き、`scripts/goals.sh` に `PLAN_QC`・`QC` と `goal_G_QC_*` を足し、`CLAUDE.md` の Plan の節に 1 行足す。既存の計画は D80・D87 の直しを除いて書き換えない。（2026-11-02、ユーザー確認）
-- **推奨**: 本ファイルを新しい計画として置く。`scripts/goals.sh` に `PLAN_QC`・`QC` と `goal_G_QC_*` を足す（`OZ` は既にある）。`CLAUDE.md` の Plan の節に、本計画の名前・ゴールの接頭辞・範囲のタグを 1 行で足す（README の計画の行と同じ形）。既存の計画は D80・D87 の直しを除いて書き換えない。
-- 代替: README の計画に Phase を書き足す。ゴールは 1 か所にまとまるが、完了した計画と進行中の作業の区別がつかなくなる。
-
-### D83. 版 【決定済み】
-
-- **決定:** 推奨のとおり、版は `0.1.0` のまま据え置く。（2026-11-02、ユーザー確認）
-- **推奨**: `0.1.0` のまま据え置く。まだ公開した版（タグ・配布物）が無く、誤りを直す変更で、正しく書かれたレシピの出力は変わらない。
-- 代替: `0.2.0` に上げる。以前は通っていたレシピがエラーになる（入力の受け付けが狭まる）ことを版で示せるが、版の文字列を持つ期待（JSON の `ozenVersion` を含む golden など）を直す作業が増える。
-
-### D84. Issue の閉じ方 【決定済み】
-
-- **決定:** 推奨のとおり、最終ゲートと push の後に、各 Issue へ修正の SHA と直った後の `ozen check` の出力をコメントして閉じる。文面は投稿前にユーザーに見せて確認を取る。#2 では再現コードの貼り間違いにも触れる。（2026-11-02、ユーザー確認）
-- **推奨**: 最終ゲートと push の後、`gh issue comment` で各 Issue に、直したコミットの SHA と、直した後の `ozen check` の出力（再現コードのもの）を短く書き、`gh issue close` で閉じる。コメントの文面は、送る前にユーザーに見せて確認を取る（外部への投稿のため）。#2 のコメントでは、報告の再現コードが #1 と同じものになっていたことに触れ、出力から読み取った再現を `bounds/issue2` に置いたことを書く。
-- 代替: 修正のコミットのメッセージに `Fixes #1` を書き、push で自動で閉じる。手間は少ないが、push のたびに閉じるので、最終ゲートの前に閉じてしまう。報告者に直した後の挙動が伝わりにくい。
-- 代替: 閉じずにユーザーに任せる。
-
-### D85. 両端に単位を書いた範囲の評価 【決定済み】
-
-- **決定:** 推奨のとおり、両端に単位を書いた範囲を、両端が既知の量で次元が同じなら区間として評価し、次元が違えば `TYP001` を出す。本計画で直す。（2026-11-02、ユーザー確認）
-- **推奨**: 両端に単位を書いた範囲（`3 ml..5 ml`、`-5 min..-1 min`）を、両端が既知の量で次元が同じなら区間として評価する。次元が違えば（`3 ml..5 g`）`TYP001` を出す。これで #1 の照合と #2 の範囲・量の検査が、この書き方にも掛かる。
-  - 理由: 今は式の評価（`eval_inner`）に範囲の節の評価が無く、`fry(egg, 3 ml..5 ml)` も `simmer(x, -5 min..-1 min)` も未知の値になって、計画の照合（未知の値は検査しない、S704）をすり抜ける（§3.7）。台所の設定では `10 cm..40 cm` のように両端に単位を書くのが普通で、利用者が書く見込みが高い。材料に `0.5 ml..2 ml` と書くと量が付かず「適量」と表示される今の挙動も、同じ原因で直る。
-- 代替: 本計画では扱わず、別の作業にする。変更は小さく済むが、Issue の症状（単位の違う時間、負の時間）が別の書き方で残る。
-
-### D86. 献立の `make` の量の引数 【決定済み】
-
-- **決定:** 推奨のとおり、献立の `make` で料理に渡す量の引数（位置・名前のどちらも）を、料理の見出しの引数の宣言と照合する（次元は `TYP001`、範囲は `TYP012`）。（2026-11-02、ユーザー確認）
-- **推奨**: `make soup(t: 3 ml)` のように、献立から料理に渡す量の引数（位置・名前のどちらも）を、料理の見出しの引数の宣言と照合する。次元は `TYP001`、範囲は `TYP012`。動作の引数と同じ関数（§4.12）を使う。人数（`servings`）もこの経路で検査する（D77）。
-  - 理由: 今は `make` の食材でない引数を型と照合しない（`eval_make` が値を束縛するだけで、`eval_param` は束縛済みの値を検査せずに戻る。§3.7）。#1 と同じ種類の誤りで、人数の `make soup(servings: 0)` もこの経路を通る。
-- 代替: 人数だけを検査し、ほかの量の引数は別の作業にする。変更は小さいが、`make soup(t: 3 ml)` が通ったまま残る。
-
-### D87. 完了した計画の範囲のゴール 【決定済み】
-
-- **決定:** 推奨のとおり、README の計画の最後のコミット `52a6ef1` にタグ `readme-end` を打ち、`RD` を `readme-start..readme-end` に閉じる。README の計画の §9 に理由を 1 行足す。`G-RF-SEPARATION` は本計画でも前提ゴールとして守る。（2026-11-02、ユーザー確認）
-- **推奨**: README の計画の範囲（`RD=readme-start..HEAD`）を、README の計画の最後のコミット `52a6ef1` に打つタグ `readme-end` で閉じ（`readme-start..readme-end`）、`G-RD-SCOPE`・`G-RD-ADD-ONLY` がその範囲だけを見るようにする。README の計画の §9 にも理由を 1 行足す。記法の計画の `G-RF-SEPARATION`（期待 `.out` と実装を同じコミットにしない）は、本計画でも守る規則として前提ゴールに入れる。
-  - 理由: `G-RD-SCOPE` は、README の計画の後の別の作業（OGP のコミット `2332ca6`・`8db17e6`）で既に落ちている（2026-11-02、`files outside scope: got '2'`）。`G-RD-ADD-ONLY` は、本計画が D80 で `goals.sh` の行を書き換えると落ちる。どちらも、計画が終わった後のコミットを数え続けるためで、README の計画が確かめたかったことは範囲を閉じても変わらない。
-- 代替: 完了した計画の範囲のゴールを前提ゴールから外し、P0-2 で合否を記録するだけにする。直す量は無いが、落ちたゴールが一覧に残り続け、本当の失敗と見分けにくい。
+- **Mixing up non-quantity values and quantities (`cut(slice, dice)`, `cut(3 mm)`, `fry(egg, 3 min, 3 ml)`)**: These pass an enum value to a dimension argument, or a quantity to an enum argument. They need a different check (enum vs. quantity) from the "units" in the Issue. The audit confirmed they still pass (§3.7). Propose this as separate work after the final gate.
+- **Arguments inside state types (`T<shape: cut(slice, 0 mm)>`, the axis argument of `soaked(time: Time)`)**: The check path (checking state types) is different. Whether the same hole exists is checked in P1-2 and written in §9; if it does, propose it as separate work.
+- **Checking the default values of action arguments**: Excluded if D78 follows the recommendation (it changes with the decision).
+- **How `-1..2 g` is read (as `-(1..2 g)`)**: This is an operator precedence issue and is not in the Issues. This plan only confirms that this amount's lower end is zero or less and so is an error (S731).
+- **The same diagnostic appearing once per iteration inside a loop (`repeat`)**: This is the same behavior as existing diagnostics (`TYP006` and others), and the diagnostics in this plan follow it. Whether to merge them is a question for the design of diagnostics as a whole.
+- **Headers that write the servings as an expression (`servings: Count = 1 - 1`)**: Default value expressions in headers are still not evaluated (`value_qty` cannot read them). Not in the Issues.
+- **`make gohan(servings: 0)` for a dish that has no `servings` argument**: This is a different behavior, where arguments with unmatched names are silently dropped (§3.7). Propose it as separate work after the final gate.
+- **A single value with no `..` in a range (`Time in 0 s`) being silently ignored, and number-only ranges (`1..20`) not appearing in the JSON type list**: Existing behavior, not in the Issues (§3.7).
+- **Fractional `servings` (`1.5`)**: The range `1..` keeps the current closed-interval check, which allows fractions.
+- **Amounts to buy such as `buy Naan 0 pcs`, and amounts to split**: The Issue only names ingredient amounts. Whether the same hole exists is checked in P3-2 and written in §9.
+- **Ranges for temperature arguments**: Negative temperatures (a freezer at -18 °C) are correct values, so no range is added (D70).
+- **Updating the vocabulary table (`spec/vocab/actions.yaml`)**: The table only holds the dimensions of arguments, not ranges. `tools/std-from-vocab/convert.py`, which builds the standard library from the table, is not called by any goal (R7).
+- **The wording of the comments on the Issues and closing them**: Decided in D84; done after the final gate, after confirming with the user.
+- **Human checks**: Handed over in §8.
 
 ---
 
-## 3. 現状の確認結果（2026-11-02、`8db17e6`）
+## 2. Design decisions
 
-### 3.1 動作の呼び出しと、型と値の照合
+### D69. Checking quantity arguments of actions (#1) [decided]
 
-- 動作の呼び出しは `call_action`（`core/src/sema.c:4046`）。引数を位置・名前で割り当て、渡されていない引数に既定値を評価する。その後、食材の引数について、状態の照合（`TYP006 stateRequired`・`TYP011 aliasCandidates`）と `where` の照合（`TYP010`）をする。量の引数（`V_QTY`）を宣言の型と照合する処理は無い。
-- 型と値の照合は `check_value`（`core/src/sema.c:2640`）。宣言が次元の型なら、`typed_qty` で値を読み、次元が違えば `TYP001`（引数は `[値の次元, 宣言の型の名前]`）、範囲（`base_type` が返す `in` の後）を外れれば `TYP012`（引数は `[名前, 値の文字, 範囲の文字]`）を出す。範囲の判定は閉区間で、値の区間の一部でも外れれば外とする（`v.lo < lo` または `v.hi > hi`）。
-- `check_value` は、ソースの節（値を書いた場所）を受け取って読み直す作りで、評価済みの値（変数で渡した量など）を受け取れない。呼ばれるのは、レシピの引数（`sema.c:6133`）、台所の設定のフィールド（`sema.c:2847`）、ビルド時の条件のフィールド（`sema.c:3163`）。`sema.c:2669` は `check_value` の中の再帰。
-- 宣言が `Count` のとき、`typed_qty` は `2 pcs`（Count の次元を持つ量）を次元の無い量に直してから比べる。単位の無い数の次元の名前は `Dimensionless`（golden `kitchen/unitless-capacity.out`）。
-- 診断の位置は、状態の照合と同じく `arg_site` で引数を書いた場所に向けられる。マクロの差し込み（`$t`）の引数は呼び出し元の位置と trail になり、マクロの本文に書いた量は本文の位置で展開履歴（trail）付きになる（golden `macro/typecheck-after-expand.out`）。
-- `base_type`（`sema.c:2605`）は、省略可能（`OptionalType`）を外してから範囲（`RangedType`）を見る。文法では `Count? in 1..` は `RangedType(OptionalType(Count), …)` の入れ子になるので、範囲を外した後の `OptionalType` が型の名前として扱われず、`check_value` は何も検査せずに戻る（S742 で直す）。
-- パイプ（`x |> f(a)`）はパーサーの `pipe_into`（`core/src/parse.c:871` 付近）で、左辺を第 1 引数に差し込んだ普通の呼び出しに直される。
-- 合成の動作（`steps` を持つ動作）は `call_composite`（`sema.c:3998`）が中の呼び出しを評価する。中の診断を抑える仕組み（`quiet`）は上げない。
+- **Decision:** In an action call, check a known quantity passed to an argument whose declared type is a dimension against the declaration, and if the dimension differs, give the existing `TYP001 dimension`. A number without a unit is also an error, as a dimensionless quantity. (2026-11-02, confirmed by the user)
+- History: `check_value` (`core/src/sema.c:2640`), which checks a value against a type, exists, but it is only called for recipe arguments, kitchen settings and build-time options. `call_action` (`core/src/sema.c:4046`), which calls an action, only checks the states of ingredient arguments (§3.1).
 
-### 3.2 範囲の文法とトークン
+### D70. How to reject zero and negative times and sizes [decided]
 
-- 型の範囲は `type := type_union [ 'in' range ]`、`range := sum [ '..' [ sum ] ] | '..' sum`（`core/grammar.ebnf:98`・`141`）。パーサーは `type()`（`core/src/parse.c:1110` 付近）で `in` の後を `range()`（`parse.c:771`）で読み、`Range`・`RangeFrom`・`RangeTo` の節を作る。数だけの範囲（`1..20`）は `NumberRange` の節になる。
-- トークンは `<`（`OZNI_T_LT`）と `..`（`OZNI_T_DOTDOT`）が別にある（`core/src/lex.c:239`）。`<..` という一続きのトークンは無い。
-- 型の `in` の後の `0 s<..` は、`range()` が `0 s` を範囲でない値として返し、呼び出し側が `<` で `SYN003 args=["<"]` を出す（監査で実行して確かめた）。式の中の `3 min<..5 min` は `Binary <`（`3 min` と `RangeTo`）と読まれ、`check` は `result ok`。
-- 範囲を出力するのは、型の一覧の JSON（`ozen check --format json --emit types`。`core/src/defs.c:737` の `types` が `Kitchen`・`Options` と設備・器の種類の設定の型を並べ、各フィールドを `defs.c:597` の `put_field` が `min`・`max` に下端・上端の文字で出す。`Range`・`RangeFrom`・`RangeTo` だけを扱い、`NumberRange` は出さない）と、動作の引数の型の文字（`--emit signatures` などの `params` の `type`。`Time in 0 s<..` のように範囲ごと出る）。`min`・`max` は `renderers/lib/settings.mjs:26` が設定画面の数の入力の `min`・`max` 属性に使う。
-- 文法の規則は `core/src/rules.def`（`OZNI_RULE(range)` など）にあり、`G-CORE-GRAMMAR`（`scripts/check-grammar-coverage.py`）が、`grammar.ebnf` の規則名がすべて golden で通ることを確かめている。
+- **Decision:** Add a way to write a type range whose lower end is not included, put it on the `time` and `size` of standard library actions, and make zero and negative values `TYP012 rangeViolation`. Do not put it on temperature arguments. The spelling `0 s<..` is the first candidate, decided after checking for conflicts with the parser (D73). (2026-11-02, confirmed by the user)
+- The alternative was: write `in 0 s..` without changing the grammar, and reject only negative values. `simmer(x, 0 min)` would still pass.
 
-### 3.3 標準ライブラリの動作の量の引数
+### D71. Diagnostic for ingredient amounts [decided]
 
-`stdlib/prelude.ozen` で量を取る引数は次の 8 つ（2026-11-02）。温度を取る動作の引数は無い（温度は `OvenSpec.maxTemp: Temperature?` だけ）。
+- **Decision:** If an ingredient amount is zero or less, give a new diagnostic (an error). A range amount is judged by its lower end, and `[any amount]` is not covered. (2026-11-02, confirmed by the user)
+- The alternative was: reuse `TYP012 rangeViolation` and put `0<..` or similar in the range field. That would show a range that was never declared.
 
-| 動作 | 引数 | 今の型 |
+### D72. The range of the servings (servings) [decided]
+
+- **Decision:** Check both the `servings` in the recipe header and the `servings` in the build-time options with `Count in 1..`. (2026-11-02, confirmed by the user)
+- The alternative was: only the build-time options (`Options.servings`). `servings: 0` in a recipe header would still pass.
+
+### D73. Spelling of a range whose lower end is not included [decided]
+
+- **Decision:** As recommended, the spelling is `a<..` (`a<..b` when there is also an upper end). `<` and `..` are written together with no space between them. (2026-11-02, confirmed by the user)
+- **Recommendation**: `a<..` (`a<..b` when there is also an upper end). `<` and `..` are written together with no space between them. It reads as "a < value ..", where `<` means "greater than a".
+  - Conflict check (§3.2): With the current parser, `0 s<..` after a type's `in` is a syntax error (`SYN003 args=["<"]`), so the reading of current valid programs does not change. A `<` after a quantity is not read as part of the unit (a unit is only a name and `/名前`, a slash and a name). `3 min<..5 min` inside an expression is now read as a comparison (`3 min < ..5 min`), but if D74's recommendation is taken and it is only read in type ranges, the reading of expressions does not change.
+  - It can be told apart from the `<` of type arguments (`T<shape: cut>`) because what comes before `<` is a quantity or number, and what comes right after is `..`.
+- Alternative: `a^..` (following Raku's `^..`). There is a precedent in another language, but `^` is a symbol not in the current lexer, needs a new token, and its meaning is hard for readers to guess.
+- Alternative: `>a` (`Time in >0 s`). Easy to read, but the form combined with an upper end (`>0 s..10 min`) falls outside the range grammar, and the rules split in two.
+
+### D74. Where the lower-end-excluded form can be used [decided]
+
+- **Decision:** As recommended, the lower-end-excluded form can only be used in the range after a type's `in`, and a new grammar rule `type_range` is set up. It is not added to ranges in expressions or to quantity range literals. (2026-11-02, confirmed by the user)
+- **Recommendation**: Only in the range after a type's `in` (kitchen settings, build-time options, recipe arguments, types of action arguments). Not added to ranges in expressions or quantity range literals (`15..20 min`). Set up a new grammar rule `type_range` (`core/grammar.ebnf` and `core/src/rules.def`), and do not change `range`, which is shared with expressions.
+  - Reason: It fits inside the current spec (`docs/concept.md` §4.2) that range constraints belong to types, and avoids bringing "end not included" into expression evaluation (interval arithmetic). It also does not change how `<` is read in expressions.
+- Alternative: Add it to ranges in expressions too. Values like `let t = 0 s<..10 min` could be written, but interval arithmetic, comparison and display would all need to handle open ends, and this is not needed to solve the Issues.
+
+### D75. Code and name of the new diagnostic [decided]
+
+- **Decision:** As recommended, add `TYP021 nonPositiveAmount` (error) at the end of `diag_codes.def`. The arguments are `[材料の名前, 書いた量の文字]` (ingredient name, text of the written amount), the phrase key is `diag-non-positive-amount`, and the argument kinds are `['name']`. (2026-11-02, confirmed by the user)
+- **Recommendation**: `TYP021 nonPositiveAmount` (error). Append it to the end of `core/src/diag_codes.def` (existing numbers do not change; `G-CORE-DIAG-APPEND`). There are 2 arguments, `[材料の名前, 書いた量の文字]` (ingredient name, text of the written amount; for example `["water", "-100 ml"]`). The phrase key is `diag-non-positive-amount`, and the argument kinds in `renderers/lib/names.mjs` are `['name']` (same as `unusedValue`).
+  - Japanese text (draft): `{ $arg1 }の量 { $arg2 } は 0 より大きくしてください`. English text (draft): `The amount { $arg2 } of { $arg1 } must be more than zero`.
+- Alternative: Name it `amountNotPositive`. The word order is natural, but existing names (`vagueAmount`, `servingsUnknown`) use "adjective + noun" order, and the recommendation matches them better.
+- Alternative: Use the category `LIN` (same as the shortage `insufficient`). `LIN` is the category for consumption checks (double use, shortage); an error in the written value itself fits `TYP` (same as `vagueAmount`).
+
+### D76. The value used to judge ingredient amounts, and overlap with servings errors [decided]
+
+- **Decision:** As recommended, judge an ingredient amount by the written value (for `per serving`, before multiplying by the servings). When the servings are out of range, do not add `TYP021` to amounts whose expression contains `servings`, nor `TYP020` to the totals of `per serving`. `0 g per serving` is `TYP021` even when the servings are out of range. (2026-11-02, confirmed by the user)
+- **Recommendation**: Judge by the value of the written expression (for `per serving`, before multiplying by the servings). If the lower end is zero or less, it is an error. Give it even when the servings are not decided (`TYP020`), because the written value alone is enough to judge. A `per serving` amount is judged before multiplying by the servings, so it does not depend on servings errors (even when the servings are out of range, `0 g per serving` is `TYP021` and `100 g per serving` gets no diagnostic). When the servings are out of range (D77's `TYP012` was given), treat the servings as unknown, and do not add `TYP021` to amounts whose expression contains `servings` (`150 ml * servings`), nor `TYP020` to the totals of `per serving`.
+  - Reason: The error is in the written amount, and the diagnostic can show the written amount as its argument. Giving a diagnostic for an amount that became 0 because of a servings error would give 2 or more diagnostics for the same cause (an audit finding; it was confirmed that `-s 0` makes `150 ml * servings` into `0 ml`).
+- Alternative: Judge by the total after multiplying by the servings. This sees the same value as `150 g * servings`, but the servings error and the amount error diagnostics overlap, and it cannot judge when the servings are not decided.
+
+### D77. Diagnostic for out-of-range servings, and the rule of one diagnostic per value [decided]
+
+- **Decision:** As recommended, out-of-range servings use the existing `TYP012`, and the same value gets only one. If the options side is wrong, the dish header side is not checked. If the header declares its own range, check only with that range. (2026-11-02, confirmed by the user)
+- **Recommendation**: Use the existing `TYP012 rangeViolation`. The arguments are `["servings", 書いた値, 範囲の文字]` (written value, range text). The same value gets only one diagnostic. Specifically:
+  - Servings that come from the options (`-s`, `--options`) are checked on the options side (the type of `Options.servings`, `Count? in 1..`, S741). If the options side is wrong, the dish header side is not checked again. If the options side passes, it is also checked against a range the header declares itself (`servings: Count in 1..20`).
+  - The header's default value (when there are no options) and the arguments of `make` are checked only against the header's own range if it declares one, and against `1..` if it does not.
+  - Now `-s 3ml` gives the same `TYP001` on 2 lines (§3.7). With this rule, the dimension error also becomes 1 line.
+  - Reason: The servings have a declaration, the type of `Options.servings`, so this can be read as a range violation. It needs fewer phrase and registration additions than a new diagnostic.
+- Alternative: Add a diagnostic just for servings (for example `TYP022 servingsNotPositive`). The text could be specific, like "the servings must be 1 or more", but it adds one more registration, and the same overlap rule is still needed.
+- Alternative: Allow the overlap (give it on both the options and the header). Simple to implement, but like the current duplicate `TYP001`, one error gives 2 lines.
+
+### D78. Whether to check the default values of action arguments [decided]
+
+- **Decision:** As recommended, this plan does not check the default values of action arguments (out of scope). (2026-11-02, confirmed by the user)
+- **Recommendation**: Not checked in this plan (out of scope). A default value is an error in the action definition, not in the call. Checking it at each call would give the same definition error once per call. That the standard library defaults (`30 min` for `soak`, `3 mm` for `cut`) are in range is checked with the golden `bounds/soak-default`.
+- Alternative: Do the same check on calls that use the default, and put the diagnostic at the default value's position. This also finds wrong defaults in user-defined actions (`time: Time = 3 ml`), but diagnostics at the same position repeat.
+- Alternative: Check once when reading the action definition. No repetition, but it adds the work of a new path in the definition check (level 0).
+
+### D79. How the JSON type list shows a range whose lower end is not included [decided]
+
+- **Decision:** As recommended, in the JSON type list add `"minExclusive":true` only when the lower end is not included, and add it to the schema as an optional boolean. `min` stays the text of the lower end. (2026-11-02, confirmed by the user)
+- **Recommendation**: In the JSON type list (the type fields of `ozen check --format json --emit types`), add `"minExclusive":true` only when the lower end is not included. When it is included, do not output the key. Add it to `schemas/result.schema.json` as an optional boolean. The text of `min` stays the lower end's value (`0 s`).
+  - Reason: The current output (golden `api/types-json` and others) does not change, except for the `min` of `Options.servings` (S741). The settings screen that uses `min` (`renderers/lib/settings.mjs`) only passes it to the HTML `min` attribute, which cannot express an open end, so it keeps passing the lower end as now.
+- Alternative: Output `"minExclusive":false` on every type field. Readers would not need to branch, but every golden that contains type fields would change.
+- Alternative: Do not output it in JSON. Information is lost, and tools that only look at `min` would wrongly think 0 is allowed.
+
+### D80. Handling of `G-RF-GOLDEN-COUNT` in the syntax plan [decided]
+
+- **Decision:** As recommended, change `G-RF-GOLDEN-COUNT` into the form "all goldens that were at `readme-start` are still there" and "the count at `readme-start` is N0 + 85", and add one line with the reason to §9 of the syntax plan. (2026-11-02, confirmed by the user)
+- **Recommendation**: Change `G-RF-GOLDEN-COUNT` into two checks: "all goldens that were at the tag `readme-start` are still there (0 goldens removed)" and "the count at `readme-start` is N0 + 85". The first is the real check; the second is kept as a record that does not change, because it is the content of the tag. Also add one line with the reason for the change to §9 of the syntax plan (the same form as the precedent where the syntax plan corrected the count added in P8).
+  - Reason: The current form (the current count is exactly N0 + 85) fails as soon as a later plan adds a single golden. This plan adds 72 goldens (§5.2). It keeps what the syntax plan wanted to check (that the 85 added goldens have not disappeared), and does not depend on the goldens of later plans.
+- Alternative: Make it "the current count is N0 + 85 or more". The smallest change, but it cannot notice when the syntax plan's goldens disappear and other goldens are added.
+- Alternative: Make it "N0 + 85 + the number added by this plan". Exact, but it would still need fixing for every later plan.
+
+### D81. Where work happens and the base of the range [decided]
+
+- **Decision:** As recommended, work on `main`, put the tag `qc-start` in P0-2, and count the range `QC=qc-start..HEAD`. Push without asking, and run `G-REPO-NOREPLY` every time before that. Temporary commits for mutation checks are made in a temporary worktree and removed, and are not pushed. (2026-11-02, confirmed by the user)
+- **Recommendation**: Work on `main` (`CLAUDE.md`). In P0-2, put the tag `qc-start` on `main`, and count this plan's diff range with `QC=qc-start..HEAD`. Following the user's instruction in memory (no push confirmation is needed in Ozen), push without asking each time. Run `G-REPO-NOREPLY` every time before a push. When another work's commit enters the range, name it in §9 and exclude it, as in D68 of the README plan. Temporary commits for mutation checks are made inside a temporary worktree and removed with `git reset --hard`; they do not go into `main` (they are not pushed).
+- Alternative: Create a work branch `quantity-checks` and merge it into `main` with `--no-ff` after the final gate. This separates it from other work, but goes against "work only on `main`" in `CLAUDE.md`, and does not match the idea of existing goal ranges (`plan-start..HEAD`).
+
+### D82. Where the plan file and the goals go [decided]
+
+- **Decision:** As recommended, put this file as a new plan, add `PLAN_QC`, `QC` and `goal_G_QC_*` to `scripts/goals.sh`, and add one line to the Plan section of `CLAUDE.md`. Existing plans are not rewritten, except for the fixes in D80 and D87. (2026-11-02, confirmed by the user)
+- **Recommendation**: Put this file as a new plan. Add `PLAN_QC`, `QC` and `goal_G_QC_*` to `scripts/goals.sh` (`OZ` already exists). Add one line to the Plan section of `CLAUDE.md` with this plan's name, goal prefix and range tag (the same form as the line for the README plan). Existing plans are not rewritten, except for the fixes in D80 and D87.
+- Alternative: Add a Phase to the README plan. The goals would be in one place, but completed plans and ongoing work could no longer be told apart.
+
+### D83. Version [decided]
+
+- **Decision:** As recommended, the version stays at `0.1.0`. (2026-11-02, confirmed by the user)
+- **Recommendation**: Keep it at `0.1.0`. There is no published version yet (tags, distributions), this is a change that fixes errors, and the output of correctly written recipes does not change.
+- Alternative: Raise it to `0.2.0`. The version would show that recipes that used to pass now give errors (input acceptance becomes narrower), but it adds the work of fixing expectations that contain the version string (goldens that contain `ozenVersion` in JSON, and others).
+
+### D84. How to close the Issues [decided]
+
+- **Decision:** As recommended, after the final gate and the push, comment on each Issue with the SHA of the fix and the `ozen check` output after the fix, and close it. Show the wording to the user and get confirmation before posting. In #2, also mention the wrongly pasted reproduction code. (2026-11-02, confirmed by the user)
+- **Recommendation**: After the final gate and the push, use `gh issue comment` to write briefly on each Issue the SHA of the fixing commit and the `ozen check` output after the fix (for the reproduction code), and close it with `gh issue close`. Show the comment wording to the user and get confirmation before sending (because it is an external post). In the comment on #2, mention that the reported reproduction code was the same as #1's, and that a reproduction built from the output was put in `bounds/issue2`.
+- Alternative: Write `Fixes #1` in the fixing commit's message and let the push close it automatically. Less work, but it closes on the push, so it would close before the final gate. It also tells the reporter less about the behavior after the fix.
+- Alternative: Do not close them and leave it to the user.
+
+### D85. Evaluating a range with units on both ends [decided]
+
+- **Decision:** As recommended, evaluate a range with units on both ends as an interval when both ends are known quantities with the same dimension, and give `TYP001` if the dimensions differ. Fixed in this plan. (2026-11-02, confirmed by the user)
+- **Recommendation**: Evaluate a range with units on both ends (`3 ml..5 ml`, `-5 min..-1 min`) as an interval when both ends are known quantities with the same dimension. If the dimensions differ (`3 ml..5 g`), give `TYP001`. With this, the #1 check and the #2 range and amount checks also apply to this way of writing.
+  - Reason: Now expression evaluation (`eval_inner`) has no evaluation for range nodes, so both `fry(egg, 3 ml..5 ml)` and `simmer(x, -5 min..-1 min)` become unknown values and slip past the plan's check (unknown values are not checked, S704) (§3.7). In kitchen settings, writing units on both ends like `10 cm..40 cm` is common, so users are likely to write it. The current behavior where writing `0.5 ml..2 ml` for an ingredient gives no amount and shows "as needed" is also fixed, since it has the same cause.
+- Alternative: Do not handle it in this plan and make it separate work. The change would be small, but the symptoms in the Issues (a time with the wrong unit, a negative time) would remain through another way of writing.
+
+### D86. Quantity arguments of `make` in a menu [decided]
+
+- **Decision:** As recommended, check the quantity arguments (both positional and named) that `make` in a menu passes to a dish against the argument declarations in the dish's header (dimension with `TYP001`, range with `TYP012`). (2026-11-02, confirmed by the user)
+- **Recommendation**: Check the quantity arguments (both positional and named) that a menu passes to a dish, as in `make soup(t: 3 ml)`, against the argument declarations in the dish's header. Dimension with `TYP001`, range with `TYP012`. Use the same function as for action arguments (§4.12). The servings (`servings`) are also checked on this path (D77).
+  - Reason: Now non-ingredient arguments of `make` are not checked against types (`eval_make` only binds the value, and `eval_param` returns without checking an already bound value; §3.7). It is the same kind of error as #1, and the servings in `make soup(servings: 0)` also go through this path.
+- Alternative: Check only the servings, and make the other quantity arguments separate work. A smaller change, but `make soup(t: 3 ml)` would still pass.
+
+### D87. Range goals of completed plans [decided]
+
+- **Decision:** As recommended, put the tag `readme-end` on the README plan's last commit `52a6ef1`, and close `RD` as `readme-start..readme-end`. Add one line with the reason to §9 of the README plan. `G-RF-SEPARATION` is also kept as a prerequisite goal in this plan. (2026-11-02, confirmed by the user)
+- **Recommendation**: Close the README plan's range (`RD=readme-start..HEAD`) with the tag `readme-end` put on the README plan's last commit `52a6ef1` (`readme-start..readme-end`), so that `G-RD-SCOPE` and `G-RD-ADD-ONLY` only look at that range. Also add one line with the reason to §9 of the README plan. The syntax plan's `G-RF-SEPARATION` (do not put expectation `.out` files and the implementation in the same commit) is included in the prerequisite goals as a rule this plan also keeps.
+  - Reason: `G-RD-SCOPE` already fails because of other work after the README plan (the OGP commits `2332ca6` and `8db17e6`) (2026-11-02, `files outside scope: got '2'`). `G-RD-ADD-ONLY` would fail when this plan rewrites lines of `goals.sh` in D80. Both happen because they keep counting commits after the plan ended; what the README plan wanted to check does not change when the range is closed.
+- Alternative: Remove the range goals of completed plans from the prerequisite goals, and only record their pass or fail in P0-2. Nothing to fix, but failed goals would stay in the list and be hard to tell apart from real failures.
+
+---
+
+## 3. Results of checking the current state (2026-11-02, `8db17e6`)
+
+### 3.1 Action calls, and checking values against types
+
+- Actions are called in `call_action` (`core/src/sema.c:4046`). It assigns arguments by position and name, and evaluates default values for arguments not passed. After that, for ingredient arguments, it checks states (`TYP006 stateRequired`, `TYP011 aliasCandidates`) and `where` (`TYP010`). There is no step that checks quantity arguments (`V_QTY`) against the declared type.
+- Values are checked against types in `check_value` (`core/src/sema.c:2640`). If the declaration is a dimension type, it reads the value with `typed_qty`, gives `TYP001` if the dimension differs (arguments `[値の次元, 宣言の型の名前]`: the value's dimension and the name of the declared type), and gives `TYP012` if it is outside the range (the part after `in` returned by `base_type`) (arguments `[名前, 値の文字, 範囲の文字]`: name, value text, range text). The range check is a closed interval, and a value is outside if any part of its interval is outside (`v.lo < lo` or `v.hi > hi`).
+- `check_value` is built to receive a source node (where the value was written) and read it again; it cannot receive an evaluated value (such as a quantity passed through a variable). It is called for recipe arguments (`sema.c:6133`), kitchen setting fields (`sema.c:2847`) and build-time option fields (`sema.c:3163`). `sema.c:2669` is a recursion inside `check_value`.
+- When the declaration is `Count`, `typed_qty` turns `2 pcs` (a quantity with the Count dimension) into a dimensionless quantity before comparing. The dimension name of a number without a unit is `Dimensionless` (golden `kitchen/unitless-capacity.out`).
+- As with state checks, the diagnostic position is pointed at where the argument was written, through `arg_site`. For an argument inserted into a macro (`$t`), it is the caller's position with a trail; for a quantity written in the macro body, it is the body's position with the expansion history (trail) (golden `macro/typecheck-after-expand.out`).
+- `base_type` (`sema.c:2605`) removes the optional (`OptionalType`) and then looks at the range (`RangedType`). In the grammar, `Count? in 1..` becomes the nesting `RangedType(OptionalType(Count), …)`, so after removing the range the `OptionalType` is not treated as a type name, and `check_value` returns without checking anything (fixed in S742).
+- A pipe (`x |> f(a)`) is turned by the parser's `pipe_into` (around `core/src/parse.c:871`) into an ordinary call with the left side inserted as the first argument.
+- For composite actions (actions with `steps`), `call_composite` (`sema.c:3998`) evaluates the inner calls. It does not raise the mechanism that suppresses inner diagnostics (`quiet`).
+
+### 3.2 Range grammar and tokens
+
+- A type range is `type := type_union [ 'in' range ]`, `range := sum [ '..' [ sum ] ] | '..' sum` (`core/grammar.ebnf:98`, `141`). The parser reads the part after `in` in `type()` (around `core/src/parse.c:1110`) with `range()` (`parse.c:771`), and builds `Range`, `RangeFrom` and `RangeTo` nodes. A number-only range (`1..20`) becomes a `NumberRange` node.
+- `<` (`OZNI_T_LT`) and `..` (`OZNI_T_DOTDOT`) are separate tokens (`core/src/lex.c:239`). There is no single token `<..`.
+- For `0 s<..` after a type's `in`, `range()` returns `0 s` as a non-range value, and the caller gives `SYN003 args=["<"]` at `<` (confirmed by running it in the audit). `3 min<..5 min` inside an expression is read as `Binary <` (`3 min` and `RangeTo`), and `check` gives `result ok`.
+- Ranges are output in the JSON type list (`ozen check --format json --emit types`: `types` at `core/src/defs.c:737` lists the setting types of `Kitchen`, `Options` and the kinds of equipment and vessels, and `put_field` at `defs.c:597` outputs each field's lower and upper end text as `min` and `max`; it only handles `Range`, `RangeFrom` and `RangeTo`, and does not output `NumberRange`), and in the type text of action arguments (the `type` of `params` in `--emit signatures` and others; the whole range is output, like `Time in 0 s<..`). `min` and `max` are used by `renderers/lib/settings.mjs:26` as the `min` and `max` attributes of the number inputs in the settings screen.
+- Grammar rules are in `core/src/rules.def` (`OZNI_RULE(range)` and others), and `G-CORE-GRAMMAR` (`scripts/check-grammar-coverage.py`) confirms that every rule name in `grammar.ebnf` is passed through by a golden.
+
+### 3.3 Quantity arguments of standard library actions
+
+In `stdlib/prelude.ozen`, the arguments that take quantities are the following 8 (2026-11-02). No action argument takes a temperature (temperature is only `OvenSpec.maxTemp: Temperature?`).
+
+| Action | Argument | Current type |
 | --- | --- | --- |
 | `soak` | `time` | `Time = 30 min` |
 | `cut` | `size` | `Length = 3 mm` |
@@ -236,267 +236,266 @@ error TYP012 rangeViolation case2.ozen:5:23-5:29 args=["time", "-300 s", "0 s<..
 | `chill` | `time` | `Time` |
 | `rest` | `time` | `Time` |
 
-### 3.4 再現（2026-11-02、`build/core-gcc-release/ozen check`）
+### 3.4 Reproduction (2026-11-02, `build/core-gcc-release/ozen check`)
 
-| 入力 | 今の結果 |
+| Input | Current result |
 | --- | --- |
-| `fry(egg, 3 ml)`（#1 の再現コード） | `result ok`、レシピの文章は「卵を中火で3 ml炒める。」 |
+| `fry(egg, 3 ml)` (the reproduction code of #1) | `result ok`; the recipe text says "Fry the egg over medium heat 3 ml." |
 | `potato \|> peel \|> cut(slice, 3 g)` | `result ok` |
 | `fry(egg, 3)` | `result ok` |
-| `water: -100 ml`、`potato: Potato 0 pcs`、`boil(water, -300 s)`、`cut(slice, -3 mm)`、`simmer([x, y], 0 min)`、`recipe a(servings: 0)` | `result ok`。文章は「水 -100 ml」「じゃがいも 0個」「水を-300 sゆでる。」「薄切りにする（-3 mm）」「弱火で0 時間煮込む」 |
+| `water: -100 ml`, `potato: Potato 0 pcs`, `boil(water, -300 s)`, `cut(slice, -3 mm)`, `simmer([x, y], 0 min)`, `recipe a(servings: 0)` | `result ok`. The text says "water -100 ml", "potatoes 0 pieces", "Boil the water -300 s.", "Slice (-3 mm)", "Simmer over low heat for 0 hours" |
 | `recipe soup(servings: Count = 0)` | `result ok` |
 | `make soup(servings: 0)` | `result ok` |
-| `ozen check -s 0`、`-s -1` | `result ok` |
-| `recipe a(servings: -2)` | `SYN003 unexpectedToken`（見出しの既定値に負の数を書けない） |
-| `recipe soup(servings: Count in 1..20 = 0)` | `TYP012 args=["servings", "0", "1..20"]`（今も出る） |
-| `salt: -1..2 g` | `result ok`、文章は「塩 -2〜-1 g」（`-(1..2 g)` と読まれる） |
+| `ozen check -s 0`, `-s -1` | `result ok` |
+| `recipe a(servings: -2)` | `SYN003 unexpectedToken` (a negative number cannot be written as a header default value) |
+| `recipe soup(servings: Count in 1..20 = 0)` | `TYP012 args=["servings", "0", "1..20"]` (still given now) |
+| `salt: -1..2 g` | `result ok`; the text says "salt -2 to -1 g" (read as `-(1..2 g)`) |
 
-#2 の報告の「再現コード」は #1 と同じもので、「実際の結果」（水 -100 ml、-300 s ゆでる）と合わない。貼り間違いと見て、出力から再現を組み立てた（`bounds/issue2`、S750）。
+The "reproduction code" in the #2 report is the same as #1's, and does not match the "actual result" (water -100 ml, boil -300 s). We took it as a pasting mistake and built a reproduction from the output (`bounds/issue2`, S750).
 
-### 3.5 診断を足すときに触るもの
+### 3.5 What to touch when adding a diagnostic
 
-`LIN005 unusedValue` を足したコミット（`738a452`・`5e54d49`・`631e097`）から読み取った一覧:
+The list read from the commits that added `LIN005 unusedValue` (`738a452`, `5e54d49`, `631e097`):
 
-- `core/src/diag_codes.def`（末尾に追記。`G-CORE-DIAG-APPEND` が削除の行 0 を確かめる）
-- `core/tests/diag-names.txt`（`G-CORE-DIAG-REGISTRY`）
-- `phrases/en.ftl`・`phrases/ja.ftl` の `diag-<名前の kebab>`（`G-STD-PHRASES`・`G-REND-PHRASES-RENDER`）
-- `renderers/lib/names.mjs` の `ARG_KINDS`（引数の種類。`unusedValue: ['name']` と同じ形）
-- `docs/concept.md` §6.1 の表と `core/tests/severity-examples.txt`（`G-TYPE-SEVERITY-TABLE`）
-- 診断の一覧を出す golden（`api/local-not-listed`・`api/sarif-mapping` など）の期待
+- `core/src/diag_codes.def` (append at the end; `G-CORE-DIAG-APPEND` confirms 0 deleted lines)
+- `core/tests/diag-names.txt` (`G-CORE-DIAG-REGISTRY`)
+- `diag-<名前の kebab>` (the name in kebab case) in `phrases/en.ftl` and `phrases/ja.ftl` (`G-STD-PHRASES`, `G-REND-PHRASES-RENDER`)
+- `ARG_KINDS` in `renderers/lib/names.mjs` (argument kinds; same form as `unusedValue: ['name']`)
+- The table in `docs/concept.md` §6.1 and `core/tests/severity-examples.txt` (`G-TYPE-SEVERITY-TABLE`)
+- The expectations of goldens that output the list of diagnostics (`api/local-not-listed`, `api/sarif-mapping` and others)
 
-### 3.6 テストとゴールの仕組み
+### 3.6 How tests and goals work
 
-- golden は `tests/golden/<分類>/<名前>.ozen` と `.out` の組。`.ozen` の 1 行目の `// args:` がコマンドの引数で、`.out` は診断・`result`・`exit` の行。`scripts/run-golden.sh <ozen> <フォルダ>` が `golden: <n> passed, 0 failed, 0 timed out` を出す（フォルダ単位でも回せる。2026-11-02 に `tests/golden/kitchen` で確かめた）。ビルド時の条件は `kitchen today : Options { … }` と書き、`--options today` で選ぶ（golden `kitchen/range-open-ended`）。`-s` は CLI が `kitchen cli : Options { servings: … }` を作って渡す（`cli/src/main.c:599` 付近）。
-- 期待を足すコミットは、そのコミットの時点で期待が落ちていること（赤）を `G-REPO-RED-FIRST`（範囲 `plan-start..HEAD`）が確かめる。最初から合格する golden は、別のコミットにして `scripts/red-first-exceptions.txt` に理由を書く前例がある（記法の計画の `ingredient-dimension-ok` など）。
-- 期待 `.out` と実装（`core/src`・`stdlib` など）を同じコミットにしないことを `G-RF-SEPARATION`（範囲 `refresh-start..HEAD`）が確かめる。
-- `G-RF-GOLDEN-COUNT` は今の golden の数がちょうど `RF_N0 + 85`（= 448）であることを確かめる。2026-11-02 の数は 448（D80）。
-- `G-RD-SCOPE` は 2026-11-02 の時点で既に落ちている（D87）。
-- 計画の網羅表のテスト名は `cgolden/<分類>/<名前>`・`rtest/<名前>` の形で書くと、`scripts/check-plan-tests.sh` が実在を確かめ、`--mutations` がわざと壊す確認の記録の数を数える。
+- A golden is a pair of `tests/golden/<分類>/<名前>.ozen` and `.out` (category and name). The `// args:` on the first line of `.ozen` holds the command arguments, and `.out` holds the diagnostic, `result` and `exit` lines. `scripts/run-golden.sh <ozen> <フォルダ>` (a folder) prints `golden: <n> passed, 0 failed, 0 timed out` (it can also run one folder; confirmed with `tests/golden/kitchen` on 2026-11-02). Build-time options are written as `kitchen today : Options { … }` and chosen with `--options today` (golden `kitchen/range-open-ended`). For `-s`, the CLI builds `kitchen cli : Options { servings: … }` and passes it (around `cli/src/main.c:599`).
+- For a commit that adds expectations, `G-REPO-RED-FIRST` (range `plan-start..HEAD`) confirms that the expectation fails (red) at that commit. For goldens that pass from the start, there is a precedent of putting them in a separate commit and writing the reason in `scripts/red-first-exceptions.txt` (such as `ingredient-dimension-ok` in the syntax plan).
+- `G-RF-SEPARATION` (range `refresh-start..HEAD`) confirms that expectation `.out` files and the implementation (`core/src`, `stdlib` and others) are not in the same commit.
+- `G-RF-GOLDEN-COUNT` confirms that the current number of goldens is exactly `RF_N0 + 85` (= 448). The count on 2026-11-02 is 448 (D80).
+- `G-RD-SCOPE` already fails as of 2026-11-02 (D87).
+- If test names in the plan's coverage table are written in the form `cgolden/<分類>/<名前>` or `rtest/<名前>` (category and name), `scripts/check-plan-tests.sh` confirms they exist, and `--mutations` counts the records of mutation checks.
 
-### 3.7 監査で確かめた、ほかの経路（2026-11-02）
+### 3.7 Other paths confirmed in the audit (2026-11-02)
 
-- 両端に単位を書いた範囲は評価されない: `fry(egg, 3 ml..5 ml)` は `debug steps` で `fry(egg, ?)`・`result ok`。材料の `sugar: -5 ml..-1 ml` は量が付かない。数だけの範囲に単位を付けた `0..2 min` は `0..120 s` と評価される（D85）。
-- `make` の食材でない引数は型と照合されない: `make soup(t: 3 ml)`（`t: Time`）も位置で渡した `make soup(0)` も `result ok`（D86）。
-- 条件の人数は 2 回検査される: 見出しに `servings: Count in 1..20` がある料理に `-s 3ml` を渡すと、同じ `error TYP001 dimension <options>:2:13-2:16 args=["Volume", "Count"]` が 2 行出る（条件のフィールドの検査と、見出しの引数の検査が同じ節を読む。D77）。
-- 人数を使う式の量: `-s 0` で `dashi: 150 ml * servings` は `0 ml` になる（D76）。
-- 量でない値と量の取り違え（`cut(slice, dice)`、`cut(3 mm)`、`fry(egg, 3 min, 3 ml)`）はどれも `result ok`（スコープ外）。
-- `servings` を持たない料理への `make gohan(servings: 0)` は、名前の合わない引数が捨てられて `TYP020` になる（スコープ外）。
-- `repeat 3 { peel(water) }` は同じ位置の `TYP006` を 3 行出す（スコープ外）。
-- 範囲に `..` の無い `Time in 0 s` は `RangedType` として受け付けられ、範囲は無視される（スコープ外）。
-
----
-
-## 4. 挙動仕様
-
-確かめられる主張は 1 項目 1 主張で、先頭に `**S<n>**` を付ける。
-
-### 4.1 動作の量の引数（#1、D69）
-
-- **S695** 動作の引数の宣言の型が次元（`Mass`・`Volume`・`Length`・`Time`・`Temperature`・`Count`、または `dimension` で足した次元）で、渡した値が既知の量のとき、値の次元が宣言と違えば `TYP001 dimension` のエラーを出す。引数は `[値の次元, 宣言の型の名前]`（例 `fry(egg, 3 ml)` は `["Volume", "Time"]`）。
-- **S696** 単位の無い数（`fry(egg, 3)`）は次元の無い量で、`Time` の宣言に対して S695 のエラーになる（引数は `["Dimensionless", "Time"]`）。
-- **S697** 宣言が `Count` のとき、`2 pcs` と `2` はどちらも合格し、`2 g` はエラーになる。
-- **S698** 名前で渡した引数（`fry(egg, time: 3 ml)`）も同じ検査をする。
-- **S699** パイプで渡した呼び出し（`egg |> fry(3 ml)`）も同じ検査をし、診断の位置は `3 ml`。
-- **S700** 診断の位置は値を書いた引数。変数で渡したとき（`let t = 3 ml` の後の `fry(egg, t)`）は、引数 `t` の位置に出る。
-- **S701** マクロの本文に書いた量（本文の `fry($x, 3 ml)`）の診断は、本文の位置に展開履歴（trail）付きで出る。
-- **S758** マクロに差し込んだ量（本文の `fry($x, $t)` に `3 ml` を渡す）の診断は、呼び出し元で `3 ml` を書いた位置に出る（最上位の呼び出しなら trail は無い）。
-- **S702** 合成の動作（`steps` を持つ動作）を呼ぶときも、その動作の宣言に対して検査する。
-- **S759** 合成の動作 `quick(x: T, t: Time) { steps { fry(x, t) } }` を `quick(egg, 3 ml)` と呼ぶと、`TYP001` は呼び出し元の `3 ml` の位置に 1 つだけ出る（中の `fry(x, t)` の照合で重ねない）。
-- **S703** `dimension` で足した次元の引数（`by: Angle`）にも同じ検査をする。
-- **S704** 値が評価の時点で決まらない引数（未知の量）は検査しない。
-- **S705** 引数を省いて既定値を使ったときは、既定値を検査しない（D78）。利用者の動作の誤った既定値（`time: Time = 3 ml`）でも診断は出ない。
-- **S706** 次元の誤りがあっても、評価は続き、同じレシピの後の誤り（皮をむかずに切る `TYP006` など）も出る。
-- **S707** 正しい次元の値（`3 min`、`1 h 30 min`、`3..5 min`、`2 * 90 s`、`time: 3 min`、`heat: high`、`cut(slice, 3 mm)`）は新しい診断を出さない（量でない引数 `heat`・`style` に新しい診断は出ない）。
-- **S708** Issue #1 の再現コード（`fry(egg, 3 ml)`）は `TYP001` を 1 つ出し、`ozen check` の終了コードは 1 になる。
-- **S788** 合成の動作の引数の既定値も、中の呼び出しで検査しない（D78）。`quickChill(x: T, time: Time = 3 ml)` の中の `chill(x, time)` を 2 回呼んでも診断は無い（P4-2 の監査で足した）。
-- **S789** レシピの引数の既定値が型に合わないとき（`recipe soup(t: Time = 3 ml)` の中の `boil(dashi, t)`）、診断は見出しの既定値の位置の `TYP001` 1 つだけ（型に落ちた引数は束縛しない。P4-2 の監査で足した）。
-
-### 4.2 両端に単位を書いた範囲（D85）
-
-- **S760** 両端に同じ次元の単位を書いた範囲（`3 min..5 min`）は区間として評価され、`debug steps` に区間（`180..300 s`）で出る。
-- **S761** `fry(egg, 3 ml..5 ml)` は `TYP001`（引数 `["Volume", "Time"]`）。
-- **S762** 両端の次元が違う範囲（`3 ml..5 g`）は `TYP001`。
-- **S763** 材料の `sugar: 0.5 ml..2 ml` は量 `0.5..2 ml` を持ち、レシピの文章は「適量」でなく範囲になる。
-- **S786** 両端に単位を書いた範囲で下端が上端より大きいとき（`5 min..3 min`）は、数だけの範囲（`5..3 min`）と同じく両端を並べ直した区間（`180..300 s`）になる（P4-2 の監査で足した）。
-
-### 4.3 献立の `make` の量の引数（D86）
-
-- **S764** `make soup(t: 3 ml)`（料理の見出しが `t: Time`）は、`3 ml` の位置に `TYP001`。
-- **S765** `make soup(t: 0 s)`（料理の見出しが `t: Time in 0 s<..`）は、`0 s` の位置に `TYP012`。
-
-### 4.4 下端を含まない範囲（D70・D73・D74・D79）
-
-- **S709** 型の `in` の後に `a<..` と書くと、a より大きい値だけを許す。a ちょうどは範囲外。
-- **S710** `a<..b` と書くと、a より大きく b 以下の値を許す（上端は含む）。
-- **S711** `<` と `..` の間に空白を入れる（`0 s< ..`）と構文エラー（`SYN003`）になる。
-- **S712** 範囲外の値は既存の `TYP012 rangeViolation` で、引数の 3 つ目は書いた範囲の文字（`0 s<..`）。
-- **S713** 区間の値（`0..2 min`）は、下端が範囲の下端以下なら範囲外（今の閉区間と同じく、区間の一部でも外れたら外）。
-- **S714** 下端を含む今の範囲（`0 s..`）の判定は変わらない（`0 s` は範囲内）。
-- **S715** 型の範囲の外（式の中）の `3 min<..5 min` の読み方は変わらない（`debug ast` が今と同じ）。
-- **S766** 下端を含まない範囲は、利用者の設備の設定の型のフィールド（`type ScaleSpec : EquipmentSpec { maxLoad: Mass in 0 g<.. }`）にも効き、台所の `maxLoad: 0 g` は `TYP012`。
-- **S767** 数だけの下端（`Count in 0<..`）も同じ判定（`0` は範囲外、`1` は範囲内）。
-- **S768** 空の範囲 `1<..1` には入る値が無く、`1` は `TYP012`（範囲そのものの誤りの診断は足さない）。
-- **S790** 型の範囲の下端に範囲（`Time in 0..1 min<..`）を書くと、`<` の位置に `SYN003`（P4-2 の監査で足した）。
-- **S716** `ozen check --format json --emit types` の型のフィールドで、下端を含まない範囲には `"minExclusive":true` が付き、`min` は下端の文字（`0 g`）になる。下端を含む範囲と範囲の無いフィールドには `minExclusive` のキーが無い。
-- **S717** `schemas/result.schema.json` は、型のフィールドの `minExclusive` を任意の真偽値として許す。
-- **S769** `--emit signatures` の標準の動作の引数の型の文字は、範囲ごと（`Time in 0 s<..`）出る。
-- **S718** 文法の規則 `type_range` が `core/grammar.ebnf` と `core/src/rules.def` にあり、golden で通る（`G-CORE-GRAMMAR`）。
-- **S719** ファジングの辞書（`core/fuzz/ozen.dict`）に `"<.."` がある。
-- **S794** `--emit types` の型のフィールドで、`a<..b` の上端は `max` に出る（`minLoad: Mass in 0 g<..5 kg` は `"min":"0 g","minExclusive":true,"max":"5 kg"`。P4-2 の監査で足した）。
-
-### 4.5 標準の動作の範囲（D70）
-
-- **S720** `soak`・`fry`・`simmer`・`boil`・`parboil`・`chill`・`rest` の `time` の型は `Time in 0 s<..`（`soak` の既定値 `30 min` はそのまま）。
-- **S721** `cut` の `size` の型は `Length in 0 mm<..`（既定値 `3 mm` はそのまま）。
-- **S722** 0 の時間（`simmer(x, 0 min)`）は `TYP012`。
-- **S723** 負の時間（`boil(water, -300 s)`）は `TYP012`。
-- **S770** 両端に単位を書いた負の時間（`simmer(x, -5 min..-1 min)`）は `TYP012`。
-- **S724** 0 と負の大きさ（`cut(slice, 0 mm)`、`cut(slice, -3 mm)`）は `TYP012`。
-- **S725** 正の小さい値（`fry(egg, 1 s)`、`cut(slice, 0.5 mm)`）と既定値（`soak(rice)`、`cut(slice)`）は診断を出さない。
-- **S726** 温度の引数には範囲を付けない。利用者の動作 `freeze(x: T, temp: Temperature)` に `-18 degC` を渡しても診断は無い。標準ライブラリに温度の範囲（`Temperature in`・`Temperature? in`）は無い。
-- **S727** 次元の違う値（`fry(egg, -3 ml)`）は `TYP001` だけを出し、`TYP012` を重ねない。
-- **S771** 合成の動作 `quick(x: T, t: Time) { steps { fry(x, t) } }`（外の `t` に範囲が無い）を `quick(egg, 0 s)` と呼ぶと、中の `fry` の範囲で `TYP012` が 1 つだけ、呼び出し元の `0 s` の位置に出る。
-- **S787** 合成の動作の中で同じ引数を 2 回使っても（`twice(x: T, t: Time)` の中の `fry(x, t)` と `rest(fried, t)`）、`twice(done, 0 s)` の `TYP012` は呼び出し元の `0 s` の位置に 1 つだけ（P4-2 の監査で足した）。
-
-### 4.6 材料の量（D71・D75・D76）
-
-- **S728** 材料の量の下端が 0 以下なら `TYP021 nonPositiveAmount`（エラー）を出す。引数は `[材料の名前, 書いた量の文字]`、位置は量を書いた場所。
-- **S729** 0 ちょうど（`egg: Egg 0 pcs`）もエラー。
-- **S730** 負の量（`water: -100 ml`）はエラー。
-- **S731** 範囲の量は下端で判定する。`0..2 g`、`-1..2 g`（`-(1..2 g)` と読まれ、下端は -2）、`-0.5..0.8 g`（`-(0.5..0.8 g)` と読まれ、下端は -0.8）はエラー、`0.5..2 g` は合格。
-- **S772** 両端に単位を書いた範囲の量（`sugar: -5 ml..-1 ml`）もエラー（D85 で評価されるようになる）。
-- **S732** `per serving` の量は書いた値で判定する（人数 2 の料理の `0 g per serving` はエラー、`100 g per serving` は合格）。
-- **S733** 人数が決まらない `per serving` の量（`TYP020`）でも、書いた値が 0 以下なら `TYP021` も出す。
-- **S773** 人数が範囲外の料理（`servings: 0`）では、`100 g per serving` と `150 ml * servings` に `TYP020`・`TYP021` を出さない。
-- **S785** 人数が範囲外の料理でも、`0 g per serving` には `TYP021` を出す（書いた値の誤りで、人数の誤りと別の原因）。
-- **S734** `[any amount]` は対象外（`TYP003` の警告だけ）。
-- **S735** 量を書かない材料は対象外。
-- **S736** 量の次元が誤っているとき（`-1 min`）は `TYP001` だけを出し、`TYP021` を重ねない。
-- **S737** 式の量（`100 g - 100 g`）は評価した値で判定する。
-- **S738** 正の量（`0.5 g`、`1 pcs`、`0.5..2 g`）は診断を出さない。
-- **S739** `TYP021` は登録され（`diag_codes.def` の `SCH011` より後、`diag-names.txt`）、日本語と英語の言い回し（`diag-non-positive-amount`。どちらも `{ $arg1 }` と `{ $arg2 }` を使う）と、引数の種類（`names.mjs` の `['name']`）を持つ。
-- **S740** `docs/concept.md` §6.1 のエラーの例と `core/tests/severity-examples.txt` に「0 以下の量」がある。
-
-### 4.7 人数（D72・D77）
-
-- **S741** `Options.servings` の型は `Count? in 1..`。`--emit types` の `Options` の `servings` は `min` が `"1"` になる。
-- **S774** 設定画面（`renderers/lib/settings.mjs` の `settingsSpec`）は、`--emit types` の `Options.servings` から、人数の入力に `min` 1 を付ける。
-- **S742** 省略可能で範囲のある型（`Count? in 1..`）を `check_value` が検査する。利用者の設定の型の `n: Count? in 1..` に `0` を渡すと `TYP012`。
-- **S743** レシピの見出しの型の無い `servings: 0` は `TYP012`（引数 `["servings", "0", "1.."]`）。
-- **S744** 型だけの `servings: Count = 0` も `TYP012`（同じ引数）。
-- **S745** 自分で範囲を宣言した `servings: Count in 1..20 = 0` は、宣言の範囲で `TYP012` を 1 つだけ出す（引数の 3 つ目は `1..20`）。
-- **S746** 献立の `make soup(servings: 0)` は、`0` の位置に `TYP012` を 1 つ。
-- **S775** 位置で渡した `make soup(0)`（料理の最初の引数が `servings`）も `TYP012` を 1 つ。
-- **S776** 献立の見出しの `menu dinner(servings: 0)` も `TYP012`。
-- **S747** `servings` を持たない料理に `ozen check -s 0` と `-s -1` を渡すと、条件の側で `TYP012`（範囲の文字 `1..`）が 1 つ出る。
-- **S777** 見出しに `servings: Count in 1..20 = 4` がある料理に `-s 0` を渡すと、`TYP012` は 1 つだけ（条件の側の `1..`）。
-- **S778** 同じ料理に `-s 25` を渡すと、`TYP012` は 1 つだけ（見出しの側の `1..20`）。
-- **S779** 同じ料理に `-s 3ml` を渡すと、`TYP001` は 1 つだけ（今は 2 行）。
-- **S748** `servings` を持たない料理で、ビルド時の条件 `kitchen today : Options { servings: 0 }` を `--options today` で選ぶと、`TYP012` が 1 つ出る。
-- **S749** 見出しの人数 1（`servings: 1`）は診断を出さない。
-- **S780** `-s 1` は診断を出さない。
-- **S791** 見出しに `servings: Count = 2` がある料理に `-s 0` を渡すと、`TYP012` は条件の側の 1 つだけで、`1 g per serving` と `150 ml * servings` に `TYP020`・`TYP021` は出ない（D76。P4-2 の監査で足した）。
-- **S792** 献立の `make soup(servings: 0)` の料理は人数を未知として評価され、`debug steps` の `make` の行に量が付かない（D76。P4-2 の監査で足した）。
-- **S793** 見出しに自分で範囲を宣言した料理（`servings: Count in 2..20`）への `make soup(servings: 1)` は、宣言の範囲で `TYP012`（引数の 3 つ目は `2..20`。P4-2 の監査で足した）。
-
-### 4.8 Issue の再現
-
-- **S750** Issue #2 の出力から組み立てた再現（`water: -100 ml`、`boil(water, -300 s)`）は、`TYP021` と `TYP012` を 1 つずつ出し、`ozen check` の終了コードは 1 になる。
-
-### 4.9 不変条件
-
-- **S751** 本計画の範囲で期待を直した既存の golden・描画のテストは、すべて §9 に理由付きで名指しされている（足した golden は数えない）。
-- **S752** 既存のサンプル（`samples/`）はすべて今までどおり通る（`G-SAMPLE-CHECK`）。
-- **S753** 本計画のコミットが触るのは §4.11 の一覧のファイルだけ（§9 で除いた別の作業のコミットは数えない）。
-- **S754** 版（`VERSION`）は D83 のとおり。
-- **S755** `G-RF-GOLDEN-COUNT` は D80 の形に直り、本計画の golden を足した後も合格する。
-- **S781** `G-RD-SCOPE`・`G-RD-ADD-ONLY` は D87 の形（`readme-start..readme-end`）に直り、合格する。
-- **S782** 期待 `.out` を直すコミットと、実装を変えるコミットは分かれている（`G-RF-SEPARATION`）。
-
-### 4.10 文書
-
-- **S756** `docs/concept.md` §4.2 の範囲制約の説明に、下端を含まない書き方（`a<..`・`a<..b`）と例（`0 s<..`）がある。
-- **S783** `docs/concept.md` §4.2 の「範囲外は必ずエラー」の対象に、動作の引数がある。
-- **S784** `docs/concept.md` の `type Options` の例の `servings` が `Count? in 1..` になっている。
-- **S795** `docs/concept.md` §4.2 に `a<..b` の形と、そのとき上端を含むこと（「上端は含む」）が書いてある（P4-2 の監査で足した）。
-- **S757** `CLAUDE.md` の Plan の節に、本計画のファイル名・`G-QC-*`・タグ `qc-start` の行がある。
-
-### 4.11 足すもの・変えるものの一覧
-
-| 種類 | ID・パス |
-| --- | --- |
-| 診断 | `TYP021 nonPositiveAmount`（D75） |
-| 文法 | 規則 `type_range`（型の範囲の下端を含まない形 `a<..`・`a<..b`）。`core/grammar.ebnf`、`core/src/rules.def`、`core/src/parse.c`、`core/src/ast.h` |
-| 標準ライブラリ | `stdlib/prelude.ozen` の 8 つの引数（§3.3）と `Options.servings` |
-| 言い回し | `phrases/en.ftl`・`phrases/ja.ftl` の `diag-non-positive-amount` |
-| 描画 | `renderers/lib/names.mjs` の `ARG_KINDS` に `nonPositiveAmount`、`renderers/test/settings-servings-min.test.mjs`（S774） |
-| スキーマ | `schemas/result.schema.json` の型のフィールドの `minExclusive` |
-| ファジング | `core/fuzz/ozen.dict` の `"<.."` |
-| コア | `core/src/sema.c`（量の照合、範囲の評価、範囲の開いた下端、材料の量、人数、`make` の引数）、`core/src/defs.c`（`minExclusive`） |
-| テスト | `tests/golden/args/`（22 個）、`tests/golden/bounds/`（55 個）、期待を直す既存の golden（S751） |
-| 文書 | `docs/concept.md` §4.2・§6.1・`type Options` の例、`core/tests/diag-names.txt`、`core/tests/severity-examples.txt` |
-| 計画とゴール | 本ファイル、`scripts/goals.sh`、`CLAUDE.md`、`plans/ozen-syntax-refresh.md` §9 の 1 行（D80）、`plans/ozen-readme-compact.md` §9 の 1 行（D87）、`scripts/red-first-exceptions.txt`（対照の golden のコミット、§5.2）、`scripts/test-names-exceptions.txt`（Issue の再現の 1 文字の名前、P4-2 で足した） |
-
-### 4.12 コードの配置
-
-| 場所 | 置くもの |
-| --- | --- |
-| `core/src/sema.c` | `check_value` の次元と範囲の判定を、評価済みの量（`ozni_qty`）と型の節を受け取る関数に切り出す（名前は実装で決める）。`check_value` はそれを呼ぶ。`call_action` は引数を割り当てた後、既定値でない量の引数ごとにそれを呼ぶ。合成の動作の中の呼び出しの照合は、外で照合済みの値を重ねず、位置を呼び出し元に向ける（S759・S771）。`eval_inner` で両端に単位を書いた範囲を評価する。`base_type` は範囲と省略可能の入れ子のどちらの順でも外す。範囲の下端を含まない判定。`eval_ingredients` で `TYP021`。`eval_make`・`eval_param` で `make` の引数と人数を照合し、条件の人数の重複を除く |
-| `core/src/parse.c` | `type()` の `in` の後だけで `<..` を読む（`range()` は式と共用なので変えない） |
-| `core/src/ast.h` | 下端を含まない範囲を表す節の種類か印（実装で決め、§9 に書く） |
-| `core/src/defs.c` | `put_field` の `minExclusive` |
+- Ranges with units on both ends are not evaluated: `fry(egg, 3 ml..5 ml)` is `fry(egg, ?)` in `debug steps`, with `result ok`. The ingredient `sugar: -5 ml..-1 ml` gets no amount. `0..2 min`, a number-only range with a unit, is evaluated as `0..120 s` (D85).
+- Non-ingredient arguments of `make` are not checked against types: both `make soup(t: 3 ml)` (`t: Time`) and the positional `make soup(0)` give `result ok` (D86).
+- The servings from the options are checked twice: passing `-s 3ml` to a dish whose header has `servings: Count in 1..20` gives the same `error TYP001 dimension <options>:2:13-2:16 args=["Volume", "Count"]` on 2 lines (the check of the options field and the check of the header argument read the same node; D77).
+- Amounts in expressions that use the servings: with `-s 0`, `dashi: 150 ml * servings` becomes `0 ml` (D76).
+- Mixing up non-quantity values and quantities (`cut(slice, dice)`, `cut(3 mm)`, `fry(egg, 3 min, 3 ml)`) all give `result ok` (out of scope).
+- `make gohan(servings: 0)` for a dish that has no `servings` drops the argument with the unmatched name and becomes `TYP020` (out of scope).
+- `repeat 3 { peel(water) }` gives `TYP006` at the same position on 3 lines (out of scope).
+- `Time in 0 s`, a range with no `..`, is accepted as a `RangedType`, and the range is ignored (out of scope).
 
 ---
 
-## 5. 機械検証ゴールの定義
+## 4. Behavior spec
 
-**前提ゴール**（各タスクの完了条件に暗黙に含む）:
+Each checkable claim is one item with one claim, and starts with `**S<n>**`.
 
-- 記法の計画 §5 の「手元で回すもの」すべて。とくに `G-CORE-GOLDEN`・`G-CORE-GRAMMAR`・`G-CORE-DIAG-APPEND`・`G-CORE-DIAG-REGISTRY`・`G-TYPE-SEVERITY-TABLE`・`G-STD-PHRASES`・`G-REND-PHRASES-RENDER`・`G-REND-TESTS`・`G-API-SCHEMA`・`G-API-SARIF`・`G-SAMPLE-CHECK`・`G-CORE-FUZZ`・`G-REPO-RED-FIRST`・`G-PLAT-WASM` は本計画で触るファイルに関わる
-- 記法の計画の `G-RF-GOLDEN-COUNT`（D80 で直した形）・`G-RF-FUZZ-DICT`・`G-RF-SEPARATION`・`G-RF-CONCEPT`
-- README の計画の `G-RD-SCOPE`・`G-RD-ADD-ONLY`（D87 で直した形）
-- push の前に毎回: `G-REPO-NOREPLY`
-- push の後: `G-PLAT-CI`
+### 4.1 Quantity arguments of actions (#1, D69)
 
-失敗したときは、どのゴールのどの検査が落ちたかを報告する。
+- **S695** When the declared type of an action argument is a dimension (`Mass`, `Volume`, `Length`, `Time`, `Temperature`, `Count`, or a dimension added with `dimension`) and the passed value is a known quantity, give a `TYP001 dimension` error if the value's dimension differs from the declaration. The arguments are `[値の次元, 宣言の型の名前]` (the value's dimension and the name of the declared type; for example `fry(egg, 3 ml)` gives `["Volume", "Time"]`).
+- **S696** A number without a unit (`fry(egg, 3)`) is a dimensionless quantity, and against a `Time` declaration it is the S695 error (arguments `["Dimensionless", "Time"]`).
+- **S697** When the declaration is `Count`, both `2 pcs` and `2` pass, and `2 g` is an error.
+- **S698** Arguments passed by name (`fry(egg, time: 3 ml)`) get the same check.
+- **S699** Calls passed through a pipe (`egg |> fry(3 ml)`) get the same check, and the diagnostic position is `3 ml`.
+- **S700** The diagnostic position is the argument where the value was written. When passed through a variable (`fry(egg, t)` after `let t = 3 ml`), it appears at the position of the argument `t`.
+- **S701** The diagnostic for a quantity written in a macro body (`fry($x, 3 ml)` in the body) appears at the body's position, with the expansion history (trail).
+- **S758** The diagnostic for a quantity inserted into a macro (passing `3 ml` to `fry($x, $t)` in the body) appears where the caller wrote `3 ml` (no trail if it is a top-level call).
+- **S702** Calling a composite action (an action with `steps`) is also checked against that action's declaration.
+- **S759** Calling the composite action `quick(x: T, t: Time) { steps { fry(x, t) } }` as `quick(egg, 3 ml)` gives only one `TYP001`, at the caller's `3 ml` (the check of the inner `fry(x, t)` does not add another).
+- **S703** Arguments of a dimension added with `dimension` (`by: Angle`) get the same check.
+- **S704** Arguments whose value is not decided at evaluation time (unknown quantities) are not checked.
+- **S705** When an argument is left out and the default value is used, the default value is not checked (D78). Even a wrong default in a user action (`time: Time = 3 ml`) gives no diagnostic.
+- **S706** Even with a dimension error, evaluation continues, and later errors in the same recipe (such as `TYP006` for cutting without peeling) are also given.
+- **S707** Values with the correct dimension (`3 min`, `1 h 30 min`, `3..5 min`, `2 * 90 s`, `time: 3 min`, `heat: high`, `cut(slice, 3 mm)`) give no new diagnostic (non-quantity arguments `heat` and `style` get no new diagnostic).
+- **S708** The reproduction code of Issue #1 (`fry(egg, 3 ml)`) gives one `TYP001`, and the exit code of `ozen check` is 1.
+- **S788** Default values of composite action arguments are not checked in inner calls either (D78). Calling `chill(x, time)` twice inside `quickChill(x: T, time: Time = 3 ml)` gives no diagnostic (added in the P4-2 audit).
+- **S789** When a recipe argument's default value does not fit the type (`boil(dashi, t)` inside `recipe soup(t: Time = 3 ml)`), the only diagnostic is one `TYP001` at the header's default value position (an argument that failed the type is not bound; added in the P4-2 audit).
 
-- `QC=qc-start..HEAD`、`PLAN_QC=plans/ozen-quantity-checks.md`、`OZ=build/core-gcc-release/ozen`（`OZ` は既に `goals.sh` にある）。
-- 0 を期待する数え上げは、終了コードでなく出力の数で判定する。範囲を使う数え上げは、先にタグがあることを確かめる（無いと `git diff` が何も出さずに合格するため）。
-- P0-3 で、下のコードブロックを `scripts/goals.sh` の関数 `goal_G_QC_*` にする。
+### 4.2 Ranges with units on both ends (D85)
 
-### 5.1 構造・データ
+- **S760** A range with units of the same dimension on both ends (`3 min..5 min`) is evaluated as an interval, and appears as an interval (`180..300 s`) in `debug steps`.
+- **S761** `fry(egg, 3 ml..5 ml)` is `TYP001` (arguments `["Volume", "Time"]`).
+- **S762** A range whose ends have different dimensions (`3 ml..5 g`) is `TYP001`.
+- **S763** The ingredient `sugar: 0.5 ml..2 ml` has the amount `0.5..2 ml`, and the recipe text shows a range, not "as needed".
+- **S786** When the lower end of a range with units on both ends is larger than the upper end (`5 min..3 min`), it becomes an interval with the ends swapped (`180..300 s`), the same as a number-only range (`5..3 min`) (added in the P4-2 audit).
 
-| ID | 何を判定するか | 合格条件 |
+### 4.3 Quantity arguments of `make` in a menu (D86)
+
+- **S764** `make soup(t: 3 ml)` (the dish header has `t: Time`) gives `TYP001` at `3 ml`.
+- **S765** `make soup(t: 0 s)` (the dish header has `t: Time in 0 s<..`) gives `TYP012` at `0 s`.
+
+### 4.4 Ranges whose lower end is not included (D70, D73, D74, D79)
+
+- **S709** Writing `a<..` after a type's `in` allows only values greater than a. Exactly a is out of range.
+- **S710** Writing `a<..b` allows values greater than a and up to b (the upper end is included).
+- **S711** Putting a space between `<` and `..` (`0 s< ..`) is a syntax error (`SYN003`).
+- **S712** An out-of-range value is the existing `TYP012 rangeViolation`, and the third argument is the text of the written range (`0 s<..`).
+- **S713** An interval value (`0..2 min`) is out of range if its lower end is at or below the range's lower end (as with the current closed interval, it is outside if any part is outside).
+- **S714** The check for the current ranges that include the lower end (`0 s..`) does not change (`0 s` is in range).
+- **S715** Outside type ranges (in expressions), how `3 min<..5 min` is read does not change (`debug ast` is the same as now).
+- **S766** A range whose lower end is not included also works on fields of user equipment setting types (`type ScaleSpec : EquipmentSpec { maxLoad: Mass in 0 g<.. }`), and `maxLoad: 0 g` in the kitchen is `TYP012`.
+- **S767** A number-only lower end (`Count in 0<..`) is judged the same way (`0` is out of range, `1` is in range).
+- **S768** The empty range `1<..1` has no values in it, and `1` is `TYP012` (no diagnostic is added for errors in the range itself).
+- **S790** Writing a range as the lower end of a type range (`Time in 0..1 min<..`) gives `SYN003` at `<` (added in the P4-2 audit).
+- **S716** In the type fields of `ozen check --format json --emit types`, a range whose lower end is not included gets `"minExclusive":true`, and `min` is the lower end's text (`0 g`). Ranges that include the lower end and fields without a range have no `minExclusive` key.
+- **S717** `schemas/result.schema.json` allows `minExclusive` on type fields as an optional boolean.
+- **S769** In `--emit signatures`, the type text of standard action arguments is output with the whole range (`Time in 0 s<..`).
+- **S718** The grammar rule `type_range` is in `core/grammar.ebnf` and `core/src/rules.def`, and is passed through by a golden (`G-CORE-GRAMMAR`).
+- **S719** The fuzzing dictionary (`core/fuzz/ozen.dict`) has `"<.."`.
+- **S794** In the type fields of `--emit types`, the upper end of `a<..b` is output as `max` (`minLoad: Mass in 0 g<..5 kg` gives `"min":"0 g","minExclusive":true,"max":"5 kg"`; added in the P4-2 audit).
+
+### 4.5 Ranges of standard actions (D70)
+
+- **S720** The type of `time` in `soak`, `fry`, `simmer`, `boil`, `parboil`, `chill` and `rest` is `Time in 0 s<..` (the default `30 min` of `soak` stays as is).
+- **S721** The type of `size` in `cut` is `Length in 0 mm<..` (the default `3 mm` stays as is).
+- **S722** A zero time (`simmer(x, 0 min)`) is `TYP012`.
+- **S723** A negative time (`boil(water, -300 s)`) is `TYP012`.
+- **S770** A negative time with units on both ends (`simmer(x, -5 min..-1 min)`) is `TYP012`.
+- **S724** Zero and negative sizes (`cut(slice, 0 mm)`, `cut(slice, -3 mm)`) are `TYP012`.
+- **S725** Small positive values (`fry(egg, 1 s)`, `cut(slice, 0.5 mm)`) and default values (`soak(rice)`, `cut(slice)`) give no diagnostic.
+- **S726** No range is put on temperature arguments. Passing `-18 degC` to the user action `freeze(x: T, temp: Temperature)` gives no diagnostic. The standard library has no temperature range (`Temperature in`, `Temperature? in`).
+- **S727** A value with a different dimension (`fry(egg, -3 ml)`) gives only `TYP001`, with no `TYP012` on top.
+- **S771** Calling the composite action `quick(x: T, t: Time) { steps { fry(x, t) } }` (the outer `t` has no range) as `quick(egg, 0 s)` gives only one `TYP012` from the inner `fry`'s range, at the caller's `0 s`.
+- **S787** Even when the same argument is used twice inside a composite action (`fry(x, t)` and `rest(fried, t)` inside `twice(x: T, t: Time)`), `twice(done, 0 s)` gives only one `TYP012`, at the caller's `0 s` (added in the P4-2 audit).
+
+### 4.6 Ingredient amounts (D71, D75, D76)
+
+- **S728** If the lower end of an ingredient amount is zero or less, give `TYP021 nonPositiveAmount` (error). The arguments are `[材料の名前, 書いた量の文字]` (ingredient name, text of the written amount), and the position is where the amount was written.
+- **S729** Exactly zero (`egg: Egg 0 pcs`) is also an error.
+- **S730** A negative amount (`water: -100 ml`) is an error.
+- **S731** A range amount is judged by its lower end. `0..2 g`, `-1..2 g` (read as `-(1..2 g)`, lower end -2) and `-0.5..0.8 g` (read as `-(0.5..0.8 g)`, lower end -0.8) are errors, and `0.5..2 g` passes.
+- **S772** A range amount with units on both ends (`sugar: -5 ml..-1 ml`) is also an error (it is evaluated after D85).
+- **S732** A `per serving` amount is judged by the written value (in a dish for 2, `0 g per serving` is an error and `100 g per serving` passes).
+- **S733** Even for a `per serving` amount whose servings are not decided (`TYP020`), `TYP021` is also given if the written value is zero or less.
+- **S773** In a dish whose servings are out of range (`servings: 0`), `100 g per serving` and `150 ml * servings` get no `TYP020` or `TYP021`.
+- **S785** Even in a dish whose servings are out of range, `0 g per serving` gets `TYP021` (it is an error in the written value, a different cause from the servings error).
+- **S734** `[any amount]` is not covered (only the `TYP003` warning).
+- **S735** Ingredients with no written amount are not covered.
+- **S736** When the dimension of the amount is wrong (`-1 min`), only `TYP001` is given, with no `TYP021` on top.
+- **S737** An amount written as an expression (`100 g - 100 g`) is judged by its evaluated value.
+- **S738** Positive amounts (`0.5 g`, `1 pcs`, `0.5..2 g`) give no diagnostic.
+- **S739** `TYP021` is registered (after `SCH011` in `diag_codes.def`, and in `diag-names.txt`), and has Japanese and English phrases (`diag-non-positive-amount`; both use `{ $arg1 }` and `{ $arg2 }`) and argument kinds (`['name']` in `names.mjs`).
+- **S740** The error examples in `docs/concept.md` §6.1 and `core/tests/severity-examples.txt` include "amount of zero or less".
+
+### 4.7 Servings (D72, D77)
+
+- **S741** The type of `Options.servings` is `Count? in 1..`. In `--emit types`, `servings` of `Options` has `min` of `"1"`.
+- **S774** The settings screen (`settingsSpec` in `renderers/lib/settings.mjs`) puts `min` 1 on the servings input, from `Options.servings` in `--emit types`.
+- **S742** `check_value` checks an optional type with a range (`Count? in 1..`). Passing `0` to `n: Count? in 1..` in a user setting type gives `TYP012`.
+- **S743** An untyped `servings: 0` in a recipe header is `TYP012` (arguments `["servings", "0", "1.."]`).
+- **S744** A typed-only `servings: Count = 0` is also `TYP012` (the same arguments).
+- **S745** `servings: Count in 1..20 = 0`, which declares its own range, gives only one `TYP012` with the declared range (the third argument is `1..20`).
+- **S746** `make soup(servings: 0)` in a menu gives one `TYP012` at `0`.
+- **S775** The positional `make soup(0)` (the dish's first argument is `servings`) also gives one `TYP012`.
+- **S776** `menu dinner(servings: 0)` in a menu header is also `TYP012`.
+- **S747** Passing `ozen check -s 0` and `-s -1` to a dish without `servings` gives one `TYP012` on the options side (range text `1..`).
+- **S777** Passing `-s 0` to a dish whose header has `servings: Count in 1..20 = 4` gives only one `TYP012` (`1..` on the options side).
+- **S778** Passing `-s 25` to the same dish gives only one `TYP012` (`1..20` on the header side).
+- **S779** Passing `-s 3ml` to the same dish gives only one `TYP001` (now 2 lines).
+- **S748** In a dish without `servings`, choosing the build-time options `kitchen today : Options { servings: 0 }` with `--options today` gives one `TYP012`.
+- **S749** Header servings of 1 (`servings: 1`) give no diagnostic.
+- **S780** `-s 1` gives no diagnostic.
+- **S791** Passing `-s 0` to a dish whose header has `servings: Count = 2` gives only the one `TYP012` on the options side, and `1 g per serving` and `150 ml * servings` get no `TYP020` or `TYP021` (D76; added in the P4-2 audit).
+- **S792** The dish in `make soup(servings: 0)` in a menu is evaluated with unknown servings, and the `make` line in `debug steps` has no amount (D76; added in the P4-2 audit).
+- **S793** `make soup(servings: 1)` for a dish whose header declares its own range (`servings: Count in 2..20`) gives `TYP012` with the declared range (the third argument is `2..20`; added in the P4-2 audit).
+
+### 4.8 Issue reproductions
+
+- **S750** The reproduction built from the output of Issue #2 (`water: -100 ml`, `boil(water, -300 s)`) gives one `TYP021` and one `TYP012`, and the exit code of `ozen check` is 1.
+
+### 4.9 Invariants
+
+- **S751** Every existing golden or rendering test whose expectation was corrected within this plan's range is named in §9 with a reason (added goldens are not counted).
+- **S752** All existing samples (`samples/`) still pass as before (`G-SAMPLE-CHECK`).
+- **S753** This plan's commits only touch the files in the list in §4.11 (commits of other work excluded in §9 are not counted).
+- **S754** The version (`VERSION`) follows D83.
+- **S755** `G-RF-GOLDEN-COUNT` is changed to the form in D80, and passes after this plan's goldens are added.
+- **S781** `G-RD-SCOPE` and `G-RD-ADD-ONLY` are changed to the form in D87 (`readme-start..readme-end`) and pass.
+- **S782** Commits that correct expectation `.out` files and commits that change the implementation are separate (`G-RF-SEPARATION`).
+
+### 4.10 Documents
+
+- **S756** The explanation of range constraints in `docs/concept.md` §4.2 has the lower-end-excluded forms (`a<..`, `a<..b`) and an example (`0 s<..`).
+- **S783** In `docs/concept.md` §4.2, the targets of "out of range is always an error" include action arguments.
+- **S784** `servings` in the `type Options` example in `docs/concept.md` is `Count? in 1..`.
+- **S795** `docs/concept.md` §4.2 has the form `a<..b` and says that the upper end is then included ("the upper end is included") (added in the P4-2 audit).
+- **S757** The Plan section of `CLAUDE.md` has a line with this plan's file name, `G-QC-*` and the tag `qc-start`.
+
+### 4.11 List of things to add or change
+
+| Kind | ID / path |
+| --- | --- |
+| Diagnostic | `TYP021 nonPositiveAmount` (D75) |
+| Grammar | Rule `type_range` (the lower-end-excluded forms of type ranges, `a<..` and `a<..b`). `core/grammar.ebnf`, `core/src/rules.def`, `core/src/parse.c`, `core/src/ast.h` |
+| Standard library | The 8 arguments in `stdlib/prelude.ozen` (§3.3) and `Options.servings` |
+| Phrases | `diag-non-positive-amount` in `phrases/en.ftl` and `phrases/ja.ftl` |
+| Rendering | `nonPositiveAmount` in `ARG_KINDS` of `renderers/lib/names.mjs`, `renderers/test/settings-servings-min.test.mjs` (S774) |
+| Schema | `minExclusive` on type fields in `schemas/result.schema.json` |
+| Fuzzing | `"<.."` in `core/fuzz/ozen.dict` |
+| Core | `core/src/sema.c` (quantity checks, range evaluation, open lower ends of ranges, ingredient amounts, servings, arguments of `make`), `core/src/defs.c` (`minExclusive`) |
+| Tests | `tests/golden/args/` (22 cases), `tests/golden/bounds/` (55 cases), existing goldens whose expectations are corrected (S751) |
+| Documents | `docs/concept.md` §4.2, §6.1 and the `type Options` example, `core/tests/diag-names.txt`, `core/tests/severity-examples.txt` |
+| Plan and goals | This file, `scripts/goals.sh`, `CLAUDE.md`, one line in `plans/ozen-syntax-refresh.md` §9 (D80), one line in `plans/ozen-readme-compact.md` §9 (D87), `scripts/red-first-exceptions.txt` (the commit of the control goldens, §5.2), `scripts/test-names-exceptions.txt` (the one-letter names of the Issue reproductions, added in P4-2) |
+
+### 4.12 Where the code goes
+
+| Place | What goes there |
+| --- | --- |
+| `core/src/sema.c` | Split the dimension and range checks of `check_value` out into a function that receives an evaluated quantity (`ozni_qty`) and a type node (the name is decided during implementation). `check_value` calls it. `call_action` calls it for each non-default quantity argument after assigning the arguments. Checks of calls inside composite actions do not repeat values already checked outside, and point the position at the caller (S759, S771). Evaluate ranges with units on both ends in `eval_inner`. `base_type` removes the nesting of range and optional in either order. The check for a range whose lower end is not included. `TYP021` in `eval_ingredients`. In `eval_make` and `eval_param`, check the arguments of `make` and the servings, and remove the duplicate check of servings from the options |
+| `core/src/parse.c` | Read `<..` only after `in` in `type()` (`range()` is shared with expressions, so it does not change) |
+| `core/src/ast.h` | A node kind or a mark for a range whose lower end is not included (decided during implementation and written in §9) |
+| `core/src/defs.c` | `minExclusive` in `put_field` |
+
+---
+## 5. Definition of machine-verifiable goals
+
+**Prerequisite goals** (implicitly part of every task's completion condition):
+
+- All goals "run locally" in §5 of the syntax plan. In particular, `G-CORE-GOLDEN`, `G-CORE-GRAMMAR`, `G-CORE-DIAG-APPEND`, `G-CORE-DIAG-REGISTRY`, `G-TYPE-SEVERITY-TABLE`, `G-STD-PHRASES`, `G-REND-PHRASES-RENDER`, `G-REND-TESTS`, `G-API-SCHEMA`, `G-API-SARIF`, `G-SAMPLE-CHECK`, `G-CORE-FUZZ`, `G-REPO-RED-FIRST` and `G-PLAT-WASM` concern files this plan touches
+- From the syntax plan: `G-RF-GOLDEN-COUNT` (in the form fixed by D80), `G-RF-FUZZ-DICT`, `G-RF-SEPARATION`, `G-RF-CONCEPT`
+- From the README plan: `G-RD-SCOPE`, `G-RD-ADD-ONLY` (in the form fixed by D87)
+- Before every push: `G-REPO-NOREPLY`
+- After a push: `G-PLAT-CI`
+
+When something fails, report which check of which goal failed.
+
+- `QC=qc-start..HEAD`, `PLAN_QC=plans/ozen-quantity-checks.md`, `OZ=build/core-gcc-release/ozen` (`OZ` is already in `goals.sh`).
+- Counts that expect 0 are judged by the number in the output, not by the exit code. Counts that use a range first make sure the tag exists (without it, `git diff` prints nothing and the check passes).
+- In P0-3, the code block below becomes the functions `goal_G_QC_*` in `scripts/goals.sh`.
+
+### 5.1 Structure and data
+
+| ID | What it checks | Pass condition |
 | --- | --- | --- |
-| `G-QC-DECISIONS` | D69〜D87 が確定しているか | 決定済み 19、未決 0、決定の行 19 |
-| `G-QC-COVERAGE` | S 項目すべてが網羅表に行を持ち、§8 の各項目に理由がある | 差分が空、理由の無い項目 0 |
-| `G-QC-PLAN-NAMES` | 網羅表のテスト名が実在する | `plan-tests: <n> names, 0 missing` |
-| `G-QC-PLAN-TESTS` | わざと壊す確認の記録が網羅表の行の数だけある | `mutations: <m> rows, <m> recorded` |
-| `G-QC-GOLDEN-ARGS` | §4.1〜§4.3 の golden | 22 個、`golden: 22 passed, 0 failed, 0 timed out` |
-| `G-QC-GOLDEN-BOUNDS` | §4.4〜§4.8 の golden | 55 個、`golden: 55 passed, 0 failed, 0 timed out` |
-| `G-QC-GOLDEN-CHANGED` | S751 | `ok`、名指しされていない直した期待 0 |
-| `G-QC-PRELUDE` | S720・S721・S726・S741 | `time` の行 7、`size` の行 1、温度の範囲 0、`servings` の行 1 |
-| `G-QC-DIAG` | S739・S740 | 9 つの数がすべて 1、`TYP021` の行が `SCH011` の行より後 |
-| `G-QC-SCHEMA` | S716・S717 | `minExclusive` の数が `min` の数と同じ、`json: 1 files, 0 invalid` |
-| `G-QC-SYNTAX` | S718・S719・S756・S783・S784・S740・S795 | 9 つの数がすべて 1 以上 |
-| `G-QC-SCOPE` | S753 | `ok`、範囲に無い除外のコミット 0、範囲の外のファイル 0 |
-| `G-QC-VERSION` | S754 | D83 の値 |
-| `G-QC-CLAUDEMD` | S757 | 1 以上 |
-| `G-QC-RF-COUNT` | S755 | `G-RF-GOLDEN-COUNT` の関数に `readme-start` があり、関数が合格する |
-| `G-QC-RD-RANGE` | S781 | `readme-end` が `52a6ef1`、`goals.sh` の `RD=` が `readme-start..readme-end`、2 つのゴールが合格 |
-| `G-QC-ISSUES` | D84（push の後、ユーザーの確認の後） | 2 つの Issue が `CLOSED`、コメントに診断のコード・範囲のコミットの SHA・直した後の出力の行がある、#2 のコメントに `bounds/issue2` がある |
-| `G-QC-AUDIT` | P4-2 の監査の記録 | 1 以上 |
+| `G-QC-DECISIONS` | Whether D69 to D87 are settled | 19 decided, 0 open, 19 decision lines |
+| `G-QC-COVERAGE` | Every S item has a row in the coverage table, and every item in §8 has a reason | Empty diff, 0 items without a reason |
+| `G-QC-PLAN-NAMES` | The test names in the coverage table exist | `plan-tests: <n> names, 0 missing` |
+| `G-QC-PLAN-TESTS` | There are as many mutation check records as rows in the coverage table | `mutations: <m> rows, <m> recorded` |
+| `G-QC-GOLDEN-ARGS` | The goldens of §4.1 to §4.3 | 22 goldens, `golden: 22 passed, 0 failed, 0 timed out` |
+| `G-QC-GOLDEN-BOUNDS` | The goldens of §4.4 to §4.8 | 55 goldens, `golden: 55 passed, 0 failed, 0 timed out` |
+| `G-QC-GOLDEN-CHANGED` | S751 | `ok`, 0 corrected expectations that are not named |
+| `G-QC-PRELUDE` | S720, S721, S726, S741 | 7 `time` lines, 1 `size` line, 0 temperature ranges, 1 `servings` line |
+| `G-QC-DIAG` | S739, S740 | All 9 counts are 1, and the `TYP021` line comes after the `SCH011` line |
+| `G-QC-SCHEMA` | S716, S717 | The count of `minExclusive` equals the count of `min`, `json: 1 files, 0 invalid` |
+| `G-QC-SYNTAX` | S718, S719, S756, S783, S784, S740, S795 | All 9 counts are 1 or more |
+| `G-QC-SCOPE` | S753 | `ok`, 0 excluded commits not in the range, 0 files outside the scope |
+| `G-QC-VERSION` | S754 | The value from D83 |
+| `G-QC-CLAUDEMD` | S757 | 1 or more |
+| `G-QC-RF-COUNT` | S755 | The function of `G-RF-GOLDEN-COUNT` contains `readme-start`, and the function passes |
+| `G-QC-RD-RANGE` | S781 | `readme-end` is `52a6ef1`, `RD=` in `goals.sh` is `readme-start..readme-end`, and both goals pass |
+| `G-QC-ISSUES` | D84 (after the push, after the user's confirmation) | Both Issues are `CLOSED`; the comments contain the diagnostic codes, the SHA of a commit in the range and the output lines after the fix; the comment on #2 contains `bounds/issue2` |
+| `G-QC-AUDIT` | The record of the P4-2 audit | 1 or more |
 
 ```bash
 # G-QC-DECISIONS
-grep -c '^### D[0-9]*\. .*【決定済み】' $PLAN_QC       # → 19
-grep -c '^### D[0-9]*\. .*【未決】' $PLAN_QC           # → 0
-grep -c '^- \*\*決定:' $PLAN_QC                         # → 19
+grep -c '^### D[0-9]*\. .*\[decided\]' $PLAN_QC       # → 19
+grep -c '^### D[0-9]*\. .*\[open\]' $PLAN_QC           # → 0
+grep -c '^- \*\*Decision:' $PLAN_QC                         # → 19
 
-# G-QC-COVERAGE（出力が空と 0）
+# G-QC-COVERAGE (empty output and 0)
 diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_QC | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
      <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_QC | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u)
-sed -n '/^## 8\./,/^## 9\./p' $PLAN_QC | grep '^- ' | grep -vc '機械で決められない理由:'
+sed -n '/^## 8\./,/^## 9\./p' $PLAN_QC | grep '^- ' | grep -vc 'Reason a command cannot decide:'
 
 # G-QC-PLAN-NAMES
 scripts/check-plan-tests.sh $PLAN_QC | tail -n 1                  # → plan-tests: <n> names, 0 missing
@@ -512,10 +511,10 @@ scripts/run-golden.sh $OZ tests/golden/args | tail -n 1           # → golden: 
 scripts/golden-entries.sh tests/golden/bounds | wc -l             # → 55
 scripts/run-golden.sh $OZ tests/golden/bounds | tail -n 1         # → golden: 55 passed, 0 failed, 0 timed out
 
-# G-QC-GOLDEN-CHANGED（範囲で直した（足したのではない）期待のうち、§9 に名指しされていないもの）
+# G-QC-GOLDEN-CHANGED (expectations corrected (not added) in the range that §9 does not name)
 git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok           # → ok
 git diff --name-only --diff-filter=M qc-start HEAD -- 'tests/golden/**/*.out' 'renderers/test/**' 'samples/*/expect.yaml' \
-  | while IFS= read -r f; do grep -qF -- "- 期待を直した golden: \`$f\`" $PLAN_QC || echo "$f"; done | wc -l   # → 0
+  | while IFS= read -r f; do grep -qF -- "- Golden with a corrected expectation: \`$f\`" $PLAN_QC || echo "$f"; done | wc -l   # → 0
 
 # G-QC-PRELUDE
 grep -cE '^action (soak|fry|simmer|boil|parboil|chill|rest)\(.*\btime: Time in 0 s<\.\.' stdlib/prelude.ozen   # → 7
@@ -529,13 +528,13 @@ grep -cx 'OZNI_DIAG(TYP021, TYP, nonPositiveAmount, ERROR)' core/src/diag_codes.
 grep -cxF 'TYP:nonPositiveAmount' core/tests/diag-names.txt                                          # → 1
 grep -E '^diag-non-positive-amount = ' phrases/en.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }'   # → 1
 grep -E '^diag-non-positive-amount = ' phrases/ja.ftl | grep -F '{ $arg1 }' | grep -cF '{ $arg2 }'   # → 1
-grep -cxF 'diag-non-positive-amount = The amount { $arg2 } of { $arg1 } must be more than zero' phrases/en.ftl   # → 1（D75 の文）
-grep -cxF 'diag-non-positive-amount = { $arg1 }の量 { $arg2 } は 0 より大きくしてください' phrases/ja.ftl          # → 1（D75 の文）
+grep -cxF 'diag-non-positive-amount = The amount { $arg2 } of { $arg1 } must be more than zero' phrases/en.ftl   # → 1 (the wording from D75)
+grep -cxF 'diag-non-positive-amount = { $arg1 }の量 { $arg2 } は 0 より大きくしてください' phrases/ja.ftl          # → 1 (the wording from D75)
 grep -cE "^  nonPositiveAmount: \['name'\]," renderers/lib/names.mjs                                  # → 1
 grep -cP '\tTYP:nonPositiveAmount\terror\t' core/tests/severity-examples.txt                         # → 1
 
 # G-QC-SCHEMA
-grep -c '"minExclusive"' schemas/result.schema.json    # → grep -c '"min": {' schemas/result.schema.json と同じ数
+grep -c '"minExclusive"' schemas/result.schema.json    # → the same count as grep -c '"min": {' schemas/result.schema.json
 mkdir -p build/results/qc-types && rm -f build/results/qc-types/*.json
 $OZ check --format json --emit types tests/golden/bounds/types-json-exclusive.ozen > build/results/qc-types/exclusive.result.json
 python3 -B tools/jsoncheck/validate.py schemas build/results/qc-types | tail -n 1   # → json: 1 files, 0 invalid
@@ -544,17 +543,17 @@ python3 -B tools/jsoncheck/validate.py schemas build/results/qc-types | tail -n 
 grep -cE '^type_range[[:space:]]*:=' core/grammar.ebnf                                          # → 1
 grep -cx 'OZNI_RULE(type_range)' core/src/rules.def                                              # → 1
 grep -cxF '"<.."' core/fuzz/ozen.dict                                                            # → 1
-sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF '0 s<..'                           # → 1 以上
-sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF 'a<..b'                            # → 1 以上
-sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF '上端は含む'                       # → 1 以上
-sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -F '範囲外は必ずエラー' | grep -cF '動作の引数'   # → 1 以上
-grep -cE '^  servings: +Count\? in 1\.\.' docs/concept.md                                        # → 1 以上
-sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF '0 以下の量'                          # → 1 以上
+sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF '0 s<..'                           # → 1 or more
+sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF 'a<..b'                            # → 1 or more
+sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -cF '上端は含む'                       # → 1 or more
+sed -n '/^### 4\.2/,/^### 4\.3/p' docs/concept.md | grep -F '範囲外は必ずエラー' | grep -cF '動作の引数'   # → 1 or more
+grep -cE '^  servings: +Count\? in 1\.\.' docs/concept.md                                        # → 1 or more
+sed -n '/^### 6\.1/,/^## 7\./p' docs/concept.md | grep -cF '0 以下の量'                          # → 1 or more
 
-# G-QC-SCOPE（README の計画の goal_G_RD_SCOPE と同じ作り。パターンは bash の case で照合する）
+# G-QC-SCOPE (built the same way as goal_G_RD_SCOPE of the README plan; patterns are matched with a bash case)
 git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok           # → ok
-# §9 の「範囲に入った別の作業のコミット: <SHA>」の SHA のうち、範囲に無いもの → 0
-# 除いたコミットを除く範囲のコミットが触ったファイルのうち、次に当たらないもの → 0
+# SHAs in the "Other work's commit in range: <SHA>" lines of §9 that are not in the range → 0
+# Files touched by the commits in the range, minus the excluded commits, that match none of the following → 0
 #   core/src/*.c core/src/*.h core/src/*.def core/grammar.ebnf core/fuzz/ozen.dict core/tests/diag-names.txt
 #   core/tests/severity-examples.txt stdlib/prelude.ozen phrases/en.ftl phrases/ja.ftl renderers/lib/names.mjs
 #   renderers/test/* schemas/result.schema.json tests/golden/* docs/concept.md scripts/goals.sh CLAUDE.md
@@ -562,458 +561,458 @@ git rev-parse -q --verify refs/tags/qc-start >/dev/null && echo ok           # �
 #   plans/ozen-syntax-refresh.md plans/ozen-readme-compact.md
 
 # G-QC-VERSION
-cat VERSION                                            # → 0.1.0（D83）
+cat VERSION                                            # → 0.1.0 (D83)
 
 # G-QC-CLAUDEMD
-grep -c 'ozen-quantity-checks.md.*G-QC-.*qc-start' CLAUDE.md                 # → 1 以上
+grep -c 'ozen-quantity-checks.md.*G-QC-.*qc-start' CLAUDE.md                 # → 1 or more
 
 # G-QC-RF-COUNT
-sed -n '/^goal_G_RF_GOLDEN_COUNT()/,/^}/p' scripts/goals.sh | grep -c 'readme-start'   # → 1 以上
-scripts/goals.sh G-RF-GOLDEN-COUNT                                                     # → 合格
+sed -n '/^goal_G_RF_GOLDEN_COUNT()/,/^}/p' scripts/goals.sh | grep -c 'readme-start'   # → 1 or more
+scripts/goals.sh G-RF-GOLDEN-COUNT                                                     # → pass
 
 # G-QC-RD-RANGE
 git rev-parse --short=7 readme-end                                           # → 52a6ef1
 grep -cx 'RD=readme-start..readme-end' scripts/goals.sh                       # → 1
-scripts/goals.sh G-RD-SCOPE G-RD-ADD-ONLY                                     # → どちらも合格
+scripts/goals.sh G-RD-SCOPE G-RD-ADD-ONLY                                     # → both pass
 
-# G-QC-ISSUES（push の後）
+# G-QC-ISSUES (after the push)
 gh issue view 1 --repo atsuki-seo/Ozen --json state -q .state                 # → CLOSED
 gh issue view 2 --repo atsuki-seo/Ozen --json state -q .state                 # → CLOSED
-gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP001'   # → 1 以上
-gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP021'   # → 1 以上
-gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP012'   # → 1 以上
-gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'case1.ozen:5:20-5:24'   # → 1 以上
-gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'case2.ozen:3:12-3:19'   # → 1 以上
-gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'bounds/issue2'          # → 1 以上
-# 各 Issue のコメントの 7〜40 桁の 16 進のうち、範囲 qc-start..HEAD のコミットを指すもの → 1 以上
+gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP001'   # → 1 or more
+gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP021'   # → 1 or more
+gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -c 'TYP012'   # → 1 or more
+gh issue view 1 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'case1.ozen:5:20-5:24'   # → 1 or more
+gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'case2.ozen:3:12-3:19'   # → 1 or more
+gh issue view 2 --repo atsuki-seo/Ozen --json comments -q '.comments[].body' | grep -cF 'bounds/issue2'          # → 1 or more
+# Among the 7- to 40-digit hex strings in each Issue's comments, those that point to a commit in the range qc-start..HEAD → 1 or more
 
-# G-QC-AUDIT（P4-2）
-grep -cE '^- 網羅の監査: 指摘 [0-9]+ 件、取り込み [0-9]+ 件' $PLAN_QC        # → 1 以上
+# G-QC-AUDIT (P4-2)
+grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_QC        # → 1 or more
 ```
 
-`G-QC-SCOPE` は、本ファイルを着手点のタグより後にコミットする場合に備えて本ファイルを許す。`plans/ozen-syntax-refresh.md`・`plans/ozen-readme-compact.md` は D80・D87 の 1 行ずつのためだけに許す。`G-QC-GOLDEN-ARGS`・`G-QC-GOLDEN-BOUNDS` の数の完全一致は、本計画のフォルダ（`args/`・`bounds/`）だけを数えるので、後の計画が別のフォルダに golden を足しても落ちない。`G-QC-DIAG` は、後の計画が診断を足しても落ちないよう、末尾の行ではなく `SCH011` より後にあることを見る。
+`G-QC-SCOPE` allows this file, in case this file is committed after the starting-point tag. `plans/ozen-syntax-refresh.md` and `plans/ozen-readme-compact.md` are allowed only for the one line each from D80 and D87. The exact counts in `G-QC-GOLDEN-ARGS` and `G-QC-GOLDEN-BOUNDS` count only this plan's folders (`args/`, `bounds/`), so they do not fail when a later plan adds goldens to another folder. `G-QC-DIAG` checks that the line comes after `SCH011`, not that it is the last line, so it does not fail when a later plan adds diagnostics.
 
-### 5.2 テスト
+### 5.2 Tests
 
-新しい golden は 77 個（`tests/golden/args/` に 22 個、`tests/golden/bounds/` に 55 個）と、描画のテスト 1 つ（`renderers/test/settings-servings-min.test.mjs`）。golden の数は着手点の N0（§9。2026-11-02 は 464）から 77 増える。計画を書いた時点の 72 個（21 個と 51 個）に、P4-2 の監査で 5 個（`args/recipe-default-once`・`bounds/exclusive-range-lower`・`bounds/servings-flag-invalid-amounts`・`bounds/servings-make-invalid`・`bounds/servings-make-own-range`）を足した。
+There are 77 new goldens (22 in `tests/golden/args/` and 55 in `tests/golden/bounds/`) and one renderer test (`renderers/test/settings-servings-min.test.mjs`). The number of goldens grows by 77 from N0 at the starting point (§9; 464 on 2026-11-02). To the 72 goldens at the time the plan was written (21 and 51), the P4-2 audit added 5 (`args/recipe-default-once`, `bounds/exclusive-range-lower`, `bounds/servings-flag-invalid-amounts`, `bounds/servings-make-invalid`, `bounds/servings-make-own-range`).
 
-- 期待（`.out`）は §4 の仕様と、既存の golden の診断の書式（`kitchen/range-open-ended.out` の `TYP012`、`kitchen/unitless-capacity.out` の `TYP001` の引数の形）から手で書く。実装（`ozen`）の出力を写さない。位置（行・桁）はソースから数える。
-- 例外は `bounds/expression-unchanged`（S715）だけで、`debug ast` の期待は着手点のビルド（`qc-start` の `ozen`）の出力から作る。読み方が変わらないことを確かめるテストなので、変える前の実装がオラクルになる。§9 にそう書く。
-- `settings-servings-min.test.mjs`（S774）は、golden `api/types-json` の期待（手で直した `Options.servings` の `min` `"1"`）を入力に `settingsSpec` を呼び、人数の入力の `min` が 1 であることを確かめる。
-- 期待を足すコミットは実装より前に置き、そのコミットの時点のビルドで期待が落ちること（赤。`G-REPO-RED-FIRST`）を確かめる。診断が出ないことを確かめる対照の golden（`args/ok-units` など）と、前の Phase の実装や今の実装で既に通る golden（`bounds/dimension-before-range`、`bounds/servings-own-range` など）は、足す時点で合格してしまう。記法の計画の前例（`ingredient-dimension-ok`）に倣い、赤の golden と別のコミットにし、`scripts/red-first-exceptions.txt` にそのコミットと理由（どのわざと壊す確認で落ちるか）を書く。
-- 既存の golden の期待が変わったときは、変わった理由が本計画の仕様（診断の一覧が 1 つ増えた、`Options.servings` の型の文字が変わった、`std` の動作の引数の型の文字が変わった、範囲の量が評価されるようになった、など）で説明できるものだけを直し、§9 に `- 期待を直した golden: \`<パス>\` — <理由>` の形で 1 行ずつ書く（S751）。期待を直すコミットは、実装を変えるコミットと分ける（`G-RF-SEPARATION`、S782）。説明できない変化は直さずに調べる。
-- 落ちた golden は緩めずに原因を調べる。期待と実装が食い違ったら、§4 と照らしてどちらの誤りかを決め、§4 の誤りならユーザーに報告する。
+- The expectations (`.out`) are written by hand from the spec in §4 and from the diagnostic format of existing goldens (`TYP012` in `kitchen/range-open-ended.out`, and the argument shape of `TYP001` in `kitchen/unitless-capacity.out`). Do not copy the output of the implementation (`ozen`). Count the positions (line and column) from the source.
+- The only exception is `bounds/expression-unchanged` (S715): its `debug ast` expectation is made from the output of the starting-point build (the `ozen` of `qc-start`). This test checks that parsing does not change, so the implementation before the change is the oracle. Say so in §9.
+- `settings-servings-min.test.mjs` (S774) calls `settingsSpec` with the expectation of the golden `api/types-json` as input (with the `min` `"1"` of `Options.servings` fixed by hand), and checks that the `min` of the servings input is 1.
+- Commits that add expectations come before the implementation, and we check that the expectations fail with the build at that commit (red; `G-REPO-RED-FIRST`). Control goldens that check that no diagnostic appears (such as `args/ok-units`), and goldens that already pass with the implementation of an earlier phase or the current implementation (such as `bounds/dimension-before-range` and `bounds/servings-own-range`), pass at the time they are added. Following the precedent of the syntax plan (`ingredient-dimension-ok`), put them in a separate commit from the red goldens, and write that commit and the reason (which mutation check makes it fail) in `scripts/red-first-exceptions.txt`.
+- When the expectation of an existing golden changes, correct it only if the reason for the change can be explained by this plan's spec (the list of diagnostics grew by one, the type text of `Options.servings` changed, the type text of arguments of `std` actions changed, range quantities are now evaluated, and so on), and write one line per golden in §9 in the form `- Golden with a corrected expectation: \`<path>\` — <理由>` (S751). Commits that correct expectations are kept apart from commits that change the implementation (`G-RF-SEPARATION`, S782). Do not correct changes that cannot be explained; investigate them.
+- Do not loosen a failing golden; investigate the cause. When the expectation and the implementation disagree, compare them with §4 to decide which one is wrong, and if §4 is wrong, report it to the user.
 
-| テスト | 何を判定するか | 主なタスク |
+| Test | What it checks | Main task |
 | --- | --- | --- |
-| `cgolden/args/*`（22 個） | §4.1〜§4.3 の各 S 項目。名前は §5.3 | P1-1・P4-2 |
-| `cgolden/bounds/*`（55 個） | §4.4〜§4.8 の各 S 項目。名前は §5.3 | P2-1・P3-1・P4-2 |
+| `cgolden/args/*` (22 cases) | Each S item of §4.1 to §4.3. Names are in §5.3 | P1-1, P4-2 |
+| `cgolden/bounds/*` (55 cases) | Each S item of §4.4 to §4.8. Names are in §5.3 | P2-1, P3-1, P4-2 |
 | `rtest/settings-servings-min` | S774 | P3-1 |
 
-機械で押さえるのは、診断の有無・数・コード・位置・引数・終了コード（golden）、文法の規則と辞書と文書の語（grep）、型の一覧の JSON とスキーマ（検証の道具）、設定画面の部品（描画のテスト）、標準ライブラリの宣言（grep）、変えたファイルの範囲、Issue の状態とコメントの中身（`gh`）。診断の文と説明の文が読み手に伝わるか、Issue への返答の言い方は §8 に回す。
+What machines cover: whether diagnostics appear, their count, code, position and arguments, and the exit code (goldens); grammar rules, the dictionary and words in the documents (grep); the JSON of the type list and the schema (the validation tool); the parts of the settings screen (renderer test); the declarations in the standard library (grep); the scope of changed files; and the state and content of the Issue comments (`gh`). Whether the diagnostic wording and the explanation get through to readers, and how the replies to the Issues are worded, go to §8.
 
-### 5.3 網羅表
+### 5.3 Coverage table
 
-観点のうち「時間と順序」「永続化」は、コンパイル時の検査の変更なので該当しない（段取りの時間の計算は変えない）。「プラットフォームの経路」は、コアが C の単一の実装で、Linux・WebAssembly・iOS・Android の結線を変えないので、前提ゴールの `G-PLAT-LINUX`・`G-PLAT-WASM`（golden を wasm でも回す）で足りるとして行を立てない。「実際の経路」は、`ozen check` のコマンドを通す golden（すべて）と、パイプ・名前付き引数・マクロ・合成の動作・`make`・献立の見出し・`-s`・`--options` の golden で満たす。
+Of the aspects, "Time and order" and "Persistence" do not apply, because this is a change to compile-time checks (the schedule's time calculation does not change). For "Platform path", the core is a single implementation in C and the wiring for Linux, WebAssembly, iOS and Android does not change, so the prerequisite goals `G-PLAT-LINUX` and `G-PLAT-WASM` (which also run the goldens on wasm) are enough, and no rows are added. "Real path" is covered by the goldens that go through the `ozen check` command (all of them), and by the goldens for pipes, named arguments, macros, composite actions, `make`, menu headers, `-s` and `--options`.
 
-| S 項目 | 観点 | テストまたはゴール | わざと壊す方法 | 主なタスク |
+| S item | Aspect | Test or goal | How to break it | Main task |
 | --- | --- | --- | --- | --- |
-| S695 | 正常系 | `cgolden/args/volume-for-time` | `call_action` の照合の呼び出しを消す | P1-2 |
-| S695 | 正常系 | `cgolden/args/mass-for-length` | 照合を `Time` の宣言にだけ効くように狭める | P1-2 |
-| S696 | 境界・上限 | `cgolden/args/unitless-time` | 次元の無い量を照合の前に読み飛ばす | P1-2 |
-| S697 | 効かない条件 | `cgolden/args/count-param` | 照合で `pcs` を次元の無い量に直す処理を外す | P1-2 |
-| S698 | 実際の経路 | `cgolden/args/named-arg` | 照合を位置で渡した引数だけにする | P1-2 |
-| S699 | 実際の経路 | `cgolden/args/pipe-arg` | `pipe_into` で左辺を最後の引数に付ける（`3 ml` が `x` に当たり、診断の位置と引数が変わる） | P1-2 |
-| S700 | 正常系 | `cgolden/args/variable-arg` | 診断の位置を呼び出し全体にする | P1-2 |
-| S701 | 実際の経路 | `cgolden/args/macro-body` | 照合の診断の trail を空にする（本文の位置の trail が消える。§9 の差し替えの理由） | P1-2 |
-| S758 | 実際の経路 | `cgolden/args/macro-splice` | 照合の診断の位置を `arg_site` を通さず引数の節そのもの（マクロの本文の `$t`）にする | P1-2 |
-| S702 | 実際の経路 | `cgolden/args/composite` | 合成の動作のときは外の照合を飛ばす | P1-2 |
-| S759 | 副作用とコスト | `cgolden/args/composite` | 合成の動作の中の呼び出しでも照合の診断を出す（2 つになる） | P1-2 |
-| S703 | 正常系 | `cgolden/args/user-dimension` | 照合を標準の 6 つの次元の名前に限る | P1-2 |
-| S704 | 効かない条件 | `cgolden/args/unknown-value` | 未知の量も照合し、次元の無い量として扱う | P1-2 |
-| S705 | 効かない条件 | `cgolden/args/default-unchecked` | 既定値を評価した後にも照合を呼ぶ（`time: Time = 3 ml` で落ちる） | P1-2 |
-| S706 | 副作用とコスト | `cgolden/args/continues-after` | 次元の誤りで `call_action` から未知の値を返す | P1-2 |
-| S707 | 効かない条件 | `cgolden/args/ok-units` | 区間の値（`3..5 min`）をエラーにする | P1-2 |
-| S707 | 効かない条件 | `cgolden/args/ok-units` | 列挙の引数（`heat: high`）も照合し、量でない値を次元の無い量として扱う | P1-2 |
-| S708 | 実際の経路 | `cgolden/args/issue1` | 照合の診断の重大度を警告にする（終了コードが 0 になる） | P1-2 |
-| S788 | 効かない条件 | `cgolden/args/default-unchecked` | `qty_site` で合成の動作の既定値の枠を飛ばさない（中の `chill` が既定値の `3 ml` を照合する） | P4-2 |
-| S789 | 副作用とコスト | `cgolden/args/recipe-default-once` | 型に落ちたレシピの引数も束縛する（`boil` の位置にも `TYP001` が出る） | P4-2 |
-| S760 | 正常系 | `cgolden/args/range-units-steps` | `eval_inner` の範囲の評価を消す（`?` に戻る） | P1-2 |
-| S761 | 実際の経路 | `cgolden/args/range-units-dimension` | 範囲の評価で、結果の次元を記録しない（次元の無い区間にする。`["Dimensionless", "Time"]` になる） | P1-2 |
-| S762 | 境界・上限 | `cgolden/args/range-units-mixed` | 両端の次元を比べず、左の次元を使う | P1-2 |
-| S763 | データの完全性 | `cgolden/args/range-units-ingredient` | 材料の量の評価で範囲の節を未知にする | P1-2 |
-| S786 | 境界・上限 | `cgolden/args/range-units-steps` | 下端が上端より大きい範囲を未知の値にする | P4-2 |
-| S764 | 実際の経路 | `cgolden/args/make-arg-dimension` | `make` の量の引数の照合を消す | P1-2 |
-| S765 | 実際の経路 | `cgolden/bounds/make-arg-range` | `make` の照合で範囲の判定を飛ばす | P2-2 |
-| S709 | 境界・上限 | `cgolden/bounds/exclusive-from` | 下端を含まない判定を `<` から `<=` にする（下端ちょうどが通る） | P2-2 |
-| S710 | 境界・上限 | `cgolden/bounds/exclusive-upper-inclusive` | 上端の判定を `>=` にする（上端ちょうどが落ちる） | P2-2 |
-| S710 | 境界・上限 | `cgolden/bounds/exclusive-upper-over` | 上端のある `a<..b` で上端を読み捨てる | P2-2 |
-| S711 | 効かない条件 | `cgolden/bounds/exclusive-space` | `<` と `..` の間の空白を許す | P2-2 |
-| S712 | 正常系 | `cgolden/bounds/exclusive-from` | 診断の 3 つ目の引数を下端の文字だけにする | P2-2 |
-| S713 | 境界・上限 | `cgolden/bounds/exclusive-interval` | 区間の値の判定に上端（`hi`）を使う | P2-2 |
-| S714 | 効かない条件 | `cgolden/bounds/closed-zero-ok` | 閉じた範囲も下端を含まない判定にする | P2-2 |
-| S715 | 効かない条件 | `cgolden/bounds/expression-unchanged` | `range()`（式と共用）で `<..` を読む（`debug ast` の木が変わる） | P2-2 |
-| S766 | 実際の経路 | `cgolden/bounds/exclusive-kitchen` | 台所の設定のフィールドでは下端を含まない印を見ない | P2-2 |
-| S767 | 境界・上限 | `cgolden/bounds/exclusive-count` | 数だけの下端（`0<..`）で印を読み捨てる | P2-2 |
-| S768 | 境界・上限 | `cgolden/bounds/exclusive-empty` | 下端と上端が等しい範囲では下端の判定を閉区間にする | P2-2 |
-| S790 | 効かない条件 | `cgolden/bounds/exclusive-range-lower` | `type_range()` で単位付きの数の範囲を下端として受け付ける | P4-2 |
-| S716 | データの完全性 | `cgolden/bounds/types-json-exclusive` | `minExclusive` を出さない | P2-2 |
-| S716 | 効かない条件 | `cgolden/api/types-json` | 下端を含む範囲にも `"minExclusive":false` を出す | P2-2 |
-| S717 | データの完全性 | `G-QC-SCHEMA` | スキーマの型のフィールドから `minExclusive` を消す（`additionalProperties: false` で検証が落ちる） | P2-2 |
-| S769 | データの完全性 | `cgolden/api/signatures-json` | 動作の引数の型の文字を、範囲を除いた型の名前だけにする | P2-3 |
-| S718 | データの完全性 | `G-CORE-GRAMMAR` | `type_range()` の `mark(p, OZNI_R_type_range)` を消す（規則が golden で通らない） | P2-2 |
-| S718 | 文書との一致 | `G-QC-SYNTAX` | `core/grammar.ebnf` から `type_range` の規則を消す | P2-2 |
-| S719 | データの完全性 | `G-QC-SYNTAX` | `core/fuzz/ozen.dict` から `"<.."` を消す | P2-2 |
-| S794 | データの完全性 | `cgolden/bounds/types-json-exclusive` | `put_field` で `RangeAbove` の上端を `max` に出さない | P4-2 |
-| S720 | データの完全性 | `G-QC-PRELUDE` | `chill` の `time` の範囲を消す | P2-3 |
-| S721 | データの完全性 | `G-QC-PRELUDE` | `cut` の `size` の範囲を `0 mm..` にする | P2-3 |
-| S722 | 境界・上限 | `cgolden/bounds/time-zero` | `simmer` の範囲を `0 s..` にする | P2-3 |
-| S723 | 正常系 | `cgolden/bounds/time-negative` | `boil` の範囲を消す | P2-3 |
-| S770 | 実際の経路 | `cgolden/bounds/range-units-negative-time` | `simmer` の範囲を消す | P2-3 |
-| S724 | 境界・上限 | `cgolden/bounds/size-zero` | `cut` の範囲を `0 mm..` にする | P2-3 |
-| S724 | 正常系 | `cgolden/bounds/size-negative` | `cut` の範囲を消す | P2-3 |
-| S725 | 効かない条件 | `cgolden/bounds/small-positive` | 範囲を `1 min<..` にする | P2-3 |
-| S725 | 効かない条件 | `cgolden/bounds/soak-default` | 既定値を使った呼び出しも照合する形にしたうえで、`soak` の範囲を `30 min<..` にする（既定値の 30 min が範囲外になる） | P2-3 |
-| S726 | 効かない条件 | `cgolden/bounds/temperature-negative` | 次元の型の引数すべてに `0<..` の判定を当てる | P2-3 |
-| S726 | データの完全性 | `G-QC-PRELUDE` | `OvenSpec.maxTemp` を `Temperature? in 0 degC..` にする | P2-3 |
-| S727 | 副作用とコスト | `cgolden/bounds/dimension-before-range` | 次元が違っても範囲の判定を続ける | P2-3 |
-| S771 | 副作用とコスト | `cgolden/bounds/composite-range` | 合成の動作の中の照合の位置を中の呼び出しのまま出す（位置が定義の中になる） | P2-3 |
-| S787 | 副作用とコスト | `cgolden/bounds/composite-range` | 中の照合で落ちたことを合成の動作の枠に記録しない（2 回目の使用でも診断を出す） | P4-2 |
-| S728 | 正常系 | `cgolden/bounds/amount-negative` | `TYP021` を出す処理を消す | P3-2 |
-| S729 | 境界・上限 | `cgolden/bounds/amount-zero` | 判定を `lo < 0` にする（0 が通る） | P3-2 |
-| S730 | 正常系 | `cgolden/bounds/amount-negative` | 診断の引数の 2 つ目を材料の型の名前にする | P3-2 |
-| S731 | 境界・上限 | `cgolden/bounds/amount-range-zero` | 判定に区間の上端を使う | P3-2 |
-| S731 | 境界・上限 | `cgolden/bounds/amount-range-negative` | 判定を `lo < -1` にする（`-0.5..0.8 g` の下端 -0.8 が通り、`TYP021` が 1 つ減る） | P3-2 |
-| S731 | 効かない条件 | `cgolden/bounds/amount-positive` | 判定を `lo <= 1` にする | P3-2 |
-| S772 | 実際の経路 | `cgolden/bounds/amount-range-units` | `TYP021` の判定を量のリテラルと数の範囲の節にだけ当てる | P3-2 |
-| S732 | 正常系 | `cgolden/bounds/amount-per-serving-zero` | `per serving` の量では判定を飛ばす | P3-2 |
-| S733 | 副作用とコスト | `cgolden/bounds/amount-per-serving-unknown` | `TYP020` のときは判定を飛ばす | P3-2 |
-| S773 | 副作用とコスト | `cgolden/bounds/servings-invalid-amounts` | 範囲外の人数を未知にせずそのまま使う（`150 ml * servings` が 0 ml になり `TYP021` が出る。§9 の差し替えの理由） | P3-3 |
-| S785 | 効かない条件 | `cgolden/bounds/servings-invalid-amounts` | 人数が範囲外のときは `per serving` の量の判定も飛ばす（`0 g per serving` の `TYP021` が消える） | P3-3 |
-| S734 | 効かない条件 | `cgolden/bounds/amount-any` | `[any amount]` を 0 として判定する | P3-2 |
-| S735 | 効かない条件 | `cgolden/bounds/amount-none` | 量の無い材料を 0 として判定する | P3-2 |
-| S736 | 副作用とコスト | `cgolden/bounds/amount-wrong-dim` | 次元の誤りの後にも判定を続ける | P3-2 |
-| S737 | 正常系 | `cgolden/bounds/amount-expression` | 判定を量のリテラルの節にだけ当てる | P3-2 |
-| S738 | 効かない条件 | `cgolden/bounds/amount-positive` | 判定を `lo <= 0.5 g` 相当にする（`0.5 g` が落ちる） | P3-2 |
-| S739 | データの完全性 | `G-QC-DIAG` | `phrases/ja.ftl` の `diag-non-positive-amount` から `{ $arg2 }` を消す | P3-2 |
-| S739 | データの完全性 | `G-CORE-DIAG-REGISTRY` | `core/tests/diag-names.txt` の `TYP:nonPositiveAmount` を消す | P3-2 |
-| S739 | 前提の固定 | `G-CORE-DIAG-APPEND` | 一時的な worktree の作業用のコミットで `TYP021` を既存の行の間に入れ直す（削除の行が出る。`git reset --hard` で消し、push しない） | P3-2 |
-| S740 | 文書との一致 | `G-TYPE-SEVERITY-TABLE` | `severity-examples.txt` の重大度を `warning` にする | P4-1 |
-| S740 | 文書との一致 | `G-QC-SYNTAX` | concept §6.1 から「0 以下の量」を消す | P4-1 |
-| S741 | データの完全性 | `cgolden/api/types-json` | `Options.servings` の範囲を消す | P3-3 |
-| S774 | 実際の経路 | `rtest/settings-servings-min` | `settingsSpec` が省略可能な型（`Count?`）の `min` を捨てる（P4-2 の監査で、テストの入力を書き換える元の方法から差し替えた） | P3-3 |
-| S742 | 境界・上限 | `cgolden/bounds/optional-ranged` | `base_type` の入れ子の外し方を元に戻す | P3-3 |
-| S743 | 正常系 | `cgolden/bounds/servings-header-zero` | 型の無い `servings` の検査を消す | P3-3 |
-| S744 | 正常系 | `cgolden/bounds/servings-typed-zero` | 型だけの `servings` では検査しない | P3-3 |
-| S745 | 副作用とコスト | `cgolden/bounds/servings-own-range` | 宣言に範囲があっても `1..` を重ねる（`0` に 2 つ出る） | P3-3 |
-| S746 | 実際の経路 | `cgolden/bounds/servings-make-zero` | `make` の引数の人数を検査しない | P3-3 |
-| S775 | 実際の経路 | `cgolden/bounds/servings-make-positional` | `make` の照合を名前で渡した引数だけにする | P3-3 |
-| S776 | 実際の経路 | `cgolden/bounds/servings-menu-header` | 人数の検査をレシピの見出しだけにする | P3-3 |
-| S747 | 実際の経路 | `cgolden/bounds/servings-flag-zero` | 条件のフィールドの `check_value`（`sema.c:3163` の経路）を飛ばす | P3-3 |
-| S747 | 境界・上限 | `cgolden/bounds/servings-flag-negative` | 判定を `== 0` にする | P3-3 |
-| S777 | 副作用とコスト | `cgolden/bounds/servings-flag-header-range` | 条件の側で誤りでも見出しの側で検査する（2 つになる） | P3-3 |
-| S778 | 実際の経路 | `cgolden/bounds/servings-flag-over-header` | 条件から来た人数では見出しの宣言の範囲を見ない | P3-3 |
-| S779 | 副作用とコスト | `cgolden/bounds/servings-flag-dimension` | 重複を除く処理を消す（今と同じ 2 行に戻る） | P3-3 |
-| S748 | 実際の経路 | `cgolden/bounds/servings-options-zero` | 条件のフィールドの `check_value`（`sema.c:3163` の経路）を飛ばす | P3-3 |
-| S749 | 境界・上限 | `cgolden/bounds/servings-one-ok` | 範囲を `1<..` にする | P3-3 |
-| S780 | 境界・上限 | `cgolden/bounds/servings-flag-one-ok` | `Options.servings` の範囲を `1<..` にする | P3-3 |
-| S791 | 副作用とコスト | `cgolden/bounds/servings-flag-invalid-amounts` | 条件の側で誤りでも見出しの側で人数を束縛する（`150 ml * servings` が 0 ml になり `TYP021` が出る） | P4-2 |
-| S792 | データの完全性 | `cgolden/bounds/servings-make-invalid` | `make` の照合に落ちた引数をそのまま料理に渡す（量が `0 ml` になる） | P4-2 |
-| S793 | 実際の経路 | `cgolden/bounds/servings-make-own-range` | `make` の人数は見出しの範囲を見ずに `Options.servings` の型で検査する | P4-2 |
-| S750 | 実際の経路 | `cgolden/bounds/issue2` | `boil` の範囲を消す | P3-3 |
-| S751 | 副作用とコスト | `G-QC-GOLDEN-CHANGED` | §9 の「期待を直した golden」の行を 1 つ消す | P4-3 |
-| S752 | 副作用とコスト | `G-SAMPLE-CHECK` | 一時的に `stdlib/prelude.ozen` の `rest` の範囲を `1 h<..` にする（サンプルの `rest(10 min)` が落ちる） | P4-3 |
-| S753 | 副作用とコスト | `G-QC-SCOPE` | 一時的な worktree の作業用のコミットで `samples/` のファイルを 1 つ変える（`git reset --hard` で消し、push しない） | P4-3 |
-| S753 | 前提の固定 | `G-QC-SCOPE` | タグ `qc-start` を手元で一時的に別名に付け替える（確かめた後に戻す） | P4-3 |
-| S754 | 副作用とコスト | `G-QC-VERSION` | `VERSION` を `0.1.1` にする（確かめた後に戻す） | P4-3 |
-| S755 | 前提の固定 | `G-QC-RF-COUNT` | `goal_G_RF_GOLDEN_COUNT` を今の形（今の数と比べる）に戻す（`readme-start` の行が無くなる） | P0-3 |
-| S755 | 副作用とコスト | `G-RF-GOLDEN-COUNT` | 一時的な worktree で `readme-start` にある golden を 1 つ消す（消えた golden が 1 になる） | P0-3 |
-| S781 | 前提の固定 | `G-QC-RD-RANGE` | `goals.sh` の `RD=` を `readme-start..HEAD` に戻す（`G-RD-SCOPE` が `got '2'` で落ちる） | P0-3 |
-| S782 | 副作用とコスト | `G-RF-SEPARATION` | 一時的な worktree の作業用のコミットで、期待の `.out` と `core/src` を同じコミットにする（`git reset --hard` で消し、push しない） | P4-3 |
-| S756 | 文書との一致 | `G-QC-SYNTAX` | concept §4.2 から `0 s<..` の例を消す | P4-1 |
-| S783 | 文書との一致 | `G-QC-SYNTAX` | concept §4.2 の「範囲外は必ずエラー」の文から動作の引数を消す | P4-1 |
-| S784 | 文書との一致 | `G-QC-SYNTAX` | concept の `type Options` の例の `servings` を `Count` に戻す | P4-1 |
-| S795 | 文書との一致 | `G-QC-SYNTAX` | concept §4.2 から「上端は含む」を消す | P4-2 |
-| S757 | 正常系 | `G-QC-CLAUDEMD` | `CLAUDE.md` の本計画の行から `qc-start` を消す | P0-3 |
+| S695 | Normal | `cgolden/args/volume-for-time` | Remove the call to the check in `call_action` | P1-2 |
+| S695 | Normal | `cgolden/args/mass-for-length` | Narrow the check so it only works on `Time` declarations | P1-2 |
+| S696 | Boundary | `cgolden/args/unitless-time` | Skip dimensionless quantities before the check | P1-2 |
+| S697 | No-effect condition | `cgolden/args/count-param` | Remove the step in the check that turns `pcs` into a dimensionless quantity | P1-2 |
+| S698 | Real path | `cgolden/args/named-arg` | Limit the check to arguments passed by position | P1-2 |
+| S699 | Real path | `cgolden/args/pipe-arg` | In `pipe_into`, attach the left side as the last argument (`3 ml` lands on `x`, and the position and arguments of the diagnostic change) | P1-2 |
+| S700 | Normal | `cgolden/args/variable-arg` | Put the position of the diagnostic on the whole call | P1-2 |
+| S701 | Real path | `cgolden/args/macro-body` | Make the trail of the check's diagnostic empty (the trail for the position in the body disappears; the reason for this replacement is in §9) | P1-2 |
+| S758 | Real path | `cgolden/args/macro-splice` | Set the position of the check's diagnostic to the argument node itself (the `$t` in the macro body), without going through `arg_site` | P1-2 |
+| S702 | Real path | `cgolden/args/composite` | Skip the outer check for composite actions | P1-2 |
+| S759 | Side effects | `cgolden/args/composite` | Also report the check's diagnostic for calls inside a composite action (there are 2) | P1-2 |
+| S703 | Normal | `cgolden/args/user-dimension` | Limit the check to the names of the 6 standard dimensions | P1-2 |
+| S704 | No-effect condition | `cgolden/args/unknown-value` | Also check unknown quantities, treating them as dimensionless quantities | P1-2 |
+| S705 | No-effect condition | `cgolden/args/default-unchecked` | Also call the check after evaluating default values (fails on `time: Time = 3 ml`) | P1-2 |
+| S706 | Side effects | `cgolden/args/continues-after` | Return an unknown value from `call_action` on a dimension error | P1-2 |
+| S707 | No-effect condition | `cgolden/args/ok-units` | Make interval values (`3..5 min`) an error | P1-2 |
+| S707 | No-effect condition | `cgolden/args/ok-units` | Also check enum arguments (`heat: high`), treating values that are not quantities as dimensionless quantities | P1-2 |
+| S708 | Real path | `cgolden/args/issue1` | Make the severity of the check's diagnostic a warning (the exit code becomes 0) | P1-2 |
+| S788 | No-effect condition | `cgolden/args/default-unchecked` | In `qty_site`, do not skip the frame of a composite action's default values (the inner `chill` checks the default `3 ml`) | P4-2 |
+| S789 | Side effects | `cgolden/args/recipe-default-once` | Also bind recipe arguments that failed their type (`TYP001` also appears at the `boil` position) | P4-2 |
+| S760 | Normal | `cgolden/args/range-units-steps` | Remove the evaluation of ranges in `eval_inner` (goes back to `?`) | P1-2 |
+| S761 | Real path | `cgolden/args/range-units-dimension` | In the range evaluation, do not record the dimension of the result (make it a dimensionless interval; it becomes `["Dimensionless", "Time"]`) | P1-2 |
+| S762 | Boundary | `cgolden/args/range-units-mixed` | Do not compare the dimensions of the two ends; use the dimension of the left one | P1-2 |
+| S763 | Data completeness | `cgolden/args/range-units-ingredient` | Make range nodes unknown when evaluating ingredient amounts | P1-2 |
+| S786 | Boundary | `cgolden/args/range-units-steps` | Make a range whose lower end is larger than its upper end an unknown value | P4-2 |
+| S764 | Real path | `cgolden/args/make-arg-dimension` | Remove the check of quantity arguments of `make` | P1-2 |
+| S765 | Real path | `cgolden/bounds/make-arg-range` | Skip the range check in the check of `make` | P2-2 |
+| S709 | Boundary | `cgolden/bounds/exclusive-from` | Change the exclusive lower-end check from `<` to `<=` (exactly the lower end passes) | P2-2 |
+| S710 | Boundary | `cgolden/bounds/exclusive-upper-inclusive` | Make the upper-end check `>=` (exactly the upper end fails) | P2-2 |
+| S710 | Boundary | `cgolden/bounds/exclusive-upper-over` | Drop the upper end of an `a<..b` that has one | P2-2 |
+| S711 | No-effect condition | `cgolden/bounds/exclusive-space` | Allow spaces between `<` and `..` | P2-2 |
+| S712 | Normal | `cgolden/bounds/exclusive-from` | Make the third argument of the diagnostic only the text of the lower end | P2-2 |
+| S713 | Boundary | `cgolden/bounds/exclusive-interval` | Use the upper end (`hi`) when checking interval values | P2-2 |
+| S714 | No-effect condition | `cgolden/bounds/closed-zero-ok` | Use the exclusive lower-end check for closed ranges too | P2-2 |
+| S715 | No-effect condition | `cgolden/bounds/expression-unchanged` | Read `<..` in `range()` (shared with expressions) (the `debug ast` tree changes) | P2-2 |
+| S766 | Real path | `cgolden/bounds/exclusive-kitchen` | Ignore the exclusive lower-end mark in kitchen settings fields | P2-2 |
+| S767 | Boundary | `cgolden/bounds/exclusive-count` | Drop the mark on a number-only lower end (`0<..`) | P2-2 |
+| S768 | Boundary | `cgolden/bounds/exclusive-empty` | For a range whose lower and upper ends are equal, make the lower-end check closed | P2-2 |
+| S790 | No-effect condition | `cgolden/bounds/exclusive-range-lower` | In `type_range()`, accept a range of numbers with units as the lower end | P4-2 |
+| S716 | Data completeness | `cgolden/bounds/types-json-exclusive` | Do not output `minExclusive` | P2-2 |
+| S716 | No-effect condition | `cgolden/api/types-json` | Also output `"minExclusive":false` for ranges that include the lower end | P2-2 |
+| S717 | Data completeness | `G-QC-SCHEMA` | Remove `minExclusive` from the type fields of the schema (validation fails because of `additionalProperties: false`) | P2-2 |
+| S769 | Data completeness | `cgolden/api/signatures-json` | Make the type text of action arguments only the type name, without the range | P2-3 |
+| S718 | Data completeness | `G-CORE-GRAMMAR` | Remove `mark(p, OZNI_R_type_range)` from `type_range()` (the rule is not covered by the goldens) | P2-2 |
+| S718 | Docs match | `G-QC-SYNTAX` | Remove the `type_range` rule from `core/grammar.ebnf` | P2-2 |
+| S719 | Data completeness | `G-QC-SYNTAX` | Remove `"<.."` from `core/fuzz/ozen.dict` | P2-2 |
+| S794 | Data completeness | `cgolden/bounds/types-json-exclusive` | In `put_field`, do not output the upper end of `RangeAbove` as `max` | P4-2 |
+| S720 | Data completeness | `G-QC-PRELUDE` | Remove the range of `time` in `chill` | P2-3 |
+| S721 | Data completeness | `G-QC-PRELUDE` | Make the range of `size` in `cut` `0 mm..` | P2-3 |
+| S722 | Boundary | `cgolden/bounds/time-zero` | Make the range of `simmer` `0 s..` | P2-3 |
+| S723 | Normal | `cgolden/bounds/time-negative` | Remove the range of `boil` | P2-3 |
+| S770 | Real path | `cgolden/bounds/range-units-negative-time` | Remove the range of `simmer` | P2-3 |
+| S724 | Boundary | `cgolden/bounds/size-zero` | Make the range of `cut` `0 mm..` | P2-3 |
+| S724 | Normal | `cgolden/bounds/size-negative` | Remove the range of `cut` | P2-3 |
+| S725 | No-effect condition | `cgolden/bounds/small-positive` | Make the range `1 min<..` | P2-3 |
+| S725 | No-effect condition | `cgolden/bounds/soak-default` | Make calls that use the default value checked too, then make the range of `soak` `30 min<..` (the default 30 min is out of range) | P2-3 |
+| S726 | No-effect condition | `cgolden/bounds/temperature-negative` | Apply the `0<..` check to all arguments of dimension types | P2-3 |
+| S726 | Data completeness | `G-QC-PRELUDE` | Make `OvenSpec.maxTemp` `Temperature? in 0 degC..` | P2-3 |
+| S727 | Side effects | `cgolden/bounds/dimension-before-range` | Continue the range check even when the dimension differs | P2-3 |
+| S771 | Side effects | `cgolden/bounds/composite-range` | Report the position of a check inside a composite action at the inner call as it is (the position falls inside the definition) | P2-3 |
+| S787 | Side effects | `cgolden/bounds/composite-range` | Do not record in the composite action's frame that the inner check failed (the diagnostic is also reported for the second use) | P4-2 |
+| S728 | Normal | `cgolden/bounds/amount-negative` | Remove the code that reports `TYP021` | P3-2 |
+| S729 | Boundary | `cgolden/bounds/amount-zero` | Make the check `lo < 0` (0 passes) | P3-2 |
+| S730 | Normal | `cgolden/bounds/amount-negative` | Make the second argument of the diagnostic the type name of the ingredient | P3-2 |
+| S731 | Boundary | `cgolden/bounds/amount-range-zero` | Use the upper end of the interval in the check | P3-2 |
+| S731 | Boundary | `cgolden/bounds/amount-range-negative` | Make the check `lo < -1` (the lower end -0.8 of `-0.5..0.8 g` passes, and there is one fewer `TYP021`) | P3-2 |
+| S731 | No-effect condition | `cgolden/bounds/amount-positive` | Make the check `lo <= 1` | P3-2 |
+| S772 | Real path | `cgolden/bounds/amount-range-units` | Apply the `TYP021` check only to quantity literals and numeric range nodes | P3-2 |
+| S732 | Normal | `cgolden/bounds/amount-per-serving-zero` | Skip the check for `per serving` amounts | P3-2 |
+| S733 | Side effects | `cgolden/bounds/amount-per-serving-unknown` | Skip the check when there is a `TYP020` | P3-2 |
+| S773 | Side effects | `cgolden/bounds/servings-invalid-amounts` | Use out-of-range servings as they are instead of making them unknown (`150 ml * servings` becomes 0 ml and `TYP021` appears; the reason for this replacement is in §9) | P3-3 |
+| S785 | No-effect condition | `cgolden/bounds/servings-invalid-amounts` | When the servings are out of range, also skip the check of `per serving` amounts (the `TYP021` for `0 g per serving` disappears) | P3-3 |
+| S734 | No-effect condition | `cgolden/bounds/amount-any` | Treat `[any amount]` as 0 in the check | P3-2 |
+| S735 | No-effect condition | `cgolden/bounds/amount-none` | Treat ingredients without an amount as 0 in the check | P3-2 |
+| S736 | Side effects | `cgolden/bounds/amount-wrong-dim` | Continue the check after a dimension error | P3-2 |
+| S737 | Normal | `cgolden/bounds/amount-expression` | Apply the check only to quantity literal nodes | P3-2 |
+| S738 | No-effect condition | `cgolden/bounds/amount-positive` | Make the check the same as `lo <= 0.5 g` (`0.5 g` fails) | P3-2 |
+| S739 | Data completeness | `G-QC-DIAG` | Remove `{ $arg2 }` from `diag-non-positive-amount` in `phrases/ja.ftl` | P3-2 |
+| S739 | Data completeness | `G-CORE-DIAG-REGISTRY` | Remove `TYP:nonPositiveAmount` from `core/tests/diag-names.txt` | P3-2 |
+| S739 | Fixed premise | `G-CORE-DIAG-APPEND` | In a work commit in a temporary worktree, move `TYP021` in between existing lines (a deleted line shows up; remove it with `git reset --hard` and do not push) | P3-2 |
+| S740 | Docs match | `G-TYPE-SEVERITY-TABLE` | Make the severity in `severity-examples.txt` `warning` | P4-1 |
+| S740 | Docs match | `G-QC-SYNTAX` | Remove "amounts of 0 or less" from concept §6.1 | P4-1 |
+| S741 | Data completeness | `cgolden/api/types-json` | Remove the range of `Options.servings` | P3-3 |
+| S774 | Real path | `rtest/settings-servings-min` | Make `settingsSpec` drop the `min` of optional types (`Count?`) (the P4-2 audit replaced the original method, which rewrote the test input) | P3-3 |
+| S742 | Boundary | `cgolden/bounds/optional-ranged` | Revert how `base_type` unwraps nesting | P3-3 |
+| S743 | Normal | `cgolden/bounds/servings-header-zero` | Remove the check of untyped `servings` | P3-3 |
+| S744 | Normal | `cgolden/bounds/servings-typed-zero` | Do not check `servings` that has only a type | P3-3 |
+| S745 | Side effects | `cgolden/bounds/servings-own-range` | Add `1..` on top even when the declaration has a range (`0` gets 2) | P3-3 |
+| S746 | Real path | `cgolden/bounds/servings-make-zero` | Do not check the servings in `make` arguments | P3-3 |
+| S775 | Real path | `cgolden/bounds/servings-make-positional` | Limit the check of `make` to arguments passed by name | P3-3 |
+| S776 | Real path | `cgolden/bounds/servings-menu-header` | Check servings only in recipe headers | P3-3 |
+| S747 | Real path | `cgolden/bounds/servings-flag-zero` | Skip `check_value` for option fields (the `sema.c:3163` path) | P3-3 |
+| S747 | Boundary | `cgolden/bounds/servings-flag-negative` | Make the check `== 0` | P3-3 |
+| S777 | Side effects | `cgolden/bounds/servings-flag-header-range` | Check on the header side even when there is an error on the options side (there are 2) | P3-3 |
+| S778 | Real path | `cgolden/bounds/servings-flag-over-header` | Ignore the range declared in the header for servings that come from options | P3-3 |
+| S779 | Side effects | `cgolden/bounds/servings-flag-dimension` | Remove the deduplication (goes back to the same 2 lines as now) | P3-3 |
+| S748 | Real path | `cgolden/bounds/servings-options-zero` | Skip `check_value` for option fields (the `sema.c:3163` path) | P3-3 |
+| S749 | Boundary | `cgolden/bounds/servings-one-ok` | Make the range `1<..` | P3-3 |
+| S780 | Boundary | `cgolden/bounds/servings-flag-one-ok` | Make the range of `Options.servings` `1<..` | P3-3 |
+| S791 | Side effects | `cgolden/bounds/servings-flag-invalid-amounts` | Bind the servings on the header side even when there is an error on the options side (`150 ml * servings` becomes 0 ml and `TYP021` appears) | P4-2 |
+| S792 | Data completeness | `cgolden/bounds/servings-make-invalid` | Pass an argument that failed the `make` check to the dish as it is (the amount becomes `0 ml`) | P4-2 |
+| S793 | Real path | `cgolden/bounds/servings-make-own-range` | Check the servings of `make` with the type of `Options.servings`, ignoring the header's range | P4-2 |
+| S750 | Real path | `cgolden/bounds/issue2` | Remove the range of `boil` | P3-3 |
+| S751 | Side effects | `G-QC-GOLDEN-CHANGED` | Remove one "Golden with a corrected expectation" line from §9 | P4-3 |
+| S752 | Side effects | `G-SAMPLE-CHECK` | Temporarily make the range of `rest` in `stdlib/prelude.ozen` `1 h<..` (the sample's `rest(10 min)` fails) | P4-3 |
+| S753 | Side effects | `G-QC-SCOPE` | In a work commit in a temporary worktree, change one file under `samples/` (remove it with `git reset --hard` and do not push) | P4-3 |
+| S753 | Fixed premise | `G-QC-SCOPE` | Temporarily move the tag `qc-start` to another name locally (put it back after checking) | P4-3 |
+| S754 | Side effects | `G-QC-VERSION` | Make `VERSION` `0.1.1` (put it back after checking) | P4-3 |
+| S755 | Fixed premise | `G-QC-RF-COUNT` | Revert `goal_G_RF_GOLDEN_COUNT` to its current form (comparing with the current count) (the `readme-start` line disappears) | P0-3 |
+| S755 | Side effects | `G-RF-GOLDEN-COUNT` | In a temporary worktree, remove one golden that exists at `readme-start` (the missing goldens become 1) | P0-3 |
+| S781 | Fixed premise | `G-QC-RD-RANGE` | Revert `RD=` in `goals.sh` to `readme-start..HEAD` (`G-RD-SCOPE` fails with `got '2'`) | P0-3 |
+| S782 | Side effects | `G-RF-SEPARATION` | In a work commit in a temporary worktree, put an expectation `.out` and `core/src` in the same commit (remove it with `git reset --hard` and do not push) | P4-3 |
+| S756 | Docs match | `G-QC-SYNTAX` | Remove the `0 s<..` example from concept §4.2 | P4-1 |
+| S783 | Docs match | `G-QC-SYNTAX` | Remove action arguments from the sentence "out of range is always an error" in concept §4.2 | P4-1 |
+| S784 | Docs match | `G-QC-SYNTAX` | Revert `servings` in the `type Options` example of concept to `Count` | P4-1 |
+| S795 | Docs match | `G-QC-SYNTAX` | Remove "the upper end is included" from concept §4.2 | P4-2 |
+| S757 | Normal | `G-QC-CLAUDEMD` | Remove `qc-start` from this plan's line in `CLAUDE.md` | P0-3 |
 
-S704 の golden（`args/unknown-value`）は、評価の時点で決まらない量を引数に渡す書き方が要る。既存の golden `eval/runtime-value-in-if` の書き方（実行時まで決まらない条件）を使う見込みで、P1-1 で書けることを確かめる。書けなければ §9 に理由を書き、ユーザーに報告する（テストを §8 に回さない）。
+The golden for S704 (`args/unknown-value`) needs a way to pass as an argument a quantity that is not known at evaluation time. The plan is to use the style of the existing golden `eval/runtime-value-in-if` (a condition not known until run time), and to confirm in P1-1 that it can be written. If it cannot, write the reason in §9 and report it to the user (do not move the test to §8).
 
-網羅の検査（P0-3 の後と P4-2 で実行する。`G-QC-COVERAGE`）。
+The coverage check (run after P0-3 and in P4-2; `G-QC-COVERAGE`).
 
-独立した監査（サブエージェント、2026-11-02、計画を書いた後）の指摘のうち、取り込まなかったもの・一部だけ取り込んだものと理由:
+Findings of the independent audit (subagent, 2026-11-02, after the plan was written) that were not taken, or only partly taken, with reasons:
 
-- `G-QC-PLAN-TESTS` が S 項目ごとの記録の対応を見ない（記録の行の総数だけを比べる） — 既存の計画（記法の計画・README の計画）と同じ検査で、記録の行に S 項目とゴールを書く形（§9）で人が辿れる。網羅表の行ごとに対応を取る検査にすると、`check-plan-tests.sh` の作りを変える別の作業になる
-- 量でない値と量の取り違え（`cut(slice, dice)` など）をエラーにする — Issue の「単位」とは別の照合で、スコープ外にし（§1）、最終ゲートの後に別の作業として提案する
-- `repeat` の中で同じ診断が回数分出る — 既存の診断と同じ振る舞いに従い、スコープ外にした（§1）
-- `servings` を持たない料理への `make gohan(servings: 0)`、人数を式で書いた見出し、`Time in 0 s` の無視、数だけの範囲が JSON に出ないこと — どれも既存の別の挙動で、スコープ外にした（§1）。最初のものは別の作業として提案する
-- §8 の文の伝わり方を grep で確かめる案 — 引数を使うことは `G-QC-DIAG` に足した。文が伝わるかは引き続き §8
+- `G-QC-PLAN-TESTS` does not check the match between records and each S item (it only compares the total number of record lines) — this is the same check as in the existing plans (the syntax plan and the README plan), and a person can trace them because each record line names the S item and the goal (§9). A check that matches each row of the coverage table would be separate work that changes how `check-plan-tests.sh` is built
+- Make mixing up non-quantity values and quantities (such as `cut(slice, dice)`) an error — this is a different check from the "units" in the Issue, so it is out of scope (§1), and will be proposed as separate work after the final gate
+- The same diagnostic appears once per repetition inside `repeat` — this follows the behavior of existing diagnostics and was put out of scope (§1)
+- `make gohan(servings: 0)` for a dish without `servings`, headers that write the servings as an expression, ignoring `Time in 0 s`, and number-only ranges not appearing in the JSON — all are separate existing behaviors and were put out of scope (§1). The first one will be proposed as separate work
+- The idea of checking with grep whether the wording in §8 gets through — the use of the arguments was added to `G-QC-DIAG`. Whether the wording gets through stays in §8
 
-網羅の監査（P4-2、2026-11-02、独立したサブエージェント）の指摘 23 件のうち、取り込まなかった 8 件と理由:
+Of the 23 findings of the coverage audit (P4-2, 2026-11-02, independent subagent), the 8 that were not taken and the reasons:
 
-- 1-1 S763 を描画した文章で確かめていない — 文章は材料の量（`debug steps` に出る値）から作る既存の描画の経路で、量が付いた材料の文章は既存の描画のテストが確かめている。本計画で変えたのは量が付くかどうかで、`args/range-units-ingredient` がそれを見る
-- 1-3 入れ子のマクロで差し込んだ量の trail — 位置と trail は既存の `arg_site` が決め、状態の照合と共用している。入れ子の trail は既存の golden（`macro/trail-nested` など）が確かめている
-- 1-5 温度の次元違いのテストが無い — 次元の照合は次元の名前に依らない（`dim_index` の値で比べる）作りで、6 つの標準の次元と利用者の次元（`args/user-dimension`）のうち代表を確かめれば足りる
-- 2-4 合成の動作の定義の誤り（外の `t: Time` を中の `cut` の `Length` に渡す）が呼び出し元の位置に出る — 定義の誤りをどこに・何回出すかは、D78（既定値）と同じ種類の設計判断が要る。Issue の範囲（呼び出しの誤り）の外なので、最終ゲートの後に別の作業として提案する
-- 2-5 合成の動作の中で引数を式にして渡したときの位置と trail — 合成の動作の中の診断（状態の照合など）は今も定義の中の位置に trail 無しで出る既存の振る舞いで、量の照合もそれに従う。2-4 と合わせて提案する
-- 2-11 `<` の前の空白（`0 s <..`）を許す — D73 が決めたのは `<` と `..` の間の空白だけで、`<` の前は式の比較（`3 min < 5 min`）と同じく空白を許すのが自然。§4 を変えない
-- 2-13 片側に単位の無い範囲（`1 ml..2`）の `TYP001` の引数の形 — 二項演算の次元違い（`$amount + 1 min`）と同じ `[左の次元, 右の次元]` の形で、`args/range-units-mixed` が同じ形を確かめている
-- 2-14 合成の動作の中で引数の名前を `let` で束縛し直したとき — 束縛し直しは既に `NAM003` のエラーで、誤ったプログラムの二次的な診断の形は決めない
-
----
-
-## 6. フェーズとタスク
-
-表記:
-
-- **完了条件** は §5 のゴール ID か、合否が一意なコマンド。§5 の「手元で回す」前提ゴールは各タスクに暗黙で含まれる。push の後の前提ゴールは、push するゲートの完了条件にだけ含める。
-- 状態の報告の形: 「core: `G-QC-*` と前提ゴール合格（4 構成）。wasm: `G-PLAT-WASM` 合格。GitHub: push の後に `G-PLAT-CI` を確認」。
-- コミットは論理単位（golden の追加、実装の 1 つの変更、期待の直し、言い回しの追加、ゴールの追加）。golden を足すコミットは、その golden を通す実装のコミットより前に置く（`G-REPO-RED-FIRST`）。最初から合格する golden は別のコミットにし、`scripts/red-first-exceptions.txt` に理由を書く（§5.2）。既存の期待を直すコミットは、実装のコミットと分ける（`G-RF-SEPARATION`）。push は確認を取らずに行う（D81）が、その前に毎回 `G-REPO-NOREPLY` を回し、push した範囲を報告する。
-- 各タスクの「わざと壊す確認」は、網羅表の方法で壊すとそのテストかゴールが落ち、戻すと合格することを確かめ、§9 に `- わざと壊す確認: ` の行で記録する。作業用のコミットが要る壊し方は、一時的な worktree で行い、`git reset --hard` で消し、push しない（D81）。
-- 別の作業の未コミットの変更はコミットに含めない。`git add` はファイルを名指しする。
-
-### Phase 0 — 決定と準備（機能のコードの変更なし）
-
-| ID | 内容 | 完了条件 |
-| --- | --- | --- |
-| P0-1 | §2 の D73〜D87 をユーザーと確定し、本ファイルに書き込む | `grep -c '^### D[0-9]*\. .*【決定済み】' plans/ozen-quantity-checks.md` が 19、`grep -c '^### D[0-9]*\. .*【未決】' plans/ozen-quantity-checks.md` が 0、`grep -c '^- \*\*決定:' plans/ozen-quantity-checks.md` が 19（P0-3 の後は `G-QC-DECISIONS`） |
-| P0-2 | 作業ツリーに別の作業の未コミットの変更が無いことを確かめる（あればユーザーに確認する）。本ファイルをコミットして push し、`main` にタグ `qc-start` を打つ（D81）。基準値（手元の前提ゴールと `G-RD-*`・`G-RF-*` の合否、golden の数 N0、`bounds/expression-unchanged` の期待を作る着手点のビルド）を §9 に記録する | `git rev-parse -q --verify refs/tags/qc-start` が成功し、§9 に基準値の行がある |
-| P0-3 | `scripts/goals.sh` に `PLAN_QC`・`QC` と `goal_G_QC_*` を足す。`CLAUDE.md` の Plan の節に本ファイルの行を足す（D82）。`goal_G_RF_GOLDEN_COUNT` を D80 の形に直し、記法の計画の §9 に 1 行足す。`52a6ef1` にタグ `readme-end` を打ち、`RD` を `readme-start..readme-end` に直し、README の計画の §9 に 1 行足す（D87） | `scripts/goals.sh --list \| grep -c '^G-QC-'` が 18、`G-QC-CLAUDEMD`・`G-QC-COVERAGE`・`G-QC-RF-COUNT`・`G-QC-RD-RANGE`・`G-RF-GOLDEN-COUNT`・`G-REPO-CLAUDEMD`・`G-REPO-SELFTESTS` が合格。S755・S757・S781 のわざと壊す確認 |
-
-P0-3 の時点では実装をまだ変えていないので、`G-QC-GOLDEN-*`・`G-QC-PRELUDE`・`G-QC-DIAG`・`G-QC-SCHEMA`・`G-QC-SYNTAX` は落ちる。§9 に、P0-3 の時点で落ちたゴールの一覧を記録する（ゴールが何かを確かめている証拠になる）。
-
-### Phase 1 — 量の照合（#1、D69・D85・D86）
-
-| ID | 内容 | 完了条件 |
-| --- | --- | --- |
-| P1-1 | `tests/golden/args/` の 21 個の golden を §4.1〜§4.3 から手で書き、実装より前のコミットにする（§4.1 の 16 個: `volume-for-time`・`mass-for-length`・`unitless-time`・`count-param`・`named-arg`・`pipe-arg`・`variable-arg`・`macro-body`・`macro-splice`・`composite`・`user-dimension`・`unknown-value`・`default-unchecked`・`continues-after`・`ok-units`・`issue1`。§4.2 の 4 個: `range-units-steps`・`range-units-dimension`・`range-units-mixed`・`range-units-ingredient`。§4.3 の 1 個: `make-arg-dimension`）。そのコミットの時点で合格する golden（見込みは `ok-units`・`default-unchecked`・`unknown-value`）は別のコミットにし、`scripts/red-first-exceptions.txt` に理由を書く（§5.2） | `scripts/golden-entries.sh tests/golden/args \| wc -l` が 21、前提の `G-REPO-RED-FIRST`。赤と対照の golden の名前を §9 に記録 |
-| P1-2 | `check_value` の次元と範囲の判定を切り出し、`call_action`（合成の動作の重複の除き方を含む）と `make` の引数から呼ぶ。`eval_inner` で両端に単位を書いた範囲を評価する。既存の golden の期待が変わったら、S751 の手順で直すか調べ、直すなら別のコミットにする。状態の型の中の引数に同じ穴があるかを確かめて §9 に書く | `G-QC-GOLDEN-ARGS`・`G-QC-GOLDEN-CHANGED`、前提の `G-CORE-GOLDEN`（4 構成）・`G-SAMPLE-CHECK`・`G-CORE-FUZZ`・`G-RF-SEPARATION`。S695〜S708・S758〜S764 のわざと壊す確認 |
-
-### Phase 2 — 下端を含まない範囲と、標準の動作の範囲（#2、D70・D73・D74・D79）
-
-| ID | 内容 | 完了条件 |
-| --- | --- | --- |
-| P2-1 | `tests/golden/bounds/` のうち、範囲の書き方と標準の動作の範囲の 22 個を書き、実装より前のコミットにする（`exclusive-*` の 8 個: `from`・`upper-inclusive`・`upper-over`・`space`・`interval`・`kitchen`・`count`・`empty`。ほかの 14 個: `closed-zero-ok`・`expression-unchanged`・`types-json-exclusive`・`make-arg-range`・`time-zero`・`time-negative`・`range-units-negative-time`・`size-zero`・`size-negative`・`small-positive`・`soak-default`・`temperature-negative`・`dimension-before-range`・`composite-range`）。`expression-unchanged` の期待は着手点のビルドの `debug ast` の出力から作る（§5.2）。そのコミットの時点で合格する golden（見込みは `closed-zero-ok`・`expression-unchanged`・`small-positive`・`soak-default`・`temperature-negative`・`dimension-before-range`。`exclusive-space` は今も `SYN003` なので、位置が同じなら合格する）は別のコミットにし、例外に理由を書く。利用者の設定の型が `--emit types` に出るかを確かめる | `scripts/golden-entries.sh tests/golden/bounds \| wc -l` が 22、前提の `G-REPO-RED-FIRST`。赤と対照の golden の名前を §9 に記録 |
-| P2-2 | パーサー・AST・`grammar.ebnf`・`rules.def`・`ozen.dict` に下端を含まない範囲（規則 `type_range`）を足す。範囲の判定、`base_type`、`defs.c` の `minExclusive`、スキーマ。期待を直すなら別のコミットにする | `exclusive-*`・`closed-zero-ok`・`expression-unchanged`・`types-json-exclusive`・`make-arg-range` と `api/types-json` が合格、`G-QC-SCHEMA`・`G-QC-SYNTAX` の 1〜3 行目、前提の `G-CORE-GRAMMAR`・`G-RF-FUZZ-DICT`・`G-API-SCHEMA`・`G-CORE-GOLDEN`・`G-RF-SEPARATION`。S709〜S719・S765〜S768 のわざと壊す確認 |
-| P2-3 | `stdlib/prelude.ozen` の 8 つの引数に範囲を付ける。合成の動作の中の範囲の診断の位置を呼び出し元に向ける。既存の golden の期待の変化（`api/signatures-json` など）を S751 の手順で扱う | `time-*`・`range-units-negative-time`・`size-*`・`small-positive`・`soak-default`・`temperature-negative`・`dimension-before-range`・`composite-range`・`api/signatures-json` が合格、`G-QC-PRELUDE` の 1〜3 行目、前提の `G-CORE-GOLDEN`・`G-SAMPLE-CHECK`・`G-STD-*`・`G-RF-SEPARATION`。S720〜S727・S769〜S771 のわざと壊す確認 |
-
-### Phase 3 — 材料の量と人数（#2、D71・D72・D75〜D77）
-
-| ID | 内容 | 完了条件 |
-| --- | --- | --- |
-| P3-1 | `tests/golden/bounds/` の残りの 29 個と `renderers/test/settings-servings-min.test.mjs` を書き、実装より前のコミットにする（`amount-*` の 12 個: `zero`・`negative`・`range-zero`・`range-negative`・`range-units`・`per-serving-zero`・`per-serving-unknown`・`any`・`none`・`wrong-dim`・`expression`・`positive`。`servings-*` の 15 個: `header-zero`・`typed-zero`・`own-range`・`make-zero`・`make-positional`・`menu-header`・`flag-zero`・`flag-negative`・`flag-header-range`・`flag-over-header`・`flag-dimension`・`options-zero`・`one-ok`・`flag-one-ok`・`invalid-amounts`。ほかの 2 個: `optional-ranged`・`issue2`）。そのコミットの時点で合格するもの（見込みは `amount-any`・`amount-none`・`amount-positive`・`amount-wrong-dim`・`servings-own-range`・`servings-one-ok`・`servings-flag-one-ok`・`servings-flag-over-header`）は別のコミットにし、例外に理由を書く | `scripts/golden-entries.sh tests/golden/bounds \| wc -l` が 51、前提の `G-REPO-RED-FIRST`。赤と対照の golden の名前を §9 に記録 |
-| P3-2 | `TYP021` を登録し（`diag_codes.def` の末尾、`diag-names.txt`、`phrases/*.ftl`、`names.mjs`）、`eval_ingredients` で出す。買う量・分ける量に同じ穴があるかを確かめて §9 に書く | `amount-*` が合格、`G-QC-DIAG` の 1〜6 行目、前提の `G-CORE-DIAG-REGISTRY`・`G-CORE-DIAG-APPEND`・`G-STD-PHRASES`・`G-REND-PHRASES-RENDER`・`G-REND-TESTS`・`G-API-SARIF`・`G-CORE-GOLDEN`・`G-RF-SEPARATION`。S728〜S739・S772 のわざと壊す確認 |
-| P3-3 | `Options.servings` を `Count? in 1..` にし、人数の経路（見出し・`make`・献立の見出し・`-s`・`--options`）を検査し、同じ値の重複を除く（D77）。人数が範囲外のときの量の診断を抑える（D76） | `servings-*`・`optional-ranged`・`issue2`・`api/types-json`・`settings-servings-min` が合格、`G-QC-GOLDEN-BOUNDS`・`G-QC-PRELUDE`（全行）、前提の `G-CORE-GOLDEN`・`G-SAMPLE-CHECK`・`G-REND-TESTS`・`G-RF-SEPARATION`。S741〜S750・S773〜S780・S785 のわざと壊す確認 |
-
-### Phase 4 — 文書と仕上げ
-
-| ID | 内容 | 完了条件 |
-| --- | --- | --- |
-| P4-1 | `docs/concept.md` §4.2 に下端を含まない範囲と、範囲外がエラーになる対象に動作の引数を足す。`type Options` の例の `servings` を直す。§6.1 のエラーの例に「0 以下の量」を足す。`severity-examples.txt` に行を足す | `G-QC-SYNTAX`（全行）、`G-QC-DIAG`（全行）、前提の `G-TYPE-SEVERITY-TABLE`・`G-RF-CONCEPT`。S740・S756・S783・S784 のわざと壊す確認 |
-| P4-2 | 網羅の監査: §9 で増えた事実を網羅表に足す。§8 の各項目を、実装後の知識でもう一度「コマンドで決められるか」で判定する。独立したサブエージェントに、§1・§4・§8・網羅表と、足した golden と `sema.c` の差分を読ませ、テストの無い主張と、§8 にあるがコマンドで決められる項目を列挙させる。指摘は足すか、§5.3 の末尾に足さない理由を書く | `G-QC-COVERAGE`・`G-QC-PLAN-NAMES`・`G-QC-AUDIT`。§9 に監査の指摘の件数と対応 |
-| P4-3 | 最終ゲート。S751〜S754・S782 のわざと壊す確認をする。`G-REPO-NOREPLY` を回して push し、CI を確かめる | `G-QC-PLAN-TESTS`・`G-QC-SCOPE`・`G-QC-VERSION`・`G-QC-GOLDEN-CHANGED` を含む §5 の全ゴール（`G-QC-ISSUES` を除く）と手元の前提ゴール、push の後の `G-PLAT-CI` |
-| P4-4 | D84 のとおり Issue に返答して閉じる。文面は送る前にユーザーに見せる。§8 をユーザーに渡し、スコープ外にした別の作業（§1）を提案する | `G-QC-ISSUES` |
+- 1-1 S763 is not checked in the rendered text — the text is made from the ingredient amount (the value shown by `debug steps`) through the existing rendering path, and existing renderer tests check the text for ingredients with amounts. What this plan changed is whether the amount is attached, and `args/range-units-ingredient` checks that
+- 1-3 The trail of a quantity spliced in by a nested macro — the position and the trail are decided by the existing `arg_site`, which is shared with the state check. Existing goldens (such as `macro/trail-nested`) check nested trails
+- 1-5 There is no test for a temperature dimension mismatch — the dimension check does not depend on the dimension's name (it compares by the value of `dim_index`), so checking representatives of the 6 standard dimensions and user dimensions (`args/user-dimension`) is enough
+- 2-4 An error in a composite action's definition (passing the outer `t: Time` to the `Length` of the inner `cut`) appears at the caller's position — where and how many times to report errors in a definition needs the same kind of design decision as D78 (default values). It is outside the Issue's scope (errors in calls), so it will be proposed as separate work after the final gate
+- 2-5 The position and trail when an argument is passed as an expression inside a composite action — diagnostics inside composite actions (such as the state check) already appear at the position inside the definition with no trail, which is existing behavior, and the quantity check follows it. To be proposed together with 2-4
+- 2-11 Allow a space before `<` (`0 s <..`) — D73 decided only about the space between `<` and `..`; before `<`, allowing a space is natural, as with comparisons in expressions (`3 min < 5 min`). §4 is not changed
+- 2-13 The argument shape of `TYP001` for a range with a unit on only one side (`1 ml..2`) — it has the same `[左の次元, 右の次元]` shape (left dimension, right dimension) as a dimension mismatch in a binary operation (`$amount + 1 min`), and `args/range-units-mixed` checks the same shape
+- 2-14 Rebinding an argument's name with `let` inside a composite action — rebinding is already a `NAM003` error, and we do not decide the shape of secondary diagnostics for wrong programs
 
 ---
 
-## 7. フェーズ間の依存
+## 6. Phases and tasks
 
-- P0-1 → P0-2 → P0-3 の順。P0-3 のゴールが無いと、後のタスクの完了条件を判定できない。
-- Phase 1 → Phase 2 → Phase 3 の順。Phase 2 の標準の動作の範囲（P2-3）と `make` の範囲（P2-2）は、Phase 1 の照合が無いと効かない。Phase 3 の `Options.servings` の範囲（P3-3）は、P2-2 の `base_type` の直しが要る。`amount-range-units`（P3-1）は P1-2 の範囲の評価が要る。
-- 各 Phase の中では、golden を書くタスク（P1-1・P2-1・P3-1）が実装より先。P2-2 と P2-3、P3-2 と P3-3 は触るファイルが一部重なる（`sema.c`）ので、並行せず順に行う。
-- P4-1 は Phase 3 の後（§6.1 の例は `TYP021` の登録の後でないと `G-TYPE-SEVERITY-TABLE` が落ちる）。P4-2 → P4-3 → P4-4 の順。
+Notation:
 
----
+- A **completion condition** is a goal ID from §5, or a command with a clear pass or fail. The "run locally" prerequisite goals of §5 are implicitly part of every task. Prerequisite goals for after a push are only part of the completion condition of the gate that pushes.
+- Status report format: "core: `G-QC-*` and the prerequisite goals pass (4 configurations). wasm: `G-PLAT-WASM` passes. GitHub: check `G-PLAT-CI` after the push".
+- Commits are logical units (adding goldens, one implementation change, correcting expectations, adding phrases, adding goals). A commit that adds goldens comes before the implementation commit that makes them pass (`G-REPO-RED-FIRST`). Goldens that pass from the start go in a separate commit, with the reason in `scripts/red-first-exceptions.txt` (§5.2). Commits that correct existing expectations are kept apart from implementation commits (`G-RF-SEPARATION`). Pushes happen without asking (D81), but every time before a push, run `G-REPO-NOREPLY`, and report the pushed range.
+- The "mutation check" of each task confirms that breaking things the way the coverage table says makes that test or goal fail, and that restoring makes it pass; record it in §9 with a `- Mutation check: ` line. Ways of breaking that need a work commit are done in a temporary worktree, removed with `git reset --hard`, and not pushed (D81).
+- Do not include uncommitted changes from other work in commits. Name the files in `git add`.
 
-## 8. ユーザーに引き渡す確認
+### Phase 0 — Decisions and preparation (no change to feature code)
 
-Claude は機械的なゴールまでを担当する。以下はユーザーが確認する。各項目には、コマンドで決められない理由を付ける。理由が書けない項目は §5.3 でテストにする。
+| ID | Content | Completion condition |
+| --- | --- | --- |
+| P0-1 | Settle D73 to D87 in §2 with the user and write them into this file | `grep -c '^### D[0-9]*\. .*\[decided\]' plans/ozen-quantity-checks.md` is 19, `grep -c '^### D[0-9]*\. .*\[open\]' plans/ozen-quantity-checks.md` is 0, `grep -c '^- \*\*Decision:' plans/ozen-quantity-checks.md` is 19 (after P0-3, `G-QC-DECISIONS`) |
+| P0-2 | Check that the working tree has no uncommitted changes from other work (if there are, ask the user). Commit and push this file, and put the tag `qc-start` on `main` (D81). Record the baseline in §9 (pass or fail of the local prerequisite goals and of `G-RD-*` and `G-RF-*`, the golden count N0, and the starting-point build used to make the expectation of `bounds/expression-unchanged`) | `git rev-parse -q --verify refs/tags/qc-start` succeeds, and §9 has the baseline lines |
+| P0-3 | Add `PLAN_QC`, `QC` and `goal_G_QC_*` to `scripts/goals.sh`. Add a line for this file to the Plan section of `CLAUDE.md` (D82). Change `goal_G_RF_GOLDEN_COUNT` to the form of D80, and add a line to §9 of the syntax plan. Put the tag `readme-end` on `52a6ef1`, change `RD` to `readme-start..readme-end`, and add a line to §9 of the README plan (D87) | `scripts/goals.sh --list \| grep -c '^G-QC-'` is 18, and `G-QC-CLAUDEMD`, `G-QC-COVERAGE`, `G-QC-RF-COUNT`, `G-QC-RD-RANGE`, `G-RF-GOLDEN-COUNT`, `G-REPO-CLAUDEMD`, `G-REPO-SELFTESTS` pass. Mutation checks for S755, S757, S781 |
 
-- `TYP021` の日本語と英語の文（`diag-non-positive-amount`）が、レシピを書く人に何を直せばよいか伝わるか（言い回しがあり 2 つの引数を使うことは `G-QC-DIAG`、描画できることは `G-REND-PHRASES-RENDER` で確かめる） — 機械で決められない理由: 文が伝わるかは読み手の判断
-- `docs/concept.md` §4.2 の下端を含まない範囲の説明が、`<..` の意味を誤解なく伝えるか（例と語があることは `G-QC-SYNTAX` で確かめる） — 機械で決められない理由: 説明が伝わるかは読み手の判断
-- Issue #1・#2 への返答の言い方（D84。送る前に見せる。診断のコード・範囲のコミットの SHA・直した後の出力の行・`bounds/issue2` の名前が載ることは `G-QC-ISSUES` で確かめる） — 機械で決められない理由: 外部への投稿の言い方は人の判断
+At P0-3 the implementation has not changed yet, so `G-QC-GOLDEN-*`, `G-QC-PRELUDE`, `G-QC-DIAG`, `G-QC-SCHEMA` and `G-QC-SYNTAX` fail. Record in §9 the list of goals that failed at P0-3 (this is evidence that the goals check something).
 
----
+### Phase 1 — Checking quantities (#1, D69, D85, D86)
 
-## 9. 着手時に確認して記録する事項
+| ID | Content | Completion condition |
+| --- | --- | --- |
+| P1-1 | Write the 21 goldens in `tests/golden/args/` by hand from §4.1 to §4.3, and commit them before the implementation (16 from §4.1: `volume-for-time`, `mass-for-length`, `unitless-time`, `count-param`, `named-arg`, `pipe-arg`, `variable-arg`, `macro-body`, `macro-splice`, `composite`, `user-dimension`, `unknown-value`, `default-unchecked`, `continues-after`, `ok-units`, `issue1`. 4 from §4.2: `range-units-steps`, `range-units-dimension`, `range-units-mixed`, `range-units-ingredient`. 1 from §4.3: `make-arg-dimension`). Goldens that pass at that commit (expected: `ok-units`, `default-unchecked`, `unknown-value`) go in a separate commit, with the reason in `scripts/red-first-exceptions.txt` (§5.2) | `scripts/golden-entries.sh tests/golden/args \| wc -l` is 21, and the prerequisite `G-REPO-RED-FIRST`. Record the names of the red and control goldens in §9 |
+| P1-2 | Extract the dimension and range checks of `check_value`, and call them from `call_action` (including the deduplication for composite actions) and from `make` arguments. Evaluate ranges with units on both ends in `eval_inner`. If the expectation of an existing golden changes, correct it or investigate it following S751, and put any correction in a separate commit. Check whether arguments inside state types have the same hole, and write it in §9 | `G-QC-GOLDEN-ARGS`, `G-QC-GOLDEN-CHANGED`, and the prerequisites `G-CORE-GOLDEN` (4 configurations), `G-SAMPLE-CHECK`, `G-CORE-FUZZ`, `G-RF-SEPARATION`. Mutation checks for S695 to S708 and S758 to S764 |
 
-（各タスクで確認した結果を、ここに日付付きで追記する）
+### Phase 2 — Ranges that exclude the lower end, and ranges for standard actions (#2, D70, D73, D74, D79)
 
-- 計画を書いた後の独立した監査（2026-11-02）: 指摘 30 件。25 件を取り込み、5 件は取り込まずスコープ外か既存の検査の限界とした（理由は §5.3 の末尾）。主な変更は、両端に単位を書いた範囲の評価（D85）・`make` の量の引数（D86）・完了した計画の範囲のゴール（D87）の設計判断を足したこと、条件の人数の重複と人数の誤りによる量の診断の重複を除く規則（D76・D77）、合成の動作とマクロの差し込みの診断の位置、効かなかったわざと壊す方法 8 件の直し、`G-QC-PRELUDE`（温度の範囲の見逃し）・`G-QC-GOLDEN-CHANGED`（タグの確認）・`G-QC-SYNTAX`（concept の節を §4.2 に、規則名 `type_range`）の直し、`G-RF-SEPARATION` を前提ゴールに足したこと、ビルド時の条件の書き方（`kitchen today : Options`）の誤りの直し
-- 着手点の基準値（P0-2、2026-11-02）: タグ `qc-start` は `0b4b4eb`（本計画をコミットした点）。golden の数 N0 は **464**。前提ゴール 115 個と `G-CORE-BUILD` の計 116 個を回し、114 個が合格、2 個が落ちた。落ちたのはどちらも本計画が直す予定のもの:
-  - `G-RF-GOLDEN-COUNT`: golden が 448 ではなく 464。別の作業が golden を足したため。D80 で判定の形を変える（P0-3）。
-  - `G-RD-SCOPE`: `readme-start..HEAD` の範囲の外のファイルが 57。README の計画の後の別の作業が範囲に入ったため。D87 で範囲を `readme-end` で閉じる（P0-3）。
-  - 1 回目の実行では `G-PLAT-WASM` と `G-REPO-SELFTESTS` も落ちた。原因は手元の `build/core-wasm/` が 2026-11-01 のビルドのまま古かったこと（golden 17 件・worker 10 件の不一致はどちらも新しい診断の分）。`scripts/build-wasm.sh` で作り直すと 2 つとも合格した。コードの問題ではない。
-- 計画を書いた点 `8db17e6` から `qc-start` までに、別の作業のコミットが 24 件ある（`0b7db9e`〜`d181933`。`NAM019`〜`NAM021` の追加、golden 16 件の追加など）。§3 の行番号は `8db17e6` の時点のもので、`qc-start` ではおよそ 25 行後ろにずれる（例 `check_value` は 2665 行、`call_action` は 4074 行）。`TYP021` は `NAM021` の後に足す。
-- `bounds/expression-unchanged` のオラクルは、`qc-start` でビルドした `build/core-gcc-release/ozen` の写し `build/qc-start-ozen`（`build/` は git の管理外。消えたら `qc-start` を worktree に出してビルドし直す）。
-- P0-3 の時点の `G-QC-*` の合否（実装を変える前に落ちるゴールの一覧）
-- 赤の確認（P1-1・P2-1・P3-1）: 足したコミットの時点のビルドで落ちた golden（赤）と、合格した golden（対照。`scripts/red-first-exceptions.txt` に載せたコミット）の名前
-- `<..` を型の範囲で読んだときの既存の読み方との衝突の確認（P2-2。§3.2 の見込みを実際のパーサーで確かめる）と、AST の表し方（新しい節の種類か印か）
-- 状態の型の中の引数（`T<shape: cut(slice, 0 mm)>`）に同じ穴があるか（P1-2）
-- 買う量・分ける量に 0 以下の量が通る穴があるか（P3-2）
-- 利用者が定義した設備の設定の型の範囲付きのフィールドが `--emit types` の出力に出るか（P2-1。出なければ `types-json-exclusive` を、出る型で書き直し、理由を書く）
-- 期待を直した golden（各タスク）: `- 期待を直した golden: \`<パス>\` — <理由>` の形で 1 行ずつ書く
-- 範囲に入った別の作業のコミット（あれば）: `- 範囲に入った別の作業のコミット: <SHA>（<内容>）` の形で書く
-- わざと壊す確認の記録（各タスク）: `- わざと壊す確認: S<n>・<テストかゴール>（<タスク>、<日付>）。<壊し方> で落ちた。戻すと合格した` の形で書く
-- 網羅の監査（P4-2）: `- 網羅の監査: 指摘 <k> 件、取り込み <m> 件` の形で書く
-- P0-3 の時点の `G-QC-*` の合否（2026-11-02、`goals.sh` に 18 個を足した直後）: 合格は `G-QC-DECISIONS`・`G-QC-COVERAGE`・`G-QC-GOLDEN-CHANGED`・`G-QC-SCOPE`・`G-QC-VERSION`・`G-QC-CLAUDEMD`・`G-QC-RF-COUNT`・`G-QC-RD-RANGE` の 8 個。落ちたのは `G-QC-PLAN-NAMES`（`75 names, 73 missing`）・`G-QC-PLAN-TESTS`（`107 rows, 0 recorded`）・`G-QC-GOLDEN-ARGS`・`G-QC-GOLDEN-BOUNDS`（golden が無い）・`G-QC-PRELUDE`（4 つのうち 3 つ）・`G-QC-DIAG`（7 つすべて）・`G-QC-SCHEMA`・`G-QC-SYNTAX`（7 つすべて）・`G-QC-ISSUES`・`G-QC-AUDIT` の 10 個。`G-RF-GOLDEN-COUNT`・`G-RD-SCOPE`・`G-RD-ADD-ONLY`・`G-REPO-CLAUDEMD`・`G-REPO-SELFTESTS` は合格
-- わざと壊す確認: S755・前提の固定・`G-QC-RF-COUNT`（P0-3、2026-11-02）。`goal_G_RF_GOLDEN_COUNT` を今の数と比べる元の形に戻すと「readme-start in G-RF-GOLDEN-COUNT: got '0'」と「G-RF-GOLDEN-COUNT: exit 1」で落ちた。戻すと合格した
-- わざと壊す確認: S755・副作用とコスト・`G-RF-GOLDEN-COUNT`（P0-3、2026-11-02）。一時的な worktree で `readme-start` にある golden `linear/unused-alias` を消すと「readme-start goldens missing now: got '1'」で落ちた。worktree を消すと合格した
-- わざと壊す確認: S781・前提の固定・`G-QC-RD-RANGE`（P0-3、2026-11-02）。`goals.sh` の `RD=` を `readme-start..HEAD` に戻すと「RD range: got '0'」で落ち、`G-RD-SCOPE` も「files outside scope: got '57'」で落ちた（計画を書いた時点の 2 から、後の作業でさらに増えていた）。戻すと合格した
-- わざと壊す確認: S757・正常系・`G-QC-CLAUDEMD`（P0-3、2026-11-02）。`CLAUDE.md` の本計画の行の `qc-start` を `qc` にすると「plan line in CLAUDE.md: got '0'」で落ちた。戻すと合格した
-- 赤の確認（P1-1、2026-11-02）: `9426fff` で足した 18 個（`volume-for-time`・`mass-for-length`・`unitless-time`・`count-param`・`named-arg`・`pipe-arg`・`variable-arg`・`macro-body`・`macro-splice`・`composite`・`user-dimension`・`continues-after`・`issue1`・`range-units-steps`・`range-units-dimension`・`range-units-mixed`・`range-units-ingredient`・`make-arg-dimension`）は、着手点のビルドですべて落ちた（赤）。`144bba6` で足した対照の 3 個（`ok-units`・`unknown-value`・`default-unchecked`）は合格し、`scripts/red-first-exceptions.txt` に載せた
-- `args/unknown-value` の書き方（P1-1、2026-11-02）: §5.3 の見込み（`eval/runtime-value-in-if` の書き方）ではなく、既定値の無いレシピの引数 `recipe tamagoyaki(t: Time)` を動作に渡す形にした。単独で検査するとき `t` は値を持たず（`debug steps` に `fry(egg, t)` と出る）、比較の `TYP015` のような別の診断が混ざらない
-- `args/composite` の形（P1-1、2026-11-02）: 中で引数を使わない `quickA` と、中の `fry(x, t)` に引数を渡す `quickB` の 2 つの合成の動作を並べた。`quickB` だけでは、外の照合を飛ばしても中の照合が同じ位置に同じ診断を出すので、S702 のわざと壊す確認が効かないため
-- 利用者の動作の golden（`count-param`・`user-dimension`・`default-unchecked`）は、卵（`Hazard`）だと加熱しない動作の結果が `SAF001` になるので、豆腐（`RawEdible`）を使った
-- 状態の型の中の引数（P1-2、2026-11-02）: 同じ穴がある。利用者の動作の引数の型 `T<shape: cut(slice, 3 ml)>` も `T<shape: cut(slice, 0 mm)>` も、材料の型 `Cucumber<shape: cut(slice, 3 ml)>` も `result ok` になる（`3 mm` に切った値を `3 ml` の型の引数に渡しても通る）。照合の経路が別なので本計画では直さず、最終ゲートの後に別の作業として提案する
-- `args/unknown-value` の直し（P1-2、2026-11-02）: S704 のわざと壊す確認（未知の値を次元の無い量として照合する）が効かなかった。既定値の無いレシピの引数 `t` は、束縛も定義も無い名前として列挙の値（`V_ENUM`）に評価され、未知の値（`V_UNKNOWN`）にならないため。引数を `t + 1 min`（列挙の値と量の和で、評価の結果が未知の値になる）に直すと、同じ壊し方で落ちた。期待（`.out`）は `result ok` のまま変えていない
-- S701 のわざと壊す方法の差し替え（P1-2、2026-11-02）: 網羅表の「`arg_site` の trail を設定しない」は効かない。`arg_site` は差し込みでない節には評価中の trail（マクロの本文を評価している間は展開履歴そのもの）を返すので、設定しなくても同じ trail になる。代わりに「照合の診断の trail を空にする」で確かめた
-- わざと壊す確認: S695・正常系・`cgolden/args/volume-for-time`（P1-2、2026-11-02）。`call_action` の照合の呼び出しを消すと `volume-for-time` を含む 14 本が落ちた。戻すと合格した
-- わざと壊す確認: S695・正常系・`cgolden/args/mass-for-length`（P1-2、2026-11-02）。照合を `Time` の宣言にだけ効くように狭めると `mass-for-length`・`count-param`・`user-dimension` が落ちた。戻すと合格した
-- わざと壊す確認: S696・境界・上限・`cgolden/args/unitless-time`（P1-2、2026-11-02）。次元の無い量を照合の前に読み飛ばすと `unitless-time` だけが落ちた。戻すと合格した
-- わざと壊す確認: S697・効かない条件・`cgolden/args/count-param`（P1-2、2026-11-02）。照合で `pcs` を次元の無い量に直す処理を外すと `count-param` だけが落ちた。戻すと合格した
-- わざと壊す確認: S698・実際の経路・`cgolden/args/named-arg`（P1-2、2026-11-02）。照合を位置で渡した引数だけにすると `named-arg` だけが落ちた。戻すと合格した
-- わざと壊す確認: S699・実際の経路・`cgolden/args/pipe-arg`（P1-2、2026-11-02）。`pipe_into` で左辺を最後の引数に付けると `pipe-arg`・`mass-for-length`・`ok-units` が落ちた。戻すと合格した
-- わざと壊す確認: S700・正常系・`cgolden/args/variable-arg`（P1-2、2026-11-02）。診断の位置を呼び出し全体にすると `variable-arg` を含む 14 本が落ちた。戻すと合格した
-- わざと壊す確認: S701・実際の経路・`cgolden/args/macro-body`（P1-2、2026-11-02）。照合の診断の trail を空にすると `macro-body` だけが落ちた。戻すと合格した
-- わざと壊す確認: S758・実際の経路・`cgolden/args/macro-splice`（P1-2、2026-11-02）。照合の診断の位置を `arg_site` を通さず引数の節そのもの（マクロの本文の `$t`）にすると `macro-splice` だけが落ちた。戻すと合格した
-- わざと壊す確認: S702・実際の経路・`cgolden/args/composite`（P1-2、2026-11-02）。合成の動作のときは外の照合を飛ばすと `composite` だけが落ちた。戻すと合格した
-- わざと壊す確認: S759・副作用とコスト・`cgolden/args/composite`（P1-2、2026-11-02）。外で照合に落ちた引数でも中の呼び出しで照合の診断を出すと `composite` だけが落ちた（`5 g` に 2 つ出る）。戻すと合格した
-- わざと壊す確認: S703・正常系・`cgolden/args/user-dimension`（P1-2、2026-11-02）。照合を標準の 6 つの次元に限ると `user-dimension` だけが落ちた。戻すと合格した
-- わざと壊す確認: S704・効かない条件・`cgolden/args/unknown-value`（P1-2、2026-11-02）。未知の量も照合し、次元の無い量として扱うと `unknown-value`・`range-units-mixed` が落ちた。戻すと合格した
-- わざと壊す確認: S705・効かない条件・`cgolden/args/default-unchecked`（P1-2、2026-11-02）。既定値を評価した後にも照合を呼ぶと `default-unchecked` だけが落ちた。戻すと合格した
-- わざと壊す確認: S706・副作用とコスト・`cgolden/args/continues-after`（P1-2、2026-11-02）。次元の誤りで `call_action` から未知の値を返すと `continues-after` を含む 12 本が落ちた。戻すと合格した
-- わざと壊す確認: S707・効かない条件・`cgolden/args/ok-units`（P1-2、2026-11-02）。区間の値をエラーにすると `ok-units`・`range-units-steps` が落ちた。戻すと合格した
-- わざと壊す確認: S707・効かない条件・`cgolden/args/ok-units`（P1-2、2026-11-02）。列挙の値も次元の無い量として照合し、次元でない型の引数にも次元の誤りを出すと `ok-units`・`mass-for-length`・`unknown-value` が落ちた。戻すと合格した
-- わざと壊す確認: S708・実際の経路・`cgolden/args/issue1`（P1-2、2026-11-02）。`TYP001` の重大度を警告にすると `issue1` を含む 16 本が落ちた。戻すと合格した
-- わざと壊す確認: S760・正常系・`cgolden/args/range-units-steps`（P1-2、2026-11-02）。`eval_inner` の範囲の評価を消すと `range-units-steps` を含む 4 本が落ちた。戻すと合格した
-- わざと壊す確認: S761・実際の経路・`cgolden/args/range-units-dimension`（P1-2、2026-11-02）。範囲の評価で結果の次元を記録しないと `range-units-dimension`・`range-units-steps`・`range-units-ingredient` が落ちた。戻すと合格した
-- わざと壊す確認: S762・境界・上限・`cgolden/args/range-units-mixed`（P1-2、2026-11-02）。両端の次元を比べず左の次元を使うと `range-units-mixed` だけが落ちた。戻すと合格した
-- わざと壊す確認: S763・データの完全性・`cgolden/args/range-units-ingredient`（P1-2、2026-11-02）。材料の量の評価で範囲の節を未知にすると `range-units-ingredient` だけが落ちた。戻すと合格した
-- わざと壊す確認: S764・実際の経路・`cgolden/args/make-arg-dimension`（P1-2、2026-11-02）。`make` の量の引数の照合を消すと `make-arg-dimension` だけが落ちた。戻すと合格した
-- 赤の確認（P2-1、2026-11-02）: `b894674` で足した 15 個（`exclusive-from`・`exclusive-upper-inclusive`・`exclusive-upper-over`・`exclusive-interval`・`exclusive-kitchen`・`exclusive-count`・`exclusive-empty`・`types-json-exclusive`・`make-arg-range`・`time-zero`・`time-negative`・`range-units-negative-time`・`size-zero`・`size-negative`・`composite-range`）は、足した時点のビルド（P1 の実装の後）ですべて落ちた（赤）。`095a7c8` で足した対照の 7 個（`closed-zero-ok`・`expression-unchanged`・`small-positive`・`soak-default`・`temperature-negative`・`dimension-before-range`・`exclusive-space`）は合格し、`scripts/red-first-exceptions.txt` に載せた
-- 利用者の設備の設定の型（P2-1、2026-11-02）: `type ScaleSpec : EquipmentSpec { maxLoad: Mass in 0 g.. }` の範囲付きのフィールドは、`--emit types` の `equipment` の `Scale` に `"min":"0 g"` として出る。`types-json-exclusive` はこの型で書いた
-- `bounds/types-json-exclusive` の期待の作り方（P2-1、2026-11-02）: 型の一覧の JSON は標準の設備と器の型をすべて含み、手で書くには長い。そこで、同じ名前のファイルで範囲を閉じた形（`0 g..`）にしたものを着手点のビルド `build/qc-start-ozen` に掛けた出力を土台にし、`maxLoad` のフィールドだけを手で `"min":"0 g","minExclusive":true,"max":null` に直した。ほかの部分は本計画で変わらない（D79）ので、変える前の実装がオラクルになる。P3 で `Options.servings` の `min` が `"1"` になるので、そのとき期待を直す
-- `bounds/expression-unchanged` の期待（P2-1、2026-11-02）: §5.2 のとおり、`build/qc-start-ozen debug ast` の出力から作った（`3 min<..5 min` が `Binary <` と `RangeTo` に読まれる）
-- `<..` の読み方と AST の表し方（P2-2、2026-11-02）: 新しい規則 `type_range` を `type()` の `in` の後だけで読む関数にした。`range()` で読んだ値の直後に `<` があり、その次のトークンが空白を挟まない `..` のときだけ、新しい節の種類 `RangeAbove`（子は下端と、あれば上端）を作る。印ではなく節の種類にしたのは、範囲を読む 3 か所（`check_qty`・`put_field`・診断の範囲の文字）がどれも節の種類で分岐しているため。`RangeAbove` と規則 `type_range` は、既存の番号を変えないよう `ast.h` の節の種類と `rules.def` の末尾に足した。既存の golden はすべて変わらず合格し（`T<shape: cut>` の型の引数を含む）、式の中の `3 min<..5 min` は `bounds/expression-unchanged` のとおり今までと同じ木になる。§3.2 の見込みどおり衝突は無い
-- `schemas/result.schema.json` の `"min": {` は 4 か所（設備・器・台所・条件の型のフィールド）あり、4 か所すべてに `minExclusive` を足した（`G-QC-SCHEMA` は数が同じことを見る）
-- S718 のわざと壊す方法の場所（P2-2、2026-11-02）: `mark(p, OZNI_R_type_range)` は `type()` ではなく、`type()` から呼ぶ `type_range()` の先頭に置いた。わざと壊す確認はそこを消して行った
-- わざと壊す確認: S765・実際の経路・`cgolden/bounds/make-arg-range`（P2-2、2026-11-02）。`make` の照合に範囲を外した型を渡すと `make-arg-range` が落ちた。戻すと合格した
-- わざと壊す確認: S709・境界・上限・`cgolden/bounds/exclusive-from`（P2-2、2026-11-02）。下端を含まない判定を閉区間の判定にする（下端ちょうどを通す）と `exclusive-from` を含む 6 本が落ちた。戻すと合格した
-- わざと壊す確認: S710・境界・上限・`cgolden/bounds/exclusive-upper-inclusive`（P2-2、2026-11-02）。上端の判定を `>=` にすると `exclusive-upper-inclusive` が落ちた。戻すと合格した
-- わざと壊す確認: S710・境界・上限・`cgolden/bounds/exclusive-upper-over`（P2-2、2026-11-02）。`type_range()` で `a<..b` の上端を読み捨てると `exclusive-upper-over` が落ちた。戻すと合格した
-- わざと壊す確認: S711・効かない条件・`cgolden/bounds/exclusive-space`（P2-2、2026-11-02）。`<` と `..` の間の空白を許すと `exclusive-space` が落ちた。戻すと合格した
-- わざと壊す確認: S712・正常系・`cgolden/bounds/exclusive-from`（P2-2、2026-11-02）。診断の 3 つ目の引数を下端の文字だけにすると `exclusive-from` を含む 7 本が落ちた。戻すと合格した
-- わざと壊す確認: S713・境界・上限・`cgolden/bounds/exclusive-interval`（P2-2、2026-11-02）。区間の値の下端の判定に値の上端を使うと `exclusive-interval` が落ちた。戻すと合格した
-- わざと壊す確認: S714・効かない条件・`cgolden/bounds/closed-zero-ok`（P2-2、2026-11-02）。閉じた範囲も下端を含まない判定にすると `closed-zero-ok` が落ちた。戻すと合格した
-- わざと壊す確認: S715・効かない条件・`cgolden/bounds/expression-unchanged`（P2-2、2026-11-02）。`range()`（式と共用）で `<..` を読むと `expression-unchanged`・`exclusive-space` が落ちた。戻すと合格した
-- わざと壊す確認: S766・実際の経路・`cgolden/bounds/exclusive-kitchen`（P2-2、2026-11-02）。`check_value`（台所の設定の経路）では下端を含まない範囲を見ないと `exclusive-kitchen` が落ちた。戻すと合格した
-- わざと壊す確認: S767・境界・上限・`cgolden/bounds/exclusive-count`（P2-2、2026-11-02）。下端が数だけのときは下端を含まない印を読み捨てると `exclusive-count`・`exclusive-empty` が落ちた。戻すと合格した
-- わざと壊す確認: S768・境界・上限・`cgolden/bounds/exclusive-empty`（P2-2、2026-11-02）。下端と上端が等しい範囲では下端の判定を閉区間にすると `exclusive-empty` が落ちた。戻すと合格した
-- わざと壊す確認: S716・データの完全性・`cgolden/bounds/types-json-exclusive`（P2-2、2026-11-02）。`minExclusive` を出さないと `types-json-exclusive` が落ちた。戻すと合格した
-- わざと壊す確認: S716・効かない条件・`cgolden/api/types-json`（P2-2、2026-11-02）。下端のある範囲にはすべて `minExclusive` を出し、含む範囲では `false` にすると `api/types-json` が落ちた。戻すと合格した
-- わざと壊す確認: S717・データの完全性・`G-QC-SCHEMA`（P2-2、2026-11-02）。スキーマの型のフィールドから `minExclusive` を消すと「minExclusive beside min: got '0'」と「schema: got 'json: 1 files, 1 invalid'」で落ちた。戻すと合格した
-- わざと壊す確認: S718・データの完全性・`G-CORE-GRAMMAR`（P2-2、2026-11-02）。`type_range()` の `mark(p, OZNI_R_type_range)` を消すと「grammar: 134 rules, 1 not covered」で落ちた。戻すと合格した
-- わざと壊す確認: S718・文書との一致・`G-QC-SYNTAX`（P2-2、2026-11-02）。`core/grammar.ebnf` から `type_range` の規則を消すと「grammar type_range: got '0'」で落ちた。戻すと合格した
-- わざと壊す確認: S719・データの完全性・`G-QC-SYNTAX`（P2-2、2026-11-02）。`core/fuzz/ozen.dict` から `"<.."` を消すと「fuzz dict: got '0'」で落ちた。戻すと合格した
-- 期待を直した golden: `tests/golden/api/signatures-json.out` — 標準の 8 つの引数（`soak`・`fry`・`simmer`・`boil`・`parboil`・`chill`・`rest` の `time` と `cut` の `size`）の型の文字が範囲付き（`Time in 0 s<..`・`Length in 0 mm<..`）になった（S769、P2-3）。期待は古い期待の該当する 8 か所を手で書き換えて作り、実装の出力と一致することを確かめた。利用者の動作 `press` の `time: Time` は変わらない
-- 期待を直した golden: `tests/golden/api/local-not-listed.out` — 定義の一覧の JSON で、同じ 8 つの引数の型が `TypeRef` から `RangedType`（子に型の名前と `RangeAbove`）になった（P2-3）。差分を読み、この 8 か所の型の木のほかに変わったところが無いことを確かめてから直した
-- わざと壊す確認: S720・データの完全性・`G-QC-PRELUDE`（P2-3、2026-11-02）。`chill` の `time` の範囲を消すと「time ranges: got '6'」で落ちた。戻すと合格した
-- わざと壊す確認: S721・データの完全性・`G-QC-PRELUDE`（P2-3、2026-11-02）。`cut` の `size` の範囲を `0 mm..` にすると「size range: got '0'」で落ちた。戻すと合格した
-- わざと壊す確認: S722・境界・上限・`cgolden/bounds/time-zero`（P2-3、2026-11-02）。`simmer` の範囲を `0 s..` にすると `time-zero`・`range-units-negative-time` が落ちた。戻すと合格した
-- わざと壊す確認: S723・正常系・`cgolden/bounds/time-negative`（P2-3、2026-11-02）。`boil` の範囲を消すと `time-negative` が落ちた。戻すと合格した
-- わざと壊す確認: S770・実際の経路・`cgolden/bounds/range-units-negative-time`（P2-3、2026-11-02）。`simmer` の範囲を消すと `range-units-negative-time`・`time-zero` が落ちた。戻すと合格した
-- わざと壊す確認: S724・境界・上限・`cgolden/bounds/size-zero`（P2-3、2026-11-02）。`cut` の範囲を `0 mm..` にすると `size-zero`・`size-negative` が落ちた（`-3 mm` も `TYP012` の範囲の文字が変わる）。戻すと合格した
-- わざと壊す確認: S724・正常系・`cgolden/bounds/size-negative`（P2-3、2026-11-02）。`cut` の範囲を消すと `size-negative`・`size-zero` が落ちた。戻すと合格した
-- わざと壊す確認: S725・効かない条件・`cgolden/bounds/small-positive`（P2-3、2026-11-02）。`fry` の範囲を `1 min<..` にすると `small-positive`・`composite-range` が落ちた。戻すと合格した
-- わざと壊す確認: S725・効かない条件・`cgolden/bounds/soak-default`（P2-3、2026-11-02）。既定値を使った呼び出しも照合する形にしたうえで `soak` の範囲を `30 min<..` にすると `soak-default` が落ちた。戻すと合格した
-- わざと壊す確認: S726・効かない条件・`cgolden/bounds/temperature-negative`（P2-3、2026-11-02）。範囲の無い次元の型の引数すべてに 0 以下を範囲外とする判定を当てると `temperature-negative`・`composite-range` が落ちた。戻すと合格した
-- わざと壊す確認: S726・データの完全性・`G-QC-PRELUDE`（P2-3、2026-11-02）。`OvenSpec.maxTemp` を `Temperature? in 0 degC..` にすると「temperature ranges: got '1'」で落ちた。戻すと合格した
-- わざと壊す確認: S727・副作用とコスト・`cgolden/bounds/dimension-before-range`（P2-3、2026-11-02）。次元が違っても範囲の判定を続けると `dimension-before-range` が落ちた。戻すと合格した
-- わざと壊す確認: S771・副作用とコスト・`cgolden/bounds/composite-range`（P2-3、2026-11-02）。合成の動作の中の照合の位置を呼び出し元に向けず中の呼び出しのまま出すと `composite-range` が落ちた。戻すと合格した
-- わざと壊す確認: S769・データの完全性・`cgolden/api/signatures-json`（P2-3、2026-11-02）。`--emit signatures` の引数の型の文字を範囲を除いた型の名前だけにすると `signatures-json` が落ちた。戻すと合格した
-- 買う量・分ける量（P3-2、2026-11-02）: 同じ穴がある。`let naan = buy Naan 0 pcs` も `split(water, -50 ml)`（`debug steps` に `(Water -50 ml, Water 250 ml)` と出る）も `result ok` になる。Issue は材料の量だけを挙げているので本計画では直さず、最終ゲートの後に別の作業として提案する
-- `bounds/amount-per-serving-unknown` の期待の並び（P3-2、2026-11-02）: 手で書いた期待は `TYP021`・`TYP020` の順だったが、診断は位置・診断のコードの順に並べて出す作り（`core/src/render.c` の `cmp_diag`）で、同じ位置では `TYP020` が先になる。仕様（S733）の誤りではなく並びの書き間違いなので、期待の 2 行を入れ替えた（`G-RF-SEPARATION` に従い、実装と別のコミット）
-- 期待を直した golden: `tests/golden/api/local-not-listed.out` — 診断の一覧に `TYP021 nonPositiveAmount` が 1 つ増えた（P3-2）
-- わざと壊す確認: S728・正常系・`cgolden/bounds/amount-negative`（P3-2、2026-11-02）。`TYP021` を出す処理を消すと `amount-negative` を含む 9 本が落ちた。戻すと合格した
-- わざと壊す確認: S729・境界・上限・`cgolden/bounds/amount-zero`（P3-2、2026-11-02）。判定を `lo < 0` にすると `amount-zero` を含む 5 本が落ちた。戻すと合格した
-- わざと壊す確認: S730・正常系・`cgolden/bounds/amount-negative`（P3-2、2026-11-02）。診断の引数の 2 つ目を材料の型の名前にすると `amount-negative` を含む 9 本が落ちた。戻すと合格した
-- わざと壊す確認: S731・境界・上限・`cgolden/bounds/amount-range-zero`（P3-2、2026-11-02）。判定に区間の上端を使うと `amount-range-zero` が落ちた。戻すと合格した
-- わざと壊す確認: S731・境界・上限・`cgolden/bounds/amount-range-negative`（P3-2、2026-11-02）。判定を `lo < -1` にすると `amount-range-negative`（`-0.5..0.8 g` の `TYP021` が消える）を含む 6 本が落ちた。戻すと合格した
-- わざと壊す確認: S731・効かない条件・`cgolden/bounds/amount-positive`（P3-2、2026-11-02）。判定を `lo <= 1` にすると `amount-positive` を含む多数（`1 pcs` の材料を使う golden）が落ちた。戻すと合格した
-- わざと壊す確認: S772・実際の経路・`cgolden/bounds/amount-range-units`（P3-2、2026-11-02）。`TYP021` の判定を量のリテラル・符号・数・数の範囲の節にだけ当てると `amount-range-units`・`amount-expression` が落ちた。戻すと合格した
-- わざと壊す確認: S732・正常系・`cgolden/bounds/amount-per-serving-zero`（P3-2、2026-11-02）。`per serving` の量では判定を飛ばすと `amount-per-serving-zero`・`amount-per-serving-unknown` が落ちた。戻すと合格した
-- わざと壊す確認: S733・副作用とコスト・`cgolden/bounds/amount-per-serving-unknown`（P3-2、2026-11-02）。人数が決まらない `per serving` の量では判定を飛ばすと `amount-per-serving-unknown` が落ちた。戻すと合格した
-- わざと壊す確認: S734・効かない条件・`cgolden/bounds/amount-any`（P3-2、2026-11-02）。`[any amount]` を 0 として `TYP021` を出すと `amount-any` が落ちた。戻すと合格した
-- わざと壊す確認: S735・効かない条件・`cgolden/bounds/amount-none`（P3-2、2026-11-02）。量の決まらない材料を 0 として判定すると `amount-none` が落ちた。戻すと合格した
-- わざと壊す確認: S736・副作用とコスト・`cgolden/bounds/amount-wrong-dim`（P3-2、2026-11-02）。次元の誤りの後にも判定を続けると `amount-wrong-dim` が落ちた。戻すと合格した
-- わざと壊す確認: S737・正常系・`cgolden/bounds/amount-expression`（P3-2、2026-11-02）。判定を式（二項演算）でない量にだけ当てると `amount-expression` が落ちた。戻すと合格した
-- わざと壊す確認: S738・効かない条件・`cgolden/bounds/amount-positive`（P3-2、2026-11-02）。判定を `lo <= 0.5 g` 相当にすると `amount-positive` が落ちた。戻すと合格した
-- わざと壊す確認: S739・データの完全性・`G-QC-DIAG`（P3-2、2026-11-02）。`phrases/ja.ftl` の `diag-non-positive-amount` から `{ $arg2 }` を消すと「ja phrase: got '0'」で落ちた。戻すと合格した
-- わざと壊す確認: S739・データの完全性・`G-CORE-DIAG-REGISTRY`（P3-2、2026-11-02）。`core/tests/diag-names.txt` から `TYP:nonPositiveAmount` を消すと「1 unlisted」で落ちた。戻すと合格した
-- わざと壊す確認: S739・前提の固定・`G-CORE-DIAG-APPEND`（P3-2、2026-11-02）。一時的な worktree の作業用のコミットで `TYP021` を `TYP020` の次の行に入れ直すと「deleted registry lines: got '1'」で落ちた。`git reset --hard` で消し、worktree を消した（push していない）
-- 人数の経路の作り（P3-3、2026-11-02）: 見出しに自分で範囲を宣言していない人数（型の無い `servings: 0`、`servings: Count = 0`、献立の見出し、`make` の引数）は、標準ライブラリの `Options.servings` の型（`Count? in 1..`）を型として検査する。範囲の文字 `1..` はそこから出る。条件（`-s`・`--options`）の人数は条件の側の検査に落ちたら印を付け、見出しの側では検査せず、人数を未知として扱う。人数が範囲外や次元違いで未知になった料理では、`per serving` の総量に `TYP020` を出さず、`servings` を使う式の量は評価できず未知になる（`TYP021` も出ない）
-- S773 のわざと壊す方法の差し替え（P3-3、2026-11-02）: 網羅表の「判定を人数を掛けた後に動かす」は効かない。範囲外の人数は未知として扱うので、掛け算そのものが起きず `100 g per serving` は 0 g にならない。代わりに「範囲外の人数を未知にせず、そのまま使う」（`150 ml * servings` が `0 ml` になり `TYP021` が出る）と、「人数が範囲外でも `TYP020` を出す」の 2 つで確かめた
-- 期待を直した golden: `tests/golden/api/types-json.out` — `Options.servings` の `min` が `null` から `"1"` になった（S741、P3-1 で手で直した）
-- わざと壊す確認: S773・副作用とコスト・`cgolden/bounds/servings-invalid-amounts`（P3-3、2026-11-02）。範囲外の人数を未知にせずそのまま使うと `servings-invalid-amounts` が落ちた（`150 ml * servings` に `TYP021`）。人数が範囲外でも `TYP020` を出す形でも落ちた。戻すと合格した
-- わざと壊す確認: S785・効かない条件・`cgolden/bounds/servings-invalid-amounts`（P3-3、2026-11-02）。人数が範囲外のときは `per serving` の量の判定も飛ばすと `servings-invalid-amounts` が落ちた。戻すと合格した
-- わざと壊す確認: S741・データの完全性・`cgolden/api/types-json`（P3-3、2026-11-02）。`Options.servings` の範囲を消すと `types-json` が落ちた。戻すと合格した
-- わざと壊す確認: S774・実際の経路・`rtest/settings-servings-min`（P3-3・P4-2、2026-11-02）。`settingsSpec` が省略可能な型（`Count?`）の `min` を捨てるようにすると `settings-servings-min` が落ちた。戻すと合格した（P3-3 ではテストの入力を書き換える方法で確かめたが、監査の指摘 4-1 のとおり実装を壊していないので、P4-2 で実装側の壊し方に差し替えた）
-- わざと壊す確認: S742・境界・上限・`cgolden/bounds/optional-ranged`（P3-3、2026-11-02）。`base_type` の入れ子の外し方を元に戻すと `optional-ranged` を含む 11 本が落ちた。戻すと合格した
-- わざと壊す確認: S743・正常系・`cgolden/bounds/servings-header-zero`（P3-3、2026-11-02）。型の無い `servings` の検査を消すと `servings-header-zero`・`servings-menu-header`・`servings-invalid-amounts` が落ちた。戻すと合格した
-- わざと壊す確認: S744・正常系・`cgolden/bounds/servings-typed-zero`（P3-3、2026-11-02）。型だけの `servings` では検査しないと `servings-typed-zero` が落ちた。戻すと合格した
-- わざと壊す確認: S745・副作用とコスト・`cgolden/bounds/servings-own-range`（P3-3、2026-11-02）。宣言に範囲があっても `1..` で重ねて検査すると `servings-own-range` が落ちた（`0` に 2 つ出る）。戻すと合格した
-- わざと壊す確認: S746・実際の経路・`cgolden/bounds/servings-make-zero`（P3-3、2026-11-02）。`make` の引数の人数を検査しないと `servings-make-zero`・`servings-make-positional` が落ちた。戻すと合格した
-- わざと壊す確認: S775・実際の経路・`cgolden/bounds/servings-make-positional`（P3-3、2026-11-02）。`make` の照合を名前で渡した引数だけにすると `servings-make-positional` が落ちた。戻すと合格した
-- わざと壊す確認: S776・実際の経路・`cgolden/bounds/servings-menu-header`（P3-3、2026-11-02）。人数の検査をレシピの見出しだけにする（献立の見出しの `servings` を評価しない）と `servings-menu-header` が落ちた。戻すと合格した
-- わざと壊す確認: S747・実際の経路・`cgolden/bounds/servings-flag-zero`（P3-3、2026-11-02）。条件のフィールドの `check_value` を飛ばすと `servings-flag-zero`・`servings-options-zero` を含む 4 本が落ちた。戻すと合格した
-- わざと壊す確認: S747・境界・上限・`cgolden/bounds/servings-flag-negative`（P3-3、2026-11-02）。人数の判定を 0 ちょうどだけにする（負の値を通す）と `servings-flag-negative` が落ちた。戻すと合格した
-- わざと壊す確認: S777・副作用とコスト・`cgolden/bounds/servings-flag-header-range`（P3-3、2026-11-02）。条件の側で誤りでも見出しの側で検査すると `servings-flag-header-range`・`servings-flag-dimension` が落ちた。戻すと合格した
-- わざと壊す確認: S778・実際の経路・`cgolden/bounds/servings-flag-over-header`（P3-3、2026-11-02）。条件から来た人数では見出しの宣言の範囲を見ないと `servings-flag-over-header` が落ちた。戻すと合格した
-- わざと壊す確認: S779・副作用とコスト・`cgolden/bounds/servings-flag-dimension`（P3-3、2026-11-02）。重複を除く処理を消す（条件の側の誤りに関わらず見出しの型でも検査する）と `servings-flag-dimension`（今と同じ 2 行に戻る）・`servings-flag-header-range` が落ちた。戻すと合格した
-- わざと壊す確認: S748・実際の経路・`cgolden/bounds/servings-options-zero`（P3-3、2026-11-02）。条件のフィールドの `check_value` を飛ばすと `servings-options-zero` が落ちた（S747 と同じ壊し方）。戻すと合格した
-- わざと壊す確認: S749・境界・上限・`cgolden/bounds/servings-one-ok`（P3-3、2026-11-02）。`Options.servings` の範囲（型の無い見出しの人数の検査にも使う）を `1<..` にすると `servings-one-ok` が落ちた。戻すと合格した
-- わざと壊す確認: S780・境界・上限・`cgolden/bounds/servings-flag-one-ok`（P3-3、2026-11-02）。`Options.servings` の範囲を `1<..` にすると `servings-flag-one-ok` が落ちた。戻すと合格した
-- わざと壊す確認: S750・実際の経路・`cgolden/bounds/issue2`（P3-3、2026-11-02）。`boil` の範囲を消すと `issue2`・`time-negative` が落ちた。戻すと合格した
-- わざと壊す確認: S740・文書との一致・`G-TYPE-SEVERITY-TABLE`（P4-1、2026-11-02）。`severity-examples.txt` の「0 以下の量」の重大度を `warning` にすると「severity: 18 examples, 1 mismatched」で落ちた。戻すと合格した
-- わざと壊す確認: S740・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept §6.1 から「0 以下の量」を消すと「concept 6.1 amount: got '0'」で落ちた。戻すと合格した
-- わざと壊す確認: S756・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept §4.2 から `0 s<..` の例（文と `boil` の例の行）を消すと「concept 4.2 example: got '0'」で落ちた。戻すと合格した
-- わざと壊す確認: S783・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept §4.2 の「範囲外は必ずエラー」の文から動作の引数を消すと「concept 4.2 action arguments: got '0'」で落ちた。戻すと合格した
-- わざと壊す確認: S784・文書との一致・`G-QC-SYNTAX`（P4-1、2026-11-02）。concept の `type Options` の例の `servings` を `Count` に戻すと「concept Options servings: got '0'」で落ちた。戻すと合格した
-- 網羅の監査: 指摘 23 件、取り込み 15 件（P4-2、2026-11-02）。独立したサブエージェントに §1・§4・§8・網羅表・足した golden・実装の差分を読ませ、実際に動かして確かめさせた。取り込んだのは、実際に誤った出力が出た 5 件（2-1 逆順の範囲が未知になる、2-2 合成の動作で同じ引数を 2 回使うと 2 行出る、2-3 合成の動作の既定値が中で検査される、2-6 レシピの引数の誤った既定値が 2 か所で出る、2-8 `make` の範囲外の人数で料理を 0 人分として評価する）と、2-10（`0..1 min<..` を受け付ける）の修正、テストの無かった経路の golden（1-4・2-7・2-9・2-12）、文書と `G-QC-SYNTAX` の上端の記述（1-2・3-2）、`G-QC-ISSUES` と `G-QC-DIAG` の検査の追加（3-1・3-3）、S774 の壊し方の差し替え（4-1）。§4 に S786〜S795 を足し、golden を 5 個足して 3 個を直した（§5.2）。取り込まなかった 8 件の理由は §5.3 の末尾
-- 監査の後の修正のコミット（P4-2、2026-11-02）: golden の追加は `0310942`（赤。修正前のビルドで `args/default-unchecked`・`args/range-units-steps`・`args/recipe-default-once`・`bounds/composite-range`・`bounds/exclusive-range-lower`・`bounds/servings-make-invalid` が落ちた）と `f6f06a3`（対照。`scripts/red-first-exceptions.txt` に載せた）、修正は `f9dbcf9`（範囲の両端の並べ直し）・`f9c4efb`（`0..1 min<..` の拒否）・`4e8e19e`（合成の動作の引数を 1 回だけ出し、既定値は検査しない）・`08059da`（型に落ちたレシピの引数と `make` の引数を未知にする）
-- 1 文字の名前（P4-2、2026-11-02）: 前提ゴールの `G-RF-NAMES` が、本計画の golden の 1 文字の束縛の名前（`let s`・`let t`・`recipe a` など）で落ちた。`4bfd2d3` で `dish`・`time`・`limit` に直し、Issue の再現をそのまま写した `args/issue1` と `bounds/issue2` だけを `scripts/test-names-exceptions.txt` に理由付きで載せた。`bounds/expression-unchanged` の期待は、名前を直した入力で着手点のビルドから作り直した。`bounds/types-json-exclusive` の期待も、上端のあるフィールドを足した入力で同じ作り方（着手点のビルドの出力に手で `minExclusive` と `Options.servings` の `min` を足す）で作り直した
-- わざと壊す確認: S786・境界・上限・`cgolden/args/range-units-steps`（P4-2、2026-11-02）。下端が上端より大きい範囲を未知の値にすると `range-units-steps` が落ちた。戻すと合格した
-- わざと壊す確認: S787・副作用とコスト・`cgolden/bounds/composite-range`（P4-2、2026-11-02）。中の照合で落ちたことを合成の動作の枠に記録しないと `composite-range` が落ちた（`twice` の `0 s` に 2 つ出る）。戻すと合格した
-- わざと壊す確認: S788・効かない条件・`cgolden/args/default-unchecked`（P4-2、2026-11-02）。`qty_site` で合成の動作の既定値の枠を飛ばさないと `default-unchecked` が落ちた。戻すと合格した
-- わざと壊す確認: S789・副作用とコスト・`cgolden/args/recipe-default-once`（P4-2、2026-11-02）。型に落ちたレシピの引数も束縛すると `recipe-default-once` が落ちた（`boil` の位置にも `TYP001`）。戻すと合格した
-- わざと壊す確認: S790・効かない条件・`cgolden/bounds/exclusive-range-lower`（P4-2、2026-11-02）。`type_range()` で単位付きの数の範囲を下端として受け付けると `exclusive-range-lower` が落ちた。戻すと合格した
-- わざと壊す確認: S791・副作用とコスト・`cgolden/bounds/servings-flag-invalid-amounts`（P4-2、2026-11-02）。条件の側で誤りでも見出しの側で人数を束縛すると `servings-flag-invalid-amounts`・`servings-flag-header-range`・`servings-flag-dimension` が落ちた。戻すと合格した
-- わざと壊す確認: S792・データの完全性・`cgolden/bounds/servings-make-invalid`（P4-2、2026-11-02）。`make` の照合に落ちた引数をそのまま料理に渡すと `servings-make-invalid` が落ちた。戻すと合格した
-- わざと壊す確認: S793・実際の経路・`cgolden/bounds/servings-make-own-range`（P4-2、2026-11-02）。`make` の人数を見出しの範囲を見ずに `Options.servings` の型で検査すると `servings-make-own-range` が落ちた。戻すと合格した
-- わざと壊す確認: S794・データの完全性・`cgolden/bounds/types-json-exclusive`（P4-2、2026-11-02）。`put_field` で `RangeAbove` の上端を `max` に出さないと `types-json-exclusive` が落ちた。戻すと合格した
-- わざと壊す確認: S795・文書との一致・`G-QC-SYNTAX`（P4-2、2026-11-02）。concept §4.2 から「上端は含む」を消すと「concept 4.2 upper end included: got '0'」で落ちた。戻すと合格した
-- 範囲に入った別の作業のコミット: b215857（別のセッションによる計画ファイル `plans/ozen-authoring-support.md` の追加。2026-11-02 16:04 に `main` に入った）
-- `G-QC-SCOPE` の許すファイルに `scripts/test-names-exceptions.txt` を足した（P4-3、2026-11-02）。P4-2 で Issue の再現の 1 文字の名前を例外に載せたため（§4.11 の表、§5.1 の判定のコマンド、`goals.sh` の 3 か所）
-- わざと壊す確認: S751・副作用とコスト・`G-QC-GOLDEN-CHANGED`（P4-3、2026-11-02）。§9 の「期待を直した golden」の `tests/golden/api/types-json.out` の行を消すと「changed expectations not named in the plan: got '1'」で落ちた。戻すと合格した
-- わざと壊す確認: S752・副作用とコスト・`G-SAMPLE-CHECK`（P4-3、2026-11-02）。`stdlib/prelude.ozen` の `rest` の範囲を `1 h<..` にしてビルドし直すと「samples: 11 samples, 236 expectations, 4 failed」で落ちた。戻してビルドし直すと合格した
-- わざと壊す確認: S753・副作用とコスト・`G-QC-SCOPE`（P4-3、2026-11-02）。一時的な worktree の作業用のコミットで `samples/T1/araNi.ozen` を変えると「files outside scope: got '3'」で落ちた（範囲の外の 2 つは、このとき除外の行も許す一覧も無かった `b215857` と `scripts/test-names-exceptions.txt` で、この確認で見つけて直した）。`git reset --hard` で消し、worktree を消した（push していない）。直した後は合格した
-- わざと壊す確認: S753・前提の固定・`G-QC-SCOPE`（P4-3、2026-11-02）。タグ `qc-start` を手元で `qc-start-moved` に付け替えると「tag qc-start: got ''」で落ちた。`qc-start` を `0b4b4eb` に戻した
-- わざと壊す確認: S754・副作用とコスト・`G-QC-VERSION`（P4-3、2026-11-02）。`VERSION` を `0.1.1` にすると「VERSION: got '0.1.1'」で落ちた。戻すと合格した
-- わざと壊す確認: S782・副作用とコスト・`G-RF-SEPARATION`（P4-3、2026-11-02）。一時的な worktree の作業用のコミットで `tests/golden/args/issue1.out` と `core/src/sema.c` を同じコミットにすると「separation: 73 commits, 1 mixed」で落ちた。`git reset --hard` で消し、worktree を消した（push していない）
-- 範囲に入った別の作業のコミット: 139d786（別のセッションによる計画ファイル `plans/ozen-cooking-feedback.md` の追加）
-- 範囲に入った別の作業のコミット: bb545b8（別のセッションによる `plans/ozen-authoring-support.md` の決定の記録）
-- 最終ゲート（P4-3、2026-11-02）: `e98a8a9` で、P0-2 の基準値と同じ前提ゴール（`G-CORE-FUZZ` を除く 114 個と `G-CORE-BUILD`）に `G-QC-*`（`G-QC-ISSUES` を除く 17 個）・`G-RF-GOLDEN-COUNT`・`G-RF-FUZZ-DICT`・`G-RF-SEPARATION`・`G-RF-CONCEPT`・`G-RD-SCOPE`・`G-RD-ADD-ONLY`・`G-REPO-NOREPLY` を足した 133 個を回し、132 個が合格した。落ちた `G-QC-SCOPE` は回している間に入った別のセッションのコミット（`139d786`・`bb545b8`）のためで、D81 に従って除外の行に足すと合格した。`G-CORE-FUZZ` は、コアを最後に変えた `08059da` の一時的な worktree で回して合格した（6 対象とも 600 秒、クラッシュ・リーク・時間切れ 0、成果物 0。その後コアと標準ライブラリは変えていない）。wasm は `scripts/build-wasm.sh` で作り直してから `G-PLAT-WASM` を回した
-- 範囲に入った別の作業のコミット: 1ea30d3（別のセッションによる計画ファイル `plans/ozen-dev-environment.md` の追加）
-- 範囲を閉じた（2026-11-02）: 後に続く計画 `plans/ozen-cooking-feedback.md` の D111 に従い、本計画の最後のコミット `e350725` にタグ `qc-end` を打ち、`scripts/goals.sh` の `QC=` を `qc-start..qc-end` に、`G-QC-GOLDEN-CHANGED` の比較の終わりを `qc-end` に直した。後の計画のコミットが `G-QC-SCOPE`・`G-QC-GOLDEN-CHANGED` の範囲に入らないようにするため
+| ID | Content | Completion condition |
+| --- | --- | --- |
+| P2-1 | Of `tests/golden/bounds/`, write the 22 goldens for range syntax and for ranges of standard actions, and commit them before the implementation (8 `exclusive-*`: `from`, `upper-inclusive`, `upper-over`, `space`, `interval`, `kitchen`, `count`, `empty`. 14 others: `closed-zero-ok`, `expression-unchanged`, `types-json-exclusive`, `make-arg-range`, `time-zero`, `time-negative`, `range-units-negative-time`, `size-zero`, `size-negative`, `small-positive`, `soak-default`, `temperature-negative`, `dimension-before-range`, `composite-range`). Make the expectation of `expression-unchanged` from the `debug ast` output of the starting-point build (§5.2). Goldens that pass at that commit (expected: `closed-zero-ok`, `expression-unchanged`, `small-positive`, `soak-default`, `temperature-negative`, `dimension-before-range`; `exclusive-space` is already `SYN003` today, so it passes if the position is the same) go in a separate commit, with the reason in the exceptions. Check whether user settings types appear in `--emit types` | `scripts/golden-entries.sh tests/golden/bounds \| wc -l` is 22, and the prerequisite `G-REPO-RED-FIRST`. Record the names of the red and control goldens in §9 |
+| P2-2 | Add ranges that exclude the lower end (rule `type_range`) to the parser, the AST, `grammar.ebnf`, `rules.def` and `ozen.dict`. The range check, `base_type`, `minExclusive` in `defs.c`, and the schema. Put any expectation corrections in a separate commit | `exclusive-*`, `closed-zero-ok`, `expression-unchanged`, `types-json-exclusive`, `make-arg-range` and `api/types-json` pass, lines 1 to 3 of `G-QC-SCHEMA` and `G-QC-SYNTAX`, and the prerequisites `G-CORE-GRAMMAR`, `G-RF-FUZZ-DICT`, `G-API-SCHEMA`, `G-CORE-GOLDEN`, `G-RF-SEPARATION`. Mutation checks for S709 to S719 and S765 to S768 |
+| P2-3 | Add ranges to 8 arguments in `stdlib/prelude.ozen`. Point the position of range diagnostics inside composite actions to the caller. Handle changes in the expectations of existing goldens (such as `api/signatures-json`) following S751 | `time-*`, `range-units-negative-time`, `size-*`, `small-positive`, `soak-default`, `temperature-negative`, `dimension-before-range`, `composite-range`, `api/signatures-json` pass, lines 1 to 3 of `G-QC-PRELUDE`, and the prerequisites `G-CORE-GOLDEN`, `G-SAMPLE-CHECK`, `G-STD-*`, `G-RF-SEPARATION`. Mutation checks for S720 to S727 and S769 to S771 |
+
+### Phase 3 — Ingredient amounts and servings (#2, D71, D72, D75 to D77)
+
+| ID | Content | Completion condition |
+| --- | --- | --- |
+| P3-1 | Write the remaining 29 goldens of `tests/golden/bounds/` and `renderers/test/settings-servings-min.test.mjs`, and commit them before the implementation (12 `amount-*`: `zero`, `negative`, `range-zero`, `range-negative`, `range-units`, `per-serving-zero`, `per-serving-unknown`, `any`, `none`, `wrong-dim`, `expression`, `positive`. 15 `servings-*`: `header-zero`, `typed-zero`, `own-range`, `make-zero`, `make-positional`, `menu-header`, `flag-zero`, `flag-negative`, `flag-header-range`, `flag-over-header`, `flag-dimension`, `options-zero`, `one-ok`, `flag-one-ok`, `invalid-amounts`. 2 others: `optional-ranged`, `issue2`). Those that pass at that commit (expected: `amount-any`, `amount-none`, `amount-positive`, `amount-wrong-dim`, `servings-own-range`, `servings-one-ok`, `servings-flag-one-ok`, `servings-flag-over-header`) go in a separate commit, with the reason in the exceptions | `scripts/golden-entries.sh tests/golden/bounds \| wc -l` is 51, and the prerequisite `G-REPO-RED-FIRST`. Record the names of the red and control goldens in §9 |
+| P3-2 | Register `TYP021` (at the end of `diag_codes.def`, `diag-names.txt`, `phrases/*.ftl`, `names.mjs`) and report it in `eval_ingredients`. Check whether bought amounts and split amounts have the same hole, and write it in §9 | `amount-*` pass, lines 1 to 6 of `G-QC-DIAG`, and the prerequisites `G-CORE-DIAG-REGISTRY`, `G-CORE-DIAG-APPEND`, `G-STD-PHRASES`, `G-REND-PHRASES-RENDER`, `G-REND-TESTS`, `G-API-SARIF`, `G-CORE-GOLDEN`, `G-RF-SEPARATION`. Mutation checks for S728 to S739 and S772 |
+| P3-3 | Make `Options.servings` `Count? in 1..`, check the servings paths (headers, `make`, menu headers, `-s`, `--options`), and remove duplicates of the same value (D77). Suppress amount diagnostics when the servings are out of range (D76) | `servings-*`, `optional-ranged`, `issue2`, `api/types-json`, `settings-servings-min` pass, `G-QC-GOLDEN-BOUNDS`, `G-QC-PRELUDE` (all lines), and the prerequisites `G-CORE-GOLDEN`, `G-SAMPLE-CHECK`, `G-REND-TESTS`, `G-RF-SEPARATION`. Mutation checks for S741 to S750, S773 to S780 and S785 |
+
+### Phase 4 — Documents and finishing
+
+| ID | Content | Completion condition |
+| --- | --- | --- |
+| P4-1 | In `docs/concept.md` §4.2, add ranges that exclude the lower end, and add action arguments to the things for which out of range is an error. Fix `servings` in the `type Options` example. Add "amounts of 0 or less" to the error examples in §6.1. Add a line to `severity-examples.txt` | `G-QC-SYNTAX` (all lines), `G-QC-DIAG` (all lines), and the prerequisites `G-TYPE-SEVERITY-TABLE`, `G-RF-CONCEPT`. Mutation checks for S740, S756, S783, S784 |
+| P4-2 | Coverage audit: add the facts that grew in §9 to the coverage table. Judge each item of §8 again, with the knowledge gained from the implementation, by "can a command decide it?". Have an independent subagent read §1, §4, §8, the coverage table, the added goldens and the diff of `sema.c`, and list claims without tests and items in §8 that a command can decide. For each finding, add it, or write the reason for not adding it at the end of §5.3 | `G-QC-COVERAGE`, `G-QC-PLAN-NAMES`, `G-QC-AUDIT`. The number of audit findings and how they were handled, in §9 |
+| P4-3 | Final gate. Do the mutation checks for S751 to S754 and S782. Run `G-REPO-NOREPLY`, push, and check CI | All goals of §5 (except `G-QC-ISSUES`), including `G-QC-PLAN-TESTS`, `G-QC-SCOPE`, `G-QC-VERSION`, `G-QC-GOLDEN-CHANGED`, the local prerequisite goals, and `G-PLAT-CI` after the push |
+| P4-4 | Reply to the Issues and close them as D84 says. Show the text to the user before sending. Hand §8 to the user, and propose the separate work that was put out of scope (§1) | `G-QC-ISSUES` |
 
 ---
 
-## 10. リスク
+## 7. Dependencies between phases
 
-- **R1. 既存の golden・サンプルが、単位の無い引数や 0 の値や両端に単位を書いた範囲を使っている**: 2026-11-02 に `git grep` で動作の呼び出しの単位の無い数・0 以下の材料の量を探し、見つからなかった（`tests/golden/kitchen/negative-count.ozen` の `count: -1` は台所の設定で、既にエラーを期待している）。範囲の評価（D85）は、今「適量」や `?` と出ている出力を変えうる。漏れがあれば P1-2・P2-3・P3-2 で `G-CORE-GOLDEN`・`G-SAMPLE-CHECK` が落ちる。期待を直すか（S751）、直すべきでない変化かを個別に調べる。
-- **R2. `<..` の読み方が、型の範囲の外の書き方と衝突する**: 型の `in` の後だけで読むことで避ける（D74）。`bounds/expression-unchanged` と既存の golden（`G-CORE-GOLDEN`）、`G-CORE-FUZZ` で検出する。
-- **R3. 人数の検査が、人数を式で使う量（`150 g * servings`）や `per serving` の計算を変える**: 人数が範囲内なら値は変わらない。既存の `quantity/per-serving*`・`quantity/count-options`・`menus/make-servings` の golden が変わらないことで確かめる（`G-QC-GOLDEN-CHANGED` で直した期待を名指しさせる）。
-- **R4. 別の作業と同じ `main`・同じ作業ツリーを使う**: README の計画の R3 と同じ。範囲に入った別の作業のコミットは §9 に名指しして `G-QC-SCOPE` から除く（D81）。
-- **R5. `G-REPO-RED-FIRST` が遅い**: 期待を足したコミットごとに worktree でビルドし直すので、golden を足すコミットを Phase ごとに赤と対照の 2 つ（計 6 つ）にまとめて回数を抑える。
-- **R6. `G-QC-ISSUES` は `gh` の認証とネットワークが要る**: 使えないときは落ちたとして扱い、理由を報告する（合格にしない）。
-- **R7. 語彙の表から標準ライブラリを作り直すと範囲が消える**: `tools/std-from-vocab/convert.py` は表の次元だけを写すので、もし誰かが標準ライブラリを表から作り直すと、本計画の範囲が消える。今はどのゴールからも呼ばれていない。消えたら `G-QC-PRELUDE` が落ちる。
+- P0-1 → P0-2 → P0-3, in this order. Without the goals of P0-3, the completion conditions of later tasks cannot be judged.
+- Phase 1 → Phase 2 → Phase 3, in this order. The ranges of standard actions in Phase 2 (P2-3) and the range of `make` (P2-2) have no effect without the check from Phase 1. The range of `Options.servings` in Phase 3 (P3-3) needs the fix to `base_type` from P2-2. `amount-range-units` (P3-1) needs the range evaluation from P1-2.
+- Within each phase, the tasks that write goldens (P1-1, P2-1, P3-1) come before the implementation. P2-2 and P2-3, and P3-2 and P3-3, partly touch the same file (`sema.c`), so do them in order, not in parallel.
+- P4-1 comes after Phase 3 (the example in §6.1 makes `G-TYPE-SEVERITY-TABLE` fail unless `TYP021` is registered first). P4-2 → P4-3 → P4-4, in this order.
+
+---
+
+## 8. Checks handed over to the user
+
+Claude is responsible up to the machine-checkable goals. The user checks the items below. Each item has the reason a command cannot decide it. Items for which no reason can be written become tests in §5.3.
+
+- Whether the Japanese and English wording of `TYP021` (`diag-non-positive-amount`) tells recipe writers what to fix (that the phrases exist and use both arguments is checked by `G-QC-DIAG`, and that they can be rendered by `G-REND-PHRASES-RENDER`) — Reason a command cannot decide: whether wording gets through is up to the reader
+- Whether the explanation in `docs/concept.md` §4.2 of ranges that exclude the lower end conveys the meaning of `<..` without misunderstanding (that the examples and words exist is checked by `G-QC-SYNTAX`) — Reason a command cannot decide: whether an explanation gets through is up to the reader
+- The wording of the replies to Issues #1 and #2 (D84; shown before sending. That they contain the diagnostic codes, the SHA of a commit in the range, the output lines after the fix and the name `bounds/issue2` is checked by `G-QC-ISSUES`) — Reason a command cannot decide: the wording of a public post is a human judgment
+
+---
+
+## 9. Items to check and record when starting
+
+(Append the results checked in each task here, with dates.)
+
+- Independent audit after the plan was written (2026-11-02): 30 findings. 25 were taken, and 5 were not taken, being treated as out of scope or as limits of existing checks (the reasons are at the end of §5.3). The main changes: added the design decisions for evaluating ranges with units on both ends (D85), quantity arguments of `make` (D86) and goals for the ranges of completed plans (D87); the rules that remove duplicate servings from options and duplicate amount diagnostics caused by wrong servings (D76, D77); the positions of diagnostics in composite actions and macro splices; fixes to 8 ways of breaking that did not work; fixes to `G-QC-PRELUDE` (missed temperature ranges), `G-QC-GOLDEN-CHANGED` (tag check) and `G-QC-SYNTAX` (the concept section moved to §4.2, rule name `type_range`); adding `G-RF-SEPARATION` to the prerequisite goals; and fixing a mistake in how build-time options are written (`kitchen today : Options`)
+- Baseline at the starting point (P0-2, 2026-11-02): the tag `qc-start` is `0b4b4eb` (the commit of this plan). The golden count N0 is **464**. We ran 116 goals in total, the 115 prerequisite goals and `G-CORE-BUILD`; 114 passed and 2 failed. Both failures are things this plan is going to fix:
+  - `G-RF-GOLDEN-COUNT`: there are 464 goldens, not 448, because other work added goldens. D80 changes the form of the check (P0-3).
+  - `G-RD-SCOPE`: 57 files outside the scope of the range `readme-start..HEAD`, because other work after the README plan entered the range. D87 closes the range with `readme-end` (P0-3).
+  - In the first run, `G-PLAT-WASM` and `G-REPO-SELFTESTS` also failed. The cause was that the local `build/core-wasm/` was an old build from 2026-11-01 (the 17 golden mismatches and 10 worker mismatches were all for new diagnostics). After rebuilding with `scripts/build-wasm.sh`, both passed. It was not a code problem.
+- Between `8db17e6`, where the plan was written, and `qc-start`, there are 24 commits from other work (`0b7db9e` to `d181933`; adding `NAM019` to `NAM021`, adding 16 goldens, and so on). The line numbers in §3 are as of `8db17e6`; at `qc-start` they shift about 25 lines down (for example, `check_value` is at line 2665 and `call_action` at line 4074). `TYP021` is added after `NAM021`.
+- The oracle for `bounds/expression-unchanged` is `build/qc-start-ozen`, a copy of `build/core-gcc-release/ozen` built at `qc-start` (`build/` is not tracked by git; if it is lost, check out `qc-start` in a worktree and rebuild).
+- Pass or fail of `G-QC-*` at P0-3 (the list of goals that fail before the implementation changes)
+- Red check (P1-1, P2-1, P3-1): the names of the goldens that failed with the build at the commit that added them (red), and of those that passed (control; the commits listed in `scripts/red-first-exceptions.txt`)
+- Whether reading `<..` in type ranges conflicts with existing parsing (P2-2; check the expectation of §3.2 with the real parser), and how it is represented in the AST (a new node kind or a mark)
+- Whether arguments inside state types (`T<shape: cut(slice, 0 mm)>`) have the same hole (P1-2)
+- Whether bought amounts and split amounts have a hole that lets amounts of 0 or less through (P3-2)
+- Whether ranged fields of user-defined equipment settings types appear in the output of `--emit types` (P2-1; if not, rewrite `types-json-exclusive` with a type that does appear, and write the reason)
+- Goldens with corrected expectations (each task): write one line each in the form `- Golden with a corrected expectation: \`<path>\` — <理由>`
+- Other work's commits in the range (if any): write them in the form `- Other work's commit in range: <SHA>（<内容>）`
+- Mutation check records (each task): write them in the form `- Mutation check: S<n>・<テストかゴール>（<タスク>、<日付>）。<壊し方> で落ちた。戻すと合格した`
+- Coverage audit (P4-2): write it in the form `- Coverage audit: <k> findings, <m> taken`
+- Pass or fail of `G-QC-*` at P0-3 (2026-11-02, right after adding the 18 goals to `goals.sh`): 8 passed: `G-QC-DECISIONS`, `G-QC-COVERAGE`, `G-QC-GOLDEN-CHANGED`, `G-QC-SCOPE`, `G-QC-VERSION`, `G-QC-CLAUDEMD`, `G-QC-RF-COUNT`, `G-QC-RD-RANGE`. 10 failed: `G-QC-PLAN-NAMES` (`75 names, 73 missing`), `G-QC-PLAN-TESTS` (`107 rows, 0 recorded`), `G-QC-GOLDEN-ARGS`, `G-QC-GOLDEN-BOUNDS` (no goldens), `G-QC-PRELUDE` (3 of 4), `G-QC-DIAG` (all 7), `G-QC-SCHEMA`, `G-QC-SYNTAX` (all 7), `G-QC-ISSUES`, `G-QC-AUDIT`. `G-RF-GOLDEN-COUNT`, `G-RD-SCOPE`, `G-RD-ADD-ONLY`, `G-REPO-CLAUDEMD` and `G-REPO-SELFTESTS` passed
+- Mutation check: S755, Fixed premise, `G-QC-RF-COUNT` (P0-3, 2026-11-02). Reverting `goal_G_RF_GOLDEN_COUNT` to its original form, which compares with the current count, made it fail with "readme-start in G-RF-GOLDEN-COUNT: got '0'" and "G-RF-GOLDEN-COUNT: exit 1". Restoring it made it pass
+- Mutation check: S755, Side effects, `G-RF-GOLDEN-COUNT` (P0-3, 2026-11-02). Removing the golden `linear/unused-alias`, which exists at `readme-start`, in a temporary worktree made it fail with "readme-start goldens missing now: got '1'". Removing the worktree made it pass
+- Mutation check: S781, Fixed premise, `G-QC-RD-RANGE` (P0-3, 2026-11-02). Reverting `RD=` in `goals.sh` to `readme-start..HEAD` made it fail with "RD range: got '0'", and `G-RD-SCOPE` also failed with "files outside scope: got '57'" (it had grown further through later work from the 2 at the time the plan was written). Restoring it made it pass
+- Mutation check: S757, Normal, `G-QC-CLAUDEMD` (P0-3, 2026-11-02). Changing `qc-start` to `qc` in this plan's line in `CLAUDE.md` made it fail with "plan line in CLAUDE.md: got '0'". Restoring it made it pass
+- Red check (P1-1, 2026-11-02): the 18 goldens added in `9426fff` (`volume-for-time`, `mass-for-length`, `unitless-time`, `count-param`, `named-arg`, `pipe-arg`, `variable-arg`, `macro-body`, `macro-splice`, `composite`, `user-dimension`, `continues-after`, `issue1`, `range-units-steps`, `range-units-dimension`, `range-units-mixed`, `range-units-ingredient`, `make-arg-dimension`) all failed with the starting-point build (red). The 3 control goldens added in `144bba6` (`ok-units`, `unknown-value`, `default-unchecked`) passed and were listed in `scripts/red-first-exceptions.txt`
+- How `args/unknown-value` is written (P1-1, 2026-11-02): instead of the expectation in §5.3 (the style of `eval/runtime-value-in-if`), it passes a recipe argument without a default value, `recipe tamagoyaki(t: Time)`, to an action. When checked on its own, `t` has no value (`debug steps` shows `fry(egg, t)`), and no other diagnostic, such as the `TYP015` for comparisons, gets mixed in
+- The shape of `args/composite` (P1-1, 2026-11-02): it puts two composite actions side by side: `quickA`, which does not use the argument inside, and `quickB`, which passes the argument to the inner `fry(x, t)`. With `quickB` alone, even if the outer check is skipped, the inner check reports the same diagnostic at the same position, so the mutation check for S702 would have no effect
+- The goldens for user actions (`count-param`, `user-dimension`, `default-unchecked`) use tofu (`RawEdible`), because with egg (`Hazard`) the result of an action that does not heat becomes `SAF001`
+- Arguments inside state types (P1-2, 2026-11-02): the same hole exists. For a user action's argument type, both `T<shape: cut(slice, 3 ml)>` and `T<shape: cut(slice, 0 mm)>`, and for the ingredient type `Cucumber<shape: cut(slice, 3 ml)>`, give `result ok` (a value cut to `3 mm` passes when given to an argument of type `3 ml`). The check path is different, so this plan does not fix it; it will be proposed as separate work after the final gate
+- Fix to `args/unknown-value` (P1-2, 2026-11-02): the mutation check for S704 (checking unknown values as dimensionless quantities) had no effect. The recipe argument `t` without a default value evaluates to an enum value (`V_ENUM`) as a name with no binding and no definition, and does not become an unknown value (`V_UNKNOWN`). After changing the argument to `t + 1 min` (the sum of an enum value and a quantity, which evaluates to an unknown value), the same way of breaking made it fail. The expectation (`.out`) stays `result ok`, unchanged
+- Replacing the way of breaking for S701 (P1-2, 2026-11-02): "do not set the trail of `arg_site`" from the coverage table has no effect. For nodes that are not splices, `arg_site` returns the trail being evaluated (while the macro body is evaluated, that is the expansion history itself), so the trail is the same even without setting it. Instead, we checked with "make the trail of the check's diagnostic empty"
+- Mutation check: S695, Normal, `cgolden/args/volume-for-time` (P1-2, 2026-11-02). Removing the call to the check in `call_action` made 14 goldens fail, including `volume-for-time`. Restoring it made them pass
+- Mutation check: S695, Normal, `cgolden/args/mass-for-length` (P1-2, 2026-11-02). Narrowing the check so it only works on `Time` declarations made `mass-for-length`, `count-param` and `user-dimension` fail. Restoring it made them pass
+- Mutation check: S696, Boundary, `cgolden/args/unitless-time` (P1-2, 2026-11-02). Skipping dimensionless quantities before the check made only `unitless-time` fail. Restoring it made it pass
+- Mutation check: S697, No-effect condition, `cgolden/args/count-param` (P1-2, 2026-11-02). Removing the step in the check that turns `pcs` into a dimensionless quantity made only `count-param` fail. Restoring it made it pass
+- Mutation check: S698, Real path, `cgolden/args/named-arg` (P1-2, 2026-11-02). Limiting the check to arguments passed by position made only `named-arg` fail. Restoring it made it pass
+- Mutation check: S699, Real path, `cgolden/args/pipe-arg` (P1-2, 2026-11-02). Attaching the left side as the last argument in `pipe_into` made `pipe-arg`, `mass-for-length` and `ok-units` fail. Restoring it made them pass
+- Mutation check: S700, Normal, `cgolden/args/variable-arg` (P1-2, 2026-11-02). Putting the position of the diagnostic on the whole call made 14 goldens fail, including `variable-arg`. Restoring it made them pass
+- Mutation check: S701, Real path, `cgolden/args/macro-body` (P1-2, 2026-11-02). Making the trail of the check's diagnostic empty made only `macro-body` fail. Restoring it made it pass
+- Mutation check: S758, Real path, `cgolden/args/macro-splice` (P1-2, 2026-11-02). Setting the position of the check's diagnostic to the argument node itself (the `$t` in the macro body), without going through `arg_site`, made only `macro-splice` fail. Restoring it made it pass
+- Mutation check: S702, Real path, `cgolden/args/composite` (P1-2, 2026-11-02). Skipping the outer check for composite actions made only `composite` fail. Restoring it made it pass
+- Mutation check: S759, Side effects, `cgolden/args/composite` (P1-2, 2026-11-02). Reporting the check's diagnostic in the inner call even for arguments that failed the outer check made only `composite` fail (`5 g` got 2). Restoring it made it pass
+- Mutation check: S703, Normal, `cgolden/args/user-dimension` (P1-2, 2026-11-02). Limiting the check to the 6 standard dimensions made only `user-dimension` fail. Restoring it made it pass
+- Mutation check: S704, No-effect condition, `cgolden/args/unknown-value` (P1-2, 2026-11-02). Also checking unknown quantities, treating them as dimensionless quantities, made `unknown-value` and `range-units-mixed` fail. Restoring it made them pass
+- Mutation check: S705, No-effect condition, `cgolden/args/default-unchecked` (P1-2, 2026-11-02). Also calling the check after evaluating default values made only `default-unchecked` fail. Restoring it made it pass
+- Mutation check: S706, Side effects, `cgolden/args/continues-after` (P1-2, 2026-11-02). Returning an unknown value from `call_action` on a dimension error made 12 goldens fail, including `continues-after`. Restoring it made them pass
+- Mutation check: S707, No-effect condition, `cgolden/args/ok-units` (P1-2, 2026-11-02). Making interval values an error made `ok-units` and `range-units-steps` fail. Restoring it made them pass
+- Mutation check: S707, No-effect condition, `cgolden/args/ok-units` (P1-2, 2026-11-02). Also checking enum values as dimensionless quantities, and reporting dimension errors for arguments of non-dimension types too, made `ok-units`, `mass-for-length` and `unknown-value` fail. Restoring it made them pass
+- Mutation check: S708, Real path, `cgolden/args/issue1` (P1-2, 2026-11-02). Making the severity of `TYP001` a warning made 16 goldens fail, including `issue1`. Restoring it made them pass
+- Mutation check: S760, Normal, `cgolden/args/range-units-steps` (P1-2, 2026-11-02). Removing the evaluation of ranges in `eval_inner` made 4 goldens fail, including `range-units-steps`. Restoring it made them pass
+- Mutation check: S761, Real path, `cgolden/args/range-units-dimension` (P1-2, 2026-11-02). Not recording the dimension of the result in the range evaluation made `range-units-dimension`, `range-units-steps` and `range-units-ingredient` fail. Restoring it made them pass
+- Mutation check: S762, Boundary, `cgolden/args/range-units-mixed` (P1-2, 2026-11-02). Using the dimension of the left end without comparing the dimensions of the two ends made only `range-units-mixed` fail. Restoring it made it pass
+- Mutation check: S763, Data completeness, `cgolden/args/range-units-ingredient` (P1-2, 2026-11-02). Making range nodes unknown when evaluating ingredient amounts made only `range-units-ingredient` fail. Restoring it made it pass
+- Mutation check: S764, Real path, `cgolden/args/make-arg-dimension` (P1-2, 2026-11-02). Removing the check of quantity arguments of `make` made only `make-arg-dimension` fail. Restoring it made it pass
+- Red check (P2-1, 2026-11-02): the 15 goldens added in `b894674` (`exclusive-from`, `exclusive-upper-inclusive`, `exclusive-upper-over`, `exclusive-interval`, `exclusive-kitchen`, `exclusive-count`, `exclusive-empty`, `types-json-exclusive`, `make-arg-range`, `time-zero`, `time-negative`, `range-units-negative-time`, `size-zero`, `size-negative`, `composite-range`) all failed with the build at the time they were added (after the P1 implementation) (red). The 7 control goldens added in `095a7c8` (`closed-zero-ok`, `expression-unchanged`, `small-positive`, `soak-default`, `temperature-negative`, `dimension-before-range`, `exclusive-space`) passed and were listed in `scripts/red-first-exceptions.txt`
+- User equipment settings types (P2-1, 2026-11-02): the ranged field of `type ScaleSpec : EquipmentSpec { maxLoad: Mass in 0 g.. }` appears in `--emit types` under `Scale` in `equipment` as `"min":"0 g"`. `types-json-exclusive` was written with this type
+- How the expectation of `bounds/types-json-exclusive` was made (P2-1, 2026-11-02): the JSON of the type list contains all standard equipment and vessel types, and is long to write by hand. So we took as a base the output of the starting-point build `build/qc-start-ozen` on a file of the same name with the range closed (`0 g..`), and changed only the `maxLoad` field by hand to `"min":"0 g","minExclusive":true,"max":null`. The other parts do not change in this plan (D79), so the implementation before the change is the oracle. In P3 the `min` of `Options.servings` becomes `"1"`, so the expectation is corrected then
+- The expectation of `bounds/expression-unchanged` (P2-1, 2026-11-02): as §5.2 says, it was made from the output of `build/qc-start-ozen debug ast` (`3 min<..5 min` is read as `Binary <` and `RangeTo`)
+- How `<..` is read and represented in the AST (P2-2, 2026-11-02): the new rule `type_range` is a function that reads only after `in` in `type()`. Only when a `<` follows right after the value read by `range()`, and the next token is `..` with no space in between, does it create the new node kind `RangeAbove` (its children are the lower end and, if any, the upper end). It is a node kind, not a mark, because the 3 places that read ranges (`check_qty`, `put_field`, and the range text in diagnostics) all branch on the node kind. `RangeAbove` and the rule `type_range` were added at the end of the node kinds in `ast.h` and at the end of `rules.def`, so that existing numbers do not change. All existing goldens still pass unchanged (including type arguments such as `T<shape: cut>`), and `3 min<..5 min` in an expression gives the same tree as before, as `bounds/expression-unchanged` shows. As expected in §3.2, there is no conflict
+- `"min": {` appears in 4 places in `schemas/result.schema.json` (the fields of the equipment, vessel, kitchen and options types), and `minExclusive` was added to all 4 (`G-QC-SCHEMA` checks that the counts are equal)
+- Where the way of breaking for S718 is (P2-2, 2026-11-02): `mark(p, OZNI_R_type_range)` was put not in `type()` but at the start of `type_range()`, which `type()` calls. The mutation check was done by removing it there
+- Mutation check: S765, Real path, `cgolden/bounds/make-arg-range` (P2-2, 2026-11-02). Passing the type without its range to the `make` check made `make-arg-range` fail. Restoring it made it pass
+- Mutation check: S709, Boundary, `cgolden/bounds/exclusive-from` (P2-2, 2026-11-02). Making the exclusive lower-end check a closed check (letting exactly the lower end through) made 6 goldens fail, including `exclusive-from`. Restoring it made them pass
+- Mutation check: S710, Boundary, `cgolden/bounds/exclusive-upper-inclusive` (P2-2, 2026-11-02). Making the upper-end check `>=` made `exclusive-upper-inclusive` fail. Restoring it made it pass
+- Mutation check: S710, Boundary, `cgolden/bounds/exclusive-upper-over` (P2-2, 2026-11-02). Dropping the upper end of `a<..b` in `type_range()` made `exclusive-upper-over` fail. Restoring it made it pass
+- Mutation check: S711, No-effect condition, `cgolden/bounds/exclusive-space` (P2-2, 2026-11-02). Allowing spaces between `<` and `..` made `exclusive-space` fail. Restoring it made it pass
+- Mutation check: S712, Normal, `cgolden/bounds/exclusive-from` (P2-2, 2026-11-02). Making the third argument of the diagnostic only the text of the lower end made 7 goldens fail, including `exclusive-from`. Restoring it made them pass
+- Mutation check: S713, Boundary, `cgolden/bounds/exclusive-interval` (P2-2, 2026-11-02). Using the value's upper end in the lower-end check of interval values made `exclusive-interval` fail. Restoring it made it pass
+- Mutation check: S714, No-effect condition, `cgolden/bounds/closed-zero-ok` (P2-2, 2026-11-02). Using the exclusive lower-end check for closed ranges too made `closed-zero-ok` fail. Restoring it made it pass
+- Mutation check: S715, No-effect condition, `cgolden/bounds/expression-unchanged` (P2-2, 2026-11-02). Reading `<..` in `range()` (shared with expressions) made `expression-unchanged` and `exclusive-space` fail. Restoring it made them pass
+- Mutation check: S766, Real path, `cgolden/bounds/exclusive-kitchen` (P2-2, 2026-11-02). Ignoring exclusive ranges in `check_value` (the kitchen settings path) made `exclusive-kitchen` fail. Restoring it made it pass
+- Mutation check: S767, Boundary, `cgolden/bounds/exclusive-count` (P2-2, 2026-11-02). Dropping the exclusive mark when the lower end is only a number made `exclusive-count` and `exclusive-empty` fail. Restoring it made them pass
+- Mutation check: S768, Boundary, `cgolden/bounds/exclusive-empty` (P2-2, 2026-11-02). Making the lower-end check closed for ranges whose lower and upper ends are equal made `exclusive-empty` fail. Restoring it made it pass
+- Mutation check: S716, Data completeness, `cgolden/bounds/types-json-exclusive` (P2-2, 2026-11-02). Not outputting `minExclusive` made `types-json-exclusive` fail. Restoring it made it pass
+- Mutation check: S716, No-effect condition, `cgolden/api/types-json` (P2-2, 2026-11-02). Outputting `minExclusive` for every range with a lower end, set to `false` for inclusive ranges, made `api/types-json` fail. Restoring it made it pass
+- Mutation check: S717, Data completeness, `G-QC-SCHEMA` (P2-2, 2026-11-02). Removing `minExclusive` from the type fields of the schema made it fail with "minExclusive beside min: got '0'" and "schema: got 'json: 1 files, 1 invalid'". Restoring it made it pass
+- Mutation check: S718, Data completeness, `G-CORE-GRAMMAR` (P2-2, 2026-11-02). Removing `mark(p, OZNI_R_type_range)` from `type_range()` made it fail with "grammar: 134 rules, 1 not covered". Restoring it made it pass
+- Mutation check: S718, Docs match, `G-QC-SYNTAX` (P2-2, 2026-11-02). Removing the `type_range` rule from `core/grammar.ebnf` made it fail with "grammar type_range: got '0'". Restoring it made it pass
+- Mutation check: S719, Data completeness, `G-QC-SYNTAX` (P2-2, 2026-11-02). Removing `"<.."` from `core/fuzz/ozen.dict` made it fail with "fuzz dict: got '0'". Restoring it made it pass
+- Golden with a corrected expectation: `tests/golden/api/signatures-json.out` — the type text of 8 standard arguments (`time` of `soak`, `fry`, `simmer`, `boil`, `parboil`, `chill`, `rest`, and `size` of `cut`) now includes the range (`Time in 0 s<..`, `Length in 0 mm<..`) (S769, P2-3). The expectation was made by rewriting the 8 matching places of the old expectation by hand, and we confirmed that it matches the implementation's output. The `time: Time` of the user action `press` does not change
+- Golden with a corrected expectation: `tests/golden/api/local-not-listed.out` — in the JSON of the list of definitions, the types of the same 8 arguments changed from `TypeRef` to `RangedType` (with the type name and `RangeAbove` as children) (P2-3). We read the diff and confirmed that nothing changed besides the type trees in these 8 places before correcting it
+- Mutation check: S720, Data completeness, `G-QC-PRELUDE` (P2-3, 2026-11-02). Removing the range of `time` in `chill` made it fail with "time ranges: got '6'". Restoring it made it pass
+- Mutation check: S721, Data completeness, `G-QC-PRELUDE` (P2-3, 2026-11-02). Making the range of `size` in `cut` `0 mm..` made it fail with "size range: got '0'". Restoring it made it pass
+- Mutation check: S722, Boundary, `cgolden/bounds/time-zero` (P2-3, 2026-11-02). Making the range of `simmer` `0 s..` made `time-zero` and `range-units-negative-time` fail. Restoring it made them pass
+- Mutation check: S723, Normal, `cgolden/bounds/time-negative` (P2-3, 2026-11-02). Removing the range of `boil` made `time-negative` fail. Restoring it made it pass
+- Mutation check: S770, Real path, `cgolden/bounds/range-units-negative-time` (P2-3, 2026-11-02). Removing the range of `simmer` made `range-units-negative-time` and `time-zero` fail. Restoring it made them pass
+- Mutation check: S724, Boundary, `cgolden/bounds/size-zero` (P2-3, 2026-11-02). Making the range of `cut` `0 mm..` made `size-zero` and `size-negative` fail (for `-3 mm` too, the range text in `TYP012` changes). Restoring it made them pass
+- Mutation check: S724, Normal, `cgolden/bounds/size-negative` (P2-3, 2026-11-02). Removing the range of `cut` made `size-negative` and `size-zero` fail. Restoring it made them pass
+- Mutation check: S725, No-effect condition, `cgolden/bounds/small-positive` (P2-3, 2026-11-02). Making the range of `fry` `1 min<..` made `small-positive` and `composite-range` fail. Restoring it made them pass
+- Mutation check: S725, No-effect condition, `cgolden/bounds/soak-default` (P2-3, 2026-11-02). Making calls that use the default value checked too, and then making the range of `soak` `30 min<..`, made `soak-default` fail. Restoring it made it pass
+- Mutation check: S726, No-effect condition, `cgolden/bounds/temperature-negative` (P2-3, 2026-11-02). Applying a check that treats 0 or less as out of range to all arguments of dimension types without a range made `temperature-negative` and `composite-range` fail. Restoring it made them pass
+- Mutation check: S726, Data completeness, `G-QC-PRELUDE` (P2-3, 2026-11-02). Making `OvenSpec.maxTemp` `Temperature? in 0 degC..` made it fail with "temperature ranges: got '1'". Restoring it made it pass
+- Mutation check: S727, Side effects, `cgolden/bounds/dimension-before-range` (P2-3, 2026-11-02). Continuing the range check even when the dimension differs made `dimension-before-range` fail. Restoring it made it pass
+- Mutation check: S771, Side effects, `cgolden/bounds/composite-range` (P2-3, 2026-11-02). Reporting the position of the check inside a composite action at the inner call as it is, instead of pointing it to the caller, made `composite-range` fail. Restoring it made it pass
+- Mutation check: S769, Data completeness, `cgolden/api/signatures-json` (P2-3, 2026-11-02). Making the type text of arguments in `--emit signatures` only the type name without the range made `signatures-json` fail. Restoring it made it pass
+- Bought amounts and split amounts (P3-2, 2026-11-02): the same hole exists. Both `let naan = buy Naan 0 pcs` and `split(water, -50 ml)` (`debug steps` shows `(Water -50 ml, Water 250 ml)`) give `result ok`. The Issue only mentions ingredient amounts, so this plan does not fix it; it will be proposed as separate work after the final gate
+- The order in the expectation of `bounds/amount-per-serving-unknown` (P3-2, 2026-11-02): the hand-written expectation had the order `TYP021`, `TYP020`, but diagnostics are output sorted by position and then diagnostic code (`cmp_diag` in `core/src/render.c`), so at the same position `TYP020` comes first. This is not a mistake in the spec (S733) but a mistake in the order, so the 2 lines of the expectation were swapped (in a separate commit from the implementation, following `G-RF-SEPARATION`)
+- Golden with a corrected expectation: `tests/golden/api/local-not-listed.out` — the list of diagnostics gained one entry, `TYP021 nonPositiveAmount` (P3-2)
+- Mutation check: S728, Normal, `cgolden/bounds/amount-negative` (P3-2, 2026-11-02). Removing the code that reports `TYP021` made 9 goldens fail, including `amount-negative`. Restoring it made them pass
+- Mutation check: S729, Boundary, `cgolden/bounds/amount-zero` (P3-2, 2026-11-02). Making the check `lo < 0` made 5 goldens fail, including `amount-zero`. Restoring it made them pass
+- Mutation check: S730, Normal, `cgolden/bounds/amount-negative` (P3-2, 2026-11-02). Making the second argument of the diagnostic the type name of the ingredient made 9 goldens fail, including `amount-negative`. Restoring it made them pass
+- Mutation check: S731, Boundary, `cgolden/bounds/amount-range-zero` (P3-2, 2026-11-02). Using the upper end of the interval in the check made `amount-range-zero` fail. Restoring it made it pass
+- Mutation check: S731, Boundary, `cgolden/bounds/amount-range-negative` (P3-2, 2026-11-02). Making the check `lo < -1` made 6 goldens fail, including `amount-range-negative` (the `TYP021` for `-0.5..0.8 g` disappears). Restoring it made them pass
+- Mutation check: S731, No-effect condition, `cgolden/bounds/amount-positive` (P3-2, 2026-11-02). Making the check `lo <= 1` made many goldens fail, including `amount-positive` (goldens that use ingredients of `1 pcs`). Restoring it made them pass
+- Mutation check: S772, Real path, `cgolden/bounds/amount-range-units` (P3-2, 2026-11-02). Applying the `TYP021` check only to quantity literal, sign, number and numeric range nodes made `amount-range-units` and `amount-expression` fail. Restoring it made them pass
+- Mutation check: S732, Normal, `cgolden/bounds/amount-per-serving-zero` (P3-2, 2026-11-02). Skipping the check for `per serving` amounts made `amount-per-serving-zero` and `amount-per-serving-unknown` fail. Restoring it made them pass
+- Mutation check: S733, Side effects, `cgolden/bounds/amount-per-serving-unknown` (P3-2, 2026-11-02). Skipping the check for `per serving` amounts whose servings are not known made `amount-per-serving-unknown` fail. Restoring it made it pass
+- Mutation check: S734, No-effect condition, `cgolden/bounds/amount-any` (P3-2, 2026-11-02). Treating `[any amount]` as 0 and reporting `TYP021` made `amount-any` fail. Restoring it made it pass
+- Mutation check: S735, No-effect condition, `cgolden/bounds/amount-none` (P3-2, 2026-11-02). Treating ingredients whose amount is not decided as 0 in the check made `amount-none` fail. Restoring it made it pass
+- Mutation check: S736, Side effects, `cgolden/bounds/amount-wrong-dim` (P3-2, 2026-11-02). Continuing the check after a dimension error made `amount-wrong-dim` fail. Restoring it made it pass
+- Mutation check: S737, Normal, `cgolden/bounds/amount-expression` (P3-2, 2026-11-02). Applying the check only to amounts that are not expressions (binary operations) made `amount-expression` fail. Restoring it made it pass
+- Mutation check: S738, No-effect condition, `cgolden/bounds/amount-positive` (P3-2, 2026-11-02). Making the check the same as `lo <= 0.5 g` made `amount-positive` fail. Restoring it made it pass
+- Mutation check: S739, Data completeness, `G-QC-DIAG` (P3-2, 2026-11-02). Removing `{ $arg2 }` from `diag-non-positive-amount` in `phrases/ja.ftl` made it fail with "ja phrase: got '0'". Restoring it made it pass
+- Mutation check: S739, Data completeness, `G-CORE-DIAG-REGISTRY` (P3-2, 2026-11-02). Removing `TYP:nonPositiveAmount` from `core/tests/diag-names.txt` made it fail with "1 unlisted". Restoring it made it pass
+- Mutation check: S739, Fixed premise, `G-CORE-DIAG-APPEND` (P3-2, 2026-11-02). Moving `TYP021` to the line right after `TYP020` in a work commit in a temporary worktree made it fail with "deleted registry lines: got '1'". It was removed with `git reset --hard`, and the worktree was removed (not pushed)
+- How the servings paths are built (P3-3, 2026-11-02): servings for which the header does not declare its own range (untyped `servings: 0`, `servings: Count = 0`, menu headers, `make` arguments) are checked using the type of `Options.servings` in the standard library (`Count? in 1..`) as their type. The range text `1..` comes from there. Servings from options (`-s`, `--options`) are marked when they fail the check on the options side; they are not checked on the header side, and the servings are treated as unknown. In a dish whose servings became unknown because they were out of range or had the wrong dimension, no `TYP020` is reported for the total of `per serving` amounts, and amounts in expressions that use `servings` cannot be evaluated and become unknown (no `TYP021` either)
+- Replacing the way of breaking for S773 (P3-3, 2026-11-02): "move the check to after multiplying by the servings" from the coverage table has no effect. Out-of-range servings are treated as unknown, so the multiplication itself does not happen and `100 g per serving` does not become 0 g. Instead, we checked with two ways: "use out-of-range servings as they are, without making them unknown" (`150 ml * servings` becomes `0 ml` and `TYP021` appears), and "report `TYP020` even when the servings are out of range"
+- Golden with a corrected expectation: `tests/golden/api/types-json.out` — the `min` of `Options.servings` changed from `null` to `"1"` (S741; corrected by hand in P3-1)
+- Mutation check: S773, Side effects, `cgolden/bounds/servings-invalid-amounts` (P3-3, 2026-11-02). Using out-of-range servings as they are, without making them unknown, made `servings-invalid-amounts` fail (`TYP021` on `150 ml * servings`). Reporting `TYP020` even when the servings are out of range also made it fail. Restoring it made it pass
+- Mutation check: S785, No-effect condition, `cgolden/bounds/servings-invalid-amounts` (P3-3, 2026-11-02). Also skipping the check of `per serving` amounts when the servings are out of range made `servings-invalid-amounts` fail. Restoring it made it pass
+- Mutation check: S741, Data completeness, `cgolden/api/types-json` (P3-3, 2026-11-02). Removing the range of `Options.servings` made `types-json` fail. Restoring it made it pass
+- Mutation check: S774, Real path, `rtest/settings-servings-min` (P3-3, P4-2, 2026-11-02). Making `settingsSpec` drop the `min` of optional types (`Count?`) made `settings-servings-min` fail. Restoring it made it pass (in P3-3 we checked by rewriting the test input, but as audit finding 4-1 points out, that does not break the implementation, so in P4-2 it was replaced with a way of breaking on the implementation side)
+- Mutation check: S742, Boundary, `cgolden/bounds/optional-ranged` (P3-3, 2026-11-02). Reverting how `base_type` unwraps nesting made 11 goldens fail, including `optional-ranged`. Restoring it made them pass
+- Mutation check: S743, Normal, `cgolden/bounds/servings-header-zero` (P3-3, 2026-11-02). Removing the check of untyped `servings` made `servings-header-zero`, `servings-menu-header` and `servings-invalid-amounts` fail. Restoring it made them pass
+- Mutation check: S744, Normal, `cgolden/bounds/servings-typed-zero` (P3-3, 2026-11-02). Not checking `servings` that has only a type made `servings-typed-zero` fail. Restoring it made it pass
+- Mutation check: S745, Side effects, `cgolden/bounds/servings-own-range` (P3-3, 2026-11-02). Also checking with `1..` on top even when the declaration has a range made `servings-own-range` fail (`0` got 2). Restoring it made it pass
+- Mutation check: S746, Real path, `cgolden/bounds/servings-make-zero` (P3-3, 2026-11-02). Not checking the servings in `make` arguments made `servings-make-zero` and `servings-make-positional` fail. Restoring it made them pass
+- Mutation check: S775, Real path, `cgolden/bounds/servings-make-positional` (P3-3, 2026-11-02). Limiting the check of `make` to arguments passed by name made `servings-make-positional` fail. Restoring it made it pass
+- Mutation check: S776, Real path, `cgolden/bounds/servings-menu-header` (P3-3, 2026-11-02). Checking servings only in recipe headers (not evaluating `servings` in menu headers) made `servings-menu-header` fail. Restoring it made it pass
+- Mutation check: S747, Real path, `cgolden/bounds/servings-flag-zero` (P3-3, 2026-11-02). Skipping `check_value` for option fields made 4 goldens fail, including `servings-flag-zero` and `servings-options-zero`. Restoring it made them pass
+- Mutation check: S747, Boundary, `cgolden/bounds/servings-flag-negative` (P3-3, 2026-11-02). Making the servings check only for exactly 0 (letting negative values through) made `servings-flag-negative` fail. Restoring it made it pass
+- Mutation check: S777, Side effects, `cgolden/bounds/servings-flag-header-range` (P3-3, 2026-11-02). Checking on the header side even when there is an error on the options side made `servings-flag-header-range` and `servings-flag-dimension` fail. Restoring it made them pass
+- Mutation check: S778, Real path, `cgolden/bounds/servings-flag-over-header` (P3-3, 2026-11-02). Ignoring the range declared in the header for servings that come from options made `servings-flag-over-header` fail. Restoring it made it pass
+- Mutation check: S779, Side effects, `cgolden/bounds/servings-flag-dimension` (P3-3, 2026-11-02). Removing the deduplication (also checking with the header's type regardless of an error on the options side) made `servings-flag-dimension` (back to the same 2 lines as now) and `servings-flag-header-range` fail. Restoring it made them pass
+- Mutation check: S748, Real path, `cgolden/bounds/servings-options-zero` (P3-3, 2026-11-02). Skipping `check_value` for option fields made `servings-options-zero` fail (the same way of breaking as S747). Restoring it made it pass
+- Mutation check: S749, Boundary, `cgolden/bounds/servings-one-ok` (P3-3, 2026-11-02). Making the range of `Options.servings` (also used to check the servings of untyped headers) `1<..` made `servings-one-ok` fail. Restoring it made it pass
+- Mutation check: S780, Boundary, `cgolden/bounds/servings-flag-one-ok` (P3-3, 2026-11-02). Making the range of `Options.servings` `1<..` made `servings-flag-one-ok` fail. Restoring it made it pass
+- Mutation check: S750, Real path, `cgolden/bounds/issue2` (P3-3, 2026-11-02). Removing the range of `boil` made `issue2` and `time-negative` fail. Restoring it made them pass
+- Mutation check: S740, Docs match, `G-TYPE-SEVERITY-TABLE` (P4-1, 2026-11-02). Making the severity of "amounts of 0 or less" in `severity-examples.txt` `warning` made it fail with "severity: 18 examples, 1 mismatched". Restoring it made it pass
+- Mutation check: S740, Docs match, `G-QC-SYNTAX` (P4-1, 2026-11-02). Removing "amounts of 0 or less" from concept §6.1 made it fail with "concept 6.1 amount: got '0'". Restoring it made it pass
+- Mutation check: S756, Docs match, `G-QC-SYNTAX` (P4-1, 2026-11-02). Removing the `0 s<..` example (the sentence and the line of the `boil` example) from concept §4.2 made it fail with "concept 4.2 example: got '0'". Restoring it made it pass
+- Mutation check: S783, Docs match, `G-QC-SYNTAX` (P4-1, 2026-11-02). Removing action arguments from the sentence "out of range is always an error" in concept §4.2 made it fail with "concept 4.2 action arguments: got '0'". Restoring it made it pass
+- Mutation check: S784, Docs match, `G-QC-SYNTAX` (P4-1, 2026-11-02). Reverting `servings` in the `type Options` example of concept to `Count` made it fail with "concept Options servings: got '0'". Restoring it made it pass
+- Coverage audit: 23 findings, 15 taken (P4-2, 2026-11-02). An independent subagent read §1, §4, §8, the coverage table, the added goldens and the implementation diff, and checked by actually running things. Taken: the 5 findings where wrong output actually appeared (2-1 a reversed range becomes unknown, 2-2 using the same argument twice in a composite action gives 2 lines, 2-3 a composite action's default value is checked inside, 2-6 a wrong default value of a recipe argument is reported in 2 places, 2-8 a dish is evaluated as 0 servings with out-of-range servings in `make`), the fix for 2-10 (accepting `0..1 min<..`), goldens for paths that had no test (1-4, 2-7, 2-9, 2-12), the description of the upper end in the documents and `G-QC-SYNTAX` (1-2, 3-2), the added checks in `G-QC-ISSUES` and `G-QC-DIAG` (3-1, 3-3), and replacing the way of breaking for S774 (4-1). S786 to S795 were added to §4, and 5 goldens were added and 3 corrected (§5.2). The reasons for the 8 not taken are at the end of §5.3
+- Commits of the fixes after the audit (P4-2, 2026-11-02): goldens were added in `0310942` (red; with the build before the fixes, `args/default-unchecked`, `args/range-units-steps`, `args/recipe-default-once`, `bounds/composite-range`, `bounds/exclusive-range-lower` and `bounds/servings-make-invalid` failed) and `f6f06a3` (control; listed in `scripts/red-first-exceptions.txt`), and the fixes are `f9dbcf9` (reordering the two ends of a range), `f9c4efb` (rejecting `0..1 min<..`), `4e8e19e` (report a composite action's argument only once, and do not check default values) and `08059da` (make recipe arguments that failed their type, and `make` arguments, unknown)
+- One-letter names (P4-2, 2026-11-02): the prerequisite goal `G-RF-NAMES` failed on one-letter binding names in this plan's goldens (`let s`, `let t`, `recipe a`, and so on). `4bfd2d3` changed them to `dish`, `time`, `limit`, and only `args/issue1` and `bounds/issue2`, which copy the Issues' reproductions as they are, were listed with reasons in `scripts/test-names-exceptions.txt`. The expectation of `bounds/expression-unchanged` was remade from the starting-point build with the renamed input. The expectation of `bounds/types-json-exclusive` was also remade the same way (the output of the starting-point build, with `minExclusive` and the `min` of `Options.servings` added by hand), with an input that adds a field with an upper end
+- Mutation check: S786, Boundary, `cgolden/args/range-units-steps` (P4-2, 2026-11-02). Making a range whose lower end is larger than its upper end an unknown value made `range-units-steps` fail. Restoring it made it pass
+- Mutation check: S787, Side effects, `cgolden/bounds/composite-range` (P4-2, 2026-11-02). Not recording in the composite action's frame that the inner check failed made `composite-range` fail (the `0 s` of `twice` got 2). Restoring it made it pass
+- Mutation check: S788, No-effect condition, `cgolden/args/default-unchecked` (P4-2, 2026-11-02). Not skipping the frame of a composite action's default values in `qty_site` made `default-unchecked` fail. Restoring it made it pass
+- Mutation check: S789, Side effects, `cgolden/args/recipe-default-once` (P4-2, 2026-11-02). Also binding recipe arguments that failed their type made `recipe-default-once` fail (`TYP001` also at the `boil` position). Restoring it made it pass
+- Mutation check: S790, No-effect condition, `cgolden/bounds/exclusive-range-lower` (P4-2, 2026-11-02). Accepting a range of numbers with units as the lower end in `type_range()` made `exclusive-range-lower` fail. Restoring it made it pass
+- Mutation check: S791, Side effects, `cgolden/bounds/servings-flag-invalid-amounts` (P4-2, 2026-11-02). Binding the servings on the header side even when there is an error on the options side made `servings-flag-invalid-amounts`, `servings-flag-header-range` and `servings-flag-dimension` fail. Restoring it made them pass
+- Mutation check: S792, Data completeness, `cgolden/bounds/servings-make-invalid` (P4-2, 2026-11-02). Passing an argument that failed the `make` check to the dish as it is made `servings-make-invalid` fail. Restoring it made it pass
+- Mutation check: S793, Real path, `cgolden/bounds/servings-make-own-range` (P4-2, 2026-11-02). Checking the servings of `make` with the type of `Options.servings`, ignoring the header's range, made `servings-make-own-range` fail. Restoring it made it pass
+- Mutation check: S794, Data completeness, `cgolden/bounds/types-json-exclusive` (P4-2, 2026-11-02). Not outputting the upper end of `RangeAbove` as `max` in `put_field` made `types-json-exclusive` fail. Restoring it made it pass
+- Mutation check: S795, Docs match, `G-QC-SYNTAX` (P4-2, 2026-11-02). Removing "the upper end is included" from concept §4.2 made it fail with "concept 4.2 upper end included: got '0'". Restoring it made it pass
+- Other work's commit in range: b215857 (another session added the plan file `plans/ozen-authoring-support.md`; it entered `main` at 16:04 on 2026-11-02)
+- Added `scripts/test-names-exceptions.txt` to the files `G-QC-SCOPE` allows (P4-3, 2026-11-02), because in P4-2 the one-letter names of the Issues' reproductions were listed as exceptions (3 places: the table in §4.11, the check command in §5.1, and `goals.sh`)
+- Mutation check: S751, Side effects, `G-QC-GOLDEN-CHANGED` (P4-3, 2026-11-02). Removing the line for `tests/golden/api/types-json.out` from the "Golden with a corrected expectation" lines in §9 made it fail with "changed expectations not named in the plan: got '1'". Restoring it made it pass
+- Mutation check: S752, Side effects, `G-SAMPLE-CHECK` (P4-3, 2026-11-02). Making the range of `rest` in `stdlib/prelude.ozen` `1 h<..` and rebuilding made it fail with "samples: 11 samples, 236 expectations, 4 failed". Restoring it and rebuilding made it pass
+- Mutation check: S753, Side effects, `G-QC-SCOPE` (P4-3, 2026-11-02). Changing `samples/T1/araNi.ozen` in a work commit in a temporary worktree made it fail with "files outside scope: got '3'" (the other 2 outside the scope were `b215857`, which had no exclusion line at the time, and `scripts/test-names-exceptions.txt`, which was not in the allowed list at the time; this check found them and they were fixed). It was removed with `git reset --hard`, and the worktree was removed (not pushed). After the fix it passed
+- Mutation check: S753, Fixed premise, `G-QC-SCOPE` (P4-3, 2026-11-02). Moving the tag `qc-start` locally to `qc-start-moved` made it fail with "tag qc-start: got ''". `qc-start` was put back on `0b4b4eb`
+- Mutation check: S754, Side effects, `G-QC-VERSION` (P4-3, 2026-11-02). Making `VERSION` `0.1.1` made it fail with "VERSION: got '0.1.1'". Restoring it made it pass
+- Mutation check: S782, Side effects, `G-RF-SEPARATION` (P4-3, 2026-11-02). Putting `tests/golden/args/issue1.out` and `core/src/sema.c` in the same commit in a work commit in a temporary worktree made it fail with "separation: 73 commits, 1 mixed". It was removed with `git reset --hard`, and the worktree was removed (not pushed)
+- Other work's commit in range: 139d786 (another session added the plan file `plans/ozen-cooking-feedback.md`)
+- Other work's commit in range: bb545b8 (another session recorded decisions in `plans/ozen-authoring-support.md`)
+- Final gate (P4-3, 2026-11-02): at `e98a8a9`, we ran 133 goals: the same prerequisite goals as the P0-2 baseline (114 excluding `G-CORE-FUZZ`, plus `G-CORE-BUILD`), plus `G-QC-*` (17, excluding `G-QC-ISSUES`), `G-RF-GOLDEN-COUNT`, `G-RF-FUZZ-DICT`, `G-RF-SEPARATION`, `G-RF-CONCEPT`, `G-RD-SCOPE`, `G-RD-ADD-ONLY` and `G-REPO-NOREPLY`; 132 passed. `G-QC-SCOPE` failed because of commits from another session that came in during the run (`139d786`, `bb545b8`); after adding them to the exclusion lines as D81 says, it passed. `G-CORE-FUZZ` was run in a temporary worktree at `08059da`, the last commit that changed the core, and passed (600 seconds for each of the 6 targets, 0 crashes, leaks and timeouts, 0 artifacts; the core and standard library have not changed since). For wasm, we rebuilt with `scripts/build-wasm.sh` before running `G-PLAT-WASM`
+- Other work's commit in range: 1ea30d3 (another session added the plan file `plans/ozen-dev-environment.md`)
+- Closed the range (2026-11-02): following D111 of the later plan `plans/ozen-cooking-feedback.md`, put the tag `qc-end` on `e350725`, the last commit of this plan, and changed `QC=` in `scripts/goals.sh` to `qc-start..qc-end` and the end of the comparison in `G-QC-GOLDEN-CHANGED` to `qc-end`. This keeps commits of later plans out of the ranges of `G-QC-SCOPE` and `G-QC-GOLDEN-CHANGED`
+
+---
+
+## 10. Risks
+
+- **R1. Existing goldens and samples use arguments without units, values of 0, or ranges with units on both ends**: on 2026-11-02 we searched with `git grep` for numbers without units in action calls and for ingredient amounts of 0 or less, and found none (`count: -1` in `tests/golden/kitchen/negative-count.ozen` is a kitchen setting, and an error is already expected). Range evaluation (D85) can change output that now shows "to taste" or `?`. If anything was missed, `G-CORE-GOLDEN` and `G-SAMPLE-CHECK` fail in P1-2, P2-3 and P3-2. Investigate each case: correct the expectation (S751), or decide it is a change that should not happen.
+- **R2. Reading `<..` conflicts with syntax outside type ranges**: avoided by reading it only after `in` in types (D74). Detected by `bounds/expression-unchanged`, the existing goldens (`G-CORE-GOLDEN`) and `G-CORE-FUZZ`.
+- **R3. The servings check changes amounts that use the servings in expressions (`150 g * servings`) or `per serving` calculations**: if the servings are in range, the values do not change. Confirmed by the existing goldens `quantity/per-serving*`, `quantity/count-options` and `menus/make-servings` not changing (`G-QC-GOLDEN-CHANGED` makes us name corrected expectations).
+- **R4. Using the same `main` and the same working tree as other work**: the same as R3 of the README plan. Other work's commits in the range are named in §9 and excluded from `G-QC-SCOPE` (D81).
+- **R5. `G-REPO-RED-FIRST` is slow**: it rebuilds in a worktree for each commit that adds expectations, so the commits that add goldens are grouped into 2 per phase, red and control (6 in total), to keep the count down.
+- **R6. `G-QC-ISSUES` needs `gh` authentication and the network**: when they are not available, treat it as failed and report the reason (do not count it as a pass).
+- **R7. Rebuilding the standard library from the vocabulary table removes the ranges**: `tools/std-from-vocab/convert.py` copies only the dimensions from the table, so if someone rebuilds the standard library from the table, this plan's ranges disappear. No goal calls it today. If the ranges disappear, `G-QC-PRELUDE` fails.
