@@ -1,7 +1,8 @@
 gcc 13.3.0
 clang 17.0.0
 cmake 3.28.3
-node 20.20.2
+node 24.22.2
+rulesync 43.4.2 npx
 python3 3.12.3
 pyyaml 6.0.1
 jsonschema 4.10.3
