@@ -75,7 +75,7 @@ expect good "$good" "$ok"
 expect japanese-prose "${good/Crack the eggs./Crack the eggs. 卵を割る。}" "$bad"
 expect japanese-shell-comment "${good/\# count them/\# 数える}" "$bad"
 expect allowed-japanese "${good/Crack the eggs./Crack the eggs (卵).}" "$ok" $'卵\tthe name of the food in the source\n'
-expect dropped-id "${good/**S1** /}" "$bad"
+expect dropped-id "${good/\*\*S1\*\* /}" "$bad"
 expect renumbered-heading "${good/\#\# 1. Purpose/\#\# 2. Purpose}" "$bad"
 expect changed-flag "${good/grep -c/grep -n}" "$bad"
 expect deleted-row "${good/| Column | Value |
