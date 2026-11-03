@@ -468,7 +468,7 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 - **S1033** `ozen init DIR` prints `created DIR/package.ozen`, `created DIR/AGENTS.md` and the line about `@AGENTS.md`, and exits 0.
 - **S1034** When `package.ozen` or `AGENTS.md` exists in the target folder, `ozen init` writes neither file and exits 1.
 - **S1035** When the package name (the base name of the folder, or `--name`) is not an ASCII identifier or is `std`, `ozen init` writes nothing, creates no folder, and exits 2.
-- **S1036** `ozen check DIR/package.ozen` on a new folder reports 0 errors.
+- **S1036** `ozen check package.ozen`, run inside a new folder, reports 0 errors. (Run from the parent folder, the file is not read as a manifest; coverage audit, P5-3.)
 - **S1037** The `AGENTS.md` written by `ozen init` contains `https://github.com/atsuki-seo/Ozen/blob/v<VERSION>/reference/ai-guide.md`.
 - **S1038** The template contains `ozen check --format json` and `ozen render --kind recipe`.
 - **S1039** The usage text of `ozen` and the command list of `cli/README.md` name `ozen init`.
@@ -973,7 +973,11 @@ Coverage check (run after P0-3 and in P5-3; empty output, then 0): the `G-DS-COV
 
 Findings of the independent audit that were not taken, with reasons:
 
-- None. All 45 findings of the audit on 2026-11-03 were taken (§9).
+- Plan audit (2026-11-03): none. All 45 findings were taken (§9).
+- Coverage audit (P5-3, 2026-11-04), 36 findings, 7 not taken and 1 taken in part:
+  - S961, taken in part: `git diff`, `git log` and `git show` can write a file with `--output`, `scripts/goals.sh` runs goals that may regenerate tracked files, and `scripts/setup.sh` writes the git configuration and the agent files. The entries are the ones D121 chose. A deny rule for `--output` was written and generated, but committing a change to the agents' permission settings was refused in this session, so it was reverted and is left to the user (§8 is not the place, since a command decides it; it is reported at the hand-over).
+  - S956: the spec says the files written are exactly the listed ones, but rulesync lists only the files it changed, so the wrapper checks that every written file is listed and every listed file exists. The test covers both; the stronger reading cannot be observed.
+  - Reproducible archives, the exit status of `scripts/make-release.sh` when an input is missing, the "Uses" lines of `std.md`, the extra behaviour of `ozen init` (nested folders, trailing slashes, unknown options), the other subcommands of `scripts/rulesync.sh`, and which files `scripts/setup.sh` digests: behaviour the implementation has but no requirement of this plan asks for. They are left untested rather than turned into new spec items at the end of the plan.
 
 ---
 
@@ -1074,8 +1078,8 @@ Each translation task writes `build/ds-goals-P2-<n>-before.txt` before its commi
 Claude covers the machine-checked goals. The user checks these:
 
 - Open the repository in Claude Code, Codex CLI, Cursor and Copilot, and see that each one follows the language rule and the publishing rule — Reason a command cannot decide: the files are checked for place and form (`G-DS-AGENT-FILES`), but whether an agent follows a rule depends on the agent.
-- Run the macOS archive on your own Mac (download, extract, `bin/ozen render`) — Reason a command cannot decide: the release workflow runs it on a GitHub macOS runner, and a Mac outside CI is not reachable from the goals.
-- Read the translated documents and the hand-written reference for natural English and Japanese — Reason a command cannot decide: the checker proves that nothing was dropped or changed, not that the wording reads well.
+- Download the macOS archive in a browser on your own Mac, extract it and run `bin/ozen render` — Reason a command cannot decide: the release workflow already builds, extracts and runs the archive on a GitHub macOS runner; what is left is how macOS treats a file downloaded in a browser (Gatekeeper and the quarantine flag), which no runner reproduces.
+- Read the translated documents and the hand-written reference for natural English — Reason a command cannot decide: the checker proves that nothing was dropped or changed, not that the wording reads well.
 
 ---
 
@@ -1242,6 +1246,6 @@ Claude covers the machine-checked goals. The user checks these:
 - **R4. The feedback plan does not finish soon**: this plan waits (D118). The alternative in D118 is the way out if waiting is not acceptable.
 - **R5. A generated agent file is edited by hand, or another session edits `CLAUDE.md` directly**: `generate --check` in the `agents` workflow and in `G-DS-RULESYNC` catches it. The agent rules themselves say that `CLAUDE.md` is generated.
 - **R6. `AGENTS.md` links a tag that does not exist yet**: only builds of an unreleased version are affected. Releases are made from tags, so a released `ozen` always links an existing tag.
-- **R7. Other contributors' commits fail check 1 of `G-REPO-NOREPLY`** (every commit address must be the owner's noreply address): today the repository has one author. When that changes, the check must be revisited (not in this plan).
+- **R7. Other contributors' commits fail check 1 of `G-REPO-NOREPLY`** (every author and committer address must be the owner's noreply address): today the repository has one author. A commit made in the GitHub web interface has the committer `noreply@github.com` and fails it too, in the hook and in `agents.yml`. When that changes, the check must be revisited (not in this plan).
 - **R8. The red-first check is nominal for CLI tests** (§3.8): this plan still commits CLI tests before their implementation, but `G-REPO-RED-FIRST` cannot prove it. Fixing `scripts/check-red-first.sh` is a separate change.
 - **R9. `npx` needs the network**: `scripts/setup.sh` reports a failure and goes on (S983). The goals that run `scripts/rulesync.sh` need the network or a warm npm cache.
