@@ -1148,6 +1148,75 @@ Claude covers the machine-checked goals. The user checks these:
 - Mutation check: `G-DS-SETUP` — S987, added `sudo apt-get install`: failed (`install commands: got '1'`). Restored: pass
 - Mutation check: `G-DS-CI-AGENTS` — S976, added `paths-ignore: [plans/**]`: failed (`path filters: got '1'`). Restored: pass
 - Mutation check: `G-DS-CI-AGENTS` — S976, dropped `fetch-depth: 0`: failed (`full history: got '0'`). Restored: pass
+- `agents.yml` runs (P1-8, 2026-11-03): the run for `1b992fd` (the push of the workflow) and the run for `c5b28a9`, which changes only `plans/ozen-dev-setup.md`, both succeeded. `ci.yml` skips `c5b28a9` because of its `paths-ignore`.
+- Mutation check: `G-DS-CI-AGENTS-RUN` — S977, a plans-only commit with no `agents.yml` run (made in a temporary worktree and not pushed, which is what a path filter on `scripts/**` would leave): failed (`agents run: got ''`). The worktree was removed. Restored: pass
+- Mutation check: `G-DS-CONCEPT16` — S988, restored a section 16: failed (`section 16: got '1'`, `last section: got '16'`). Restored: pass
+- Mutation check: `G-DS-ENTRY-DOCS` — S989, dropped the `reference/` row: failed (`where row reference/: got '0'`). Restored: pass
+- Mutation check: `G-DS-ENTRY-DOCS` — S990, dropped the `scripts/setup.sh` line: failed (`getting started scripts/setup.sh: got '0'`). Restored: pass
+- Phase 1 gate (P1-11, 2026-11-03): `build/ds-gate-p1.txt`, 165 prerequisite goals run with `scripts/goals.sh --summary` on Node.js 24.22.2, 163 pass. `G-PLAT-ANDROID` and `G-PLAT-IOS` failed only on `ci run` and `ci covers HEAD`, because the `ci.yml` run for `1b992fd` was still in progress; they read the newest finished run after a push. Every `G-DS-*` goal of Phases 0 and 1 passes, except the README line of `G-DS-ENTRY-DOCS` (P3-5) and `G-DS-PLAN-NAMES` and `G-DS-PLAN-TESTS`, which count tests and records of later tasks.
+- `ozen init` tests (P3-4, 2026-11-03): the coverage table names ten tests (`init-basic`, `init-exists`, `init-bad-name`, `init-path-name`, `init-here`, `init-name`, `init-check`, `init-link`, `init-template`, `init-rebuild`), but §5.1, §5.2 and the `G-DS-INIT` command said 9. The count was corrected to 10 in all three places and in `goal_G_DS_INIT`. The ten tests were committed in `e579744`, before the implementation, and failed (`cli: 33 cases, 9 failed`; `init-bad-name` passed already, since `ozen init` exited 2 as an unknown command). `init-rebuild` copies the sources into a temporary folder, builds `ozen`, adds a line to the template, rebuilds, and checks that `ozen init` writes the line; the template is embedded by `cli/src/embed-template.cmake`, which `cli/CMakeLists.txt` runs whenever the template changes.
+- Translation set-up (P2-1, 2026-11-03): the six files were cut at headings into 15 parts and translated by 14 subagents in parallel, each with the same brief (the label table, the fixed aspect words, a glossary) and a per-part run of `scripts/check-translation.py` until it reported 0 problems. `scripts/ds-goals-skip.txt` also leaves out `G-CORE-FUZZ` (an hour per run), `G-PLAT-ANDROID` and `G-PLAT-IOS` (they read the newest CI run, which a push between the two summaries can change) and the six retired `G-VOCAB-*` goals, besides the goals D124 names. `scripts/translation-allow.txt` has one entry, the MEXT attribution wording that concept §3 and roadmap §3.3 quote.
+- Mutation check: `sh/test-check-translation.sh` — S1000, stopped reporting Japanese in prose: failed (`japanese-prose`). Restored: pass
+- Mutation check: `sh/test-check-translation.sh` — S1001, stopped reporting Japanese shell comments: failed (`japanese-shell-comment`). Restored: pass
+- Mutation check: `sh/test-check-translation.sh` — S1002, stopped comparing IDs: failed (`dropped-id`). The first version of the case used `**` unescaped in a bash pattern, which deleted most of the text and passed through other checks; the stars are escaped now. Restored: pass
+- Mutation check: `sh/test-check-translation.sh` — S1003, stopped reading heading numbers: failed (`renumbered-heading`). Restored: pass
+- Mutation check: `sh/test-check-translation.sh` — S1004, stopped comparing code blocks: failed (`changed-flag`). Restored: pass
+- Mutation check: `sh/test-check-translation.sh` — S1005, stopped comparing table rows: failed (`deleted-row`). Restored: pass
+- Mutation check: `sh/test-check-translation.sh` — S1006, accepted an allow entry without a reason: failed (`allow-without-reason`). Restored: pass
+- Mutation check: `sh/test-check-translation.sh` — S1007, accepted an allow entry that no file uses: failed (`allow-unused`). Restored: pass
+- Reference (P3-1 to P3-3, 2026-11-03): `reference/language.md` has five checked examples (`readme: 5 examples, 0 mismatches`); `tools/refgen/refgen.py` writes `std.md` (33 actions), `diagnostics.md` (113 diagnostics) and `ai-guide.md` (13748 bytes) in one run, so P3-2 and P3-3 are one commit. `refgen.py` runs `ozen debug definitions` without a file, which lists `std` alone.
+- Mutation check: `G-DS-REFERENCE` — S1015, deleted `reference/std.md`: failed (`reference files: got '5'`). Restored: pass
+- Mutation check: `G-DS-REFERENCE` — S1015, wrote one Japanese sentence in `reference/language.md`: failed (`Japanese characters: got '1'`). Restored: pass
+- Mutation check: `G-DS-REFERENCE` — S1017, changed an expected output line: failed (`readme: 5 examples, 1 mismatches`). Restored: pass
+- Mutation check: `G-DS-REFERENCE` — S1018, removed the end marker: failed (`G-DS-REFERENCE` markers, and `refgen: reference/language.md has no ai-guide markers`). Restored: pass
+- Mutation check: `sh/test-refgen.sh` — S1019, included `local` actions: failed (`std-only-public`). Restored: pass
+- Mutation check: `sh/test-refgen.sh` — S1020, omitted required states: failed (`params-and-state`). Restored: pass
+- Mutation check: `sh/test-refgen.sh` — S1021, printed the action name instead of its text: failed (`phrase-text`). Restored: pass
+- Mutation check: `sh/test-refgen.sh` — S1022, skipped the last line of `diag_codes.def`: failed (`every-diagnostic`, `diag-words`). Restored: pass
+- Mutation check: `sh/test-refgen.sh` — S1023, printed nothing when a phrase is missing: failed (`diag-words`). Restored: pass
+- Mutation check: `G-DS-REFGEN` — S1024, left out the work loop: failed (`refgen: 3 files, 1 differ`). Restored: pass
+- Mutation check: `G-DS-REFGEN` — S1025, wrote the full `std.md` into the guide: the guide grew to 21944 bytes, under the limit, so this break cannot fail the goal. A larger break, eight copies of `std.md`, failed (`refgen: ai-guide.md is larger than 65536 bytes`). Restored: pass
+- Mutation check: `sh/test-refgen.sh` — S1026, dropped the generated-file line: failed (`header`). The first try ended the test without a summary line, because a condition's `exit 1` ended the whole script; the conditions run in a subshell now. Restored: pass
+- Mutation check: `G-DS-REFGEN` — S1027, edited `reference/std.md` by hand: failed (`refgen: 3 files, 1 differ`). Restored: pass
+- Mutation check: `sh/test-refgen.sh` — S1028, iterated a set of action names without sorting: failed (`same-bytes`; the fixture now has two public actions and runs under three hash seeds). Restored: pass
+- Mutation check: `sh/test-refgen.sh` — S1029, made `--check` exit 0 always: failed (`check-new-action`). Restored: pass
+- Mutation check: `cli/init-basic` — S1030, wrote `version: "0.0.1"`: failed (`package.ozen`). Restored: pass
+- Mutation check: `cli/init-basic` — S1031, left `@VERSION@` in place: failed (`AGENTS.md`). Restored: pass
+- Mutation check: `cli/init-basic` — S1033, dropped the `@AGENTS.md` line: failed (`init output`). Restored: pass
+- Mutation check: `cli/init-exists` — S1034, wrote `package.ozen` before checking `AGENTS.md`: failed (`wrote package.ozen`). Restored: pass
+- Mutation check: `cli/init-bad-name` — S1035, accepted `std`: failed (`init status for 'std': got '0'`). Restored: pass
+- Mutation check: `cli/init-path-name` — S1035, accepted a folder named `my-book` as the package name: failed (`init status: got '0'`). Restored: pass
+- Mutation check: `cli/init-here` — S1074, wrote into `./new` when no folder is given: failed (`package line: got ''`). Restored: pass
+- Mutation check: `cli/init-name` — S1075, ignored `--name`: failed (`package line: got 'package book {'`). Restored: pass
+- Mutation check: `cli/init-check` — S1036, wrote the package without a version: the test passed, because `version` may be left out of a manifest, and the test checked `book/package.ozen` from the parent folder, where it is not read as a manifest. The test now checks it from inside `book/`, and the break `version: "one"` failed (`result error errors=1`). Restored: pass
+- Mutation check: `cli/init-link` — S1037, linked `blob/main`: failed (`no link to v0.1.0`). Restored: pass
+- Mutation check: `cli/init-template` — S1038, removed `--format json` from the template: failed (`no check command`). Restored: pass
+- Mutation check: `G-DS-INIT` — S1039, left `init` out of the usage text: failed (`usage: got '0'`). Restored: pass
+- Mutation check: `cli/init-rebuild` — S1040, dropped the template from the build dependencies: failed (`the rebuilt ozen kept the old template`). Restored: pass
+- Goal summaries of the translation tasks (P2-2 to P2-7, 2026-11-04): the six translation commits were made one after another, and each commit and its parent were checked out into temporary worktrees under `build/` with a copy of the build folders and the MEXT source data, and `scripts/goals.sh --summary` ran over the 163 goals not in `scripts/ds-goals-skip.txt` in each, seven worktrees in parallel. All 163 pass at every commit. The first run found a real difference: P2-4 switched `G-PLAN-COVERAGE` to the English hand-over label, and the fixture of `scripts/test-goals.sh` still wrote the Japanese label, so `G-REPO-SELFTESTS` went from pass to fail. The fixture was corrected inside the P2-4 commit (not pushed yet) before the summaries below. The first run also showed `G-RD-SCOPE` failing once at the base commit; it passed when run alone at that commit, and passed in the second run, so it was a clash of parallel git commands.
+- Goals before and after P2-2: `build/ds-goals-P2-2-before.txt` and `-after.txt`, same
+- Goals before and after P2-3: `build/ds-goals-P2-3-before.txt` and `-after.txt`, same
+- Goals before and after P2-4: `build/ds-goals-P2-4-before.txt` and `-after.txt`, same
+- Goals before and after P2-5: `build/ds-goals-P2-5-before.txt` and `-after.txt`, same
+- Goals before and after P2-6: `build/ds-goals-P2-6-before.txt` and `-after.txt`, same
+- Goals before and after P2-7: `build/ds-goals-P2-7-before.txt` and `-after.txt`, same
+- Aspect words (P2-4, 2026-11-04): `scripts/check-rewrite-equivalence.py` matches a roadmap row's aspect with the feedback plan's records, which stay Japanese. It now accepts the Japanese word for the English aspect of a translated row (a fixed table of the twelve aspects, `Negative` included, which the roadmap uses once), and its test has a case with an English row and a Japanese record. `G-FB-REVIEW-SAME` passes on the translated plans.
+- Mutation check: `G-DS-GOALS-SAME` — S1008, translated a label a goal reads without changing the goal: this happened for real in the first P2-4 commit (the `test-goals.sh` fixture above). As a check of the goal itself, `G-REPO-SELFTESTS` was set to `fail` in the P2-4 after-summary: failed (`differing pairs: got '1'`). Restored: pass
+- Mutation check: `G-DS-CONCEPT-GOALS` — S1009, left the concept grep of `G-QC-SYNTAX` in Japanese: failed (`Japanese in concept goals: got '1'`, `concept goals: exit 1`). Restored: pass
+- Mutation check: `G-DS-JA-PLANS` — S1010, translated a line of the feedback plan in a commit made in a temporary worktree (removed, not pushed): failed (`Japanese plans changed: got '1'`). Restored: pass
+- Mutation check: `G-DS-TRANSLATION` — S1011, rewrote one concept §16 reference in the roadmap: the first checker did not compare references in prose and passed. It now compares the `§` references of each file, and the break failed (`translation: 6 files, 1 problems`). Its test has a case for it. Restored: pass
+- Mutation check: `G-DS-RELEASE-WORKFLOW` — S1050, added `branches: [main]`: failed (`other triggers: got '1'`). Restored: pass
+- Mutation check: `G-DS-RELEASE-WORKFLOW` — S1051, moved the tag check after the Node.js step in the `linux` job: failed (`first steps: bad linux`). Restored: pass
+- Mutation check: `sh/test-check-release-tag.sh` — S1052, accepted `0.1.0` without `v`: failed (`no-v`). Restored: pass
+- Mutation check: `G-DS-RELEASE-WORKFLOW` — S1053, used `secrets.PAT`: failed (`other secrets: got '1'`). Restored: pass
+- Mutation check: `sh/test-make-release.sh` — S1054, named the archive without the version: failed (`linux-name`). Restored: pass
+- Mutation check: `sh/test-make-release.sh` — S1055, included `renderers/test/`: failed (`linux-no-tests`). Restored: pass
+- Mutation check: `sh/test-make-release.sh` — S1056, packed a README without the `node` sentence: failed (`readme-node`). Restored: pass
+- Mutation check: `sh/test-make-release.sh` — S1058, left out `renderers/`: failed (`linux-contents`, `render`, `render-on-path`). Restored: pass
+- Mutation check: `sh/test-make-release.sh` — S1061, wrote the sums without the last archive: failed (`sums`). Restored: pass
+- Mutation check: `sh/test-make-release.sh` — S1062, left out `ozen_bridge.js`: failed (`wasm-files`, `wasm-run`). Restored: pass
+- Mutation check: `G-DS-SELFTESTS` — S1073, removed `dist/` from `.gitignore`: failed (`dist/ ignored: got '0'`). Restored: pass
+- Mutation check: `G-DS-RELEASE-WORKFLOW` — S1060, built the macOS binary for `arm64` only: the goal only counts the `lipo -archs` line, so the break does not fail it locally; the check runs in the release workflow on macOS. Run on Linux with a fake `lipo`, the workflow's own lines passed for `x86_64 arm64` and failed (exit 1) for `arm64` alone. The real run is `G-DS-RELEASE-PUBLISHED` (S1065).
 
 ---
 
