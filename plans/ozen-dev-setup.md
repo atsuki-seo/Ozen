@@ -523,14 +523,14 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 
 | Kind | Paths |
 | --- | --- |
-| Agent rules | `.rulesync/rules/overview.md`, `.rulesync/permissions*`, `rulesync.jsonc`, `scripts/agent-allow.txt`, `scripts/agent-outputs.txt`, and the generated `CLAUDE.md`, `AGENTS.md`, `.claude/settings.json` and Copilot, Cursor and Codex files listed in `scripts/agent-outputs.txt` |
+| Agent rules | `.rulesync/rules/overview.md`, `.rulesync/permissions*`, `rulesync.jsonc`, `scripts/agent-allow.txt`, `scripts/agent-outputs.txt`, and the generated `CLAUDE.md`, `AGENTS.md`, `.claude/settings.json` and Copilot, Cursor and Codex files listed in `scripts/agent-outputs.txt` (P1-2, P1-3: `.cursor/rules/overview.mdc`, `.cursor/cli.json`, `.github/copilot-instructions.md`, `.codex/config.toml`, `.codex/rules/rulesync.rules`, `.vscode/settings.json`) |
 | Scripts | `scripts/rulesync.sh`, `scripts/setup.sh`, `scripts/plan-labels.tsv`, `scripts/check-translation.py`, `scripts/translation-allow.txt`, `scripts/ds-goals-skip.txt`, `scripts/ds-scope.txt`, `scripts/bump-version.sh`, `scripts/check-release-tag.sh`, `scripts/make-release.sh`, `scripts/test-rulesync.sh`, `scripts/test-setup.sh`, `scripts/test-pre-push.sh`, `scripts/test-check-translation.sh`, `scripts/test-bump-version.sh`, `scripts/test-check-release-tag.sh`, `scripts/test-make-release.sh`, `scripts/test-refgen.sh`, and changes to `scripts/goals.sh`, `scripts/test-goals.sh`, `scripts/check-plan-tests.sh`, `scripts/test-check-plan-tests.sh`, `scripts/check-rewrite-equivalence.py`, `scripts/test-check-rewrite-equivalence.sh`, `scripts/check-lists-copy.py`, `scripts/test-check-lists-copy.sh`, `scripts/check-tools.sh`, `scripts/selftests.txt` |
 | Hooks and CI | `.githooks/pre-push`, `.github/workflows/agents.yml`, `.github/workflows/release.yml` |
 | Repository files | `toolchain.txt`, `.gitignore` |
 | Documents | `docs/concept.md`, `docs/prototype-report.md`, `plans/ozen-roadmap.md`, `plans/ozen-syntax-refresh.md`, `plans/ozen-readme-compact.md`, `plans/ozen-quantity-checks.md`, `plans/ozen-dev-environment.md` (one line), `plans/ozen-dev-setup.md`, `CONTRIBUTING.md`, `README.md`, `cli/README.md`, `site/index.html`, `site/README.md` |
 | Reference | `reference/*.md`, `tools/refgen/*` |
 | `ozen init` | `cli/src/*`, `cli/CMakeLists.txt`, `tests/cli/init-*.sh` |
-| Version | `tests/golden/**/*.out` (only S1041), `tests/golden/bundle/std-version-check.*` (only S1044), and `VERSION` and `stdlib/package.ozen` at P4-6 |
+| Version | `tests/golden/**/*.out` (only S1041), `tests/golden/bundle/std-version-check.*` and `tests/golden/packages/requires-newer-minor/*` (only S1044), and `VERSION` and `stdlib/package.ozen` at P4-6 |
 
 ### 4.14 Where code goes
 
