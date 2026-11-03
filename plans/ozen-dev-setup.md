@@ -1,7 +1,7 @@
 # Plan for agent rules, development setup, English documents, the reference and releases
 
 - Created: 2026-11-03
-- Source: none (no upstream code). The requirements are the decisions EQ1–EQ13 in `plans/ozen-dev-environment.md` (the list of candidates for documents and development environments, decided with the user one by one on 2026-11-02). That list took over C13, C23 and Q4 from `plans/ozen-authoring-support.md`.
+- Source: none (no upstream code). The requirements are the decisions EQ1–EQ13 in `plans/ozen-dev-environment.md` (the list of candidates for documents and development environments, decided with the user one by one on 2026-11-02). That list took over C13, C23 and Q4 from `plans/ozen-authoring-support.md`. On 2026-11-03 the user narrowed EQ4 and EQ11: move to English as far as possible and add no new Japanese text, so the reference, the AI guide and the `AGENTS.md` template are English only.
 - Target: `/home/atsuki/ドキュメント/Ozen`, `main` (D116). The facts in §3 were read at `8f419ad` and checked again at `f4f77c4`.
 - Rules: `CLAUDE.md` (work on `main` only, run `G-REPO-NOREPLY` before every push, the language of committed files), `~/.claude/rules/repo-language.md`, `~/.claude/rules/git-commit.md`, `~/.claude/rules/comment-style.md`, `~/.claude/rules/github.md`. This plan is written in English because of EQ13 (committed documents that people review are written in English from now on), which overrides `~/.claude/rules/plan-language.md` for this repository. The goals in §5 of `plans/ozen-roadmap.md` (the roadmap), `plans/ozen-syntax-refresh.md` (the syntax plan), `plans/ozen-readme-compact.md` (the README plan), `plans/ozen-quantity-checks.md` (the quantity plan) and `plans/ozen-cooking-feedback.md` (the feedback plan) are prerequisite goals (§5).
 
@@ -10,7 +10,7 @@
 - This plan follows the feedback plan and continues its numbers. Design decisions start at **D116** and spec items at **S945** (the feedback plan ends at D115 and S944).
 - Every completion condition is a command whose result decides pass or fail. Checks by people are not tasks; they go to the hand-over list in §8.
 - Completion conditions refer to the prerequisite goals listed in §5 and to the `G-DS-*` goals defined in §5. The code blocks in §5 are the authoritative commands. Tables do not repeat them, because a `|` in a table cell becomes `\|`.
-- The decisions D116–D136 in §2 are **[open]**. When the user decides one, its heading changes to **[decided]** and a `- **Decision:**` line goes first in the section. The comparison of the recommendation and the alternatives stays as history (P0-1).
+- The decisions D116–D136 in §2 were decided with the user one by one on 2026-11-03 (all 21 asked individually: D118 first, because the order decides the rest, then the others by number). D126–D129 and D135 were rewritten before they were asked, after the user chose English only for the new files. D128 was rewritten after the user asked how other tools behave. D131 and D134 follow the user's answer `v0.1.0`. Each section starts with a `- **Decision:**` line, and the comparison of the recommendation and the alternatives stays as history (P0-1).
 - This is the first plan written in English. Its labels are the English labels of §4.5: `[decided]`, `- **Decision:**`, the columns `Test or goal` and `How to break it`, `- Mutation check:` and `Reason a command cannot decide:`. P0-3 teaches the plan checkers to read them next to the Japanese labels.
 - Facts about the target were checked on 2026-11-02 and 2026-11-03. The checks read the files at `8f419ad` and `f4f77c4`, ran `build/core-gcc-release/ozen` built from the same sources, and read the published `rulesync` 43.4.2 package (§3).
 - After writing, the plan had one independent audit by a subagent: 45 findings, all taken (§5.3, §9).
@@ -25,7 +25,7 @@
 1. One source for the instructions to AI agents (`.rulesync/`). It is generated for Claude Code, `AGENTS.md`, Codex CLI, Cursor and GitHub Copilot.
 2. A preparation script, a git pre-push hook for the publishing check, and the same check in CI.
 3. The existing design documents and the finished plans in English, with every existing goal still giving the same result.
-4. A reference for writing Ozen in English and Japanese (`reference/en/`, `reference/ja/`). It is mostly generated, and it includes a one-file guide for AI agents.
+4. A reference for writing Ozen, in English (`reference/`). It is mostly generated, and it includes a one-file guide for AI agents.
 5. `ozen init`, which starts a cookbook folder with `package.ozen` and a short `AGENTS.md`.
 6. Official releases of `ozen` for Linux, macOS and WebAssembly on GitHub Releases when a version tag is pushed.
 
@@ -47,7 +47,7 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
 - Removing §16 of `docs/concept.md`, the entry sections of `CONTRIBUTING.md`, and the documentation list of `README.md`
 - Plan labels in two languages for the plan checkers (D123), and closing the feedback plan's range at `fb-end` (D118)
 - Translating `docs/concept.md`, `docs/prototype-report.md` and the four finished plans into English. This includes a translation checker (D124) and rewriting every goal that reads their text to the English text (D125).
-- `reference/{en,ja}/` and the generator `tools/refgen/` (D126, D127)
+- `reference/` and the generator `tools/refgen/` (D126, D127)
 - `ozen init` (D128, D129)
 - Version strings in golden expectations, `scripts/bump-version.sh`, and the version goals of finished plans (D132, D133)
 - `scripts/check-release-tag.sh`, `scripts/make-release.sh`, `.github/workflows/release.yml`, and the first release (D130, D131, D134)
@@ -55,6 +55,7 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
 
 ### Out of scope (reasons)
 
+- **Japanese versions of the reference, the AI guide and the `AGENTS.md` template**: the user asked on 2026-11-03 to move to English and add no new Japanese text.
 - **People who embed Ozen**: library packages for npm, the XCFramework and Android, and the C API reference. EQ1 left them for later.
 - **Translating the plans that are not finished** (`plans/ozen-cooking-feedback.md`, `plans/ozen-authoring-support.md`, `plans/ozen-dev-environment.md`): the user said they stay Japanese (EQ13).
 - **`ozen doc` and `ozen explain`**: candidates C12 and C7 of `plans/ozen-authoring-support.md`, decided there. The generator of this plan reads the same sources, so those commands can reuse it later.
@@ -69,18 +70,21 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
 
 ## 2. Design decisions
 
-### D116. Where to work, the range base, and pushing [open]
+### D116. Where to work, the range base, and pushing [decided]
 
+- **Decision:** As recommended: work on `main`, count from `ds-start`, push without asking each time after `G-REPO-NOREPLY`, and leave other work's commits out through `ds_excluded`. (2026-11-03, confirmed by the user)
 - **Recommendation**: Work on `main` (`CLAUDE.md`). P0-2 tags `ds-start` on `main`, and the range of this plan is `DS=ds-start..HEAD`. Push without asking each time (the user's instruction for Ozen), and run `G-REPO-NOREPLY` before every push. Commits of other work that fall in the range are named in §9 as `- Other work's commit in range: <sha>`. The goals that use the range leave them out, through a function `ds_excluded` written like the feedback plan's `fb_excluded`. Temporary commits for mutation checks are made in a temporary worktree and removed; they are never pushed.
 - Alternative: a branch `dev-setup` merged with `--no-ff` at the end. It keeps the work apart, but it goes against `CLAUDE.md` and the range style of the earlier plans.
 
-### D117. Where the plan and its goals live [open]
+### D117. Where the plan and its goals live [decided]
 
+- **Decision:** As recommended: this file is a new plan with the `G-DS-*` goals in `scripts/goals.sh`, one line in the plan list of the agent rules, and one pointer line in `plans/ozen-dev-environment.md`. (2026-11-03, confirmed by the user)
 - **Recommendation**: This file is a new plan. `scripts/goals.sh` gets `PLAN_DS`, `DS` and the `goal_G_DS_*` functions. The plan list in the agent rules gets one line for this plan, naming the plan file, the goal prefix and the tag in one line, like the other plans. The rules live first in `CLAUDE.md`, then (from P1-2) in the source `.rulesync/rules/overview.md`. `plans/ozen-dev-environment.md` gets one line pointing to this plan.
 - Alternative: write the tasks into `plans/ozen-dev-environment.md`. There would be one file fewer, but that file is a Japanese list of candidates without goals, and EQ13 says new plans are English.
 
-### D118. Order relative to the feedback plan [open]
+### D118. Order relative to the feedback plan [decided]
 
+- **Decision:** As recommended: start this plan only after the feedback plan's final gate (`fb-end`), and close `FB` at `fb-end` in P0-3. (2026-11-03, confirmed by the user)
 - **Recommendation**: Start this plan only after the feedback plan's final gate. P0-2 checks for a tag `fb-end` on the feedback plan's last commit; if that plan has not set it, P0-2 sets it and records it in §9. P0-3 then closes the feedback plan's range (`FB=fb-start..fb-end`), as the quantity plan was closed at `qc-end`.
   - Reason: the feedback plan is being carried out now (commits up to `f4f77c4`). Run at the same time, the two plans collide in five ways (§3.9):
     - Its open range makes `G-FB-SCOPE` fail on every commit of this plan.
@@ -90,14 +94,16 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
     - Once `CLAUDE.md` is generated, a direct edit of `CLAUDE.md` by the other session would break `generate --check`.
 - Alternative: run now, in parallel. Each commit of this plan would be recorded in the feedback plan's §9 (so `G-FB-SCOPE` excludes it), and the edits to the shared files would be ordered by hand between two sessions. The translation would still have to wait for the feedback plan's end.
 
-### D119. The Node.js version for rulesync [open]
+### D119. The Node.js version for rulesync [decided]
 
+- **Decision:** As recommended: raise `node` to the newest Node.js 24 LTS release (chosen and recorded at P0-2), install it locally under the home directory after the user's yes, and run the renderer and WebAssembly goals on it first. (2026-11-03, confirmed by the user)
 - **Recommendation**: `rulesync` 43.4.2 needs Node.js 22.22.0 or newer, and `toolchain.txt` pins Node.js 20.20.2 (§3.1). Raise the `node` line to the newest Node.js 24 LTS release at P0-2 and record it in §9. CI reads the version from `toolchain.txt`, so the CI jobs follow. The local machine also needs that Node.js for `G-REPO-TOOLS`. P1-1 installs it under the user's home directory from nodejs.org, after the user says yes in chat. Run `G-REND-TESTS`, `G-PLAT-WASM` and the renderer goals on the new version before anything else.
 - Alternative: Node.js 22 (22.22.0 or newer). The same work, and its support ends earlier (April 2027).
 - Alternative: keep Node.js 20 and use rulesync's single-binary installer. No Node.js change, but the installer is `curl ... | bash` from the latest release, which pins nothing and runs a downloaded script.
 
-### D120. rulesync source layout and outputs [open]
+### D120. rulesync source layout and outputs [decided]
 
+- **Decision:** As recommended: one root rule `.rulesync/rules/overview.md`, the features `rules` and `permissions` for the five targets, a wrapper that refuses `--delete`, the outputs listed in `scripts/agent-outputs.txt`, and `npx` in the third column of the `rulesync` line. (2026-11-03, confirmed by the user)
 - **Recommendation**:
   - `rulesync.jsonc` names the targets `claudecode`, `agentsmd`, `codexcli`, `cursor` and `copilot`, and the features `rules` and `permissions`.
   - One root rule, `.rulesync/rules/overview.md`, holds the current `CLAUDE.md` content, rewritten (§4.1).
@@ -106,8 +112,9 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
   - The `rulesync` line of `toolchain.txt` has the third column `npx`, so `scripts/check-tools.sh` and `G-REPO-TOOLS` do not probe it as an installed tool.
 - Alternative: several rule files (language, plans, publishing). They are easier to read one at a time, but the root file of each target then holds only part of the rules, and each target joins non-root rules differently.
 
-### D121. The permission allow list [open]
+### D121. The permission allow list [decided]
 
+- **Decision:** As recommended: allow only the commands that read or build into `build/`, as listed in the recommendation, kept in `scripts/agent-allow.txt`. (2026-11-03, confirmed by the user)
 - **Recommendation**: Allow, without a prompt, the commands that only read or that build into `build/`:
   - `scripts/goals.sh`, `scripts/run-golden.sh`, `scripts/run-cli-tests.sh`, `scripts/check-*.sh`, `scripts/build-core.sh`
   - `scripts/setup.sh`, `scripts/rulesync.sh generate --check`
@@ -117,21 +124,24 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
   The list is kept in `scripts/agent-allow.txt`. Nothing on it writes outside `build/`, commits, tags, resets, removes or pushes.
 - Alternative: no allow list. EQ7 chose to set one.
 
-### D122. `G-REPO-NOREPLY` in CI [open]
+### D122. `G-REPO-NOREPLY` in CI [decided]
 
+- **Decision:** As recommended: check 3 prints `skip` when the global address is empty or the noreply address, check 2 prints `skip` only under `GITHUB_ACTIONS`, and `agents.yml` checks out with `fetch-depth: 0`. (2026-11-03, confirmed by the user)
 - **Recommendation**: The goal has three checks (§3.3), and two of them cannot pass in CI as written. CI has no global address, so `git grep -F ""` matches every line. CI also has no local `user.email`. A third problem: the default checkout of GitHub Actions has depth 1, so `git log --all` sees one commit. The changes:
   - Check 3 (tracked files) prints `skip` when the global address is empty or equal to the noreply address. Other contributors' own addresses are still found, because the value is theirs.
   - Check 2 (local address) prints `skip` only when `GITHUB_ACTIONS` is `true`. Everywhere else it still requires the noreply address.
   - `agents.yml` checks out with `fetch-depth: 0`.
 - Alternative: set placeholder addresses in CI. The CI job would then check made-up values, which proves nothing.
 
-### D123. Plan labels in two languages [open]
+### D123. Plan labels in two languages [decided]
 
+- **Decision:** As recommended: the checkers read both label sets from `scripts/plan-labels.tsv`. (2026-11-03, confirmed by the user)
 - **Recommendation**: `scripts/plan-labels.tsv` lists each Japanese label that a checker reads, with its English counterpart (§4.5). `scripts/check-plan-tests.sh`, `scripts/check-rewrite-equivalence.py`, `scripts/check-lists-copy.py` and the label greps in `scripts/goals.sh` take the labels from this file instead of writing them inline, and accept both. The feedback plan stays Japanese and keeps passing. The translated plans and this plan use English.
 - Alternative: English labels only, with the feedback plan's goals reading Japanese through a separate copy of the checkers. Two copies of every checker would drift.
 
-### D124. How to verify a translation [open]
+### D124. How to verify a translation [decided]
 
+- **Decision:** As recommended: `scripts/check-translation.py` compares the structure with `ds-start`, and each translation task compares the goal results before and after its commit. (2026-11-03, confirmed by the user)
 - **Recommendation**: Use two checks.
   - A new checker, `scripts/check-translation.py --base REV FILE...`, compares each file with its version at `REV` (`ds-start`). It requires:
     - the same IDs
@@ -142,19 +152,22 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
   - Each translation task compares the results of the goals before and after its commit. The compared goals are all goals except those in `scripts/ds-goals-skip.txt`: the `G-DS-*` goals, goals that need the network (`G-PLAT-CI`, `G-REPO-TOOLS-CI`, `G-RD-GH-*`), and goals that rebuild every commit (`G-REPO-RED-FIRST`, `G-CORE-BUILD`). The results are recorded in §9.
 - Alternative: review by people only. Nothing would then catch a dropped table row or a changed command in about 9,000 lines.
 
-### D125. Historical references in the translated plans [open]
+### D125. Historical references in the translated plans [decided]
 
+- **Decision:** As recommended: keep every reference of the finished plans as it was, including the three references to concept §16. (2026-11-03, confirmed by the user)
 - **Recommendation**: Translate the finished plans as records of what was done. Keep every reference as it was, including the three references of the roadmap to concept §16, which P1-9 removes. Section numbers, IDs and commit hashes do not change.
 - Alternative: rewrite references that point to removed or renamed parts. That needs judgement in a history document, and the translation checker could no longer compare the files mechanically.
 
-### D126. How the reference is made [open]
+### D126. How the reference is made [decided]
 
-- **Recommendation**: `reference/{en,ja}/language.md` is written by hand: the syntax, with examples. The examples use the `<!-- file: -->` and `<!-- run: -->` markers that `scripts/check-readme-example.sh` already runs, so they cannot go stale. Both languages use the same Ozen sources and the same `run` lines; the Japanese file may show Japanese output (`--lang ja`). `std.md`, `diagnostics.md` and `ai-guide.md` are generated by `tools/refgen/refgen.py` from `ozen debug definitions`, `core/src/diag_codes.def` and `phrases/{en,ja}.ftl`, and committed (EQ5).
+- **Decision:** As recommended, in English only: `reference/language.md` by hand with checked examples; `std.md`, `diagnostics.md` and `ai-guide.md` generated and committed. (2026-11-03, confirmed by the user)
+- **Recommendation**: `reference/language.md` is written by hand in English: the syntax, with examples. The examples use the `<!-- file: -->` and `<!-- run: -->` markers that `scripts/check-readme-example.sh` already runs, so they cannot go stale. `reference/std.md`, `reference/diagnostics.md` and `reference/ai-guide.md` are generated by `tools/refgen/refgen.py` from `ozen debug definitions`, `core/src/diag_codes.def` and `phrases/en.ftl`, and committed (EQ5).
 - Alternative: generate `language.md` from `core/grammar.ebnf`. Fully generated, but a grammar is not a guide; people and agents learn the syntax from examples.
 
-### D127. Content and size of the AI guide [open]
+### D127. Content and size of the AI guide [decided]
 
-- **Recommendation**: `ai-guide.md` is generated as one file per language from the reference. It holds:
+- **Decision:** As recommended: one generated English file with the quick syntax, the compact action and diagnostics tables and the work loop, at most 64 KiB. (2026-11-03, confirmed by the user)
+- **Recommendation**: `reference/ai-guide.md` is generated as one file from the reference. It holds:
   - the marked quick-syntax part of `language.md`
   - a compact table of the `std` actions (name, parameters, required state)
   - a compact table of the diagnostics (code, name, one line of text)
@@ -163,21 +176,27 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
   It stays at or under 64 KiB, so that an agent can read it whole.
 - Alternative: no size limit. The guide could grow until agents read only part of it.
 
-### D128. Behaviour of `ozen init` [open]
+### D128. Behaviour of `ozen init` [decided]
 
-- **Recommendation**: `ozen init NAME [--lang en|ja]` creates the folder `NAME` (if missing) with `package.ozen` and `AGENTS.md`.
-  - It never overwrites. It checks both files before writing anything; if either exists, it writes nothing and exits 1.
-  - `NAME` must be a valid package name: an ASCII identifier other than `std`, with no `/` and no `..`. Otherwise it writes nothing and exits 2.
-  - The text of `AGENTS.md` comes from `reference/<lang>/agents-template.md`, built into the binary, so the file in the repository is the only source.
-- Alternative: write into the current folder (`ozen init` without a name). Shorter, but easy to run in the wrong folder.
+- **Decision:** `ozen init [DIR] [--name NAME]` like `git init`, `uv init` and `deno init`: the current folder by default, the given folder (created if missing) otherwise; the package name is the folder's base name unless `--name` is given; never overwrites. The user asked how other tools behave, and chose this after the comparison. (2026-11-03, confirmed by the user)
+- Comparison (common behaviour of other tools, from memory, not re-checked on 2026-11-03): `git init [dir]`, `uv init [path]` and `deno init [dir]` work in the current folder, or in the given folder (created if missing). `cargo` splits `cargo init [path]` (current or given folder) from `cargo new <name>` (a new folder). `go mod init <module>` works in the current folder and needs the module name. `cargo`, `go`, `uv` and `deno` refuse when the project file already exists. So `init` usually means "here, or the given folder", and a separate `new` makes a new folder.
+- **Recommendation**: `ozen init [DIR] [--name NAME]`, like `git init`, `uv init` and `deno init`.
+  - Without `DIR`, it works in the current folder. With `DIR`, it works in that folder and creates it if missing.
+  - The package name is the base name of the folder, or `NAME` when `--name` is given. It must be an ASCII identifier other than `std`; otherwise it writes nothing and exits 2.
+  - It writes `package.ozen` and `AGENTS.md`. It never overwrites: it checks both files before writing anything, and if either exists it writes nothing and exits 1.
+  - The text of `AGENTS.md` comes from `reference/agents-template.md` (English), built into the binary, so the file in the repository is the only source.
+- Alternative: two commands, `ozen new NAME` (a new folder) and `ozen init` (the current folder), like `cargo` and `poetry`. Clear, but two commands for one small job.
+- Alternative: `ozen init NAME` always makes a new folder (the first draft). It behaves like `cargo new` under the name `init`, which differs from what `init` does in most tools.
 
-### D129. Where `AGENTS.md` points [open]
+### D129. Where `AGENTS.md` points [decided]
 
-- **Recommendation**: To the AI guide of the installed version on GitHub: `https://github.com/atsuki-seo/Ozen/blob/v<VERSION>/reference/<lang>/ai-guide.md`. The guide then always matches the installed `ozen`. A build of a version that has no tag yet points to a page that does not exist until the release (§10 R6).
+- **Decision:** As recommended: link the AI guide at the tag of the installed version, `https://github.com/atsuki-seo/Ozen/blob/v<VERSION>/reference/ai-guide.md`. (2026-11-03, confirmed by the user)
+- **Recommendation**: To the AI guide of the installed version on GitHub: `https://github.com/atsuki-seo/Ozen/blob/v<VERSION>/reference/ai-guide.md`. The guide then always matches the installed `ozen`. A build of a version that has no tag yet points to a page that does not exist until the release (§10 R6).
 - Alternative: point to `main`. That page always exists, but it can describe a newer language than the installed one.
 
-### D130. Release contents [open]
+### D130. Release contents [decided]
 
+- **Decision:** As recommended: Linux, macOS (universal) and WebAssembly archives with the renderer, phrases, reference, licenses and README, plus `SHA256SUMS`, each run after packing in the release workflow. (2026-11-03, confirmed by the user)
 - **Recommendation**: Three archives and a checksum file:
   - `ozen-<v>-linux-x86_64.tar.gz` and `ozen-<v>-macos-universal.tar.gz` hold `ozen-<v>/bin/ozen`, `renderers/` (without tests), `phrases/`, `reference/`, the license files, `NOTICE` and `README.md`. `bin/ozen render` finds `../renderers/cli.mjs` by itself (§3.5).
   - `ozen-<v>-wasm.zip` holds `bindings/wasm/ozen.mjs`, `worker.js`, `ozen_bridge.js` and the files they load.
@@ -186,35 +205,43 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
   `std` is built into the binary. The release workflow runs each archive after packing it: `--version`, a render, and a render with `bin/` on `PATH`. On macOS it also checks both architectures with `lipo -archs`.
 - Alternative: the binary alone. Smaller, but `ozen render` would not work without a checkout.
 
-### D131. Release tag name [open]
+### D131. Release tag name [decided]
 
+- **Decision:** Tags have the form `v<VERSION>`; the user answered with the example `v0.1.0`, which D134 takes up for the first release. (2026-11-03, confirmed by the user)
 - **Recommendation**: `v<VERSION>` (for example `v0.2.0`). It is the common form on GitHub, and it does not collide with the plan tags (`plan-start`, `qc-end`, and so on).
 - Alternative: `<VERSION>` without `v`. Also common, but the release workflow then has to tell version tags from plan tags by a pattern on digits.
 
-### D132. Version strings in golden expectations [open]
+### D132. Version strings in golden expectations [decided]
 
+- **Decision:** As recommended: write `{{STD_VERSION}}` for `ozenVersion` and the SARIF tool version, keep package versions literal, and make `std-version-check` require `99.0.0`. (2026-11-03, confirmed by the user)
 - **Recommendation**: `scripts/run-golden.sh` already replaces `{{STD_VERSION}}` in expectations with the content of `VERSION` (16 expectation files use it, §3.6). Write `{{STD_VERSION}}` for the remaining literal versions that a bump changes: `"ozenVersion":"0.1.0"` in 19 JSON expectations and the SARIF tool `"version":"0.1.0"` in one. Package versions in inputs and outputs (`version: "0.1.0"` of sample packages, `std: "0.1.0"` requirements) stay literal. `tests/golden/bundle/std-version-check` requires `std: "0.2.0"` to test "requires newer"; change its requirement to `99.0.0` so that the test keeps its meaning after any bump.
 - Alternative: `scripts/bump-version.sh` rewrites the expectations at each bump. No change to the expectations now, but every bump changes about 20 expectations in the same commit as `VERSION`. `std-version-check` would also need a new number at each bump.
 
-### D133. Version goals of the finished plans [open]
+### D133. Version goals of the finished plans [decided]
 
+- **Decision:** As recommended: `G-RD-VERSION`, `G-QC-VERSION` and `G-FB-VERSION` read `VERSION` at their end tags, and `G-REPO-VERSION` stops reading the roadmap. (2026-11-03, confirmed by the user)
 - **Recommendation**:
   - `G-REPO-VERSION` checks `VERSION` against `ozen --version` and `stdlib/package.ozen` only, and stops reading `版: <v>` in the roadmap.
   - `G-RD-VERSION`, `G-QC-VERSION` and `G-FB-VERSION` check `VERSION` as it was at their end tags (`git show readme-end:VERSION`, `qc-end`, `fb-end`). That is what they meant: those plans did not change the version.
 - Alternative: keep them and never bump. Then there are no releases (EQ10).
+- Alternative: leave them until the next bump. They pass while the version stays `0.1.0` (D134), but the next bump would fail three finished plans' goals.
 
-### D134. The first release [open]
+### D134. The first release [decided]
 
+- **Decision:** Release the current version as `v0.1.0` without a bump (the user's choice; `0.1.0` has never been published). The tag is pushed only after the user's yes in chat (P4-6). (2026-11-03, confirmed by the user)
 - **Recommendation**: At the end of this plan, bump to `0.2.0` (a new command, `ozen init`, and a new reference: a minor step). Then tag `v0.2.0` and push the tag, after the user says yes in chat (P4-6). `G-DS-RELEASE-PUBLISHED` then checks the published release.
+- Alternative: release the current version as `v0.1.0` without a bump. `0.1.0` has never been published, so the first public release can carry it, including what this plan adds.
 - Alternative: prepare everything but release later. Nothing public changes now, but the release workflow is then first run on a later, unrelated change.
 
-### D135. Links from the introduction page [open]
+### D135. Links from the introduction page [decided]
 
-- **Recommendation**: `site/index.html` (Japanese) gets two links: the Japanese reference (`https://github.com/atsuki-seo/Ozen/tree/main/reference/ja`) and the releases page. The text follows the short, plain style of the page.
+- **Decision:** As recommended: add the two links `Reference` and `Releases` to `site/index.html`, with no new Japanese sentence. (2026-11-03, confirmed by the user)
+- **Recommendation**: `site/index.html` (Japanese, the one exception to English) gets two links: the reference (`https://github.com/atsuki-seo/Ozen/tree/main/reference`) and the releases page. The link texts are the two words `Reference` and `Releases`, so no new Japanese sentence is added.
 - Alternative: no change to the page. Its readers would not find the reference or the downloads.
 
-### D136. The push rule in the agent rules [open]
+### D136. The push rule in the agent rules [decided]
 
+- **Decision:** As recommended: keep "run `G-REPO-NOREPLY` before every push" and drop "ask the user before pushing". (2026-11-03, confirmed by the user)
 - **Recommendation**: The rewritten rules keep "run `G-REPO-NOREPLY` before every push" and drop "ask the user before pushing". Whether to ask before a push is each person's own preference (the owner has said not to ask for Ozen). The pre-push hook enforces the part that protects the repository.
 - Alternative: keep "ask the user before pushing" for every agent. Safer for new contributors, but it contradicts the owner's standing instruction in every session.
 
@@ -327,7 +354,7 @@ Each checkable claim is one item with an ID `**S<n>**`.
 - **S960** The Claude Code allow list in the generated `.claude/settings.json` equals `scripts/agent-allow.txt`.
 - **S961** No entry of `scripts/agent-allow.txt` pushes, commits, tags, resets, removes files or redirects output.
 - **S962** The language rule says that committed files are written in English.
-- **S963** The language rule names the exceptions: `site/`, the MEXT attribution wording, the values of `phrases/ja.ftl`, and `reference/ja/`.
+- **S963** The language rule names the exceptions: `site/`, the MEXT attribution wording, and the values of `phrases/ja.ftl`.
 - **S964** The language rule names the three Japanese plans that stay Japanese.
 - **S965** The language rule says that the language of chat and of uncommitted work follows each person's own settings.
 - **S966** No sentence of the generated agent files says that `docs/` or `plans/` as a whole are written in Japanese.
@@ -364,7 +391,7 @@ Each checkable claim is one item with an ID `**S<n>**`.
 - **S988** `docs/concept.md` has no section 16 (no heading `## 16.`), and its last numbered section is 15.
 - **S989** `CONTRIBUTING.md` has a section `## Where things are` with a table that has rows for `docs/`, `plans/`, `reference/`, `site/`, the folder READMEs, `.rulesync/`, and `CLAUDE.md` with `AGENTS.md`.
 - **S990** `CONTRIBUTING.md` has a section `## Getting started` that names `scripts/setup.sh` and `scripts/goals.sh` and says that `CLAUDE.md` and `AGENTS.md` are generated from `.rulesync/`.
-- **S991** The documentation list of `README.md` links `reference/en/` and `reference/ja/`.
+- **S991** The documentation list of `README.md` links `reference/`.
 - **S992** `plans/ozen-dev-environment.md` has one line that points to `plans/ozen-dev-setup.md`.
 
 ### 4.5 Plan labels and the translation (D118, D123, D124, D125)
@@ -417,35 +444,35 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 
 ### 4.7 Reference (D126, D127)
 
-- **S1015** `reference/en/` and `reference/ja/` each hold exactly `README.md`, `language.md`, `std.md`, `diagnostics.md`, `ai-guide.md` and `agents-template.md`.
-- **S1016** `reference/en/language.md` and `reference/ja/language.md` have the same sequence of `ozen` code blocks and the same `<!-- file: -->` and `<!-- run: -->` lines.
-- **S1017** The examples of both `language.md` files pass `scripts/check-readme-example.sh`.
+- **S1015** `reference/` holds exactly `README.md`, `language.md`, `std.md`, `diagnostics.md`, `ai-guide.md` and `agents-template.md`, all in English.
+- **S1017** The examples of `reference/language.md` pass `scripts/check-readme-example.sh`.
 - **S1018** `language.md` marks its quick-syntax part with `<!-- ai-guide:begin -->` and `<!-- ai-guide:end -->`.
 - **S1019** `std.md` has one entry for each definition of kind `action` from `ozen debug definitions` whose module starts with `std.` and that is not `local`.
 - **S1020** Each action entry of `std.md` lists its parameters, with their types or dimensions, and the states it requires, as given in the definitions JSON.
-- **S1021** `std.md` uses the action text of `phrases/<lang>.ftl` for each action that has one.
+- **S1021** `std.md` uses the action text of `phrases/en.ftl` for each action that has one.
 - **S1022** `diagnostics.md` has one entry for each line of `core/src/diag_codes.def`, with its code, name, category and default severity.
-- **S1023** Each entry of `diagnostics.md` has the `diag-<name>` text of its language when that phrase exists, and the words of the name otherwise.
+- **S1023** Each entry of `diagnostics.md` has the `diag-<name>` text of `phrases/en.ftl` when that phrase exists, and the words of the name otherwise.
 - **S1024** `ai-guide.md` holds, in this order: the quick-syntax part of `language.md`, the compact action table, the compact diagnostics table and the work loop.
 - **S1025** `ai-guide.md` is at most 65536 bytes.
 - **S1026** Each generated file starts with a line saying that it is generated by `tools/refgen/refgen.py` and must not be edited.
-- **S1027** `python3 -B tools/refgen/refgen.py --check` exits 0 on the committed tree and prints `refgen: 6 files, 0 differ`.
+- **S1027** `python3 -B tools/refgen/refgen.py --check` exits 0 on the committed tree and prints `refgen: 3 files, 0 differ`.
 - **S1028** Two runs of `tools/refgen/refgen.py` write the same bytes.
 - **S1029** When a new action is added to a copy of `std`, `refgen.py --check` names the changed files and exits 1.
 
 ### 4.8 `ozen init` (D128, D129)
 
-- **S1030** `ozen init NAME` creates `NAME/package.ozen` with the text `package NAME {\n  version: "0.1.0"\n}\n`.
-- **S1031** `ozen init NAME` creates `NAME/AGENTS.md` from `reference/en/agents-template.md`, with `@VERSION@` replaced by the version of the binary.
-- **S1032** `ozen init NAME --lang ja` creates `NAME/AGENTS.md` from `reference/ja/agents-template.md`.
-- **S1033** `ozen init NAME` prints `created NAME/package.ozen`, `created NAME/AGENTS.md` and the line about `@AGENTS.md`, and exits 0.
-- **S1034** When `NAME/package.ozen` or `NAME/AGENTS.md` exists, `ozen init NAME` writes neither file and exits 1.
-- **S1035** When `NAME` is not an ASCII identifier, is `std`, or contains `/` or `..`, `ozen init NAME` writes nothing and exits 2.
-- **S1036** `ozen check NAME/package.ozen` on a new folder reports 0 errors.
-- **S1037** The `AGENTS.md` written by `ozen init` contains `https://github.com/atsuki-seo/Ozen/blob/v<VERSION>/reference/<lang>/ai-guide.md`.
-- **S1038** Both templates contain `ozen check --format json` and `ozen render --kind recipe`.
+- **S1030** `ozen init DIR` creates `DIR` if it is missing and writes `DIR/package.ozen` with the text `package <base name of DIR> {\n  version: "0.1.0"\n}\n`.
+- **S1074** `ozen init` without `DIR` writes into the current folder, and the package name is the base name of the current folder.
+- **S1075** `ozen init DIR --name NAME` uses `NAME` as the package name.
+- **S1031** `ozen init DIR` creates `DIR/AGENTS.md` from `reference/agents-template.md`, with `@VERSION@` replaced by the version of the binary.
+- **S1033** `ozen init DIR` prints `created DIR/package.ozen`, `created DIR/AGENTS.md` and the line about `@AGENTS.md`, and exits 0.
+- **S1034** When `package.ozen` or `AGENTS.md` exists in the target folder, `ozen init` writes neither file and exits 1.
+- **S1035** When the package name (the base name of the folder, or `--name`) is not an ASCII identifier or is `std`, `ozen init` writes nothing, creates no folder, and exits 2.
+- **S1036** `ozen check DIR/package.ozen` on a new folder reports 0 errors.
+- **S1037** The `AGENTS.md` written by `ozen init` contains `https://github.com/atsuki-seo/Ozen/blob/v<VERSION>/reference/ai-guide.md`.
+- **S1038** The template contains `ozen check --format json` and `ozen render --kind recipe`.
 - **S1039** The usage text of `ozen` and the command list of `cli/README.md` name `ozen init`.
-- **S1040** After a template is edited and the binary rebuilt, `ozen init` writes the edited text.
+- **S1040** After the template is edited and the binary rebuilt, `ozen init` writes the edited text.
 
 ### 4.9 Version (D132, D133)
 
@@ -477,12 +504,12 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 - **S1063** After the first release, `gh release view v<v>` lists the three archives and `SHA256SUMS`.
 - **S1064** The Linux archive downloaded from the release passes `sha256sum -c` and prints `ozen <v>` for `--version`.
 - **S1065** The release workflow run for the tag's commit succeeds.
-- **S1066** After the release, `reference/en/ai-guide.md` exists at the tag on GitHub.
+- **S1066** After the release, `reference/ai-guide.md` exists at the tag on GitHub.
 
 ### 4.11 Introduction page (D135)
 
-- **S1067** `site/index.html` links `https://github.com/atsuki-seo/Ozen/tree/main/reference/ja` and `https://github.com/atsuki-seo/Ozen/releases`.
-- **S1068** After the push, `reference/ja` exists on GitHub at `main`, and the Pages run for that commit succeeds.
+- **S1067** `site/index.html` links `https://github.com/atsuki-seo/Ozen/tree/main/reference` and `https://github.com/atsuki-seo/Ozen/releases`, with the link texts `Reference` and `Releases`.
+- **S1068** After the push, `reference` exists on GitHub at `main`, and the Pages run for that commit succeeds.
 
 ### 4.12 Invariants
 
@@ -501,7 +528,7 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 | Hooks and CI | `.githooks/pre-push`, `.github/workflows/agents.yml`, `.github/workflows/release.yml` |
 | Repository files | `toolchain.txt`, `.gitignore` |
 | Documents | `docs/concept.md`, `docs/prototype-report.md`, `plans/ozen-roadmap.md`, `plans/ozen-syntax-refresh.md`, `plans/ozen-readme-compact.md`, `plans/ozen-quantity-checks.md`, `plans/ozen-dev-environment.md` (one line), `plans/ozen-dev-setup.md`, `CONTRIBUTING.md`, `README.md`, `cli/README.md`, `site/index.html`, `site/README.md` |
-| Reference | `reference/en/*.md`, `reference/ja/*.md`, `tools/refgen/*` |
+| Reference | `reference/*.md`, `tools/refgen/*` |
 | `ozen init` | `cli/src/*`, `cli/CMakeLists.txt`, `tests/cli/init-*.sh` |
 | Version | `tests/golden/**/*.out` (only S1041), `tests/golden/bundle/std-version-check.*` (only S1044), and `VERSION` and `stdlib/package.ozen` at P4-6 |
 
@@ -511,7 +538,7 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 | --- | --- |
 | `scripts/` | Shell and Python helpers and checkers, each with a self-test listed in `scripts/selftests.txt` |
 | `tools/refgen/` | The reference generator, in Python with only the packages that `toolchain.txt` lists; its test is `scripts/test-refgen.sh` |
-| `cli/src/` | `ozen init`; the templates are embedded at build time, and a template is a build dependency of the binary |
+| `cli/src/` | `ozen init`; the template is embedded at build time, and it is a build dependency of the binary |
 
 ---
 
@@ -553,9 +580,9 @@ When a goal fails, report which goal and which check failed.
 | `G-DS-GOALS-SAME` | S1008 | 6 records in §9; each pair has an empty diff |
 | `G-DS-CONCEPT-GOALS` | S1009 | 0 Japanese characters; the goals exit 0 |
 | `G-DS-JA-PLANS` | S1010 | 0 |
-| `G-DS-REFERENCE` | S1015–S1018 | 12 files; empty diff; both `0 mismatches`; markers 2 and 2 |
-| `G-DS-REFGEN` | S1019–S1029 | `refgen: 6 files, 0 differ`; self-test ends with `0 failed`; both guides at most 65536 bytes |
-| `G-DS-INIT` | S1030–S1040 | `cli: <k> cases, 0 failed` with 8 `init-*` cases; usage and README counts at least 1 |
+| `G-DS-REFERENCE` | S1015, S1017, S1018 | 6 files; `0 mismatches`; markers 2; 0 Japanese characters |
+| `G-DS-REFGEN` | S1019–S1029 | `refgen: 3 files, 0 differ`; self-test ends with `0 failed`; the guide at most 65536 bytes |
+| `G-DS-INIT` | S1030, S1031, S1033–S1040, S1074, S1075 | `cli: <k> cases, 0 failed` with 9 `init-*` cases; usage and README counts at least 1 |
 | `G-DS-VERSION` | S1041–S1049 | 0 literal versions; 1 placeholder in SARIF; package versions unchanged; self-test ends with `0 failed`; 0 roadmap reads; 3 end-tag reads; the goals exit 0 |
 | `G-DS-RELEASE-LOCAL` | S1052, S1054–S1059, S1061, S1062 | `release: <k> cases, 0 failed`; `release-tag: <k> cases, 0 failed` |
 | `G-DS-RELEASE-WORKFLOW` | S1050, S1051, S1053, S1060 | the workflow checks in the code block |
@@ -620,7 +647,7 @@ diff <(python3 -c 'import json; print("\n".join(sorted(json.load(open(".claude/s
 grep -cE 'git (push|commit|tag|reset)|(^| )rm |>' scripts/agent-allow.txt                            # 0
 R=.rulesync/rules/overview.md
 grep -ciE 'committed .*(are|is) (written )?in English' $R                                            # 1 or more
-for s in 'site/' 'MEXT' 'phrases/ja.ftl' 'reference/ja/' 'ozen-cooking-feedback.md' 'ozen-authoring-support.md' 'ozen-dev-environment.md' 'own settings'; do
+for s in 'site/' 'MEXT' 'phrases/ja.ftl' 'ozen-cooking-feedback.md' 'ozen-authoring-support.md' 'ozen-dev-environment.md' 'own settings'; do
   grep -cF "$s" $R; done                                                                             # 1 or more each
 grep -ciE '(under|in) `?(docs|plans)/`? (are|is) written in Japanese' CLAUDE.md AGENTS.md            # 0 each
 grep -cF 'ask the user before pushing' CLAUDE.md AGENTS.md                                           # 0 each
@@ -658,7 +685,7 @@ W=$(sed -n '/^## Where things are/,/^## [^W]/p' CONTRIBUTING.md)
 for p in docs/ plans/ reference/ site/ README .rulesync/ CLAUDE.md AGENTS.md; do grep '^| ' <<< "$W" | grep -cF "$p"; done
 G=$(sed -n '/^## Getting started/,/^## [^G]/p' CONTRIBUTING.md)
 for p in scripts/setup.sh scripts/goals.sh .rulesync/; do grep -cF "$p" <<< "$G"; done
-grep -cF 'reference/en/' README.md; grep -cF 'reference/ja/' README.md
+grep -cF 'reference/' README.md
 grep -cF 'plans/ozen-dev-setup.md' plans/ozen-dev-environment.md
 
 # G-DS-TRANSLATION
@@ -682,22 +709,20 @@ scripts/goals.sh $ids > /dev/null 2>&1; echo "exit $?"
 for c in $(ds_commits); do git diff-tree --no-commit-id --name-only -r $c; done |
   grep -cxE 'plans/ozen-(cooking-feedback|authoring-support)\.md'
 
-# G-DS-REFERENCE (12, empty, 0 mismatches twice, 2 and 2)
-ls reference/en reference/ja | grep -c '\.md$'
-blocks() { awk '/^<!-- (file|run): /{print; next} /^```ozen/{f=1} f{print} /^```$/{f=0}' "$1"; }
-diff <(blocks reference/en/language.md) <(blocks reference/ja/language.md)
-scripts/check-readme-example.sh --readme reference/en/language.md --ozen $OZ | tail -n 1
-scripts/check-readme-example.sh --readme reference/ja/language.md --ozen $OZ | tail -n 1
-grep -cE '^<!-- ai-guide:(begin|end) -->$' reference/en/language.md reference/ja/language.md
+# G-DS-REFERENCE (6, 0 mismatches, 2, 0)
+ls reference | grep -c '\.md$'
+scripts/check-readme-example.sh --readme reference/language.md --ozen $OZ | tail -n 1
+grep -cE '^<!-- ai-guide:(begin|end) -->$' reference/language.md
+cat reference/*.md | grep -cP '[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]'
 
 # G-DS-REFGEN
-python3 -B tools/refgen/refgen.py --check | tail -n 1           # refgen: 6 files, 0 differ
+python3 -B tools/refgen/refgen.py --check | tail -n 1           # refgen: 3 files, 0 differ
 bash scripts/test-refgen.sh | tail -n 1                          # refgen: <k> cases, 0 failed
-for l in en ja; do [ "$(wc -c < reference/$l/ai-guide.md)" -le 65536 ] && echo ok; done   # ok ok
+[ "$(wc -c < reference/ai-guide.md)" -le 65536 ] && echo ok                      # ok
 
 # G-DS-INIT
 scripts/run-cli-tests.sh $OZ tests/cli | tail -n 1               # cli: <k> cases, 0 failed
-ls tests/cli/init-*.sh | wc -l                                   # 8
+ls tests/cli/init-*.sh | wc -l                                   # 9
 $OZ 2>&1 | grep -c 'ozen init'; grep -c 'ozen init' cli/README.md
 
 # G-DS-VERSION
@@ -730,12 +755,12 @@ gh release view "$t" --json assets --jq '.assets[].name' |
 d=build/ds-release; rm -rf $d; mkdir -p $d; gh release download "$t" -D $d
 (cd $d && sha256sum -c SHA256SUMS | grep -c ': OK$' && tar xzf ozen-$v-linux-x86_64.tar.gz && ozen-$v/bin/ozen --version)
 gh run list --workflow release.yml --commit "$(git rev-list -n 1 "$t")" --json conclusion --jq '.[0].conclusion'
-gh api "repos/atsuki-seo/Ozen/contents/reference/en/ai-guide.md?ref=$t" --jq .path
+gh api "repos/atsuki-seo/Ozen/contents/reference/ai-guide.md?ref=$t" --jq .path
 
 # G-DS-SITE (1, 1, a positive count, success)
-grep -cF 'https://github.com/atsuki-seo/Ozen/tree/main/reference/ja' site/index.html
+grep -cF 'https://github.com/atsuki-seo/Ozen/tree/main/reference"' site/index.html
 grep -cF 'https://github.com/atsuki-seo/Ozen/releases' site/index.html
-gh api 'repos/atsuki-seo/Ozen/contents/reference/ja?ref=main' --jq length
+gh api 'repos/atsuki-seo/Ozen/contents/reference?ref=main' --jq length
 gh run list --workflow pages.yml --commit "$(git log --format=%H -1 -- site/index.html)" --json conclusion --jq '.[0].conclusion'
 
 # G-DS-GOLDEN-SAME (0)
@@ -779,7 +804,7 @@ grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_DS
 | `sh/test-check-lists-copy.sh` | S998 (case added) | P0-3 |
 | `sh/test-check-translation.sh` | S1000–S1007 | P2-1 |
 | `sh/test-refgen.sh` | S1019–S1023, S1026, S1028, S1029 against the definitions JSON, `diag_codes.def` and a fixture `std` with a `local` action | P3-2 |
-| `cli/init-*` (8 cases) | S1030–S1038, S1040 | P3-4 |
+| `cli/init-*` (9 cases) | S1030, S1031, S1033–S1038, S1040, S1074, S1075 | P3-4 |
 | `sh/test-bump-version.sh` | S1044–S1047, S1049 | P4-2 |
 | `sh/test-check-release-tag.sh` | S1051, S1052 | P4-5 |
 | `sh/test-make-release.sh` | S1054–S1059, S1061, S1062 for `linux` and `wasm` (macOS runs in the release workflow) | P4-4 |
@@ -813,7 +838,7 @@ Aspects: Normal, Boundary, No-effect condition, Side effects, Time and order, Pe
 | S960 | Data completeness | `G-DS-AGENT-FILES` | add a line to `scripts/agent-allow.txt` without generating | P1-3 |
 | S961 | Side effects | `G-DS-AGENT-FILES` | add `git push` to the allow list | P1-3 |
 | S962 | Docs match | `G-DS-AGENT-FILES` | drop the English sentence | P1-4 |
-| S963 | Docs match | `G-DS-AGENT-FILES` | drop `reference/ja/` from the exceptions | P1-4 |
+| S963 | Docs match | `G-DS-AGENT-FILES` | drop `phrases/ja.ftl` from the exceptions | P1-4 |
 | S964 | Docs match | `G-DS-AGENT-FILES` | drop `ozen-dev-environment.md` | P1-4 |
 | S965 | Docs match | `G-DS-AGENT-FILES` | drop the sentence about own settings | P1-4 |
 | S966 | Docs match | `G-DS-AGENT-FILES` | keep the old sentence about `plans/` | P1-4 |
@@ -843,7 +868,7 @@ Aspects: Normal, Boundary, No-effect condition, Side effects, Time and order, Pe
 | S988 | Data completeness | `G-DS-CONCEPT16` | restore section 16 | P1-9 |
 | S989 | Docs match | `G-DS-ENTRY-DOCS` | drop the `reference/` row | P1-10 |
 | S990 | Docs match | `G-DS-ENTRY-DOCS` | drop the `scripts/setup.sh` line | P1-10 |
-| S991 | Docs match | `G-DS-ENTRY-DOCS` | drop the `reference/ja/` link | P3-5 |
+| S991 | Docs match | `G-DS-ENTRY-DOCS` | drop the `reference/` link | P3-5 |
 | S992 | Docs match | `G-DS-ENTRY-DOCS` | drop the pointer line | P0-3 |
 | S993 | Data completeness | `G-DS-LABELS` | delete the `Total` row of the TSV | P0-3 |
 | S994 | Fixed premise | `G-DS-LABELS` | write the Japanese mutation column name inline in the checker | P0-3 |
@@ -868,31 +893,32 @@ Aspects: Normal, Boundary, No-effect condition, Side effects, Time and order, Pe
 | S1012 | Normal | `sh/test-goals.sh` | stop `--summary` at the first failure | P0-3 |
 | S1013 | Fixed premise | `G-DS-LABELS` | leave `FB=fb-start..HEAD` | P0-3 |
 | S1014 | Data completeness | `G-DS-OWN-LABELS` | write the Japanese decided label in a heading of this plan | P0-3 |
-| S1015 | Data completeness | `G-DS-REFERENCE` | delete `reference/ja/std.md` | P3-2 |
-| S1016 | Docs match | `G-DS-REFERENCE` | change one Ozen example in the Japanese file only | P3-1 |
+| S1015 | Data completeness | `G-DS-REFERENCE` | delete `reference/std.md` | P3-2 |
+| S1015 | Docs match | `G-DS-REFERENCE` | write one Japanese sentence in `reference/language.md` | P3-1 |
 | S1017 | Docs match | `G-DS-REFERENCE` | change an expected output line | P3-1 |
 | S1018 | Data completeness | `G-DS-REFERENCE` | remove the end marker | P3-1 |
 | S1019 | Data completeness | `sh/test-refgen.sh` | include `local` actions | P3-2 |
 | S1020 | Normal | `sh/test-refgen.sh` | omit required states | P3-2 |
-| S1021 | Normal | `sh/test-refgen.sh` | always use the English text | P3-2 |
+| S1021 | Normal | `sh/test-refgen.sh` | print the action name instead of its text | P3-2 |
 | S1022 | Data completeness | `sh/test-refgen.sh` | skip the last line of `diag_codes.def` | P3-2 |
 | S1023 | Boundary | `sh/test-refgen.sh` | print nothing when a phrase is missing | P3-2 |
 | S1024 | Normal | `G-DS-REFGEN` | leave out the work loop | P3-3 |
 | S1025 | Boundary | `G-DS-REFGEN` | write the full `std.md` into the guide | P3-3 |
 | S1026 | Data completeness | `sh/test-refgen.sh` | drop the generated-file line | P3-2 |
-| S1027 | Persistence | `G-DS-REFGEN` | edit `reference/en/std.md` by hand | P3-2 |
+| S1027 | Persistence | `G-DS-REFGEN` | edit `reference/std.md` by hand | P3-2 |
 | S1028 | Time and order | `sh/test-refgen.sh` | iterate a set without sorting | P3-2 |
 | S1029 | Real path | `sh/test-refgen.sh` | make `--check` exit 0 always | P3-2 |
 | S1030 | Normal | `cli/init-basic` | write `version: "0.0.1"` | P3-4 |
 | S1031 | Normal | `cli/init-basic` | leave `@VERSION@` in place | P3-4 |
-| S1032 | Normal | `cli/init-lang-ja` | ignore `--lang` | P3-4 |
 | S1033 | Docs match | `cli/init-basic` | drop the `@AGENTS.md` line | P3-4 |
 | S1034 | No-effect condition | `cli/init-exists` | write `package.ozen` before checking `AGENTS.md` | P3-4 |
 | S1035 | Boundary | `cli/init-bad-name` | accept `std` | P3-4 |
-| S1035 | Boundary | `cli/init-path-name` | accept `a/b` | P3-4 |
-| S1036 | Real path | `cli/init-check` | write `package NAME {}` without a version | P3-4 |
+| S1035 | Boundary | `cli/init-path-name` | accept a folder named `my-book` as the package name | P3-4 |
+| S1074 | Normal | `cli/init-here` | write into `./new` when no folder is given | P3-4 |
+| S1075 | Normal | `cli/init-name` | ignore `--name` | P3-4 |
+| S1036 | Real path | `cli/init-check` | write the package without a version | P3-4 |
 | S1037 | Normal | `cli/init-link` | link `blob/main` | P3-4 |
-| S1038 | Docs match | `cli/init-template` | remove `--format json` from the Japanese template | P3-4 |
+| S1038 | Docs match | `cli/init-template` | remove `--format json` from the template | P3-4 |
 | S1039 | Docs match | `G-DS-INIT` | leave `init` out of the usage text | P3-4 |
 | S1040 | Time and order | `cli/init-rebuild` | drop the template from the build dependencies | P3-4 |
 | S1041 | Normal | `G-DS-VERSION` | leave a literal version in the SARIF expectation | P4-1 |
@@ -990,10 +1016,10 @@ Each translation task writes `build/ds-goals-P2-<n>-before.txt` before its commi
 
 | ID | Task | Completion condition |
 | --- | --- | --- |
-| P3-1 | `reference/{en,ja}/README.md` and `language.md`, with checked examples and the guide markers | `G-DS-REFERENCE` (the hand-written files) |
+| P3-1 | `reference/README.md` and `reference/language.md`, with checked examples and the guide markers | `G-DS-REFERENCE` (the hand-written files) |
 | P3-2 | `tools/refgen/refgen.py` for `std.md` and `diagnostics.md`, with `scripts/test-refgen.sh` | `G-DS-REFGEN` (except the guide), `G-DS-REFERENCE` |
 | P3-3 | `ai-guide.md` in `refgen.py` (D127) | `G-DS-REFGEN` |
-| P3-4 | `reference/{en,ja}/agents-template.md`; the CLI tests `tests/cli/init-*.sh`, committed first; then `ozen init` (D128, D129) and `cli/README.md` | `G-DS-INIT`, `G-CLI-TESTS`, `G-REPO-RED-FIRST` |
+| P3-4 | `reference/agents-template.md`; the CLI tests `tests/cli/init-*.sh`, committed first; then `ozen init` (D128, D129) and `cli/README.md` | `G-DS-INIT`, `G-CLI-TESTS`, `G-REPO-RED-FIRST` |
 | P3-5 | Links in `README.md` and `site/index.html` (D135); push | `G-DS-ENTRY-DOCS`, `G-DS-SITE` |
 | P3-6 | Phase gate | every prerequisite goal and every goal of Phases 0, 1 and 3 |
 
@@ -1006,7 +1032,7 @@ Each translation task writes `build/ds-goals-P2-<n>-before.txt` before its commi
 | P4-3 | `G-REPO-VERSION`, `G-RD-VERSION`, `G-QC-VERSION` and `G-FB-VERSION` (D133) | `G-DS-VERSION` |
 | P4-4 | `scripts/make-release.sh` and its test; `dist/` in `.gitignore` | `G-DS-RELEASE-LOCAL` (release cases) |
 | P4-5 | `scripts/check-release-tag.sh` with its test, and `.github/workflows/release.yml` | `G-DS-RELEASE-LOCAL`, `G-DS-RELEASE-WORKFLOW` |
-| P4-6 | Ask the user in chat. On yes: `scripts/bump-version.sh 0.2.0`, commit, tag `v0.2.0`, push the tag (D134) | `G-DS-RELEASE-PUBLISHED`, `G-REPO-VERSION` |
+| P4-6 | Ask the user in chat. On yes: tag `v0.1.0` on `main` without a bump and push the tag (D134) | `G-DS-RELEASE-PUBLISHED`, `G-REPO-VERSION` |
 
 ### Phase 5 — Documents and finish
 
