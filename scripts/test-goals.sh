@@ -83,6 +83,45 @@ if [ "$got" != "$(printf 'G-REPO-LICENSE-TEXT fail\nG-PLAN-COVERAGE pass')" ] ||
 fi
 rm -rf "$r"
 
+noreply_case() {
+  local name=$1 global=$2 local_email=$3 actions=$4 file=$5 want=$6 want_status=$7 r home got got_status
+  cases=$((cases + 1))
+  r=$(new_repo)
+  home=$(mktemp -d)
+  printf '%s\n' "$file" > "$r/notes.txt"
+  git -C "$r" add notes.txt
+  git -C "$r" -c user.name=t -c user.email=146819854+atsuki-seo@users.noreply.github.com commit -q -m base
+  [ -z "$local_email" ] || git -C "$r" config --local user.email "$local_email"
+  [ -z "$global" ] || HOME="$home" git config --global user.email "$global"
+  set +e
+  got=$(HOME="$home" GIT_CONFIG_NOSYSTEM=1 GITHUB_ACTIONS="$actions" "$goals" --root "$r" G-REPO-NOREPLY 2>&1)
+  got_status=$?
+  set -e
+  if ! grep -qE "$want" <<< "$got" || [ "$got_status" -ne "$want_status" ]; then
+    echo "FAIL $name: got '$(tr '\n' ';' <<< "$got")' (status $got_status)" >&2
+    failed=$((failed + 1))
+  fi
+  rm -rf "$r" "$home"
+}
+
+nr=146819854+atsuki-seo@users.noreply.github.com
+noreply_case noreply-no-global "" "$nr" "" "notes" '^skip  personal email' 0
+noreply_case noreply-global-is-noreply "$nr" "$nr" "" "notes $nr" '^skip  personal email' 0
+noreply_case noreply-personal-found "me@example.org" "$nr" "" "write to me@example.org" '^FAIL  personal email in tracked files' 1
+noreply_case noreply-actions-no-local "" "" true "notes" '^skip  local user.email' 0
+
+cases=$((cases + 1))
+r=$(new_repo)
+git -C "$r" -c user.name=t -c user.email=$nr commit -q --allow-empty -m base
+set +e
+got=$(HOME=$(mktemp -d) GIT_CONFIG_NOSYSTEM=1 GITHUB_ACTIONS= "$goals" --root "$r" G-REPO-NOREPLY 2>&1)
+set -e
+if ! grep -q '^FAIL  local user.email' <<< "$got"; then
+  echo "FAIL noreply-local-missing: got '$(tr '\n' ';' <<< "$got")'" >&2
+  failed=$((failed + 1))
+fi
+rm -rf "$r"
+
 r=$(new_repo)
 expect unknown-goal "$r" G-NO-SUCH-GOAL "" 2
 

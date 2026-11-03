@@ -247,10 +247,23 @@ goal_G_PLAN_COVERAGE() {
     "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
 }
 
+skip() { printf 'skip  %s\n' "$1"; }
+
 goal_G_REPO_NOREPLY() {
+  local local_email global_email
   want_eq "commit emails" "$NOREPLY " "$(git log --all --format='%ae%n%ce' | sort -u | tr '\n' ' ')"
-  want_eq "local user.email" "$NOREPLY" "$(git config --local user.email)"
-  want_eq "personal email in tracked files" 0 "$(git grep -nF "$(git config --global user.email)" -- . | wc -l)"
+  local_email=$(git config --local user.email)
+  if [ -z "$local_email" ] && [ "${GITHUB_ACTIONS:-}" = true ]; then
+    skip "local user.email: none on GitHub Actions"
+  else
+    want_eq "local user.email" "$NOREPLY" "$local_email"
+  fi
+  global_email=$(git config --global user.email)
+  if [ -z "$global_email" ] || [ "$global_email" = "$NOREPLY" ]; then
+    skip "personal email in tracked files: no other global address"
+  else
+    want_eq "personal email in tracked files" 0 "$(git grep -nF "$global_email" -- . | wc -l)"
+  fi
 }
 
 goal_G_REPO_CLAUDEMD() {
