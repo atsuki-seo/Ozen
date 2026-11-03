@@ -213,7 +213,7 @@ If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.
 
 ### D132. Version strings in golden expectations [decided]
 
-- **Decision:** As recommended: write `{{STD_VERSION}}` for `ozenVersion` and the SARIF tool version, keep package versions literal, and make `std-version-check` require `99.0.0`. (2026-11-03, confirmed by the user)
+- **Decision:** As recommended: write `{{STD_VERSION}}` for `ozenVersion` and the SARIF tool version, keep package versions literal, and make `std-version-check` require `99.0.0`. (2026-11-03, confirmed by the user) Changed at P4-1 (2026-11-04): the core reports `PKG007 requiresIncompatible` when the major version differs, so `99.0.0` would not test `requiresNewer`. The user chose a version that suits the check: `std-version-check` requires `0.99.0`, newer than every 0.x release, and the bump test uses `0.9.9` and leaves nothing behind.
 - **Recommendation**: `scripts/run-golden.sh` already replaces `{{STD_VERSION}}` in expectations with the content of `VERSION` (16 expectation files use it, §3.6). Write `{{STD_VERSION}}` for the remaining literal versions that a bump changes: `"ozenVersion":"0.1.0"` in 19 JSON expectations and the SARIF tool `"version":"0.1.0"` in one. Package versions in inputs and outputs (`version: "0.1.0"` of sample packages, `std: "0.1.0"` requirements) stay literal. `tests/golden/bundle/std-version-check` requires `std: "0.2.0"` to test "requires newer"; change its requirement to `99.0.0` so that the test keeps its meaning after any bump.
 - Alternative: `scripts/bump-version.sh` rewrites the expectations at each bump. No change to the expectations now, but every bump changes about 20 expectations in the same commit as `VERSION`. `std-version-check` would also need a new number at each bump.
 
@@ -479,10 +479,10 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 - **S1041** The golden expectations hold `{{STD_VERSION}}` where they print the version of Ozen: `"ozenVersion":"{{STD_VERSION}}"` and the SARIF tool version.
 - **S1042** No golden expectation contains `"ozenVersion":"` followed by a literal version.
 - **S1043** Package versions and `std` requirements in golden inputs and samples (`version: "0.1.0"`, `std: "0.1.0"`) stay literal.
-- **S1044** `tests/golden/bundle/std-version-check` requires `std: "99.0.0"` and still expects `PKG006 requiresNewer`.
+- **S1044** `tests/golden/bundle/std-version-check` requires `std: "0.99.0"` and still expects `PKG006 requiresNewer` (D132, changed at P4-1).
 - **S1045** `scripts/bump-version.sh X.Y.Z` writes `X.Y.Z` to `VERSION` and to the `version:` line of `stdlib/package.ozen`, and changes no other file.
 - **S1046** `scripts/bump-version.sh` exits 2 for an argument that is not `<digits>.<digits>.<digits>`.
-- **S1047** In a throwaway worktree bumped to `9.9.9` and rebuilt, `G-CORE-GOLDEN`, `G-CLI-TESTS`, `G-REPO-VERSION`, `G-RD-VERSION`, `G-QC-VERSION` and `G-FB-VERSION` pass.
+- **S1047** In a throwaway worktree bumped to `0.9.9` and rebuilt (D132, changed at P4-1), and removed afterwards, `G-CORE-GOLDEN`, `G-CLI-TESTS`, `G-REPO-VERSION`, `G-RD-VERSION`, `G-QC-VERSION` and `G-FB-VERSION` pass.
 - **S1048** `G-REPO-VERSION` no longer reads the roadmap.
 - **S1049** `G-RD-VERSION`, `G-QC-VERSION` and `G-FB-VERSION` read `VERSION` at `readme-end`, `qc-end` and `fb-end`.
 
@@ -1027,7 +1027,7 @@ Each translation task writes `build/ds-goals-P2-<n>-before.txt` before its commi
 
 | ID | Task | Completion condition |
 | --- | --- | --- |
-| P4-1 | `{{STD_VERSION}}` in the version spots of the expectations, and `std: "99.0.0"` in `std-version-check` (D132), in a commit that changes no implementation | `G-DS-VERSION` (first three lines), `G-CORE-GOLDEN`, `G-RF-SEPARATION` |
+| P4-1 | `{{STD_VERSION}}` in the version spots of the expectations, and `std: "0.99.0"` in `std-version-check` (D132), in a commit that changes no implementation | `G-DS-VERSION` (first three lines), `G-CORE-GOLDEN`, `G-RF-SEPARATION` |
 | P4-2 | `scripts/bump-version.sh` and its test | `G-DS-VERSION` |
 | P4-3 | `G-REPO-VERSION`, `G-RD-VERSION`, `G-QC-VERSION` and `G-FB-VERSION` (D133) | `G-DS-VERSION` |
 | P4-4 | `scripts/make-release.sh` and its test; `dist/` in `.gitignore` | `G-DS-RELEASE-LOCAL` (release cases) |
