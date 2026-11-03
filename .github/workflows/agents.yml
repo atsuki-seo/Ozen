@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+name: agents
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  agents:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Read the pinned Node.js version
+        run: echo "NODE_VERSION=$(awk '$1 == "node" { print $2 }' toolchain.txt)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Check commit addresses
+        run: bash scripts/goals.sh G-REPO-NOREPLY
+      - name: Check that the agent files match their source
+        run: bash scripts/rulesync.sh generate --check
