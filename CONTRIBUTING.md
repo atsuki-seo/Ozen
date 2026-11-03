@@ -1,5 +1,35 @@
 # Contributing to Ozen
 
+## Getting started
+
+```bash
+scripts/setup.sh
+```
+
+checks the tools against [toolchain.txt](toolchain.txt), turns on the pre-push hook in
+`.githooks/`, and generates the agent files. It installs nothing; each line says which
+tool is missing or has another version. Then build and run the goals:
+
+```bash
+scripts/build-core.sh --only core-gcc-release
+scripts/goals.sh G-CORE-GOLDEN G-CLI-TESTS
+```
+
+`CLAUDE.md`, `AGENTS.md` and the other agent files are generated from `.rulesync/` by
+`scripts/rulesync.sh generate`; edit the source, not the generated files.
+
+## Where things are
+
+| Path | What it holds |
+| --- | --- |
+| `docs/` | The design: [concept](docs/concept.md) and the prototype report |
+| `plans/` | The plans, each with its goals in §5, run by `scripts/goals.sh` |
+| `reference/` | The reference for writing Ozen, and the guide for AI agents |
+| `site/` | The introduction page |
+| The folder README files | One per folder: [core](core/README.md), [cli](cli/README.md), [stdlib](stdlib/README.md), [renderers](renderers/README.md), [bindings](bindings/README.md), [spec](spec/README.md), [site](site/README.md) |
+| `.rulesync/` | The source of the instructions to AI agents |
+| `CLAUDE.md`, `AGENTS.md` | The instructions to AI agents, generated from `.rulesync/` |
+
 ## Building
 
 `scripts/build-core.sh` builds the [core](core/README.md) and the `ozen` command in
