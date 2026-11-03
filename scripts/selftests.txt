@@ -49,3 +49,4 @@ scripts/setup.sh scripts/test-setup.sh
 tools/refgen/refgen.py scripts/test-refgen.sh
 scripts/check-translation.py scripts/test-check-translation.sh
 scripts/bump-version.sh scripts/test-bump-version.sh
+scripts/make-release.sh scripts/test-make-release.sh
