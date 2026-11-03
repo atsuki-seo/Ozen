@@ -479,7 +479,7 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 - **S1041** The golden expectations hold `{{STD_VERSION}}` where they print the version of Ozen: `"ozenVersion":"{{STD_VERSION}}"` and the SARIF tool version.
 - **S1042** No golden expectation contains `"ozenVersion":"` followed by a literal version.
 - **S1043** Package versions and `std` requirements in golden inputs and samples (`version: "0.1.0"`, `std: "0.1.0"`) stay literal.
-- **S1044** `tests/golden/bundle/std-version-check` requires `std: "0.99.0"` and still expects `PKG006 requiresNewer` (D132, changed at P4-1).
+- **S1044** `tests/golden/bundle/std-version-check` requires `std: "0.99.0"` and `tests/golden/packages/requires-newer-minor` requires `std: "0.99"`, and both still expect `PKG006 requiresNewer` (D132, changed at P4-1).
 - **S1045** `scripts/bump-version.sh X.Y.Z` writes `X.Y.Z` to `VERSION` and to the `version:` line of `stdlib/package.ozen`, and changes no other file.
 - **S1046** `scripts/bump-version.sh` exits 2 for an argument that is not `<digits>.<digits>.<digits>`.
 - **S1047** In a throwaway worktree bumped to `0.9.9` and rebuilt (D132, changed at P4-1), and removed afterwards, `G-CORE-GOLDEN`, `G-CLI-TESTS`, `G-REPO-VERSION`, `G-RD-VERSION`, `G-QC-VERSION` and `G-FB-VERSION` pass.
@@ -513,7 +513,7 @@ The label map (`scripts/plan-labels.tsv`, with the Japanese and English labels s
 
 ### 4.12 Invariants
 
-- **S1069** In the range `DS` (without the commits named in §9), no golden expectation changes, except `{{STD_VERSION}}` in place of the version (S1041) and the requirement of `std-version-check` (S1044).
+- **S1069** In the range `DS` (without the commits named in §9), no golden expectation changes, except `{{STD_VERSION}}` in place of the version (S1041) and the requirements of the two goldens of S1044.
 - **S1070** The files changed in the range `DS` (without the commits named in §9) match the patterns of `scripts/ds-scope.txt`.
 - **S1071** `scripts/ds-scope.txt` has no empty line and lists exactly the paths of §4.13.
 - **S1072** `scripts/selftests.txt` pairs each new script with its self-test: `rulesync.sh`, `setup.sh`, `check-translation.py`, `bump-version.sh`, `check-release-tag.sh` and `make-release.sh`. The new cases of `G-REPO-NOREPLY` go into `scripts/test-goals.sh`.
@@ -728,7 +728,7 @@ $OZ 2>&1 | grep -c 'ozen init'; grep -c 'ozen init' cli/README.md
 # G-DS-VERSION
 grep -rlE '"ozenVersion":"[0-9]' tests/golden | wc -l            # 0
 grep -c '{{STD_VERSION}}' tests/golden/api/sarif-mapping.out     # 1
-git diff ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' | grep -E '^[-+][^-+]' | grep -cE '(version|std): "[0-9]'   # 0
+git diff ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' ':!tests/golden/packages/requires-newer-minor/*' | grep -E '^[-+][^-+]' | grep -cE '(version|std): "[0-9]'   # 0
 bash scripts/test-bump-version.sh | tail -n 1                    # bump-version: <k> cases, 0 failed
 sed -n '/^goal_G_REPO_VERSION/,/^}/p' scripts/goals.sh | grep -c 'PLAN'                      # 0
 sed -n '/^goal_G_\(RD\|QC\|FB\)_VERSION/,/^}/p' scripts/goals.sh | grep -cE 'git show (readme|qc|fb)-end:VERSION'   # 3
@@ -766,7 +766,7 @@ gh run list --workflow pages.yml --commit "$(git log --format=%H -1 -- site/inde
 # G-DS-GOLDEN-SAME (0)
 norm() { sed -E 's/"ozenVersion":"[^"]*"/"ozenVersion":"V"/g; s/\{\{STD_VERSION\}\}/V/g'; }
 for c in $(ds_commits); do git diff-tree --no-commit-id --name-only -r $c; done | sort -u |
-  grep -E '^tests/golden/.*\.out$' | grep -v '^tests/golden/bundle/std-version-check' |
+  grep -E '^tests/golden/.*\.out$' | grep -vE '^tests/golden/(bundle/std-version-check|packages/requires-newer-minor/)' |
   while read -r f; do cmp -s <(git show ds-start:"$f" 2>/dev/null | norm) <(norm < "$f") || echo "$f"; done | wc -l
 
 # G-DS-SCOPE (0, 0, empty)

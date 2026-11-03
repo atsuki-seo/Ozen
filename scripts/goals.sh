@@ -1804,7 +1804,7 @@ goal_G_DS_VERSION() {
   want_eq "literal ozenVersion" 0 "$(grep -rlE '"ozenVersion":"[0-9]' tests/golden | wc -l)"
   want_eq "SARIF placeholder" 1 "$(grep -c '{{STD_VERSION}}' tests/golden/api/sarif-mapping.out)"
   want_eq "package versions changed" 0 \
-    "$(git diff ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' | grep -E '^[-+][^-+]' |
+    "$(git diff ds-start -- samples tests ':!tests/golden/bundle/std-version-check.*' ':!tests/golden/packages/requires-newer-minor/*' | grep -E '^[-+][^-+]' |
        grep -cE '(version|std): "[0-9]')"
   want_tail_failed0 "test-bump-version" bump-version scripts/test-bump-version.sh
   want_eq "roadmap reads" 0 "$(sed -n '/^goal_G_REPO_VERSION/,/^}/p' scripts/goals.sh | grep -c 'PLAN')"
@@ -1858,7 +1858,7 @@ goal_G_DS_GOLDEN_SAME() {
   local norm='s/"ozenVersion":"[^"]*"/"ozenVersion":"V"/g; s/\{\{STD_VERSION\}\}/V/g'
   ds_tag
   want_eq "changed expectations" 0 \
-    "$(ds_files | sort -u | grep -E '^tests/golden/.*\.out$' | grep -v '^tests/golden/bundle/std-version-check' |
+    "$(ds_files | sort -u | grep -E '^tests/golden/.*\.out$' | grep -vE '^tests/golden/(bundle/std-version-check|packages/requires-newer-minor/)' |
        while read -r f; do cmp -s <(git show ds-start:"$f" 2>/dev/null | sed -E "$norm") <(sed -E "$norm" "$f" 2>/dev/null) || echo "$f"; done |
        wc -l)"
 }
