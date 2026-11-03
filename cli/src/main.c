@@ -12,6 +12,7 @@
 
 #include "../../core/include/ozen.h"
 #include "ozni.h"
+#include "agents_template.h"
 #include "sarif.h"
 
 #ifndef OZEN_VERSION
@@ -38,7 +39,8 @@ static void heap_release(void *ctx, void *ptr, size_t size) {
 }
 
 static int usage(void) {
-  fputs("usage: ozen check [OPTIONS] [ENTRY|FILE]\n"
+  fputs("usage: ozen init [DIR] [--name NAME]\n"
+        "       ozen check [OPTIONS] [ENTRY|FILE]\n"
         "       ozen build [OPTIONS] [ENTRY|FILE...]\n"
         "       ozen render [OPTIONS] [ENTRY|FILE]\n"
         "       ozen bundle [ENTRY] [-o FILE]\n"
@@ -1589,7 +1591,108 @@ static int debug_options(void) {
   return 0;
 }
 
+static bool is_package_name(const char *s) {
+  if (s == nullptr || !((*s >= 'a' && *s <= 'z') || (*s >= 'A' && *s <= 'Z') || *s == '_')) {
+    return false;
+  }
+  for (const char *c = s; *c != '\0'; c++) {
+    if (!((*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z') || (*c >= '0' && *c <= '9') || *c == '_')) {
+      return false;
+    }
+  }
+  return strcmp(s, "std") != 0;
+}
+
+static int init(int n, char **args) {
+  const char *dir = nullptr, *name = nullptr;
+  for (int k = 0; k < n; k++) {
+    if (strcmp(args[k], "--name") == 0 && k + 1 < n) {
+      name = args[++k];
+    } else if (args[k][0] == '-' || dir != nullptr) {
+      return usage();
+    } else {
+      dir = args[k];
+    }
+  }
+  char folder[4096], base[4096];
+  if (dir != nullptr) {
+    snprintf(folder, sizeof folder, "%s", dir);
+  } else if (getcwd(folder, sizeof folder) == nullptr) {
+    fprintf(stderr, "cli: cannot read the current folder\n");
+    return 1;
+  }
+  size_t len = strlen(folder);
+  while (len > 1 && folder[len - 1] == '/') {
+    folder[--len] = '\0';
+  }
+  const char *slash = strrchr(folder, '/');
+  snprintf(base, sizeof base, "%s", slash != nullptr ? slash + 1 : folder);
+  if (name == nullptr) {
+    name = base;
+  }
+  if (!is_package_name(name)) {
+    fprintf(stderr, "cli: '%s' cannot be a package name (use letters, digits and _, not std); pass --name NAME\n",
+            name);
+    return 2;
+  }
+  const char *prefix = dir != nullptr ? folder : ".";
+  const char *files[] = {"package.ozen", "AGENTS.md"};
+  for (size_t k = 0; k < 2; k++) {
+    char path[8192];
+    struct stat st;
+    snprintf(path, sizeof path, "%s/%s", prefix, files[k]);
+    if (stat(path, &st) == 0) {
+      fprintf(stderr, "cli: %s already exists; ozen init writes nothing\n", path);
+      return 1;
+    }
+  }
+  if (dir != nullptr && !make_dirs(folder)) {
+    fprintf(stderr, "cli: cannot create %s\n", folder);
+    return 1;
+  }
+  char manifest[4352];
+  snprintf(manifest, sizeof manifest, "package %s {\n  version: \"0.1.0\"\n}\n", name);
+  const char *tmpl = (const char *)agents_template;
+  size_t cap = strlen(tmpl) * 2 + 1, used = 0;
+  char *agents = malloc(cap);
+  if (agents == nullptr) {
+    return 1;
+  }
+  for (const char *c = tmpl; *c != '\0';) {
+    const char *piece = c;
+    size_t take = 1;
+    if (strncmp(c, "@VERSION@", 9) == 0) {
+      piece = OZEN_VERSION;
+      take = strlen(OZEN_VERSION);
+      c += 9;
+    } else {
+      c++;
+    }
+    memcpy(agents + used, piece, take);
+    used += take;
+  }
+  agents[used] = '\0';
+  bool ok = write_text(prefix, files[0], manifest) && write_text(prefix, files[1], agents);
+  free(agents);
+  if (!ok) {
+    fprintf(stderr, "cli: cannot write into %s\n", prefix);
+    return 1;
+  }
+  for (size_t k = 0; k < 2; k++) {
+    if (dir != nullptr) {
+      printf("created %s/%s\n", folder, files[k]);
+    } else {
+      printf("created %s\n", files[k]);
+    }
+  }
+  puts("If this folder already has a CLAUDE.md, add the line @AGENTS.md to it.");
+  return 0;
+}
+
 int main(int argc, char **argv) {
+  if (argc >= 2 && strcmp(argv[1], "init") == 0) {
+    return init(argc - 2, argv + 2);
+  }
   heap h = {0, 0};
   ozni_allocator a = {heap_alloc, heap_release, &h};
   limits = ozni_default_limits();
