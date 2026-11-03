@@ -17,7 +17,7 @@ cat > "$work/doc.md" <<'EOF'
 
 ## 1. 目的
 
-**S1** 卵を割る。`make 名前` を書く。D2 と P1-2 を参照。
+**S1** 卵を割る。`make 名前` を書く。D2 と P1-2 と concept §16 を参照。
 
 | 列 | 値 |
 | --- | --- |
@@ -40,7 +40,7 @@ good='# Plan
 
 ## 1. Purpose
 
-**S1** Crack the eggs. Write `make 名前`. See D2 and P1-2.
+**S1** Crack the eggs. Write `make 名前`. See D2, P1-2 and concept §16.
 
 | Column | Value |
 | --- | --- |
@@ -76,6 +76,7 @@ expect japanese-prose "${good/Crack the eggs./Crack the eggs. 卵を割る。}" 
 expect japanese-shell-comment "${good/\# count them/\# 数える}" "$bad"
 expect allowed-japanese "${good/Crack the eggs./Crack the eggs (卵).}" "$ok" $'卵\tthe name of the food in the source\n'
 expect dropped-id "${good/\*\*S1\*\* /}" "$bad"
+expect changed-reference "${good/concept §16/concept §15}" "$bad"
 expect renumbered-heading "${good/\#\# 1. Purpose/\#\# 2. Purpose}" "$bad"
 expect changed-flag "${good/grep -c/grep -n}" "$bad"
 expect deleted-row "${good/| Column | Value |

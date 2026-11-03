@@ -11,6 +11,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 JAPANESE = re.compile(r"[　-〿぀-ヿ㐀-䶿一-鿿＀-￯]")
 ID = re.compile(r"(?<![A-Za-z0-9-])(D[0-9]+|S[0-9]+|P[0-9]+-[0-9]+|R[0-9]+|G-[A-Z0-9]+(?:-[A-Z0-9]+)*)(?![A-Za-z0-9])")
+SECTION_REF = re.compile(r"§\s*([0-9]+(?:[.-][0-9]+)*)")
 HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 NUMBER = re.compile(r"^(?:[0-9]+(?:\.[0-9]+)*\.?|[A-Z]+[0-9]+(?:-[0-9]+)?\.?)$")
 SHELL = {"bash", "sh", "shell"}
@@ -199,6 +200,11 @@ def check_file(path, base, rules, allow, problems):
     if set(ID.findall(old)) != set(ID.findall(new)):
         a, b = set(ID.findall(old)), set(ID.findall(new))
         problems.append(f"{path}: IDs differ: missing {sorted(a - b)[:10]}, added {sorted(b - a)[:10]}")
+    refs_old = collections.Counter(SECTION_REF.findall(old))
+    refs_new = collections.Counter(SECTION_REF.findall(new))
+    if refs_old != refs_new:
+        problems.append(f"{path}: section references differ: missing {sorted((refs_old - refs_new).elements())[:5]}, "
+                        f"added {sorted((refs_new - refs_old).elements())[:5]}")
     p_old, b_old, s_old, h_old, r_old = split(old)
     p_new, b_new, s_new, h_new, r_new = split(new)
     if h_old != h_new:
