@@ -105,6 +105,18 @@ FAKE_NODE= run "$r"
 check node-missing "has 'missing node want 24.22.2' && [ $status -eq 1 ]"
 
 r=$(new_root)
+FAKE_GCC= run "$r"
+check gcc-missing "has 'missing gcc want 13.3.0' && [ $status -eq 1 ]"
+
+r=$(new_root)
+FAKE_PYTHON3= run "$r"
+check python3-missing "has 'missing python3 want 3.12.3' && [ $status -eq 1 ]"
+
+r=$(new_root)
+FAKE_UNAME=Darwin FAKE_GCC= FAKE_NODE= run "$r"
+check macos-node-missing "has 'missing node want 24.22.2' && [ $status -eq 1 ]"
+
+r=$(new_root)
 FAKE_UNAME=Darwin FAKE_GCC= run "$r"
 check macos "has 'missing gcc want 13.3.0' && has 'missing xcode want 26.6' && [ $status -eq 0 ]"
 

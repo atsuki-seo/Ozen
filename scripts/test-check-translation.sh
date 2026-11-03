@@ -78,6 +78,8 @@ expect allowed-japanese "${good/Crack the eggs./Crack the eggs (卵).}" "$ok" $'
 expect dropped-id "${good/\*\*S1\*\* /}" "$bad"
 expect changed-reference "${good/concept §16/concept §15}" "$bad"
 expect renumbered-heading "${good/\#\# 1. Purpose/\#\# 2. Purpose}" "$bad"
+expect changed-inline-code "${good/\`make 名前\`/\`make name\`}" "$bad"
+expect japanese-trailing-comment "${good/\# becomes 1/\# 1 になる}" "$bad"
 expect changed-flag "${good/grep -c/grep -n}" "$bad"
 expect deleted-row "${good/| Column | Value |
 /}" "$bad"

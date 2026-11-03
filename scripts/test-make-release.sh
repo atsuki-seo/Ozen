@@ -8,6 +8,7 @@ root=$(cd "$here/.." && pwd)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 v=$(cat "$root/VERSION")
+unset OZEN_RENDERER
 
 cases=0
 failed=0
@@ -38,6 +39,7 @@ check linux-name "[ -f '$tgz' ]"
 list=$(tar tzf "$tgz" 2>/dev/null || true)
 check linux-contents "for p in bin/ozen renderers/cli.mjs phrases/en.ftl reference/ai-guide.md LICENSE-MIT LICENSE-APACHE \
   LICENSE-CC-BY-4.0 NOTICE README.md; do grep -qx \"ozen-$v/\$p\" <<< \"\$list\" || exit 1; done"
+check linux-shared-files "[ -z \"\$(comm -3 <(cd '$root' && git ls-files phrases reference | sort) <(grep -oE '^ozen-$v/(phrases|reference)/.+[^/]$' <<< \"\$list\" | sed 's|^ozen-$v/||' | sort))\" ]"
 check linux-no-tests "! grep -q '^ozen-$v/renderers/test/' <<< \"\$list\""
 mkdir -p "$work/x"
 tar xzf "$tgz" -C "$work/x"

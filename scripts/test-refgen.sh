@@ -75,5 +75,13 @@ set -e
 check check-new-action "[ $status -eq 1 ] && grep -q 'differs: .*std.md' <<< \"\$out\" && grep -q 'differs: .*ai-guide.md' <<< \"\$out\" &&
   ! grep -q 'diagnostics.md' <<< \"\$out\""
 
+python3 -c 'import sys; print("# L\n\n<!-- ai-guide:begin -->\n" + "word " * 14000 + "\n<!-- ai-guide:end -->")' > "$work/big.md"
+set +e
+out=$(python3 -B "$refgen" --definitions "$work/defs.json" --diag "$work/diag.def" --phrases "$work/en.ftl" \
+  --language "$work/big.md" --out "$work/big" 2>&1)
+status=$?
+set -e
+check guide-limit "[ $status -eq 1 ] && grep -q 'larger than 65536 bytes' <<< \"\$out\" && [ ! -e $work/big ]"
+
 echo "refgen: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]

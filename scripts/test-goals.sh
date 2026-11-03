@@ -122,6 +122,19 @@ if ! grep -q '^FAIL  local user.email' <<< "$got"; then
 fi
 rm -rf "$r"
 
+cases=$((cases + 1))
+r=$(new_repo)
+git -C "$r" -c user.name=t -c user.email=$nr commit -q --allow-empty -m base
+git -C "$r" config --local user.email me@example.org
+set +e
+got=$(HOME=$(mktemp -d) GIT_CONFIG_NOSYSTEM=1 GITHUB_ACTIONS=true "$goals" --root "$r" G-REPO-NOREPLY 2>&1)
+set -e
+if ! grep -q '^FAIL  local user.email' <<< "$got"; then
+  echo "FAIL noreply-actions-other-local: got '$(tr '\n' ';' <<< "$got")'" >&2
+  failed=$((failed + 1))
+fi
+rm -rf "$r"
+
 r=$(new_repo)
 expect unknown-goal "$r" G-NO-SUCH-GOAL "" 2
 

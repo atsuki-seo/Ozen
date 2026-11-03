@@ -36,6 +36,8 @@ check changed-files "[ \"\$(git -C '$wt' status --porcelain | sort | tr '\n' ' '
 check version-file "[ \"\$(cat '$wt/VERSION')\" = 0.9.9 ]"
 check stdlib-version "grep -qx '  version: \"0.9.9\"' '$wt/stdlib/package.ozen'"
 check std-version-check "grep -q 'std: \"0.99.0\"' '$wt/tests/golden/bundle/std-version-check.ozen'"
+git -C "$wt" -c user.name=t -c user.email=146819854+atsuki-seo@users.noreply.github.com -c core.hooksPath=/dev/null \
+  commit -q -am "bump to 0.9.9"
 
 (cd "$wt" && scripts/build-core.sh > /dev/null 2>&1)
 for g in G-CORE-GOLDEN G-CLI-TESTS G-REPO-VERSION G-RD-VERSION G-QC-VERSION G-FB-VERSION; do

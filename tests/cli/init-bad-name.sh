@@ -4,6 +4,7 @@
 for name in std 2book 'my book'; do
   "$ozen" init book --name "$name" > out.txt 2>&1
   want "$?" 2 "init status for '$name'"
+  grep -q 'cannot be a package name' out.txt || fail "no message for '$name': $(cat out.txt)"
   [ -e book ] && fail "created the folder for '$name'"
 done
 exit 0
