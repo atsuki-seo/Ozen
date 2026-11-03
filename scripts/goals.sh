@@ -1648,6 +1648,9 @@ goal_G_DS_LABELS() {
   done
   want_ok "feedback plan goals" scripts/goals.sh G-FB-DECISIONS G-FB-COVERAGE G-FB-PLAN-TESTS G-FB-SCOPE
   want_eq "FB range" "FB=fb-start..fb-end" "$(grep -E '^FB=' scripts/goals.sh)"
+  want_eq "Japanese labels in goals of translated plans" 0 \
+    "$(awk '/^[a-z_A-Z0-9]+\(\) \{/ {n=$1; b=""} {b=b "\n" $0} /^}/ {if (n ~ /^goal_G_/ && b ~ /\$PLAN(_RF|_RD|_QC)?[^_A-Z]/) print b}' scripts/goals.sh |
+       grep -cFf <(cut -f1 scripts/plan-labels.tsv))"
 }
 
 goal_G_DS_TOOLCHAIN() {
@@ -1691,7 +1694,7 @@ goal_G_DS_AGENT_FILES() {
   for s in 'site/' 'MEXT' 'phrases/ja.ftl' 'ozen-cooking-feedback.md' 'ozen-authoring-support.md' 'ozen-dev-environment.md' 'own settings'; do
     want_ge1 "rule names $s" "$(grep -cF "$s" $r 2>/dev/null)"
   done
-  for f in CLAUDE.md AGENTS.md; do
+  for f in $(grep -E '\.(md|mdc)$' scripts/agent-outputs.txt); do
     want_eq "Japanese folders in $f" 0 "$(grep -ciE '(under|in) `?(docs|plans)/`? (are|is) written in Japanese' $f)"
     want_eq "ask before pushing in $f" 0 "$(grep -cF 'ask the user before pushing' $f)"
   done
@@ -1701,6 +1704,7 @@ goal_G_DS_AGENT_FILES() {
 
 goal_G_DS_HOOK() {
   want_re "pre-push" '^pre-push: 2 cases, 0 failed$' "$(bash scripts/test-pre-push.sh 2>&1 | tail -n 1)"
+  want_eq "hook executable in git" 1 "$(git ls-files -s .githooks/pre-push | grep -c '^100755 ')"
 }
 
 goal_G_DS_NOREPLY() {
@@ -1720,14 +1724,14 @@ goal_G_DS_CI_AGENTS() {
 
 goal_G_DS_CI_AGENTS_RUN() {
   local c
-  c=$(git log --format=%H -1 -- plans/)
+  c=$(git rev-parse -q --verify "$(sed -nE "s/^- Plans-only commit for agents\.yml: \`([0-9a-f]{7,40})\`.*/\1/p" $PLAN_DS | head -n 1)^{commit}")
   want_eq "files outside plans/" 0 "$(git diff-tree --no-commit-id --name-only -r $c | grep -vc '^plans/')"
   want_eq "agents run" success "$(gh run list --workflow agents.yml --commit $c --json conclusion --jq '.[0].conclusion' 2>&1)"
 }
 
 goal_G_DS_SETUP() {
   want_tail_failed0 "test-setup" setup scripts/test-setup.sh
-  want_eq "install commands" 0 "$(grep -cE '\b(sudo|apt(-get)?|brew install|pip install|npm install)\b' scripts/setup.sh 2>/dev/null)"
+  want_eq "install commands" 0 "$(grep -cE '\b(sudo|apt(-get)?|brew install|pip3? install|python3? -m pip|npm (install|i|ci)|curl|wget)\b' scripts/setup.sh 2>/dev/null)"
 }
 
 goal_G_DS_CONCEPT16() {
@@ -1760,6 +1764,11 @@ goal_G_DS_GOALS_SAME() {
   local t
   want_eq "records" 6 \
     "$(grep -cE '^- Goals before and after P2-[2-7]: `build/ds-goals-P2-[2-7]-before\.txt` and `-after\.txt`, same$' $PLAN_DS)"
+  want_eq "summaries with every goal" 0 \
+    "$(n=$(scripts/goals.sh --list | grep -vxEf scripts/ds-goals-skip.txt | wc -l)
+       for f in build/ds-goals-P2-[2-7]-before.txt build/ds-goals-P2-[2-7]-after.txt; do
+         [ "$(grep -cE '^G-[A-Z0-9-]+ (pass|fail)$' "$f" 2>/dev/null)" = "$n" ] || echo "$f"
+       done | wc -l)"
   want_eq "differing pairs" 0 \
     "$(for t in 2 3 4 5 6 7; do diff build/ds-goals-P2-$t-before.txt build/ds-goals-P2-$t-after.txt >/dev/null 2>&1 || echo "P2-$t"; done | wc -l)"
 }
@@ -1781,6 +1790,7 @@ goal_G_DS_JA_PLANS() {
 
 goal_G_DS_REFERENCE() {
   want_eq "reference files" 6 "$(ls reference 2>/dev/null | grep -c '\.md$')"
+  want_eq "reference names" "README.md agents-template.md ai-guide.md diagnostics.md language.md std.md " "$(ls reference 2>/dev/null | sort | tr '\n' ' ')"
   want_re "examples" '^readme: [0-9]+ examples, 0 mismatches$' \
     "$(scripts/check-readme-example.sh --readme reference/language.md --ozen $OZ 2>&1 | tail -n 1)"
   want_eq "guide markers" 2 "$(grep -cE '^<!-- ai-guide:(begin|end) -->$' reference/language.md 2>/dev/null)"
@@ -1790,6 +1800,9 @@ goal_G_DS_REFERENCE() {
 goal_G_DS_REFGEN() {
   want_re "refgen" '^refgen: 3 files, 0 differ$' "$(python3 -B tools/refgen/refgen.py --check 2>&1 | tail -n 1)"
   want_tail_failed0 "test-refgen" refgen scripts/test-refgen.sh
+  want_eq "std entries" "$($OZ debug definitions 2>/dev/null | python3 -c 'import json,sys; print(sum(1 for d in json.load(sys.stdin)["definitions"] if d["kind"] == "action" and d["module"].startswith("std.") and not d["local"]))')" \
+    "$(grep -c '^## `' reference/std.md)"
+  want_eq "diagnostic entries" "$(grep -c '^OZNI_DIAG(' core/src/diag_codes.def)" "$(grep -c '^## [A-Z]\{3\}[0-9]\{3\} ' reference/diagnostics.md)"
   want_eq "guide size" ok "$([ "$(wc -c < reference/ai-guide.md)" -le 65536 ] 2>/dev/null && echo ok)"
 }
 
@@ -1825,9 +1838,12 @@ goal_G_DS_RELEASE_WORKFLOW() {
   out=$(scripts/check-release-tag.sh --workflow-first-step $f 2>&1)
   want_re "first steps" '^ok [A-Za-z0-9_-]+$' "$out"
   want_eq "contents: write" 1 "$(grep -cE '^\s*contents: write' $f 2>/dev/null)"
-  want_eq "other secrets" 0 "$(grep -oE 'secrets\.[A-Z_]+' $f 2>/dev/null | grep -vc '^secrets\.GITHUB_TOKEN$')"
+  want_eq "other secrets" 0 "$(grep -oiE "secrets(\.[a-z0-9_]+|\[[^]]*\])" $f 2>/dev/null | grep -vc '^secrets\.GITHUB_TOKEN$')"
   want_eq "gh release create" 1 "$(grep -c 'gh release create' $f 2>/dev/null)"
   want_eq "lipo -archs" 1 "$(grep -c 'lipo -archs' $f 2>/dev/null)"
+  want_eq "universal build" 1 "$(grep -c 'CMAKE_OSX_ARCHITECTURES="arm64;x86_64"' $f 2>/dev/null)"
+  want_eq "both architectures checked" 2 "$(grep -cE 'case " \$archs " in \*" (x86_64|arm64) "\*\) ;; \*\) exit 1 ;; esac' $f 2>/dev/null)"
+  want_eq "publish waits for every build" "[linux, macos, wasm]" "$(sed -nE 's/^    needs: (.*)$/\1/p' $f 2>/dev/null)"
 }
 
 goal_G_DS_RELEASE_PUBLISHED() {
@@ -1849,6 +1865,7 @@ ozen $v" "$out"
 goal_G_DS_SITE() {
   want_eq "reference link" 1 "$(grep -cF 'https://github.com/atsuki-seo/Ozen/tree/main/reference"' site/index.html)"
   want_eq "releases link" 1 "$(grep -cF 'https://github.com/atsuki-seo/Ozen/releases' site/index.html)"
+  want_eq "link texts" 2 "$(grep -oE '>(Reference|Releases)</a>' site/index.html | sort -u | wc -l)"
   want_ge1 "reference on GitHub" "$(gh api 'repos/atsuki-seo/Ozen/contents/reference?ref=main' --jq length 2>&1)"
   want_eq "pages run" success \
     "$(gh run list --workflow pages.yml --commit "$(git log --format=%H -1 -- site/index.html)" --json conclusion --jq '.[0].conclusion' 2>&1)"
@@ -1875,7 +1892,7 @@ goal_G_DS_SCOPE() {
 goal_G_DS_SELFTESTS() {
   local s
   for s in rulesync.sh setup.sh check-translation.py bump-version.sh check-release-tag.sh make-release.sh; do
-    want_eq "selftest $s" 1 "$(grep -c "^scripts/$s " scripts/selftests.txt)"
+    want_eq "selftest $s" 1 "$(grep -cx "scripts/$s scripts/test-${s%.*}.sh" scripts/selftests.txt)"
   done
   want_ok "G-REPO-SELFTESTS" scripts/goals.sh G-REPO-SELFTESTS
   want_eq "dist/ ignored" 1 "$(grep -cx 'dist/' .gitignore)"

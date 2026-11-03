@@ -615,6 +615,8 @@ sed '/^### 3\.4/,/^### 3\.5/d; /^| Japanese | English |/,/^- \*\*S993\*\*/d; /^#
 # G-DS-LABELS (15, 0, three "0 failed", exit 0, then the closed range)
 wc -l < scripts/plan-labels.tsv
 cut -f1 scripts/plan-labels.tsv | grep -cFf - scripts/check-plan-tests.sh scripts/check-rewrite-equivalence.py scripts/check-lists-copy.py | awk -F: '{s+=$2} END {print s}'
+awk '/^[a-z_A-Z0-9]+\(\) \{/ {n=$1; b=""} {b=b "\n" $0} /^}/ {if (n ~ /^goal_G_/ && b ~ /\$PLAN(_RF|_RD|_QC)?[^_A-Z]/) print b}' scripts/goals.sh |
+  grep -cFf <(cut -f1 scripts/plan-labels.tsv)                    # 0: goals of translated plans read English labels
 bash scripts/test-check-plan-tests.sh | tail -n 1
 bash scripts/test-check-rewrite-equivalence.sh | tail -n 1
 bash scripts/test-check-lists-copy.sh | tail -n 1
@@ -649,13 +651,15 @@ R=.rulesync/rules/overview.md
 grep -ciE 'committed .*(are|is) (written )?in English' $R                                            # 1 or more
 for s in 'site/' 'MEXT' 'phrases/ja.ftl' 'ozen-cooking-feedback.md' 'ozen-authoring-support.md' 'ozen-dev-environment.md' 'own settings'; do
   grep -cF "$s" $R; done                                                                             # 1 or more each
-grep -ciE '(under|in) `?(docs|plans)/`? (are|is) written in Japanese' CLAUDE.md AGENTS.md            # 0 each
-grep -cF 'ask the user before pushing' CLAUDE.md AGENTS.md                                           # 0 each
+O=$(grep -E '\.(md|mdc)$' scripts/agent-outputs.txt)
+grep -ciE '(under|in) `?(docs|plans)/`? (are|is) written in Japanese' $O                             # 0 each
+grep -cF 'ask the user before pushing' $O                                                            # 0 each
 grep -c 'G-REPO-NOREPLY' $R                                                                          # 1 or more
 scripts/goals.sh G-REPO-CLAUDEMD G-RD-CLAUDEMD G-QC-CLAUDEMD > /dev/null 2>&1; echo "exit $?"         # exit 0
 
 # G-DS-HOOK, G-DS-NOREPLY
 bash scripts/test-pre-push.sh | tail -n 1                        # pre-push: 2 cases, 0 failed
+git ls-files -s .githooks/pre-push | grep -c '^100755 '          # 1
 bash scripts/test-goals.sh | tail -n 1                           # goals: <k> cases, 0 failed
 grep -c '^noreply_case ' scripts/test-goals.sh                   # 4
 
@@ -669,12 +673,12 @@ grep -c 'goals.sh G-REPO-NOREPLY' $A
 grep -c 'rulesync.sh generate --check' $A
 
 # G-DS-CI-AGENTS-RUN (0, success)
-c=$(git log --format=%H -1 -- plans/); git diff-tree --no-commit-id --name-only -r $c | grep -vc '^plans/'
+c=$(git rev-parse "$(sed -nE "s/^- Plans-only commit for agents\.yml: \`([0-9a-f]{7,40})\`.*/\1/p" $PLAN_DS)^{commit}"); git diff-tree --no-commit-id --name-only -r $c | grep -vc '^plans/'
 gh run list --workflow agents.yml --commit $c --json conclusion --jq '.[0].conclusion'
 
 # G-DS-SETUP
 bash scripts/test-setup.sh | tail -n 1                            # setup: <k> cases, 0 failed
-grep -cE '\b(sudo|apt(-get)?|brew install|pip install|npm install)\b' scripts/setup.sh   # 0
+grep -cE '\b(sudo|apt(-get)?|brew install|pip3? install|python3? -m pip|npm (install|i|ci)|curl|wget)\b' scripts/setup.sh   # 0
 
 # G-DS-CONCEPT16 (0, then 15)
 grep -c '^## 16\.' docs/concept.md
@@ -696,6 +700,8 @@ bash scripts/test-check-translation.sh | tail -n 1               # check-transla
 
 # G-DS-GOALS-SAME (6, then 0)
 grep -cE '^- Goals before and after P2-[2-7]: `build/ds-goals-P2-[2-7]-before\.txt` and `-after\.txt`, same$' $PLAN_DS
+n=$(scripts/goals.sh --list | grep -vxEf scripts/ds-goals-skip.txt | wc -l)
+for f in build/ds-goals-P2-[2-7]-*.txt; do [ "$(grep -cE '^G-[A-Z0-9-]+ (pass|fail)$' $f)" = "$n" ] || echo $f; done | wc -l   # 0
 for t in 2 3 4 5 6 7; do diff build/ds-goals-P2-$t-before.txt build/ds-goals-P2-$t-after.txt > /dev/null 2>&1 || echo "P2-$t"; done | wc -l
 
 # G-DS-CONCEPT-GOALS (0, exit 0)
@@ -711,6 +717,7 @@ for c in $(ds_commits); do git diff-tree --no-commit-id --name-only -r $c; done 
 
 # G-DS-REFERENCE (6, 0 mismatches, 2, 0)
 ls reference | grep -c '\.md$'
+ls reference | sort | tr '\n' ' '                                 # README.md agents-template.md ai-guide.md diagnostics.md language.md std.md
 scripts/check-readme-example.sh --readme reference/language.md --ozen $OZ | tail -n 1
 grep -cE '^<!-- ai-guide:(begin|end) -->$' reference/language.md
 cat reference/*.md | grep -cP '[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]'
@@ -719,6 +726,8 @@ cat reference/*.md | grep -cP '[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]'
 python3 -B tools/refgen/refgen.py --check | tail -n 1           # refgen: 3 files, 0 differ
 bash scripts/test-refgen.sh | tail -n 1                          # refgen: <k> cases, 0 failed
 [ "$(wc -c < reference/ai-guide.md)" -le 65536 ] && echo ok                      # ok
+grep -c '^## `' reference/std.md        # the number of public std actions in `$OZ debug definitions`
+grep -c '^## [A-Z]\{3\}[0-9]\{3\} ' reference/diagnostics.md   # the number of OZNI_DIAG lines in core/src/diag_codes.def
 
 # G-DS-INIT
 scripts/run-cli-tests.sh $OZ tests/cli | tail -n 1               # cli: <k> cases, 0 failed
@@ -744,9 +753,12 @@ grep -cE "tags: *\[ *'?v\*'? *\]" $F
 grep -cE '^\s*(branches|pull_request|workflow_dispatch|schedule):' $F
 scripts/check-release-tag.sh --workflow-first-step $F
 grep -cE '^\s*contents: write' $F
-grep -oE 'secrets\.[A-Z_]+' $F | grep -vc '^secrets\.GITHUB_TOKEN$'
+grep -oiE "secrets(\.[a-z0-9_]+|\[[^]]*\])" $F | grep -vc '^secrets\.GITHUB_TOKEN$'
 grep -c 'gh release create' $F
 grep -c 'lipo -archs' $F
+grep -c 'CMAKE_OSX_ARCHITECTURES="arm64;x86_64"' $F                                  # 1
+grep -cE 'case " \$archs " in \*" (x86_64|arm64) "\*\) ;; \*\) exit 1 ;; esac' $F    # 2
+sed -nE 's/^    needs: (.*)$/\1/p' $F                                                  # [linux, macos, wasm]
 
 # G-DS-RELEASE-PUBLISHED (4; 3 and the version; success; the path)
 v=$(cat VERSION); t="v$v"
@@ -760,6 +772,7 @@ gh api "repos/atsuki-seo/Ozen/contents/reference/ai-guide.md?ref=$t" --jq .path
 # G-DS-SITE (1, 1, a positive count, success)
 grep -cF 'https://github.com/atsuki-seo/Ozen/tree/main/reference"' site/index.html
 grep -cF 'https://github.com/atsuki-seo/Ozen/releases' site/index.html
+grep -oE '>(Reference|Releases)</a>' site/index.html | sort -u | wc -l    # 2
 gh api 'repos/atsuki-seo/Ozen/contents/reference?ref=main' --jq length
 gh run list --workflow pages.yml --commit "$(git log --format=%H -1 -- site/index.html)" --json conclusion --jq '.[0].conclusion'
 
@@ -776,7 +789,7 @@ grep -c '^$' scripts/ds-scope.txt
 diff <(sed -n '/^### 4\.13/,/^### 4\.14/p' $PLAN_DS | grep -oE '`[^`]+`' | tr -d '`' | sort -u) <(cut -d' ' -f2- scripts/ds-scope.txt | sort -u)
 
 # G-DS-SELFTESTS (1 each, exit 0, 1)
-for s in rulesync.sh setup.sh check-translation.py bump-version.sh check-release-tag.sh make-release.sh; do grep -c "^scripts/$s " scripts/selftests.txt; done
+for s in rulesync.sh setup.sh check-translation.py bump-version.sh check-release-tag.sh make-release.sh; do grep -cx "scripts/$s scripts/test-${s%.*}.sh" scripts/selftests.txt; done
 scripts/goals.sh G-REPO-SELFTESTS > /dev/null 2>&1; echo "exit $?"
 grep -cx 'dist/' .gitignore
 
@@ -1217,6 +1230,7 @@ Claude covers the machine-checked goals. The user checks these:
 - Mutation check: `sh/test-make-release.sh` — S1062, left out `ozen_bridge.js`: failed (`wasm-files`, `wasm-run`). Restored: pass
 - Mutation check: `G-DS-SELFTESTS` — S1073, removed `dist/` from `.gitignore`: failed (`dist/ ignored: got '0'`). Restored: pass
 - Mutation check: `G-DS-RELEASE-WORKFLOW` — S1060, built the macOS binary for `arm64` only: the goal only counts the `lipo -archs` line, so the break does not fail it locally; the check runs in the release workflow on macOS. Run on Linux with a fake `lipo`, the workflow's own lines passed for `x86_64 arm64` and failed (exit 1) for `arm64` alone. The real run is `G-DS-RELEASE-PUBLISHED` (S1065).
+- Plans-only commit for agents.yml: `c5b28a9` (P1-8, 2026-11-03). `G-DS-CI-AGENTS-RUN` reads this record instead of the newest commit that touches `plans/`, which later commits that change a plan together with other files would replace (coverage audit, P5-3).
 
 ---
 
