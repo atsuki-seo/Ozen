@@ -1,5 +1,5 @@
 bundle {
-  std: "0.2.0"
+  std: "0.99.0"
   entry: soup
   from: book "1.0.0"
 }

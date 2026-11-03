@@ -1,4 +1,4 @@
-{"schemaVersion":1,"ozenVersion":"0.1.0","level":0,"entry":null,"files":["signatures-json.ozen"],"outcome":{"status":"ok","errors":0,"warnings":0,"infos":0},"diagnostics":[],"signatures":[
+{"schemaVersion":1,"ozenVersion":"{{STD_VERSION}}","level":0,"entry":null,"files":["signatures-json.ozen"],"outcome":{"status":"ok","errors":0,"warnings":0,"infos":0},"diagnostics":[],"signatures":[
 {"name":"press","module":"signatures-json","params":[{"name":"x","type":"T","default":null},{"name":"time","type":"Time","default":"2 min"},{"name":"heat","type":"Heat","default":"low"}],"output":"T<doneness: done>","requires":[],"variants":["pan","oven"],"provisional":true},
 {"name":"wash","module":"std.prelude","params":[{"name":"x","type":"T","default":null}],"output":"T<prep has washed>","requires":["hands","Washing"],"variants":[],"provisional":true},
 {"name":"soak","module":"std.prelude","params":[{"name":"x","type":"T","default":null},{"name":"time","type":"Time in 0 s<..","default":"30 min"}],"output":"T<prep has soaked(time)>","requires":["Container"],"variants":[],"provisional":false},
