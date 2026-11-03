@@ -16,6 +16,10 @@ RESULT = re.compile(r"^result \w+ errors=(\d+) warnings=(\d+) infos=(\d+)$|"
                     r"\"errors\":(\d+),\"warnings\":(\d+),\"infos\":(\d+)", re.M)
 STEP = re.compile(r"%\d+ = (?:op |choose )?(?:make |buy )?([A-Za-z_][A-Za-z0-9_]*)|"
                   r"^\s+[0-9]+\.\.[0-9]+ \([0-9]+\) %\d+ ([A-Za-z_][A-Za-z0-9_]*)", re.M)
+ASPECTS = {"Normal": "正常系", "Boundary": "境界・上限", "No-effect condition": "効かない条件",
+           "Side effects": "副作用とコスト", "Time and order": "時間と順序", "Persistence": "永続化",
+           "Real path": "実際の経路", "Data completeness": "データの完全性", "Platform path": "プラットフォームの経路",
+           "Docs match": "文書との一致", "Fixed premise": "前提の固定", "Negative": "否定"}
 ROW_NAME = re.compile(r"`((?:cgolden|cli|cunit)/[^`\s]+)`")
 
 
@@ -250,7 +254,9 @@ def main():
                    if re.match(r"^\s*(?:%s)" % "|".join(re.escape(x) for x in plan_label("- Rewrite mutation check: ")), l)]
     missing = 0
     for s, view, hits in rows:
-        if not any(re.search(r"\b%s\b" % s, r) and view in r and any(f"`{h}`" in r for h in hits) for r in records):
+        views = {view, ASPECTS.get(view.split(" (")[0], view)}
+        if not any(re.search(r"\b%s\b" % s, r) and any(v in r for v in views) and any(f"`{h}`" in r for h in hits)
+                   for r in records):
             missing += 1
             print(f"missing record: {s} {view} {' '.join(hits)}", file=sys.stderr)
     print(f"equivalence: {len(rewritten)} rewritten, {len(changed_results)} changed results, "

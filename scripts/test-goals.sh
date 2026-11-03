@@ -56,7 +56,7 @@ coverage_plan() {
 $2
 ## 6. phases
 ## 8. handoff
-- item — 機械で決められない理由: none
+- item — Reason a command cannot decide: none
 $3
 ## 9. records
 EOF

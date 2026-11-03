@@ -177,7 +177,7 @@ goal_G_VOCAB_SAMPLE() {
   local out k
   out=$(python3 -B tools/vocabcheck/vocabcheck.py sample spec/samples/curryRice.yaml 2>&1 | tail -n 1)
   want_re "sample" '^sample: 0 errors; expectations: [0-9]+ checked, 0 failed$' "$out"
-  k=$(sed -nE 's/^- サンプルの `expect` の葉の数 k（P2-3）: ([0-9]+).*/\1/p' $PLAN | head -n 1)
+  k=$(sed -nE 's/^- Leaves of the sample `expect`, k \(P2-3\): ([0-9]+).*/\1/p' $PLAN | head -n 1)
   want_eq "expectations = k in 9.2" "$k" "$(last_num "$out" 2)"
 }
 
@@ -244,7 +244,7 @@ goal_G_PLAN_COVERAGE() {
     "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
             <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u))"
   want_eq "handoff items without reason" 0 \
-    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN | grep '^- ' | grep -v '機械で決められない理由:' | wc -l)"
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN | grep '^- ' | grep -v 'Reason a command cannot decide:' | wc -l)"
 }
 
 skip() { printf 'skip  %s\n' "$1"; }
@@ -278,7 +278,7 @@ goal_G_REPO_VERSION() {
   v=$(cat VERSION)
   want_eq "ozen --version" "ozen $v" "$(build/core-gcc-release/ozen --version 2>&1)"
   want_ge1 "stdlib version" "$(grep -cE "^ *version: *\"$v\"" stdlib/package.ozen)"
-  want_ge1 "plan version" "$(grep -cF "版: $v" $PLAN)"
+  want_ge1 "plan version" "$(grep -cF "Version: $v" $PLAN)"
 }
 
 goal_G_CORE_BUILD() {
