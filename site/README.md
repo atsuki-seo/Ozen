@@ -7,6 +7,8 @@ published at <https://atsuki-seo.github.io/Ozen/>.
 - On every push to `main` that changes `site/`, `VERSION`, or the workflow,
   [`.github/workflows/pages.yml`](../.github/workflows/pages.yml) writes the version and
   the commit into the footer and deploys the page to GitHub Pages.
+- The footer links the [reference](../reference/README.md) and the GitHub releases, where
+  `ozen` can be downloaded.
 - The code examples and outputs on the page are copied from runs of
   `build/core-gcc-release/ozen`; update them by hand when the language changes.
 - [`og.png`](og.png) is the 1200×630 link preview card named by the OGP tags. The tags

@@ -62,3 +62,24 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs these jobs:
 - `android`: the libraries, called through JNI on the Android emulator
 
 The [platform bindings](bindings/README.md) describe what each platform job checks.
+
+`.github/workflows/agents.yml` checks on every push that every commit uses the noreply
+address and that the agent files match `.rulesync/`.
+
+## Releases
+
+A release is made from a version tag:
+
+```bash
+scripts/bump-version.sh 0.2.0
+git commit -am "Release 0.2.0"
+git tag v0.2.0
+git push origin main v0.2.0
+```
+
+`scripts/bump-version.sh` changes `VERSION` and the version of `std` only; golden
+expectations write the version as `{{STD_VERSION}}`. A pushed `v*` tag runs
+[`.github/workflows/release.yml`](.github/workflows/release.yml): it checks the tag
+against `VERSION`, packs the Linux, macOS and WebAssembly archives with
+`scripts/make-release.sh`, runs each of them, and publishes them with `SHA256SUMS` on
+GitHub Releases.
