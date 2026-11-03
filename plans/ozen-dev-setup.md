@@ -1100,6 +1100,54 @@ Claude covers the machine-checked goals. The user checks these:
 - Mutation check: `sh/test-goals.sh` — S1012, stopped `--summary` at the first failure: failed (`8 cases, 1 failed`, `summary`). Restored: pass
 - Mutation check: `G-DS-LABELS` — S1013, left `FB=fb-start..HEAD`: failed (`FB range: got 'FB=fb-start..HEAD'`, `feedback plan goals: exit 1`). Restored: pass
 - Mutation check: `G-DS-OWN-LABELS` — S1014, wrote the Japanese decided label in the heading of D116: failed (`Japanese labels: got '1'`). Restored: pass
+- Node.js 24.22.2 (P1-1, 2026-11-03): installed under `~/.local/node-v24.22.2-linux-x64` after the user's yes, from nodejs.org with its `SHASUMS256.txt` checked. `G-PLAT-WASM`, `G-REND-HTML`, `G-REND-PHRASES-RENDER`, `G-REND-BROWSER-SAFE`, `G-REND-SELFCONTAINED`, `G-REND-VENDOR` and `G-REPO-TOOLS` passed on it. `G-REND-TESTS` failed with `renderer failures: got ''`: all 60 renderer tests pass, but since Node.js 22 `node --test DIR` no longer runs a folder, and since Node.js 23 the default reporter is not TAP. Following R2, the user was asked and chose to fix the call: `goal_G_REND_TESTS` now runs `node --test --test-reporter=tap 'renderers/test/*.test.mjs'` and passes. The roadmap's code block keeps the old command, because the translation must keep code blocks as they were (S1004); the goal function is the command that runs.
+- Mutation check: `G-DS-TOOLCHAIN` — S945, dropped the `npx` column: failed (`rulesync line: got '43.4.2'`, `G-REPO-TOOLS: exit 1`). Restored: pass
+- Mutation check: `G-DS-TOOLCHAIN` — S946, set node to 22.21.0: failed (`node >= 22.22: got '0'`). Restored: pass
+- Mutation check: `G-DS-TOOLCHAIN` — S947, gave the `rulesync` row an empty third column: failed (`G-REPO-TOOLS: exit 1`). Restored: pass
+- Output paths written by rulesync 43.4.2 for this config (P1-2, 2026-11-03): rules go to `CLAUDE.md`, `AGENTS.md` (written by both `agentsmd` and `codexcli`), `.cursor/rules/overview.mdc` and `.github/copilot-instructions.md`. `agentsmd` has no `permissions` feature and is skipped for it. A rule file that is unchanged is not listed as written. `scripts/rulesync.sh generate` reads the paths that rulesync prints and fails when one is not in `scripts/agent-outputs.txt`, or when a listed path does not exist (S956).
+- Mutation check: `sh/test-rulesync.sh` — S948, dropped `--yes` from the wrapper: failed (`runs-pinned`). The first try left a second copy of the command line without `--yes` untouched and the test passed, so the wrapper now builds the command once. Restored: pass
+- Mutation check: `sh/test-rulesync.sh` — S949, exited 0 when the `rulesync` line is missing: failed (`missing-line`). Restored: pass
+- Mutation check: `sh/test-rulesync.sh` — S950, passed `--delete` through: failed (`refuses-delete`). Restored: pass
+- Mutation check: `G-DS-RULESYNC` — S951, removed `cursor` from the targets: failed (`targets and features`, `changes after generate: got '1'`). Restored: pass
+- Mutation check: `G-DS-RULESYNC` — S952, added a second rule file: failed (`rule files: got '2'`). The generated `.cursor/rules/second.mdc` was removed afterwards. Restored: pass
+- Mutation check: `G-DS-RULESYNC` — S953, edited `AGENTS.md` by hand: failed (`generate --check: exit 1`). Restored: pass
+- Mutation check: `G-DS-RULESYNC` — S954, changed the source heading without generating: failed (`generate --check: exit 1`, `changes after generate: got '5'`). Restored: pass
+- Mutation check: `sh/test-rulesync.sh` — S955, made the wrapper drop `--check`: failed (`stale-check`). Restored: pass
+- Mutation check: `sh/test-rulesync.sh` — S956, accepted an output that `scripts/agent-outputs.txt` does not list: failed (`extra-output`). Restored: pass
+- Mutation check: `G-DS-RULESYNC` — S956, listed the untracked path `.codex/none.md`: failed (`untracked outputs: got '1'`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S957, dropped the noreply address from the source and generated: failed (`noreply in CLAUDE.md: got '0'`). Restored: pass for that check
+- Mutation check: `G-DS-AGENT-FILES` — S958, split this plan's line into two lines and generated: failed (`plan line ozen-dev-setup.md.*G-DS-.*ds-start in CLAUDE.md: got '0'`). Restored: pass for that check
+- Mutation check: `G-DS-AGENT-FILES` — S959, set `alwaysApply: false`: failed (`cursor alwaysApply: got '0'`). Restored: pass for that check
+- Permission outputs (P1-3, 2026-11-03): the `permissions` feature writes `.claude/settings.json`, `.codex/config.toml`, `.codex/rules/rulesync.rules`, `.cursor/cli.json` and `.vscode/settings.json` (Copilot's terminal auto-approve list). Codex CLI `prefix_rule` patterns are literal words, so rulesync drops the four entries with an inner `*` (`scripts/check-*.sh *` and `build/*/ozen ... *`) for Codex and warns; the other targets keep all 14 entries. `scripts/agent-allow.txt` holds the 14 entries in the Claude Code form that `.claude/settings.json` uses.
+- Mutation check: `G-DS-AGENT-FILES` — S960, added a line to `scripts/agent-allow.txt` without generating: failed (`allow list`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S961, added `Bash(git push *)` to the allow list: failed (`writing commands in the allow list: got '1'`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S962, dropped the English sentence: failed (`English rule: got '0'`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S963, dropped `phrases/ja.ftl` from the exceptions: failed (`rule names phrases/ja.ftl: got '0'`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S964, dropped `ozen-dev-environment.md`: failed (`rule names ozen-dev-environment.md: got '0'`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S965, dropped the sentence about own settings: failed (`rule names own settings: got '0'`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S966, kept the old sentence about `plans/`: failed (`Japanese folders in CLAUDE.md: got '1'`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S967, kept "ask the user before pushing": failed (`ask before pushing in CLAUDE.md: got '1'`). Restored: pass
+- Mutation check: `G-DS-AGENT-FILES` — S968, dropped the word Japanese from the rule and generated: failed (`CLAUDE.md goals: exit 1`, from `G-REPO-CLAUDEMD` `Japanese rule: got '0'`). Restored: pass
+- Mutation check: `sh/test-goals.sh` — S972, removed the empty-address branch: failed (`noreply-no-global`, `noreply-actions-no-local`). Restored: pass
+- Mutation check: `sh/test-goals.sh` — S973, compared with a wrong noreply address: failed (`noreply-global-is-noreply`). Restored: pass
+- Mutation check: `sh/test-goals.sh` — S974, skipped whenever the address is set: failed (`noreply-personal-found`). Restored: pass
+- Mutation check: `sh/test-goals.sh` — S975, skipped check 2 whenever the local address is missing: failed (`noreply-local-missing`). Restored: pass
+- Mutation check: `sh/test-pre-push.sh` — S969, removed the execute bit of the hook: failed (`other-address-push`; git ignores a hook that is not executable). Restored: pass
+- Mutation check: `sh/test-pre-push.sh` — S970, made the hook `exit 0`: failed (`other-address-push`). Restored: pass
+- Mutation check: `sh/test-pre-push.sh` — S971, made the hook `exit 1`: failed (`noreply-push`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S978, printed `ok` for a different version: failed (`cmake-differs`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S979, probed the `xcode` row on Linux: failed (`linux-skips`, `missing xcode want 26.6`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S980, dropped the `core.hooksPath` line: failed (`hooks-set`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S981, overwrote an existing `core.hooksPath`: failed (`hooks-kept`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S982, skipped the generate step: failed (`generated`, `rulesync-fails`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S983, exited 1 when rulesync fails: failed (`rulesync-fails`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S984, appended a timestamp line to a file: failed (`second-run`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S985, exited 0 when `cmake` differs: failed (`cmake-differs`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S985, required `gcc` on a fake macOS: failed (`macos`). Restored: pass
+- Mutation check: `sh/test-setup.sh` — S986, exited 1 when `emcc` is missing: failed (`emcc-missing-ok`, `rulesync-fails`). Restored: pass
+- Mutation check: `G-DS-SETUP` — S987, added `sudo apt-get install`: failed (`install commands: got '1'`). Restored: pass
+- Mutation check: `G-DS-CI-AGENTS` — S976, added `paths-ignore: [plans/**]`: failed (`path filters: got '1'`). Restored: pass
+- Mutation check: `G-DS-CI-AGENTS` — S976, dropped `fetch-depth: 0`: failed (`full history: got '0'`). Restored: pass
 
 ---
 
