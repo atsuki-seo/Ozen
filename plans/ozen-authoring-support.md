@@ -139,15 +139,15 @@ AI との往復は、すでに JSON の診断で回る。足りないのは診�
 
 ## 6. 決めること
 
-| ID | 問い | 推奨 | 決定（2026-11-02） |
+| ID | 問い | 推奨 | 決定 |
 | --- | --- | --- | --- |
-| Q1 | concept §12 で後回しにした LSP・構文ハイライトを、範囲に戻すか | 戻す。ただし第 3 弾にする | 推奨どおり |
-| Q2 | `ozen check` の文面の既定の言語 | 英語のまま。`--lang ja` で日本語 | 推奨どおり |
-| Q3 | 直し方の候補を自動で当てる範囲 | 1 つに決まる候補だけ。`SAF` の直しは当てない | 推奨どおり |
+| Q1 | concept §12 で後回しにした LSP・構文ハイライトを、範囲に戻すか | 戻す。ただし第 3 弾にする | 推奨どおり（2026-11-02） |
+| Q2 | `ozen check` の文面の既定の言語 | 英語のまま。`--lang ja` で日本語 | 推奨どおり（2026-11-02） |
+| Q3 | 直し方の候補を自動で当てる範囲 | 1 つに決まる候補だけ。`SAF` の直しは当てない | 推奨どおり（2026-11-02） |
 | Q4 | AI 向けの手引き（C13）の置き場所と形 | `ozen doc --all` で生成し、`docs/` に生成物として置く | `plans/ozen-dev-environment.md` へ移す（EQ3〜EQ5）。2026-11-03 に、手引きは英語だけに狭めた（`plans/ozen-dev-setup.md` の §1） |
-| Q5 | MCP サーバー（C24）を作るか | 作らない。CLI と JSON で足りるかを、`ozen init` が書き出す `AGENTS.md`（`plans/ozen-dev-setup.md` の D128）で試してから決める | 未決 |
-| Q6 | 整形（C18）と候補（C10）の書き方 | 材料を先に書く書き方。`plans/ozen-cooking-feedback.md` の D106・D107 と同じにする | 未決 |
-| Q7 | 実装の順番。利用者のフィードバックの計画は実装済み（2026-11-03）なので、`plans/ozen-dev-setup.md` との順番を決める | `plans/ozen-dev-setup.md` の後。同じ `main` で範囲が重なると、互いの範囲の除外が増えるため | 未決 |
+| Q5 | MCP サーバー（C24）を作るか | 作らない。CLI と JSON で足りるかを、`ozen init` が書き出す `AGENTS.md`（`plans/ozen-dev-setup.md` の D128）で試してから決める | 推奨どおり（2026-11-03） |
+| Q6 | 整形（C18）と候補（C10）の書き方 | 材料を先に書く書き方。`plans/ozen-cooking-feedback.md` の D106・D107 と同じにする | 推奨どおり（2026-11-03） |
+| Q7 | 実装の順番。利用者のフィードバックの計画は実装済み（2026-11-03）なので、`plans/ozen-dev-setup.md` との順番を決める | `plans/ozen-dev-setup.md` の後。同じ `main` で範囲が重なると、互いの範囲の除外が増えるため | 推奨どおり（2026-11-03） |
 
 ## 7. 他の計画との関係
 
@@ -158,5 +158,5 @@ AI との往復は、すでに JSON の診断で回る。足りないのは診�
 
 ## 8. 次の一歩
 
-1. §6 の Q5〜Q7 を決める。文書と開発環境の構成は `plans/ozen-dev-environment.md` で決める。
-2. 第 1 弾を `verifiable-plan` で実装計画にする（`plans/ozen-diagnostics-clarity.md` など）。
+1. ~~§6 の Q1〜Q7 を決める。~~ 2026-11-02〜03 に決めた。文書と開発環境の構成は `plans/ozen-dev-environment.md` と `plans/ozen-dev-setup.md` で決めた。
+2. `plans/ozen-dev-setup.md` の実装が終わった後（Q7）、第 1 弾を `verifiable-plan` で英語の実装計画にする（`plans/ozen-diagnostics-clarity.md` など）。
