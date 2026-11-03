@@ -45,3 +45,4 @@ scripts/check-limit-pairs.py scripts/test-check-limit-pairs.sh
 scripts/check-std-preheat.py scripts/test-check-std-preheat.sh
 scripts/check-site-examples.py scripts/test-check-site-examples.sh
 scripts/rulesync.sh scripts/test-rulesync.sh
+scripts/setup.sh scripts/test-setup.sh
