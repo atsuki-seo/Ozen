@@ -764,7 +764,7 @@ gh api 'repos/atsuki-seo/Ozen/contents/reference?ref=main' --jq length
 gh run list --workflow pages.yml --commit "$(git log --format=%H -1 -- site/index.html)" --json conclusion --jq '.[0].conclusion'
 
 # G-DS-GOLDEN-SAME (0)
-norm() { sed -E 's/"ozenVersion":"[^"]*"/"ozenVersion":"V"/g; s/\{\{STD_VERSION\}\}/V/g'; }
+norm() { sed -E 's/"ozenVersion":"[^"]*"/"ozenVersion":"V"/g; s/"name":"ozen","version":"[^"]*"/"name":"ozen","version":"V"/g; s/\{\{STD_VERSION\}\}/V/g'; }
 for c in $(ds_commits); do git diff-tree --no-commit-id --name-only -r $c; done | sort -u |
   grep -E '^tests/golden/.*\.out$' | grep -vE '^tests/golden/(bundle/std-version-check|packages/requires-newer-minor/)' |
   while read -r f; do cmp -s <(git show ds-start:"$f" 2>/dev/null | norm) <(norm < "$f") || echo "$f"; done | wc -l

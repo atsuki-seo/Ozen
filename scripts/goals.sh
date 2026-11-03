@@ -1855,7 +1855,7 @@ goal_G_DS_SITE() {
 }
 
 goal_G_DS_GOLDEN_SAME() {
-  local norm='s/"ozenVersion":"[^"]*"/"ozenVersion":"V"/g; s/\{\{STD_VERSION\}\}/V/g'
+  local norm='s/"ozenVersion":"[^"]*"/"ozenVersion":"V"/g; s/"name":"ozen","version":"[^"]*"/"name":"ozen","version":"V"/g; s/\{\{STD_VERSION\}\}/V/g'
   ds_tag
   want_eq "changed expectations" 0 \
     "$(ds_files | sort -u | grep -E '^tests/golden/.*\.out$' | grep -vE '^tests/golden/(bundle/std-version-check|packages/requires-newer-minor/)' |
