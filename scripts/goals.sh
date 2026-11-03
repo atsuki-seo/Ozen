@@ -1348,7 +1348,7 @@ goal_G_FB_GOLDEN_CHANGED() {
   local f
   want_eq "tag fb-start" ok "$(git rev-parse -q --verify refs/tags/fb-start >/dev/null && echo ok)"
   want_eq "changed expectations not named in the plan" 0 \
-    "$(git diff --name-only --no-renames --diff-filter=MD fb-start HEAD -- 'tests/golden/**/*.out' 'tests/golden/**/expected.out' \
+    "$(git diff --name-only --no-renames --diff-filter=MD fb-start fb-end -- 'tests/golden/**/*.out' 'tests/golden/**/expected.out' \
          'tests/golden/**/*.ozen' 'renderers/test/**' 'samples/*/expect.yaml' |
        while IFS= read -r f; do grep -qF -- "- 期待を直した golden: \`$f\`" $PLAN_FB || echo "$f"; done | wc -l)"
 }
