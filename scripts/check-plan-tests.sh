@@ -8,6 +8,7 @@ usage() {
   exit 2
 }
 
+here=$(cd "$(dirname "$0")" && pwd)
 root=""
 mode=names
 plan=""
@@ -22,6 +23,7 @@ done
 [ -n "$plan" ] || usage
 [ -f "$plan" ] || { echo "no such plan: $plan" >&2; exit 2; }
 plan=$(cd "$(dirname "$plan")" && pwd)/$(basename "$plan")
+labels=$(cd "$(dirname "$0")" && pwd)/plan-labels.tsv
 if [ -z "$root" ]; then
   root=$(git rev-parse --show-toplevel)
 fi
@@ -34,7 +36,7 @@ ctest_names() {
 }
 cunit_names=$(ctest_names build/core-gcc-debug-san)
 
-CUNIT_NAMES="$cunit_names" exec python3 -B - "$plan" "$mode" <<'PY'
+PLAN_LABELS="$here/plan-labels.tsv" PLAN_LABELS="$labels" CUNIT_NAMES="$cunit_names" exec python3 -B - "$plan" "$mode" <<'PY'
 import fnmatch
 import glob
 import os
@@ -44,6 +46,54 @@ import sys
 plan_path, mode = sys.argv[1], sys.argv[2]
 text = open(plan_path, encoding="utf-8").read()
 lines = text.split("\n")
+
+LABELS = {}
+for row in open(os.environ["PLAN_LABELS"], encoding="utf-8"):
+    ja, en = row.rstrip("\n").split("\t")
+    LABELS[en] = (ja, en)
+
+
+def column(header, en):
+    return next(header.index(l) for l in LABELS[en] if l in header)
+
+
+def stated_count(after):
+    for label in LABELS["(N cases)"]:
+        opening, inner, closing = label[0], label[1:-1], label[-1]
+        pm = re.match(re.escape(opening) + "([^" + re.escape(closing) + "]*)" + re.escape(closing), after)
+        if not pm:
+            continue
+        nm = re.search(re.escape(inner).replace("N", "([0-9]+)"), pm.group(1))
+        if nm:
+            return int(nm.group(1))
+    return None
+
+LABELS = {}
+for row in open(os.environ["PLAN_LABELS"], encoding="utf-8").read().split("\n"):
+    if row:
+        ja, en = row.split("\t")
+        LABELS[en] = (ja, en)
+
+
+def label_re(en):
+    return "(?:%s)" % "|".join(re.escape(l) for l in LABELS[en])
+
+
+def column(header, en):
+    for name in LABELS[en]:
+        if name in header:
+            return header.index(name)
+    raise SystemExit(f"error: no column {en!r}")
+
+
+def count_res():
+    out = []
+    for form in LABELS["(N cases)"]:
+        before, after = form.split("N", 1)
+        close, unit = after[-1], after[:-1]
+        out.append((re.compile(r"\s*" + re.escape(before) + "([^%s]*)" % re.escape(close) + re.escape(close)),
+                    re.compile(r"([0-9]+)" + re.escape(unit))))
+    return out
 
 
 def section(start_re, end_re):
@@ -73,16 +123,16 @@ coverage = table_rows(section(r"^### 5\.3", r"^## 6\."))
 header, body = coverage[0], coverage[1:]
 
 if mode == "mutations":
-    col = header.index("わざと壊す方法")
+    col = column(header, "How to break it")
     rows = sum(1 for r in body if len(r) > col and r[col] not in ("", "—", "-"))
     records = sum(1 for l in section(r"^## 9\.", r"^## 10\.")
-                  if re.match(r"^\s*- わざと壊す確認: ", l))
+                  if re.match(r"^\s*" + label_re("- Mutation check: "), l))
     print(f"mutations: {rows} rows, {records} recorded")
     sys.exit(0 if rows == records else 1)
 
 CATEGORIES = ["golden", "fx", "py", "c", "sh", "cgolden", "cunit", "prop",
               "cli", "sample", "rtest"]
-col = header.index("テストまたはゴール")
+col = column(header, "Test or goal")
 
 retired = set()
 if os.path.exists("scripts/retired-tests.txt"):
@@ -153,8 +203,12 @@ for r in body:
         count = None
         if "*" in rest:
             after = cell[m.end():]
-            pm = re.match(r"（([^）]*)）", after)
-            nm = re.search(r"([0-9]+) 個", pm.group(1)) if pm else None
+            nm = None
+            for paren_re, num_re in count_res():
+                pm = paren_re.match(after)
+                nm = num_re.search(pm.group(1)) if pm else None
+                if nm:
+                    break
             if not nm:
                 print(f"error: {name} has * but no count", file=sys.stderr)
                 errors += 1

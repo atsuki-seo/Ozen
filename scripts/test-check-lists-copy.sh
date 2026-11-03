@@ -53,5 +53,8 @@ expect extra "$good
   - {kind: cut, id: mince}" "copy: 4 identifiers, 1 differences" 1
 expect empty "entries: []" "copy: 4 identifiers, 4 differences" 1
 
+sed -i 's/^| 合計 |/| Total |/' "$work/plan.md"
+expect english-total "$good" "copy: 4 identifiers, 0 differences" 0
+
 echo "test-check-lists-copy: $cases cases, $failed failed"
 [ "$failed" -eq 0 ]

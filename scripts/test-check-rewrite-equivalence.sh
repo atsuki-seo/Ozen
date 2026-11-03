@@ -94,6 +94,13 @@ expect same "equivalence: 1 rewritten, 0 changed results, 0 changed steps; recor
 
 setup
 sed -i 's/^\/\/ args: debug steps$/\/\/ args: debug steps\n\/\/ renamed/' "$repo/tests/golden/a/one.ozen"
+sed -i 's/^| S1 | 正常系 |/| S1 | Normal |/' "$repo/plans/roadmap.md"
+sed -i "/^## 10\./i - Rewrite mutation check: S1, Normal, \`cgolden/a/one\`. Removing the wash failed it" "$repo/plans/plan.md"
+commit_head
+expect english-record "equivalence: 1 rewritten, 0 changed results, 0 changed steps; records: 1 roadmap rows, 0 missing" 0
+
+setup
+sed -i 's/^\/\/ args: debug steps$/\/\/ args: debug steps\n\/\/ renamed/' "$repo/tests/golden/a/one.ozen"
 commit_head
 expect missing-record "equivalence: 1 rewritten, 0 changed results, 0 changed steps; records: 1 roadmap rows, 1 missing" 1
 

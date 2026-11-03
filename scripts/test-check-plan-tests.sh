@@ -39,6 +39,24 @@ $records
 EOF
 }
 
+plan_en() {
+  local repo=$1 rows=$2 records=${3:-}
+  cat > "$repo/plan.md" <<EOF
+## 5. goals
+### 5.3 coverage
+
+| S item | Aspect | Test or goal | How to break it | Main task |
+| --- | --- | --- | --- | --- |
+$rows
+
+## 6. phases
+
+## 9. records
+$records
+## 10. risks
+EOF
+}
+
 expect() {
   local name=$1 repo=$2 flags=$3 want_last=$4 want_status=$5 got got_status
   cases=$((cases + 1))
@@ -123,6 +141,33 @@ r=$(new_repo)
 plan "$r" '| S1 | 正常系 | `G-A` | 壊す | P1 |
 | S2 | 正常系 | `G-B` | 壊す | P1 |' '- わざと壊す確認: `G-A` — x'
 expect mutations-short "$r" --mutations "mutations: 2 rows, 1 recorded" 1
+
+r=$(new_repo)
+plan_en "$r" '| S1 | Normal | `fx/vocab-ng/a`, `G-X` | break | P1 |
+| S2 | Normal | `cgolden/decl/*` (per kind, 2 cases) | break | P1 |'
+put "$r" spec/fixtures/vocab-ng/a.yaml
+put "$r" tests/golden/decl/a.ozen
+put "$r" tests/golden/decl/a.out
+put "$r" tests/golden/decl/b/expected.out
+expect english-names "$r" "" "plan-tests: 2 names, 0 missing" 0
+
+r=$(new_repo)
+plan_en "$r" '| S1 | Normal | `cgolden/decl/*` (3 cases) | break | P7 |'
+put "$r" tests/golden/decl/a.ozen
+put "$r" tests/golden/decl/a.out
+expect english-count-short "$r" "" "plan-tests: 1 names, 1 missing" 1
+
+r=$(new_repo)
+plan_en "$r" '| S1 | Normal | `G-A` | break | P1 |
+| S2 | Normal | `G-B` | break | P1 |
+| S3 | Normal | `G-C` | — | P1 |' '- Mutation check: `G-A` — x
+- わざと壊す確認: `G-B` — y'
+expect english-mutations "$r" --mutations "mutations: 2 rows, 2 recorded" 0
+
+r=$(new_repo)
+plan_en "$r" '| S1 | Normal | `G-A` | break | P1 |
+| S2 | Normal | `G-B` | break | P1 |' '- Mutation check: `G-A` — x'
+expect english-mutations-short "$r" --mutations "mutations: 2 rows, 1 recorded" 1
 
 r=$(new_repo)
 plan "$r" '| S1 | 正常系 | `fx/vocab-ng/u-*`（2 個） | 壊す | P1 |

@@ -1,10 +1,29 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
+import os
+import os
 import re
 import sys
 
 import yaml
+
+
+def plan_labels(en):
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan-labels.tsv")
+    for row in open(path, encoding="utf-8"):
+        ja, label = row.rstrip("\n").split("\t")
+        if label == en:
+            return (ja, label)
+    raise KeyError(en)
+
+
+def plan_label(en):
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan-labels.tsv")
+    for row in open(path, encoding="utf-8").read().split("\n"):
+        if row and row.split("\t")[1] == en:
+            return tuple(row.split("\t"))
+    raise KeyError(en)
 
 
 def plan_identifiers(path):
@@ -22,7 +41,7 @@ def plan_identifiers(path):
             seen_header = True
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if cells[0] == "合計":
+        if cells[0] in plan_label("Total"):
             continue
         ids.update(re.findall(r"`([^`]+)`", "|".join(cells[2:])))
     return ids

@@ -1,0 +1,15 @@
+【決定済み】	[decided]
+【未決】	[open]
+- **決定:**	- **Decision:**
+機械で決められない理由:	Reason a command cannot decide:
+わざと壊す方法	How to break it
+テストまたはゴール	Test or goal
+- わざと壊す確認: 	- Mutation check: 
+- 書き直しのわざと壊す確認: 	- Rewrite mutation check: 
+（N 個）	(N cases)
+合計	Total
+- 網羅の監査: 指摘 N 件、取り込み M 件	- Coverage audit: N findings, M taken
+- 範囲に入った別の作業のコミット: 	- Other work's commit in range: 
+- 期待を直した golden: 	- Golden with a corrected expectation: 
+- サンプルの `expect` の葉の数 k（P2-3）: 	- Leaves of the sample `expect`, k (P2-3): 
+版: 	Version: 

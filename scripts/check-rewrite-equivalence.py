@@ -19,6 +19,14 @@ STEP = re.compile(r"%\d+ = (?:op |choose )?(?:make |buy )?([A-Za-z_][A-Za-z0-9_]
 ROW_NAME = re.compile(r"`((?:cgolden|cli|cunit)/[^`\s]+)`")
 
 
+def plan_label(en):
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan-labels.tsv")
+    for row in open(path, encoding="utf-8").read().split("\n"):
+        if row and row.split("\t")[1] == en:
+            return tuple(row.split("\t"))
+    raise KeyError(en)
+
+
 def git(*args, cwd=None):
     return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True).stdout
 
@@ -239,7 +247,7 @@ def main():
     records = []
     if a.records:
         records = [l for l in section(a.records, r"^## 9\.", r"^## 10\.")
-                   if re.match(r"^\s*- 書き直しのわざと壊す確認: ", l)]
+                   if re.match(r"^\s*(?:%s)" % "|".join(re.escape(x) for x in plan_label("- Rewrite mutation check: ")), l)]
     missing = 0
     for s, view, hits in rows:
         if not any(re.search(r"\b%s\b" % s, r) and view in r and any(f"`{h}`" in r for h in hits) for r in records):
