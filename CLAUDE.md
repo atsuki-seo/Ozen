@@ -1,4 +1,4 @@
-# Notes for Claude Code
+# Notes for AI agents
 
 ## Language of committed files
 

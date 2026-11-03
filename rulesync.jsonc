@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+{
+  "$schema": "https://github.com/dyoshikawa/rulesync/releases/download/v43.4.2/config-schema.json",
+  "targets": ["claudecode", "agentsmd", "codexcli", "cursor", "copilot"],
+  "features": ["rules", "permissions"],
+  "outputRoots": ["."],
+  "delete": false
+}
