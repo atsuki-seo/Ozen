@@ -1075,6 +1075,45 @@ Claude covers the machine-checked goals. The user checks these:
 (Append results here with dates.)
 
 - Base values at `rc-start` (P0-2): the build command, the goals that pass and fail on this machine, the golden count
+- Tags (P0-2, 2026-11-24): `ds-end` is `f124e84`; `rc-start` is `9541403`, the commit that closes `DS`. `G-DS-SCOPE` passes again
+- Build command (P0-2, 2026-11-24): this machine has no cmake, so `build/core-gcc-release/ozen` is built by the script below, kept as `build/manual-build.sh` (`build/` is ignored). It writes the two generated files as `core/gen/embed-std.cmake` and `cli/src/embed-template.cmake` do, and compiles with the flags of `core/CMakeLists.txt` for a release build. gcc 16.2.1, about 6 s. Its `std_embedded.c` equals the earlier hand build's except for the first comment line. Run it again after every change to `core/`, `cli/`, `stdlib/`, `reference/agents-template.md` or `VERSION`
+
+  ```sh
+  #!/bin/sh
+  # Hand build of the gcc release configuration for a machine without cmake.
+  set -eu
+  out=build/core-gcc-release
+  mkdir -p $out/gen $out/cli/gen
+  python3 - $out <<'PY'
+  import sys, pathlib
+  out = pathlib.Path(sys.argv[1])
+  hexs = lambda b: ''.join('0x%02x,' % c for c in b)
+  std = pathlib.Path('stdlib')
+  files = sorted(p.relative_to(std).as_posix() for p in std.rglob('*.ozen'))
+  body = table = ''
+  for i, f in enumerate(files):
+      b = (std / f).read_bytes()
+      body += 'static const unsigned char file%d[] = {%s0x00};\n' % (i, hexs(b))
+      table += '  {"%s", (const char *)file%d, %d},\n' % (f, i, len(b))
+  (out / 'gen/std_embedded.c').write_text(
+      '/* Generated from stdlib/ by core/gen/embed-std.cmake. */\n#include "stdembed.h"\n\n' + body +
+      '\nconst ozni_std_file ozni_std_files[] = {\n' + table + '};\nconst size_t ozni_std_file_count = %d;\n' % len(files))
+  (out / 'cli/gen/agents_template.h').write_text(
+      '/* Generated from reference/agents-template.md by cli/src/embed-template.cmake. */\n'
+      'static const unsigned char agents_template[] = {%s0x00};\n' % hexs(pathlib.Path('reference/agents-template.md').read_bytes()))
+  PY
+  gcc -std=c23 -O3 -DNDEBUG -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wstrict-prototypes -Wswitch-enum -Werror \
+    -DOZEN_VERSION="\"$(head -n 1 VERSION)\"" -Icore/src -I$out/cli/gen \
+    core/src/*.c $out/gen/std_embedded.c cli/src/main.c cli/src/sarif.c -o $out/ozen
+  ```
+- Goals at `rc-start` (P0-2, 2026-11-24): `build/rc-goals-start.txt`, with node 22.23.5 first in `PATH`. 200 goals run one by one with a limit of 240 s; 157 pass. Not run: `G-PLAT-CI`, `G-PLAT-ANDROID`, `G-PLAT-IOS`, `G-REPO-TOOLS-CI`, `G-RD-GH-*`, `G-REPO-RED-FIRST`, `G-CORE-BUILD`, `G-CORE-FUZZ`, `G-DS-RELEASE-PUBLISHED` (network, rebuilds or more than ten minutes). The 43 that do not pass all come from this machine, not from the sources (first failure lines in `build/rc-goals-why.txt`):
+  - No cmake, clang, emscripten or the other three build configurations: `G-API-EXPORTS`, `G-CLI-TESTS` and `G-DS-INIT` (33 cases, only `init-rebuild` fails), `G-CORE-DETERMINISM`, `G-CORE-FLAGS`, `G-CORE-GOLDEN` (the gcc release configuration alone passes 641), `G-CORE-NOGLOBAL`, `G-CORE-OOM`, `G-CORE-UNIT`, `G-PLAN-TESTS-EXIST` and `G-RF-PLAN-TESTS` (only the `cunit/*` names are missing), `G-PLAT-LINUX`, `G-PLAT-WASM`, `G-RD-BUILD-RUN`, `G-REND-BROWSER-SAFE`, `G-REND-PHRASES-RENDER`, `G-REND-SELFCONTAINED`, `G-REPO-TOOLS`, `G-DS-TOOLCHAIN`
+  - Python has no `yaml`, `jsonschema` or `openpyxl` module: `G-SAMPLE-CHECK`, `G-STD-LISTS`, `G-STD-SOURCES`, `G-DS-LABELS`, `G-DS-RELEASE-WORKFLOW`, `G-VOCAB-CHECK`, `G-VOCAB-FCT`, `G-VOCAB-FCT-STABLE`, `G-VOCAB-LISTS`, `G-VOCAB-LISTS-COPY`, `G-VOCAB-PRIORWORK`, `G-VOCAB-SAMPLE`, `G-VOCAB-SCHEMA`, `G-VOCAB-SOURCES`, `G-VOCAB-TESTS`
+  - Goals that run one of the above inside: `G-DS-GOALS-SAME`, `G-DS-RELEASE-LOCAL`, `G-DS-VERSION`, `G-FB-REVIEW-SAME`, `G-FB-SAMPLES-SAME`, `G-RF-EQUIVALENCE`, `G-RF-SAMPLES-SAME`
+  - Over the limit: `G-REPO-SELFTESTS`, `G-DS-SELFTESTS`
+  - These are read from CI after each push (D155). §3.6 did not know about the missing Python modules; they move `G-SAMPLE-CHECK` and the samples-same goals to CI as well
+- Golden count at `rc-start` (P0-2): 641 passed with the gcc release binary (722 `.ozen` files under `tests/golden`). Other work in progress: none; the working tree was clean
+- Found in P0-2 (2026-11-24): three goals of the setup plan compare `ds-start` with the working tree, not with `ds-end`, so closing `DS` does not freeze them. `G-DS-TRANSLATION` reads `docs/concept.md` (P5 changes it), `G-DS-VERSION` reads version strings under `samples` and `tests` and runs the version goals (P6-2 changes `VERSION`), and `G-DS-GOLDEN-SAME` reads the working copy of the expectations that the setup plan changed. When one of them fails for this plan's change, its comparison is moved to `ds-end`, as `G-QC-GOLDEN-CHANGED` was moved to `qc-end`, and the change is recorded here
 - Inputs of §3.2 (2026-11-24), each checked with `ozen check` unless noted: row 1 `recipe a(servings: 2) { ingredients { sugar: Sugar; onion: 1 pcs } ... mix([s, sugar]) }`; row 2 `cut(slice, [any amount])`, `fry([any amount])`, `simmer([f, salt], [any amount])` with `salt: [any amount]` (`check`, `debug ir`, `debug schedule`); row 3 `onion |> peel |> cut(slice)` with `check --format json --emit ir`; row 4 the three annotations of the table; row 5 `action steamIt(x: T, time: Time in 0 s<.., heat: Heat = low) -> T<doneness: done>` on `ingredient Jelly { axes: doneness, prep }`, and `simmer(until: thickened)`; row 6 `recipe a { ingredients { onion: 1 pcs } ... }`
 - To confirm in P1-3: what requirement a heating action records for an unknown `heat` (today `fry` shows `FryingPan<heated: heat>`). If an unknown enum value breaks the requirement, the requirement is left without the argument, and the result is written here
 - To confirm in P2-4: where `core/src/sched.c` reads a node's time, and whether a dish can be left out of `schedules` without touching the menu path. If it cannot, D148's first alternative (0 s with a flag) is the fallback, and the user is asked first
