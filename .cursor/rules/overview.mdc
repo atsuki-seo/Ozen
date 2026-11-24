@@ -27,6 +27,7 @@ Each plan names its goals in its §5; the commands in the §5 code blocks are au
 - `plans/ozen-quantity-checks.md`: checking quantity arguments and non-positive amounts; goals `G-QC-*`, from the tag `qc-start`.
 - `plans/ozen-cooking-feedback.md`: the cooking feedback (cracking eggs, `until:` and subject-first calls); goals `G-FB-*`, from the tag `fb-start`.
 - `plans/ozen-dev-setup.md`: agent rules, the development setup, English documents, the reference and releases; goals `G-DS-*`, from the tag `ds-start`.
+- `plans/ozen-record-checks.md`: using Ozen as a checkable record (unstated and supplied values, sources, positions and the record checks); goals `G-RC-*`, from the tag `rc-start`.
 
 ## Publishing
 
