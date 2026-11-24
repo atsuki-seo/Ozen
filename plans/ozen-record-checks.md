@@ -573,7 +573,7 @@ Each checkable claim is one item with one claim, and starts with `**S<n>**`. "Re
 ### 4.15 Invariants
 
 - **S1213** Every golden expectation that exists at `rc-start` is byte-identical at the end, except `tests/golden/api/local-not-listed.out`, which only gains lines.
-- **S1214** No file under `stdlib/` changes.
+- **S1214** No file under `stdlib/` changes, except the `version` line of `stdlib/package.ozen` that the version bump of D154 rewrites.
 - **S1215** No test or document of this plan contains material from the trial transcriptions (names of its source, its recipes or its vocabulary file).
 - **S1216** The version files hold the version that D154 decides.
 
@@ -611,7 +611,7 @@ When a goal fails, report which goal and which check failed. A failing test is n
 | `G-RC-PLAN-TESTS` | one mutation record per row with a way to break it | `mutations: <m> rows, <m> recorded` |
 | `G-RC-GOLDEN` | the record goldens pass | `golden: <n> passed, 0 failed, 0 timed out` with n at least the number of `cgolden/record/` names in §5.3 |
 | `G-RC-GOLDEN-SAME` | S1213 | 0 existing test files changed or removed (goldens with their inputs, CLI cases, renderer tests); the one exception has 0 deleted lines |
-| `G-RC-STD-SAME` | S1214 | empty diff |
+| `G-RC-STD-SAME` | S1214 | empty diff; 0 changed lines in `stdlib/package.ozen` other than `version` |
 | `G-RC-CLI` | the `record-*` CLI cases pass | `cli: 5 cases, 0 failed` |
 | `G-RC-REND` | the renderer tests of §5.2 pass | `# fail 0` |
 | `G-RC-DIAG` | S1189–S1192 | the 12 new lines after `TYP023` equal the expected list (code, category, name, severity, in order); 0 deleted lines; `G-CORE-DIAG-REGISTRY`, `G-STD-PHRASES`, `G-TYPE-SEVERITY-TABLE` exit 0; 12 `ARG_KINDS` entries |
@@ -649,8 +649,9 @@ scripts/run-golden.sh $OZ tests/golden/record
 git diff --name-only --diff-filter=MDR rc-start -- tests/golden tests/cli renderers/test | grep -vx 'tests/golden/api/local-not-listed.out' | wc -l
 git diff --numstat rc-start -- tests/golden/api/local-not-listed.out | awk '{d=$2} END{print d+0}'
 
-# G-RC-STD-SAME (empty)
-git diff --stat rc-start -- stdlib
+# G-RC-STD-SAME (empty, 0)
+git diff --stat rc-start -- stdlib ':!stdlib/package.ozen'
+git diff rc-start -- stdlib/package.ozen | grep -E '^[-+][^-+]' | grep -vcE '^[-+] *version: *"[0-9.]+"$'
 
 # G-RC-CLI
 d=$(mktemp -d); cp tests/cli/lib.sh tests/cli/record-*.sh "$d"; scripts/run-cli-tests.sh $OZ "$d" 2>&1 | tail -n 1; rm -rf "$d"
@@ -1112,6 +1113,8 @@ Claude covers the machine-checked goals. The user checks these:
   - Goals that run one of the above inside: `G-DS-GOALS-SAME`, `G-DS-RELEASE-LOCAL`, `G-DS-VERSION`, `G-FB-REVIEW-SAME`, `G-FB-SAMPLES-SAME`, `G-RF-EQUIVALENCE`, `G-RF-SAMPLES-SAME`
   - Over the limit: `G-REPO-SELFTESTS`, `G-DS-SELFTESTS`
   - These are read from CI after each push (D155). §3.6 did not know about the missing Python modules; they move `G-SAMPLE-CHECK` and the samples-same goals to CI as well
+- Found in P0-3 (2026-11-24): `scripts/bump-version.sh` rewrites the `version` line of `stdlib/package.ozen`, so S1214 and `G-RC-STD-SAME` as first written would fail at P6-2. They now leave that one line out
+- Third-party patterns (P0-3, 2026-11-24): `scripts/rc-third-party.txt` has 73 patterns, each one identifier between word boundaries: the trial's source name, 47 of its 48 recipe identifiers, and 25 names of its added vocabulary. Left out: one recipe identifier and the vocabulary names that are ordinary words (a dish type, common ingredients, common verbs), because the match ignores case and would forbid normal text; and the 28 vocabulary names that the repository already uses. A planted file with one of the recipe identifiers made the count 1
 - Golden count at `rc-start` (P0-2): 641 passed with the gcc release binary (722 `.ozen` files under `tests/golden`). Other work in progress: none; the working tree was clean
 - Found in P0-2 (2026-11-24): three goals of the setup plan compare `ds-start` with the working tree, not with `ds-end`, so closing `DS` does not freeze them. `G-DS-TRANSLATION` reads `docs/concept.md` (P5 changes it), `G-DS-VERSION` reads version strings under `samples` and `tests` and runs the version goals (P6-2 changes `VERSION`), and `G-DS-GOLDEN-SAME` reads the working copy of the expectations that the setup plan changed. When one of them fails for this plan's change, its comparison is moved to `ds-end`, as `G-QC-GOLDEN-CHANGED` was moved to `qc-end`, and the change is recorded here
 - Inputs of §3.2 (2026-11-24), each checked with `ozen check` unless noted: row 1 `recipe a(servings: 2) { ingredients { sugar: Sugar; onion: 1 pcs } ... mix([s, sugar]) }`; row 2 `cut(slice, [any amount])`, `fry([any amount])`, `simmer([f, salt], [any amount])` with `salt: [any amount]` (`check`, `debug ir`, `debug schedule`); row 3 `onion |> peel |> cut(slice)` with `check --format json --emit ir`; row 4 the three annotations of the table; row 5 `action steamIt(x: T, time: Time in 0 s<.., heat: Heat = low) -> T<doneness: done>` on `ingredient Jelly { axes: doneness, prep }`, and `simmer(until: thickened)`; row 6 `recipe a { ingredients { onion: 1 pcs } ... }`

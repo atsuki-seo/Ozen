@@ -43,6 +43,8 @@ FB=fb-start..fb-end
 PLAN_FB=plans/ozen-cooking-feedback.md
 DS=ds-start..ds-end
 PLAN_DS=plans/ozen-dev-setup.md
+RC=rc-start..HEAD
+PLAN_RC=plans/ozen-record-checks.md
 DOCS_RD="README.md CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md"
 
 fct_source() {
@@ -1902,6 +1904,171 @@ goal_G_DS_SELFTESTS() {
 
 goal_G_DS_AUDIT() {
   want_ge1 "audit records" "$(grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_DS)"
+}
+
+goal_G_RC_DECISIONS() {
+  want_eq "decided" 19 "$(grep -c '^### D[0-9]*\. .*\[decided\]' $PLAN_RC)"
+  want_eq "open" 0 "$(grep -c '^### D[0-9]*\. .*\[open\]' $PLAN_RC)"
+  want_eq "decision lines" 19 "$(grep -c '^- \*\*Decision:\*\*' $PLAN_RC)"
+}
+
+goal_G_RC_COVERAGE() {
+  want_eq "S items without a row" 0 \
+    "$(diff <(sed -n '/^## 4\./,/^## 5\./p' $PLAN_RC | grep -oE '\*\*S[0-9]+\*\*' | tr -d '*' | sort -u) \
+            <(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_RC | grep -oE '^\| S[0-9]+' | tr -d '| ' | sort -u) | wc -l)"
+  want_eq "hand-over items without a reason" 0 \
+    "$(sed -n '/^## 8\./,/^## 9\./p' $PLAN_RC | grep '^- ' | grep -v 'Reason a command cannot decide:' | wc -l)"
+}
+
+goal_G_RC_PLAN_NAMES() {
+  want_re "plan-tests" '^plan-tests: [0-9]+ names, 0 missing$' "$(scripts/check-plan-tests.sh $PLAN_RC 2>/dev/null | tail -n 1)"
+}
+
+goal_G_RC_PLAN_TESTS() {
+  local out
+  out=$(scripts/check-plan-tests.sh --mutations $PLAN_RC 2>/dev/null | tail -n 1)
+  want_re "mutations" '^mutations: [0-9]+ rows, [0-9]+ recorded$' "$out"
+  want_eq "rows = recorded" "$(last_num "$out" 1)" "$(last_num "$out" 2)"
+}
+
+goal_G_RC_GOLDEN() {
+  local out n
+  out=$(scripts/run-golden.sh $OZ tests/golden/record 2>&1 | tail -n 1)
+  n=$(sed -n '/^### 5\.3/,/^## 6\./p' $PLAN_RC | grep -oE 'cgolden/record/[a-z0-9-]+' | sort -u | wc -l)
+  want_re "golden" '^golden: [0-9]+ passed, 0 failed, 0 timed out$' "$out"
+  want_eq "passed >= names in 5.3 ($n)" 1 "$([ "$(last_num "$out" 1)" -ge "$n" ] 2>/dev/null && echo 1)"
+}
+
+goal_G_RC_GOLDEN_SAME() {
+  want_eq "existing test files changed or removed" 0 \
+    "$(git diff --name-only --diff-filter=MDR rc-start -- tests/golden tests/cli renderers/test | grep -vx 'tests/golden/api/local-not-listed.out' | wc -l)"
+  want_eq "lines deleted from local-not-listed.out" 0 \
+    "$(git diff --numstat rc-start -- tests/golden/api/local-not-listed.out | awk '{d=$2} END{print d+0}')"
+}
+
+goal_G_RC_STD_SAME() {
+  want_eq "stdlib diff" "" "$(git diff --stat rc-start -- stdlib ':!stdlib/package.ozen')"
+  want_eq "package.ozen lines other than version" 0 \
+    "$(git diff rc-start -- stdlib/package.ozen | grep -E '^[-+][^-+]' | grep -vcE '^[-+] *version: *"[0-9.]+"$')"
+}
+
+goal_G_RC_CLI() {
+  local d
+  d=$(mktemp -d)
+  cp tests/cli/lib.sh tests/cli/record-*.sh "$d" 2>/dev/null
+  want_eq "cli" "cli: 5 cases, 0 failed" "$(scripts/run-cli-tests.sh $OZ "$d" 2>&1 | tail -n 1)"
+  rm -rf "$d"
+}
+
+goal_G_RC_REND() {
+  local out
+  out=$(node --test --test-reporter=tap 'renderers/test/record-*.test.mjs' 2>&1 | grep -E '^# (pass|fail)')
+  want_re "pass" '^[1-9][0-9]*$' "$(sed -n 's/^# pass //p' <<< "$out")"
+  want_eq "fail" 0 "$(sed -n 's/^# fail //p' <<< "$out")"
+}
+
+goal_G_RC_DIAG() {
+  local g
+  want_eq "new lines after TYP023" "" \
+    "$(diff <(sed -n '/TYP023/,$p' core/src/diag_codes.def | sed 1d | tr -d ' ') \
+            <(printf 'OZNI_DIAG(%s)\n' REC001,REC,amountMissing,ERROR REC002,REC,defaultArgument,ERROR REC003,REC,servingsMissing,ERROR \
+                REC004,REC,positionMissing,ERROR REC005,REC,sourceMissing,ERROR REC006,REC,unknownPosition,ERROR REC007,REC,uncoveredLine,ERROR \
+                REC008,REC,inlineIngredient,ERROR NAM022,NAM,unknownAnnotation,ERROR TYP024,TYP,unstatedPlace,ERROR TYP025,TYP,recordMark,ERROR \
+                SCH012,SCH,durationUnknown,WARNING) 2>&1)"
+  want_eq "deleted lines" 0 "$(git diff rc-start -- core/src/diag_codes.def | grep -c '^-OZNI_DIAG')"
+  for g in G-CORE-DIAG-REGISTRY G-STD-PHRASES G-TYPE-SEVERITY-TABLE; do
+    want_ok "$g" scripts/goals.sh $g
+  done
+  want_eq "ARG_KINDS entries" 12 \
+    "$(grep -cE '^  (amountMissing|defaultArgument|servingsMissing|positionMissing|sourceMissing|unknownPosition|uncoveredLine|inlineIngredient|unknownAnnotation|unstatedPlace|recordMark|durationUnknown):' renderers/lib/names.mjs)"
+}
+
+goal_G_RC_ORIGINS() {
+  local out
+  out=$(scripts/check-record-origins.py --ozen $OZ --schema schemas/result.schema.json tests/golden/record 2>&1 | tail -n 1)
+  want_re "record-origins" '^record-origins: [0-9]+ outputs, 0 problems, 0 enumeration values unseen$' "$out"
+  want_eq "outputs >= 20" 1 "$([ "$(last_num "$out" 1)" -ge 20 ] 2>/dev/null && echo 1)"
+  want_eq "schema enumerations = 4.14" "" "$(scripts/check-record-origins.py --schema schemas/result.schema.json --lists $PLAN_RC 2>&1)"
+  want_tail_failed0 "test-check-record-origins" check-record-origins scripts/test-check-record-origins.sh
+}
+
+goal_G_RC_ANNOTATIONS() {
+  local out n
+  out=$(scripts/check-record-annotations.sh $OZ 2>&1 | tail -n 1)
+  n=$(git ls-files stdlib samples tests/golden | grep '\.ozen$' | grep -vc '^tests/golden/record/')
+  want_eq "record-annotations" "record-annotations: $n files, $n checked, 0 with NAM022" "$out"
+  want_tail_failed0 "test-check-record-annotations" check-record-annotations scripts/test-check-record-annotations.sh
+  want_eq "annotation names = 4.14" "" \
+    "$(diff <(sed -n '/^| Built-in annotation names/p' $PLAN_RC | grep -oE '`[a-zA-Z]+`' | tr -d '`' | sort -u) \
+            <($OZ debug annotations 2>&1 | sort -u) 2>&1)"
+}
+
+goal_G_RC_GRAMMAR() {
+  want_ok "G-CORE-GRAMMAR" scripts/goals.sh G-CORE-GRAMMAR
+  want_eq "fuzz dictionary" 1 "$(grep -c '"unstated"' core/fuzz/ozen.dict)"
+}
+
+goal_G_RC_SYNTAX_LIST() {
+  want_ge1 "records section" "$(grep -c '^## Records' reference/language.md)"
+  want_eq "items missing from the reference" 0 \
+    "$(sed -n '/^### 4\.14/,/^### 4\.15/p' $PLAN_RC | grep '^| ' | grep -vE '^\| (Kind|---|Diagnostics|Phrases|Grammar|Built-in)' |
+       grep -oE '`[^`]+`' | sort -u |
+       while read -r w; do sed -n '/^## Records/,/^## /p' reference/language.md | grep -qF -- "$w" || echo "$w"; done | wc -l)"
+}
+
+goal_G_RC_DOCS() {
+  local g w
+  for g in G-DS-REFGEN G-DS-REFERENCE; do
+    want_ok "$g" scripts/goals.sh $g
+  done
+  want_ge1 "durationUnknown in diagnostics.md" "$(grep -c 'durationUnknown' reference/diagnostics.md)"
+  want_ge1 "REC008 in ai-guide.md" "$(grep -c 'REC008' reference/ai-guide.md)"
+  for w in '--record' 'debug record' '--emit record'; do
+    want_ge1 "cli/README.md: $w" "$(grep -cF -- "$w" cli/README.md)"
+  done
+  for w in '[unstated]' '`REC`' '@supplied' '@notRecorded' '@lines' '@cue' '--emit record' 'continuation'; do
+    want_ge1 "docs/concept.md: $w" "$(grep -cF -- "$w" docs/concept.md)"
+  done
+}
+
+goal_G_RC_NO_THIRD_PARTY() {
+  local n
+  n=$(grep -c . scripts/rc-third-party.txt 2>/dev/null)
+  want_eq "patterns >= 20 ($n)" 1 "$([ "${n:-0}" -ge 20 ] && echo 1)"
+  want_eq "matches" 0 "$(git grep -nEi -f scripts/rc-third-party.txt -- . ':!scripts/rc-third-party.txt' | wc -l)"
+}
+
+goal_G_RC_SCOPE() {
+  local c
+  want_ok "tag rc-start" git rev-parse -q --verify refs/tags/rc-start
+  want_eq "files outside scope" 0 \
+    "$(for c in $(git rev-list --no-merges $RC); do git diff-tree --no-commit-id --name-only -r "$c"; done | sort -u |
+       grep -vxEf scripts/rc-scope.txt | wc -l)"
+  want_eq "lines that match every path" 0 "$(grep -cxE '\.\*|\.\+' scripts/rc-scope.txt)"
+  want_eq "empty lines" 0 "$(grep -c '^$' scripts/rc-scope.txt)"
+}
+
+goal_G_RC_SELFTESTS() {
+  want_eq "selftest check-record-origins" 1 \
+    "$(grep -cx 'scripts/check-record-origins.py scripts/test-check-record-origins.sh' scripts/selftests.txt)"
+  want_eq "selftest check-record-annotations" 1 \
+    "$(grep -cx 'scripts/check-record-annotations.sh scripts/test-check-record-annotations.sh' scripts/selftests.txt)"
+  want_ok "G-REPO-SELFTESTS" scripts/goals.sh G-REPO-SELFTESTS
+}
+
+goal_G_RC_RANGES() {
+  want_ok "tag ds-end" git rev-parse -q --verify refs/tags/ds-end
+  want_eq "DS range" "DS=ds-start..ds-end" "$(grep -E '^DS=' scripts/goals.sh)"
+  want_ok "G-DS-SCOPE" scripts/goals.sh G-DS-SCOPE
+}
+
+goal_G_RC_VERSION() {
+  want_ok "G-REPO-VERSION" scripts/goals.sh G-REPO-VERSION
+  want_eq "VERSION" 0.2.0 "$(cat VERSION)"
+}
+
+goal_G_RC_AUDIT() {
+  want_ge1 "audit records" "$(grep -cE '^- Coverage audit: [0-9]+ findings, [0-9]+ taken' $PLAN_RC)"
 }
 
 all_ids() {
