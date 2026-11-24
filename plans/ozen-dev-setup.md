@@ -1268,6 +1268,7 @@ Claude covers the machine-checked goals. The user checks these:
 - Mutation check: `G-DS-RELEASE-PUBLISHED` — S1064, an archive built before a bump: the downloaded binary prints `ozen 0.1.0`, which differs from the version a bumped `VERSION` (`0.9.9`) would expect, so the `downloaded archives` check would fail. Restored: pass
 - Mutation check: `G-DS-RELEASE-PUBLISHED` — S1065, a failing macOS job: this happened for real; until the third run, the run for the tag's commit had the conclusion `failure` and `publish` was skipped. Restored: pass (`success`)
 - Mutation check: `G-DS-RELEASE-PUBLISHED` — S1066, a tag on a commit without `reference/`: the same request at `ds-start` returned HTTP 404 instead of the path. Restored: pass
+- Closed the range (2026-11-24): following D139 of the later plan `plans/ozen-record-checks.md`, put the tag `ds-end` on `f124e84`, the last commit of this plan, and changed `DS=` in `scripts/goals.sh` to `ds-start..ds-end`. `docs/record-requirements.md` was committed after the final gate (`eb7e24f`) and made `G-DS-SCOPE` fail; closing the range keeps it and the commits of later plans out of the ranges of this plan's goals
 
 ---
 

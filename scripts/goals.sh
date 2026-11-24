@@ -41,7 +41,7 @@ QC=qc-start..qc-end
 PLAN_QC=plans/ozen-quantity-checks.md
 FB=fb-start..fb-end
 PLAN_FB=plans/ozen-cooking-feedback.md
-DS=ds-start..HEAD
+DS=ds-start..ds-end
 PLAN_DS=plans/ozen-dev-setup.md
 DOCS_RD="README.md CONTRIBUTING.md cli/README.md core/README.md stdlib/README.md renderers/README.md bindings/README.md spec/README.md site/README.md"
 
